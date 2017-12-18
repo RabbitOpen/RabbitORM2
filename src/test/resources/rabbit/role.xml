@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
+	"http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd">
+
+<rabbit-mapping class="rabbit.open.test.entity.Role">
+
+	<select name="getRoleByID">
+		<![CDATA[
+			FROM 
+				T_ROLE R
+			WHERE 
+				R.ID = ${userId}  
+		]]>
+	</select>
+
+</rabbit-mapping>	

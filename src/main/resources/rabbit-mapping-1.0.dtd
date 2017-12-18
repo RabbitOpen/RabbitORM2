@@ -1,0 +1,21 @@
+<!-- rabbit-mapping DTD.
+
+<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
+	"http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd" >
+-->
+
+<!ELEMENT rabbit-mapping (
+	select*,
+	jdbc*
+)>	
+	<!ATTLIST rabbit-mapping class CDATA #REQUIRED>
+	
+<!ELEMENT select (
+	#PCDATA
+)>
+	<!ATTLIST select name CDATA #REQUIRED>
+
+<!ELEMENT jdbc (
+	#PCDATA
+)>
+	<!ATTLIST jdbc name CDATA #REQUIRED>

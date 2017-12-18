@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
+	"http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd"> 
+
+<rabbit-mapping class="rabbit.open.test.entity.User">
+	<!-- 根据用户名查询用户 -->
+	<select name="getUserByName">
+		<![CDATA[
+			FROM 
+				T_USER U
+			LEFT JOIN 
+				T_USER_ROLE UR
+			ON
+				UR.USER_ID = U.ID
+			LEFT JOIN 
+				T_ROLE R
+			ON 
+				UR.ROLE_ID = R.ID
+			WHERE 
+				U.ID = ${userId} 
+				AND U.NAME LIKE ${username} 
+		]]>
+	</select>
+
+	<select name="getUserByID">
+		<![CDATA[
+			FROM 
+				T_USER U
+			WHERE 
+				U.ID = ${userId}  
+		]]>
+	</select>
+	
+	<!-- jdbc操作 -->
+	<jdbc name="countUser">
+		SELECT
+			COUNT(1)
+		FROM T_USER	
+	</jdbc>
+</rabbit-mapping>	
