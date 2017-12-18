@@ -109,58 +109,62 @@ public class NamedQuery<T> extends AbstractQuery<T> {
 	
 	@Override
 	public long count() {
-		throw new UnSupportedMethodException("method[addFilter] is not supported by SQLQuery!");
+		throw new UnSupportedMethodException(getCurrentMethodName());
 	}
 	
 	@Override
 	public NamedQuery<T> addInnerJoinFilter(JoinFilter filter) {
-	    throw new UnSupportedMethodException("method[addInnerJoinFilter] is not supported by SQLQuery!");
+	    throw new UnSupportedMethodException(getCurrentMethodName());
 	}
+
+    private String getCurrentMethodName() {
+        return Thread.currentThread().getStackTrace()[2].getMethodName();
+    }
 
     @Override
     public NamedQuery<T> addFilter(String reg, Object value, FilterType ft,
             Class<?>... depsPath) {
-        return this;
+        throw new UnSupportedMethodException(getCurrentMethodName());
     }
 
     @Override
     public NamedQuery<T> addFilter(String reg, Object value,
             Class<?>... depsPath) {
-        return this;
+        throw new UnSupportedMethodException(getCurrentMethodName());
     }
 
     @Override
     public NamedQuery<T> addNullFilter(String reg, boolean isNull,
             Class<?>... depsPath) {
-        return this;
+        throw new UnSupportedMethodException(getCurrentMethodName());
     }
 
     @Override
     public NamedQuery<T> addNullFilter(String reg, Class<?>... depsPath) {
-        return this;
+        throw new UnSupportedMethodException(getCurrentMethodName());
     }
 
     @Override
     public NamedQuery<T> addJoinFilter(String reg, FilterType ft,
             Object value, Class<?> target) {
-        return this;
+        throw new UnSupportedMethodException(getCurrentMethodName());
     }
 
     @Override
     public NamedQuery<T> addJoinFilter(String reg, Object value,
             Class<?> target) {
-        return this;
+        throw new UnSupportedMethodException(getCurrentMethodName());
     }
 
     @Override
     public NamedQuery<T> addInnerJoinFilter(String reg, FilterType ft,
             Object value, Class<?> target) {
-        return this;
+        throw new UnSupportedMethodException(getCurrentMethodName());
     }
 
     @Override
     public NamedQuery<T> addInnerJoinFilter(String reg, Object value,
             Class<?> target) {
-        return this;
+        throw new UnSupportedMethodException(getCurrentMethodName());
     }
 }

@@ -8,8 +8,8 @@ package rabbit.open.orm.exception;
 @SuppressWarnings("serial")
 public class UnSupportedMethodException extends RuntimeException{
 
-	public UnSupportedMethodException(String message) {
-		super(message);
+	public UnSupportedMethodException(String method) {
+		super("method[" + method + "] is not supported");
 	}
 
 	

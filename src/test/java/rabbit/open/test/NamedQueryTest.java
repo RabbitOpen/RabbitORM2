@@ -49,9 +49,6 @@ public class NamedQueryTest {
 				.distinct()
 				.alias(User.class, "u")
 				.alias(Role.class, "r")
-				.addFilter("id", 1)
-				.addFilter("id", 1, FilterType.LIKE)
-				.addNullFilter("id")
                 .setParameterValue("username", "%zhangsan%")
                 .setParameterValue("userId", 1)
 				.execute();
@@ -68,17 +65,69 @@ public class NamedQueryTest {
 
 	@Test
 	public void unsupportedMethodTest() {
-	    try{
-	        us.createNamedQuery("getUserByName").count();
-	    }catch(Exception e){
-	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
-	    }
-	    try{
-	        us.createNamedQuery("getUserByName").addInnerJoinFilter(null);
-	    }catch(Exception e){
-	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
-	    }
+	    callCount();
+	    callAddFilter();
+	    callAddFilter2();
+	    callAddNullFilter();
+	    callAddInnerJoinFilter();
+	    callAddInnerJoinFilter2();
 	}
+
+    private void callAddInnerJoinFilter2() {
+        try{
+	        us.createNamedQuery("getUserByName").addInnerJoinFilter(null);
+	        TestCase.assertEquals(true, true);
+	    }catch(Exception e){
+	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
+	    }
+    }
+
+    private void callAddInnerJoinFilter() {
+        try{
+	        us.createNamedQuery("getUserByName")
+	            .addInnerJoinFilter("id", FilterType.EQUAL, 1, Role.class)
+	            .execute();
+	        TestCase.assertEquals(true, true);
+        }catch(Exception e){
+	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
+	    }
+    }
+
+    private void callAddNullFilter() {
+        try{
+	        us.createNamedQuery("getUserByName").addNullFilter("id").execute();
+	        TestCase.assertEquals(true, true);
+	    }catch(Exception e){
+	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
+	    }
+    }
+
+    private void callAddFilter2() {
+        try{
+	        us.createNamedQuery("getUserByName").addFilter("id", 1, FilterType.LIKE).execute();
+	        TestCase.assertEquals(true, true);
+	    }catch(Exception e){
+	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
+	    }
+    }
+
+    private void callAddFilter() {
+        try{
+	        us.createNamedQuery("getUserByName").addFilter("id", 1).execute();
+	        TestCase.assertEquals(true, true);
+	    }catch(Exception e){
+	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
+	    }
+    }
+
+    private void callCount() {
+        try{
+	        us.createNamedQuery("getUserByName").count();
+	        TestCase.assertEquals(true, true);
+	    }catch(Exception e){
+	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
+	    }
+    }
 
 	/**
 	 * 
