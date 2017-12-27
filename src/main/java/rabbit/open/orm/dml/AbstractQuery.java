@@ -1244,8 +1244,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		}
 		//不能自己fetch自己
 		if(metaData.getEntityClz().equals(clz)){
-			throw new RabbitDMLException("invalid fetch operation for class[" + clz.getName() + "] doesn't related with class[" 
-					+ clz.getName() + "]");
+			throw new RabbitDMLException("invalid fetch operation for class[" 
+			        + clz.getName() + "]");
 		}
 		fetchClzes.put(clz, dependency);
 		return this;
