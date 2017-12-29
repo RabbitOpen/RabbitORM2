@@ -62,4 +62,9 @@ public class JoinFilter {
     public List<Class<?>> getAssocicatedClass(){
         return descriptor.getAssocicatedClass();
     }
+
+    public JoinFilterDescriptor getFilterDescriptor() {
+        return descriptor;
+    }
+    
 }

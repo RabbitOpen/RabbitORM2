@@ -4,7 +4,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
 import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.Entity;
 
 /**
  * 
@@ -17,8 +16,11 @@ public class JoinFieldMetaData<T> {
 	//在实体中对应的字段信息
 	private Field field;
 	
-	//关联的实体类信息
+	//多端关联的实体类信息
 	private Class<T> joinClass;
+
+	//一端关联的实体
+	private Class<?> targetClass;
 	
 	//字段的注解信息
 	private Annotation annotation;
@@ -60,20 +62,17 @@ public class JoinFieldMetaData<T> {
 		return tableName;
 	}
 
-	public JoinFieldMetaData(Field field, Class<T> joinClass, Annotation annotation){
+	public JoinFieldMetaData(Field field, Class<T> joinClass, Class<?> targetClass, Annotation annotation){
 		super();
 		this.field = field;
+		this.targetClass = targetClass;
 		this.joinClass = joinClass;
 		this.annotation = annotation;
-		this.tableName = findTargetTable(joinClass);
+		this.tableName = MetaData.getTablenameByClass(joinClass);
 		this.primaryKey = MetaData.getPrimaryKeyField(joinClass).getAnnotation(Column.class).value();
 	}
 	
-	private String findTargetTable(Class<?> jc){
-		Class<?> clz = jc;
-		while(null == clz.getAnnotation(Entity.class)){
-			clz = clz.getSuperclass();
-		}
-		return clz.getAnnotation(Entity.class).value();
-	}
+	public Class<?> getTargetClass() {
+        return targetClass;
+    }
 }

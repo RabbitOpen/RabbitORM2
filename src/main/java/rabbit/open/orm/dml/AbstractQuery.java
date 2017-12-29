@@ -641,7 +641,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		StringBuilder sb = new StringBuilder();
 		ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + mtm.joinTable() + " " + getAliasByTableName(mtm.joinTable()) + " ON ");
-		sb.append(getAliasByTableName(metaData.getTableName()) + "." + metaData.getPrimaryKey() + " = ");
+		sb.append(getAliasByTableName(MetaData.getTablenameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
 		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.joinColumn() + " ");
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
 		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.reverseJoinColumn() + " = ");
@@ -690,7 +690,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		OneToMany otm = (OneToMany) jfm.getAnnotation();
 		String lj = leftJoin ? " LEFT JOIN " : INNER_JOIN;
 		sb.append(lj + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
-		sb.append(getAliasByTableName(metaData.getTableName()) + "." + metaData.getPrimaryKey() + " = ");
+		sb.append(getAliasByTableName(MetaData.getTablenameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
 		sb.append(getAliasByTableName(jfm.getTableName()) + "." + otm.joinColumn());
 		List<FieldMetaData> filterMetas = getNonEmptyFieldMetas(jfm.getFilter(), jfm.getJoinClass());
 		for(FieldMetaData fmd : filterMetas){

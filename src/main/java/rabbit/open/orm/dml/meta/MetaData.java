@@ -92,6 +92,10 @@ public class MetaData<T> {
 		return primaryKey;
 	}
 
+	public static String getPrimaryKey(Class<?> clz) {
+	    return getPrimaryKeyField(clz).getAnnotation(Column.class).value();
+	}
+
 	/**
 	 * 
 	 * <b>Description:	注册类和表的映射关系</b><br>
@@ -287,13 +291,13 @@ public class MetaData<T> {
 				Annotation ann = f.getAnnotation(ManyToMany.class);
 				if(null != ann){
 					ParameterizedType pt = (ParameterizedType) f.getGenericType();
-					jm.add(new JoinFieldMetaData(f, (Class<?>) pt.getActualTypeArguments()[0], ann));
+					jm.add(new JoinFieldMetaData(f, (Class<?>) pt.getActualTypeArguments()[0], clz, ann));
 					continue;
 				}
 				ann = f.getAnnotation(OneToMany.class);
 				if(null != ann){
 					ParameterizedType pt = (ParameterizedType) f.getGenericType();
-					jm.add(new JoinFieldMetaData(f, (Class<?>) pt.getActualTypeArguments()[0], ann));
+					jm.add(new JoinFieldMetaData(f, (Class<?>) pt.getActualTypeArguments()[0], clz, ann));
 					continue;
 				}
 			}

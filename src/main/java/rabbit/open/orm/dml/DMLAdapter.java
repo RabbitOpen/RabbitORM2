@@ -233,7 +233,7 @@ public abstract class DMLAdapter<T> {
 	 * 
 	 */
 	protected final List<FieldMetaData> getNonEmptyFieldMetas(Object data, Class<?> clz) {
-		if(data == null){
+		if(null == data){
 			return new ArrayList<>();
 		}
 		String tableName = MetaData.getTablenameByClass(clz);

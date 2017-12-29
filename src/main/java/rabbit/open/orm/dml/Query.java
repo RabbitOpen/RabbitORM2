@@ -96,7 +96,11 @@ public class Query<T> extends AbstractQuery<T> {
 	@Override
 	public AbstractQuery<T> addInnerJoinFilter(String reg, FilterType ft,
 			Object value, Class<?> target) {
-	    addInnerJoinFilter(JoinFilterBuilder.prepare(this).join(target).on(reg, value, ft).build());
+	    if(!joinFilters.containsKey(target)) {
+	        addInnerJoinFilter(JoinFilterBuilder.prepare(this).join(target).on(reg, value, ft).build());
+	    } else {
+	        joinFilters.get(target).getFilterDescriptor().on(reg, value, ft);
+	    }
 		return this;
 	}
 
