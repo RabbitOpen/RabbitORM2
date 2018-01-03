@@ -26,7 +26,9 @@ import rabbit.open.orm.dml.meta.FilterDescriptor;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFilter;
 import rabbit.open.orm.dml.meta.MetaData;
+import rabbit.open.orm.exception.CycleFetchException;
 import rabbit.open.orm.exception.InvalidFetchOperationException;
+import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.OrderAssociationException;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
@@ -146,7 +148,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			for(int i = 0; i < resultList.size(); i++){
 				if(pkv.equals(getPrimaryKeyValue(resultList.get(i)))){
 					exist = true;
-					combineResult(resultList, rowData, i);
+					combineRow(resultList.get(i), rowData);
 					break;
 				}
 			}
@@ -159,40 +161,60 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	
 	/**
 	 * 
-	 * 合并结果集
-	 * @param 	resultList
+	 * 合并结果集，将新读取的rowData合并到target中，合并list对象，递归合并Entity
+	 * @param 	target
 	 * @param 	rowData
-	 * @param 	index
 	 * @throws 	IllegalAccessException 
 	 * 
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void combineResult(List<T> resultList, T rowData, int index) throws IllegalAccessException {
+	@SuppressWarnings({"unchecked" })
+	private void combineRow(T target, T rowData) throws IllegalAccessException {
 		for(JoinFieldMetaData<?> jfm : joinFieldMetas){
+		    Object realTarget = getRealTarget(target, jfm);
+		    Object realRowData = getRealTarget(rowData, jfm);
 			jfm.getField().setAccessible(true);
-			List list = (List) jfm.getField().get(resultList.get(index));
+            List<Object> list = (List<Object>) jfm.getField().get(realTarget);
 			if(null == list){
-				jfm.getField().set(resultList.get(index), jfm.getField().get(rowData));
+				jfm.getField().set(realTarget, jfm.getField().get(realRowData));
 			}else{
-				List listNew = (List) jfm.getField().get(rowData);
-				if(null == listNew){
-					continue;
-				}
-				for(Object o : listNew){
-					boolean exist = false;
-					for(Object e : list){
-						if(getPrimaryKeyValue(o).equals(getPrimaryKeyValue(e))){
-							exist = true;
-							break;
-						}
-					}
-					if(!exist){
-						list.add(o);
-					}
-				}
+				combineList(realRowData, jfm, list);
 			}
 		}
 	}
+	
+	private Object getRealTarget(T target, JoinFieldMetaData<?> jfm)
+            throws IllegalAccessException {
+        Object realTarget = target;
+        if(!jfm.getTargetClass().equals(target.getClass())){
+           for(Field f: jfm.getDependencyFields()){
+               f.setAccessible(true);
+               realTarget = f.get(realTarget);
+           }
+        }
+        return realTarget;
+    }
+
+	@SuppressWarnings("rawtypes")
+    private void combineList(Object rowData, JoinFieldMetaData<?> jfm, List<Object> list)
+            throws IllegalAccessException {
+        List<?> listNew = (List) jfm.getField().get(rowData);
+        if(null != listNew){
+            for(Object o : listNew){
+                if(!contains(list, o)){
+                    list.add(o);
+                }
+            }
+        }
+    }
+
+    private boolean contains(List<?> list, Object o) throws IllegalAccessException {
+        for(Object e : list){
+        	if(getPrimaryKeyValue(o).equals(getPrimaryKeyValue(e))){
+        		return true;
+        	}
+        }
+        return false;
+    }
 	
 	private Object getPrimaryKeyValue(Object readRowData) throws IllegalAccessException {
 		Field primaryKey = MetaData.getPrimaryKeyField(readRowData.getClass());
@@ -229,12 +251,12 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			if(entity == target){
 				continue;
 			}
-			injectJoinDependency(target, entity);
+			injectJoinDependency(fetchEntity, entity);
 		}
 		return target;
 	}
 	
-	private void injectJoinDependency(T target, Object entity) throws IllegalAccessException {
+	private void injectJoinDependency(Map<String, Object> fetchEntity, Object entity) throws IllegalAccessException {
 		for(JoinFieldMetaData<?> jfd : joinFieldMetas){
 			if(!entity.getClass().equals(jfd.getJoinClass())){
 				continue;
@@ -242,6 +264,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			jfd.getField().setAccessible(true);
 			ArrayList<Object> list = new ArrayList<>();
 			list.add(entity);
+			Object target = fetchEntity.get(MetaData.getTablenameByClass(jfd.getTargetClass()));
 			jfd.getField().set(target, list);
 		}
 	}
@@ -1244,8 +1267,10 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		}
 		//不能自己fetch自己
 		if(metaData.getEntityClz().equals(clz)){
-			throw new RabbitDMLException("invalid fetch operation for class[" 
-			        + clz.getName() + "]");
+			throw new CycleFetchException(clz);
+		}
+		if(null != fetchClzes.get(clz) && !fetchClzes.get(clz).equals(dependency)){
+		    throw new InvalidFetchOperationException(clz, fetchClzes.get(clz), dependency);
 		}
 		fetchClzes.put(clz, dependency);
 		return this;
@@ -1269,6 +1294,14 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	public <E> AbstractQuery<T> joinFetch(Class<E> entity){
 		return joinFetch(entity, null);
 	}
+
+	/**
+	 * <b>Description  构建fetch操作.</b>
+	 * @return
+	 */
+	public FetchDescriptor<T> buildFetch(){
+	    return new FetchDescriptor<>(this);
+	}
 	
 	/**
 	 * 
@@ -1280,10 +1313,12 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public <E> AbstractQuery<T> joinFetch(Class<E> entityClz, E filter){
+	    boolean validFetch = false;
 		for(JoinFieldMetaData jfm : metaData.getJoinMetas()){
 			if(!entityClz.equals(jfm.getJoinClass())){
 				continue;
 			}
+			validFetch = true;
 			jfm.setFilter(filter);
 			for(JoinFieldMetaData jfme : joinFieldMetas){
 				if(jfme.getJoinClass().equals(entityClz)){
@@ -1293,6 +1328,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			}
 			joinFieldMetas.add(jfm);
 			break;
+		}
+		if(!validFetch){
+		    throw new InvalidJoinFetchOperationException(entityClz, metaData.getEntityClz());
 		}
 		return this;
 	}

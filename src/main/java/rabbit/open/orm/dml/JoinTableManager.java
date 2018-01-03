@@ -26,11 +26,6 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 		super(sessionFactory, clz);
 	}
 
-	public JoinTableManager(SessionFactory sessionFactory, T filterData,
-			Class<T> clz) {
-		super(sessionFactory, filterData, clz);
-	}
-
 	/**
 	 * 
 	 * <b>Description:	向many2many的中间表中插入数据</b><br>

@@ -66,6 +66,14 @@ public class MetaData<T> {
 		registClassTableMapping(entityClz);
 		registMetaData(entityClz);
 	}
+	
+	public static <D> MetaData<?> getMetaByClass(Class<D> clz){
+	    if(metaMapping.containsKey(clz)){
+	        return metaMapping.get(clz);
+	    }
+	    new MetaData<D>(clz);
+	    return metaMapping.get(clz);
+	}
 
 	/**
 	 * 
@@ -246,6 +254,22 @@ public class MetaData<T> {
 			fieldsMapping.put(clz, mapping);
 		}
 		return mapping;
+	}
+	
+	/**
+	 * <b>Description  获取clz中指定字段类型的FieldMetaData.</b>
+	 * @param clz
+	 * @param type
+	 * @return
+	 */
+	public static FieldMetaData getCachedFieldMetaByType(Class<?> clz, Class<?> type){
+	    List<FieldMetaData> cachedFieldsMetas = getCachedFieldsMetas(clz);
+	    for(FieldMetaData fmd : cachedFieldsMetas){
+	        if(fmd.getField().getType().equals(type)){
+	            return fmd;
+	        }
+	    }
+	    throw new RabbitDMLException(type + " doesn't belong to " + clz);
 	}
 	
 	/**

@@ -31,6 +31,7 @@ import rabbit.open.orm.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFilter;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.util.SQLFormater;
+import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
@@ -636,7 +637,7 @@ public abstract class DMLAdapter<T> {
 			}
 		}
 		if(!validTarget){
-			throw new RabbitDMLException(target + " can't be specified as a joinFilter!");
+			throw new InvalidJoinFetchOperationException(target, metaData.getEntityClz());
 		}
 	}
 	

@@ -28,6 +28,9 @@ public class JoinFieldMetaData<T> {
 	//联合查询时的过滤条件
 	private T filter;
 	
+	//字段依赖
+	private Field[] dependencyFields;
+	
 	//表名
 	private String tableName;
 	
@@ -75,4 +78,13 @@ public class JoinFieldMetaData<T> {
 	public Class<?> getTargetClass() {
         return targetClass;
     }
+
+    public Field[] getDependencyFields() {
+        return dependencyFields;
+    }
+
+    public void setDependencyFields(Field[] dependencyFields) {
+        this.dependencyFields = dependencyFields;
+    }
+	
 }
