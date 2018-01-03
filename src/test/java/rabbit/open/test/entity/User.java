@@ -34,7 +34,7 @@ public class User {
         this.org = org;
     }
     
-    @PrimaryKey(policy=Policy.AUTOINCREMENT, sequence="MYSEQ")
+    @PrimaryKey(policy=Policy.AUTOINCREMENT)
 	@Column("ID")
 	private Long id;
 	

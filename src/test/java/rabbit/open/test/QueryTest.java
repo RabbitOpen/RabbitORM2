@@ -17,15 +17,18 @@ import rabbit.open.orm.annotation.Relation.FilterType;
 import rabbit.open.orm.dml.Query;
 import rabbit.open.orm.dml.meta.JoinFilterBuilder;
 import rabbit.open.orm.exception.InvalidFetchOperationException;
+import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.OrderAssociationException;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.Organization;
+import rabbit.open.test.entity.Property;
 import rabbit.open.test.entity.Resources;
 import rabbit.open.test.entity.Role;
 import rabbit.open.test.entity.UUIDPolicyEntity;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.service.CarService;
 import rabbit.open.test.service.OrganizationService;
+import rabbit.open.test.service.PropertyService;
 import rabbit.open.test.service.ResourcesService;
 import rabbit.open.test.service.RoleService;
 import rabbit.open.test.service.UserService;
@@ -54,6 +57,9 @@ public class QueryTest {
 	@Autowired
 	CarService cs;
 
+	@Autowired
+	PropertyService ps;
+	
 	/**
 	 * 
 	 * <b>Description:  添加测试数据</b><br>.
@@ -178,7 +184,7 @@ public class QueryTest {
 	    addInitData(120);
 	    List<User> list = us.createQuery()
                 .page(0, 10)
-//                .joinFetch(Role.class)
+                .joinFetch(Role.class)
                 .fetch(Organization.class)
                 .addFilter("id", 1)
                 .addInnerJoinFilter("id", FilterType.IN, new Integer[]{1, 3, 2}, Role.class)
@@ -240,8 +246,9 @@ public class QueryTest {
 	public void wrongOrderTest(){
 	    try{
 	        us.createQuery().desc("id", UUIDPolicyEntity.class).execute();
-	    } catch (OrderAssociationException e){
+	    } catch (Exception e){
 	        System.out.println(e.getMessage());
+	        TestCase.assertSame(e.getClass(), OrderAssociationException.class);
 	    }
 	}
 	
@@ -284,6 +291,32 @@ public class QueryTest {
                 .execute().list();
         list.forEach(u -> System.out.println(u));
 	}
+
+	/**
+	 * 
+	 * <b>Description:  addJoinFilterTest</b><br>.	
+	 * 
+	 */
+	@Test
+	public void invalidJoinFilterTest(){
+	    addInitData(150);
+        try {
+            us.createQuery().page(0, 10).joinFetch(Organization.class)
+                    .execute().list();
+            throw new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertSame(e.getClass(),
+                    InvalidJoinFetchOperationException.class);
+        }
+        try {
+            us.createQuery().page(0, 10).addJoinFilter("name", "name", Organization.class)
+                    .execute().list();
+            throw new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertSame(e.getClass(),
+                    InvalidJoinFetchOperationException.class);
+        }
+	}
 	
 	/**
 	 * 
@@ -313,6 +346,37 @@ public class QueryTest {
 	            .addJoinFilter("roleName", "R150", Role.class)
 	            .addJoinFilter("id", 2, Car.class)
 	            .execute().list();
+	    list.forEach(u -> System.out.println(u));
+	}
+	
+	
+	@Test
+	public void buildFetchTest(){
+	    User user = addInitData(350);
+	    user.getOrg();
+	    ps.add(new Property(user.getOrg().getId(), "P1"));
+	    ps.add(new Property(user.getOrg().getId(), "P2"));
+	    List<User> list = null;
+	   
+	    
+	    try{
+	        //验证非法的joinFetch操作
+	        us.createQuery().buildFetch().joinFetch(Property.class).build().execute().list();
+	        throw new RuntimeException();
+	    }catch(Exception e){
+	        TestCase.assertSame(e.getClass(),
+                    InvalidJoinFetchOperationException.class);
+	    }
+	    
+	    //主表joinFetch
+	    list = us.createQuery().buildFetch()
+	            .joinFetch(Role.class).on("id", 1).build().execute().list();
+	    list.forEach(u -> System.out.println(u));
+	    
+	    
+	    //从表joinFetch
+	    list = us.createQuery().buildFetch().fetch(Organization.class)
+	            .joinFetch(Property.class).build().execute().list();
 	    list.forEach(u -> System.out.println(u));
 	}
 }

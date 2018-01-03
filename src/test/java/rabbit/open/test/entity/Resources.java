@@ -8,7 +8,7 @@ import rabbit.open.orm.dml.policy.Policy;
 @Entity("T_RESOURCE")
 public class Resources {
     
-    @PrimaryKey(policy=Policy.AUTOINCREMENT, sequence="MYSEQ")
+    @PrimaryKey(policy=Policy.AUTOINCREMENT)
     @Column("ID")
     private Integer id;
     

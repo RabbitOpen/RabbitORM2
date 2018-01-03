@@ -1,14 +1,17 @@
 package rabbit.open.test.entity;
 
+import java.util.List;
+
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.Entity;
+import rabbit.open.orm.annotation.OneToMany;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.dml.policy.Policy;
 
 @Entity("T_ORG")
 public class Organization {
     
-    @PrimaryKey(policy=Policy.AUTOINCREMENT, sequence="MYSEQ")
+    @PrimaryKey(policy=Policy.AUTOINCREMENT)
     @Column("ID")
     private Long id;
 
@@ -18,6 +21,9 @@ public class Organization {
 	@Column("NAME")
 	private String name;
 
+	@OneToMany(joinColumn="ORG_ID")
+	List<Property> props;
+	
 	public String getOrgCode() {
 		return orgCode;
 	}
@@ -41,7 +47,7 @@ public class Organization {
     @Override
     public String toString() {
         return "Organization [id=" + id + ", orgCode=" + orgCode + ", name="
-                + name + "]";
+                + name + ", props=" + props + "]";
     }
 
     public Organization(String orgCode, String name) {
@@ -57,6 +63,5 @@ public class Organization {
     public void setId(Long id) {
         this.id = id;
     }
-	
 	
 }

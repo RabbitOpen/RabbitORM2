@@ -11,14 +11,14 @@ import rabbit.open.orm.dml.policy.Policy;
 @Entity("T_ROLE")
 public class Role {
 
-	@PrimaryKey(policy=Policy.AUTOINCREMENT, sequence="MYSEQ")
+	@PrimaryKey(policy=Policy.AUTOINCREMENT)
 	@Column("ID")
 	private Integer id;
 	
 	@Column("ROLENAME")
 	private String roleName;
 	
-	@ManyToMany(id="ID", policy=Policy.AUTOINCREMENT, sequence="MYSEQ", 
+	@ManyToMany(id="ID", policy=Policy.AUTOINCREMENT, 
             joinTable="T_ROLE_RESOURCE", 
             joinColumn="ROLE_ID", reverseJoinColumn="RESOURCE_ID")
     private List<Resources> resources;
