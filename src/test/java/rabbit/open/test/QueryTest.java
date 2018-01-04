@@ -26,12 +26,16 @@ import rabbit.open.test.entity.Resources;
 import rabbit.open.test.entity.Role;
 import rabbit.open.test.entity.UUIDPolicyEntity;
 import rabbit.open.test.entity.User;
+import rabbit.open.test.entity.ZProperty;
+import rabbit.open.test.entity.Zone;
 import rabbit.open.test.service.CarService;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.PropertyService;
 import rabbit.open.test.service.ResourcesService;
 import rabbit.open.test.service.RoleService;
 import rabbit.open.test.service.UserService;
+import rabbit.open.test.service.ZPropertyService;
+import rabbit.open.test.service.ZoneService;
 
 /**
  * <b>Description: 	查询测试</b><br>
@@ -59,7 +63,12 @@ public class QueryTest {
 
 	@Autowired
 	PropertyService ps;
+
+	@Autowired
+	ZPropertyService zps;
 	
+	@Autowired
+	ZoneService zs;
 	/**
 	 * 
 	 * <b>Description:  添加测试数据</b><br>.
@@ -350,12 +359,65 @@ public class QueryTest {
 	}
 	
 	
+	public User addInitData2(){
+	    Zone z = new Zone("华北");
+	    zs.add(z);
+	    User user = new User();
+        //添加组织
+        Organization org = new Organization("FBI", "联邦调查局", z);
+        os.add(org);
+        
+        //添加角色
+        List<Role> roles = new ArrayList<Role>();
+        for(int i = 1000; i < 1002; i++){
+            Role r = new Role("R" + i);
+            rs.add(r);
+            roles.add(r);
+            //构建资源
+            List<Resources> resources = new ArrayList<Resources>();
+            for(int j = 0; j < 2; j++){
+                Resources rr = new Resources("baidu_" + j + i + ".com");
+                resService.add(rr);
+                resources.add(rr);
+            }
+            //添加角色资源映射关系
+            r.setResources(resources);
+            rs.addJoinRecords(r);
+        }
+        
+        //添加用户
+        user.setOrg(org);
+        user.setBigField(new BigDecimal(1));
+        user.setShortField((short) 1);
+        user.setDoubleField(0.1);
+        user.setFloatField(0.1f);
+        
+        user.setName("zhangsan" + System.currentTimeMillis());
+        user.setBirth(new Date());
+        us.add(user);
+        
+        //添加用户角色之间的映射关系
+        user.setRoles(roles);
+        us.addJoinRecords(user);
+        
+        //添加车辆
+        cs.add(new Car("川A110", user));
+        cs.add(new Car("川A120", user));
+        cs.add(new Car("川A130", user));
+        return user;
+	}
+	
 	@Test
 	public void buildFetchTest(){
-	    User user = addInitData(350);
+	    User user = addInitData2();
 	    user.getOrg();
 	    ps.add(new Property(user.getOrg().getId(), "P1"));
 	    ps.add(new Property(user.getOrg().getId(), "P2"));
+	    
+	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP4"));
+	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP3"));
+	    
+	    
 	    List<User> list = null;
 	   
 	    
@@ -375,8 +437,17 @@ public class QueryTest {
 	    
 	    
 	    //从表joinFetch
-	    list = us.createQuery().buildFetch().fetch(Organization.class)
-	            .joinFetch(Property.class).build().execute().list();
+	    list = us.createQuery().buildFetch().joinFetch(Role.class).fetch(Organization.class)
+	            .joinFetch(Property.class).build()
+	            .addFilter("id", 1)
+	            .addJoinFilter("id", 1, Role.class)
+	            .execute().list();
+	    list.forEach(u -> System.out.println(u));
+
+	    //从表joinFetch
+	    list = us.createQuery().buildFetch().joinFetch(Role.class).fetch(Organization.class).joinFetch(Property.class).fetch(Zone.class)
+	            .joinFetch(ZProperty.class).build()
+	            .execute().list();
 	    list.forEach(u -> System.out.println(u));
 	}
 }

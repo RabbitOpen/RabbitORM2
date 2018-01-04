@@ -20,6 +20,9 @@ public class Organization {
 	
 	@Column("NAME")
 	private String name;
+	
+	@Column("ZONE_ID")
+	private Zone zone;
 
 	@OneToMany(joinColumn="ORG_ID")
 	List<Property> props;
@@ -56,6 +59,13 @@ public class Organization {
         this.name = name;
     }
 
+    public Organization(String orgCode, String name, Zone zone) {
+        super();
+        this.orgCode = orgCode;
+        this.name = name;
+        this.zone = zone;
+    }
+
     public Long getId() {
         return id;
     }
@@ -63,5 +73,15 @@ public class Organization {
     public void setId(Long id) {
         this.id = id;
     }
+
+    public Zone getZone() {
+        return zone;
+    }
+
+    public void setZone(Zone zone) {
+        this.zone = zone;
+    }
+    
+    
 	
 }
