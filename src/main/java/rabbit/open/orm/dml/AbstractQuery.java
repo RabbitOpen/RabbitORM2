@@ -31,6 +31,7 @@ import rabbit.open.orm.exception.InvalidFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.OrderAssociationException;
 import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.orm.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.pool.SessionFactory;
 
 /**
@@ -1277,7 +1278,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			throw new CycleFetchException(clz);
 		}
 		if(null != fetchClzes.get(clz) && !fetchClzes.get(clz).equals(dependency)){
-		    throw new InvalidFetchOperationException(clz, fetchClzes.get(clz), dependency);
+		    throw new RepeatedFetchOperationException(clz, fetchClzes.get(clz), dependency);
 		}
 		fetchClzes.put(clz, dependency);
 		return this;
@@ -1287,6 +1288,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		if(null == clz){
 			return this;
 		}
+		if(null != fetchClzes.get(clz) && !fetchClzes.get(clz).equals(metaData.getEntityClz())){
+            throw new RepeatedFetchOperationException(clz, fetchClzes.get(clz), metaData.getEntityClz());
+        }
 		fetchClzes.put(clz, metaData.getEntityClz());
 		return this;
 	}

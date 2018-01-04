@@ -82,6 +82,9 @@ public class User {
 
 	@Column(value="ORG_ID")
 	private Organization org;
+	
+	@Column("ZONE_ID")
+    private Zone zone;
 
     public Long getId() {
         return id;

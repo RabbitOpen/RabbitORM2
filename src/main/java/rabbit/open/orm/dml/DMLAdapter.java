@@ -282,7 +282,6 @@ public abstract class DMLAdapter<T> {
 						getAliasByTableName(fkTable) + "." + fkName);
 				desc.setJoinOn(true);
 				desc.setFilterTable(fkTable);
-				desc.setDependencyTable(fmd.getFieldTableName());
 				filterDescriptors.add(desc);
 				generateFilters(getNonEmptyFieldMetas(fmd.getFieldValue(), fmd.getField().getType()));
 			}else{

@@ -7,8 +7,4 @@ public class InvalidFetchOperationException extends RabbitDMLException{
         super(message);
     }
 
-    public InvalidFetchOperationException(Class<?> fetch, Class<?> t1, Class<?> t2) {
-        super("repeated fetch operation of [" + fetch.getName() + "] between [" 
-                + t1.getName() + "] and [" + t2.getName() + "]");
-    }
 }

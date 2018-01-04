@@ -19,6 +19,7 @@ import rabbit.open.orm.dml.meta.JoinFilterBuilder;
 import rabbit.open.orm.exception.InvalidFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.OrderAssociationException;
+import rabbit.open.orm.exception.RepeatedFetchOperationException;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.Property;
@@ -409,13 +410,13 @@ public class QueryTest {
 	
 	@Test
 	public void buildFetchTest(){
-//	    User user = addInitData2();
-//	    user.getOrg();
-//	    ps.add(new Property(user.getOrg().getId(), "P1"));
-//	    ps.add(new Property(user.getOrg().getId(), "P2"));
-//	    
-//	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP4"));
-//	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP3"));
+	    User user = addInitData2();
+	    user.getOrg();
+	    ps.add(new Property(user.getOrg().getId(), "P1"));
+	    ps.add(new Property(user.getOrg().getId(), "P2"));
+	    
+	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP4"));
+	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP3"));
 	    
 	    
 	    List<User> list = null;
@@ -449,5 +450,29 @@ public class QueryTest {
 	            .joinFetch(ZProperty.class).build()
 	            .execute().list();
 	    list.forEach(u -> System.out.println(u));
+	}
+	
+	/**
+	 * <b>Description  fetch异常测试.</b>
+	 */
+	@Test
+	public void fetchExceptionTest(){
+	    try{
+	        us.createQuery().buildFetch().fetch(Organization.class)
+                .fetch(Zone.class).build()
+                .fetch(Zone.class)
+                .execute().list();
+	        throw new RuntimeException();
+	    } catch (Exception e){
+	        TestCase.assertSame(e.getClass(), RepeatedFetchOperationException.class);
+	    }
+	    try{
+	        us.createQuery().fetch(Zone.class).buildFetch().fetch(Organization.class)
+    	        .fetch(Zone.class).build()
+    	        .execute().list();
+	        throw new RuntimeException();
+	    } catch (Exception e){
+	        TestCase.assertSame(e.getClass(), RepeatedFetchOperationException.class);
+	    }
 	}
 }

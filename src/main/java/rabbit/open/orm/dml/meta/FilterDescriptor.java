@@ -22,9 +22,6 @@ public class FilterDescriptor {
 	//两表关联时的外键表
 	private String filterTable;
 
-	//级联查询时依赖的表
-	private String dependencyTable;
-	
 	//联合查询时的依赖
 	private Class<?> joinDependency;
 	
@@ -62,16 +59,8 @@ public class FilterDescriptor {
 		return value;
 	}
 
-	public void setValue(Object value) {
-		this.value = value;
-	}
-
 	public String getFilter() {
 		return filter;
-	}
-
-	public void setFilter(String filter) {
-		this.filter = " " + filter.trim() + " ";
 	}
 
 	public FilterDescriptor(String key, Object value, String filter) {
@@ -105,14 +94,6 @@ public class FilterDescriptor {
 
 	public void setJoinDependency(Class<?> joinDependency) {
 		this.joinDependency = joinDependency;
-	}
-
-	public String getDependencyTable() {
-		return dependencyTable;
-	}
-
-	public void setDependencyTable(String dependencyTable) {
-		this.dependencyTable = dependencyTable;
 	}
 
 	public String getConnector() {
