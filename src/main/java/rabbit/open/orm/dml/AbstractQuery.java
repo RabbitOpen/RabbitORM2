@@ -172,12 +172,16 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		for(JoinFieldMetaData<?> jfm : joinFieldMetas){
 		    Object realTarget = getRealTarget(target, jfm);
 		    Object realRowData = getRealTarget(rowData, jfm);
-			jfm.getField().setAccessible(true);
-            List<Object> list = (List<Object>) jfm.getField().get(realTarget);
+            Field field = jfm.getField();
+            field.setAccessible(true);
+            if(null == realRowData || null == field.get(realRowData)){
+                continue;
+            }
+            List<Object> list = (List<Object>) field.get(realTarget);
 			if(null == list){
-				jfm.getField().set(realTarget, jfm.getField().get(realRowData));
+				jfm.getField().set(realTarget, field.get(realRowData));
 			}else{
-				combineList(realRowData, jfm, list);
+				combineList(realRowData, field, list);
 			}
 		}
 	}
@@ -189,15 +193,18 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
            for(Field f: jfm.getDependencyFields()){
                f.setAccessible(true);
                realTarget = f.get(realTarget);
+               if(null == realTarget){
+                   return null;
+               }
            }
         }
         return realTarget;
     }
 
 	@SuppressWarnings("rawtypes")
-    private void combineList(Object rowData, JoinFieldMetaData<?> jfm, List<Object> list)
+    private void combineList(Object rowData, Field field, List<Object> list)
             throws IllegalAccessException {
-        List<?> listNew = (List) jfm.getField().get(rowData);
+        List<?> listNew = (List) field.get(rowData);
         if(null != listNew){
             for(Object o : listNew){
                 if(!contains(list, o)){

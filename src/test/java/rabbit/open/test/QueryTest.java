@@ -409,13 +409,13 @@ public class QueryTest {
 	
 	@Test
 	public void buildFetchTest(){
-	    User user = addInitData2();
-	    user.getOrg();
-	    ps.add(new Property(user.getOrg().getId(), "P1"));
-	    ps.add(new Property(user.getOrg().getId(), "P2"));
-	    
-	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP4"));
-	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP3"));
+//	    User user = addInitData2();
+//	    user.getOrg();
+//	    ps.add(new Property(user.getOrg().getId(), "P1"));
+//	    ps.add(new Property(user.getOrg().getId(), "P2"));
+//	    
+//	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP4"));
+//	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP3"));
 	    
 	    
 	    List<User> list = null;

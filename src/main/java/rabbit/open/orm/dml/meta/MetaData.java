@@ -197,6 +197,7 @@ public class MetaData<T> {
 			String tbName = c.getAnnotation(Entity.class).value();
 			clzMapping.put(clz, tbName);
 			clzMapping.put(c, tbName);
+			tableMapping.put(tbName, c);
 			return tbName;
 		}
 		return tableName;

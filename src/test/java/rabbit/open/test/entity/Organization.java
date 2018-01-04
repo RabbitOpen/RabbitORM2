@@ -50,7 +50,7 @@ public class Organization {
     @Override
     public String toString() {
         return "Organization [id=" + id + ", orgCode=" + orgCode + ", name="
-                + name + ", props=" + props + "]";
+                + name + ", zone=" + zone + ", props=" + props + "]";
     }
 
     public Organization(String orgCode, String name) {
