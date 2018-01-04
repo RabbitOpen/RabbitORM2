@@ -303,30 +303,38 @@ public abstract class SpringDaoAdapter<T> {
 			if(null == fv){
 				continue;
 			}
-			try{
-				Field df = dest.getClass().getDeclaredField(f.getName());
-				df.setAccessible(true);
-				if(df.getType().equals(f.getType())){
-					df.set(dest, fv);
-					continue;
-				}
-				//类型不匹配
-				if(df.getType().getName().startsWith("java") || 
-						f.getType().getName().startsWith("java")){
-					continue;
-				}
-				try{
-					Object dfv = df.getType().getConstructor().newInstance();
-					cloneValueByFieldName(fv, dfv);
-					df.set(dest, dfv);
-				}catch(Exception e){
-					logger.error(e.getMessage(), e);
-				}
-			}catch(Exception e){
-				
-			}
+			cloneFieldValue(dest, f, fv);
 		}
 	}
+
+    private void cloneFieldValue(Object dest, Field f, Object fv) {
+        try{
+        	Field df = dest.getClass().getDeclaredField(f.getName());
+        	df.setAccessible(true);
+        	if(df.getType().equals(f.getType())){
+        		df.set(dest, fv);
+        		return;
+        	}
+        	//类型不匹配
+        	if(df.getType().getName().startsWith("java") || 
+        			f.getType().getName().startsWith("java")){
+        		return;
+        	}
+        	cloneBeanField(dest, fv, df);
+        }catch(Exception e){
+        	
+        }
+    }
+
+    private void cloneBeanField(Object dest, Object fv, Field df) {
+        try{
+        	Object dfv = df.getType().getConstructor().newInstance();
+        	cloneValueByFieldName(fv, dfv);
+        	df.set(dest, dfv);
+        }catch(Exception e){
+        	logger.error(e.getMessage(), e);
+        }
+    }
 
     private Object getValue(Object src, Field f) {
         try {
