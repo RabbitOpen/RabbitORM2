@@ -24,6 +24,9 @@ public class Organization {
 	@Column("ZONE_ID")
 	private Zone zone;
 
+	@Column("LEADER_ID")
+	private Leader leader;
+
 	@OneToMany(joinColumn="ORG_ID")
 	List<Property> props;
 	
@@ -47,12 +50,6 @@ public class Organization {
 		super();
 	}
 
-    @Override
-    public String toString() {
-        return "Organization [id=" + id + ", orgCode=" + orgCode + ", name="
-                + name + ", zone=" + zone + ", props=" + props + "]";
-    }
-
     public Organization(String orgCode, String name) {
         super();
         this.orgCode = orgCode;
@@ -64,6 +61,14 @@ public class Organization {
         this.orgCode = orgCode;
         this.name = name;
         this.zone = zone;
+    }
+
+    public Organization(String orgCode, String name, Zone zone, Leader leader) {
+        super();
+        this.orgCode = orgCode;
+        this.name = name;
+        this.zone = zone;
+        this.leader = leader;
     }
 
     public Long getId() {
@@ -81,7 +86,16 @@ public class Organization {
     public void setZone(Zone zone) {
         this.zone = zone;
     }
+
+    @Override
+    public String toString() {
+        return "Organization [id=" + id + ", orgCode=" + orgCode + ", name="
+                + name + ", zone=" + zone + ", leader=" + leader + ", props="
+                + props + "]";
+    }
+
+    public Leader getLeader() {
+        return leader;
+    }
     
-    
-	
 }

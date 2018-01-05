@@ -54,7 +54,8 @@ public class DeleteTest {
 	@Test
 	public void delete(){
 	    User user = addInitUser();
-		System.out.println(us.delete(user));
+		us.delete(user);
+		TestCase.assertNull(us.createQuery(user).execute().unique());
 	}
 
 	@Test

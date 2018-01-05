@@ -21,6 +21,7 @@ import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.OrderAssociationException;
 import rabbit.open.orm.exception.RepeatedFetchOperationException;
 import rabbit.open.test.entity.Car;
+import rabbit.open.test.entity.Leader;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.Property;
 import rabbit.open.test.entity.Resources;
@@ -30,6 +31,7 @@ import rabbit.open.test.entity.User;
 import rabbit.open.test.entity.ZProperty;
 import rabbit.open.test.entity.Zone;
 import rabbit.open.test.service.CarService;
+import rabbit.open.test.service.LeaderService;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.PropertyService;
 import rabbit.open.test.service.ResourcesService;
@@ -70,6 +72,10 @@ public class QueryTest {
 	
 	@Autowired
 	ZoneService zs;
+
+	@Autowired
+	LeaderService ls;
+	
 	/**
 	 * 
 	 * <b>Description:  添加测试数据</b><br>.
@@ -271,8 +277,7 @@ public class QueryTest {
 	public void countTest(){
 	    addInitData(130);
 	    Query<User> query = us.createQuery();
-	    long count = query.page(0, 10)
-	            .joinFetch(Role.class)
+	    long count = query.joinFetch(Role.class)
 	            .fetch(Organization.class)
 	            .joinFetch(Car.class)
 	            .addInnerJoinFilter(JoinFilterBuilder.prepare(query).join(Role.class)
@@ -452,6 +457,27 @@ public class QueryTest {
 	    list.forEach(u -> System.out.println(u));
 	}
 	
+	@Test
+	public void mutilFetchTest(){
+	    Zone z = new Zone("华强北");
+        zs.add(z);
+        Leader l = new Leader("LEADER");
+        ls.add(l);
+        User user = new User();
+        //添加组织
+        Organization org = new Organization("FBI", "联邦调查局", z, l);
+        os.add(org);
+        user.setOrg(org);
+        us.add(user);
+        User u = us.createQuery().addFilter("id", user.getId())
+                .buildFetch().fetch(Organization.class).fetch(Zone.class).build()
+                .fetch(Leader.class, Organization.class)
+                .execute().unique();
+        TestCase.assertEquals(u.getOrg().getZone().getName(), "华强北");
+        TestCase.assertEquals(u.getOrg().getLeader().getName(), "LEADER");
+        
+	}
+	
 	/**
 	 * <b>Description  fetch异常测试.</b>
 	 */
@@ -475,4 +501,6 @@ public class QueryTest {
 	        TestCase.assertSame(e.getClass(), RepeatedFetchOperationException.class);
 	    }
 	}
+	
+	
 }
