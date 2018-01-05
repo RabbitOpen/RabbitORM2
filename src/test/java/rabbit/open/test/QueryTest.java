@@ -473,6 +473,8 @@ public class QueryTest {
                 .buildFetch().fetch(Organization.class).fetch(Zone.class).build()
                 .fetch(Leader.class, Organization.class)
                 .execute().unique();
+        
+        TestCase.assertEquals(u.getOrg().getOrgCode(), "FBI");
         TestCase.assertEquals(u.getOrg().getZone().getName(), "华强北");
         TestCase.assertEquals(u.getOrg().getLeader().getName(), "LEADER");
         
