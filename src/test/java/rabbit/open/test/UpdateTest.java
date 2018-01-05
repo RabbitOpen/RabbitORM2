@@ -12,6 +12,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.User;
+import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.UserService;
 
 /**
@@ -26,6 +27,9 @@ public class UpdateTest {
 	@Autowired
 	UserService us;
 	
+	@Autowired
+	OrganizationService os;
+	
 	/**
 	 * 
 	 * <b>Description:	updateByID测试</b><br>	
@@ -34,9 +38,11 @@ public class UpdateTest {
 	@Test
 	public void updateByID(){ 
 	    User user = new User();
-	    user.setId(10L);
 	    user.setName("hello");
+	    us.add(user);
+	    user.setName("htllo1");
 	    us.updateByID(user);
+	    TestCase.assertEquals(user.getName(), us.getByID(user.getId()).getName());
 	}
 
 	/**
@@ -49,7 +55,13 @@ public class UpdateTest {
 	    Organization org = new Organization();
 	    org.setId(10L);
 	    User user = new User("lili", 10, null, org);
-	    us.createUpdate().set("org", 12).setValue(user).setNull("birth").set("name", "lisi").execute();
+	    us.add(user);
+	    us.createUpdate().addFilter("id", user.getId()).set("org", 12).setValue(user).setNull("birth").set("name", "lisi").execute();
+	    User u = us.createQuery().addFilter("id", user.getId()).fetch(Organization.class).execute().unique();
+	    TestCase.assertEquals(u.getName(), "lisi");
+	    TestCase.assertEquals(u.getOrg().getId().intValue(), 12);
+	    TestCase.assertNull(u.getBirth());
+	   
 	}
 
 	/**
@@ -59,9 +71,15 @@ public class UpdateTest {
 	 */
 	@Test
 	public void updateFilter(){
-	    us.createUpdate().addFilter("id", 1)
-	        .addFilter("org", 10L)
+	    Organization org = new Organization();
+        org.setId(110L);
+        User user = new User("lili", 10, null, org);
+        us.add(user);
+	    us.createUpdate().addFilter("id", user.getId())
+	        .addFilter("org", 110L)
 	        .set("name", "lisi").execute();
+	    User u = us.createQuery().addFilter("id", user.getId()).execute().unique();
+	    TestCase.assertEquals(u.getName(), "lisi");
 	}
 
 	/**
@@ -92,7 +110,12 @@ public class UpdateTest {
 	 */
 	@Test
 	public void updateNullFilter(){
+        User user = new User("lili", 10, null, null);
+        us.add(user);
 	    us.createUpdate().addNullFilter("birth").set("name", "lisi").execute();
+	    User u = us.createQuery().addFilter("id", user.getId()).execute().unique();
+        TestCase.assertEquals(u.getName(), "lisi");
+	    
 	}
 
 	/**
@@ -102,7 +125,11 @@ public class UpdateTest {
 	 */
 	@Test
 	public void update2Null(){
-	    us.createUpdate().addFilter("id", 1).set("name", null).execute();
+	    User user = new User("lili", 10, null, null);
+        us.add(user);
+	    us.createUpdate().addFilter("id", user.getId()).set("name", null).execute();
+	    User u = us.createQuery().addFilter("id", user.getId()).execute().unique();
+        TestCase.assertNull(u.getName());
 	}
 	
 	/**
@@ -113,7 +140,17 @@ public class UpdateTest {
 	 */
 	@Test
 	public void joinUpdate() throws Exception{
-		us.createUpdate().addFilter("id", 1).set("name", "lisi44").addFilter("orgCode", "orgCode", Organization.class).execute();
+	    Organization org = new Organization();
+        org.setId(120L);
+        os.add(org);
+        User user = new User("lili", 10, null, org);
+        us.add(user);
+		String newName = "lisi44";
+        us.createUpdate().addFilter("id", user.getId()).set("name", newName)
+		    .addFilter("id", 120, Organization.class)
+		    .execute();
+		User u = us.createQuery().addFilter("id", user.getId()).execute().unique();
+        TestCase.assertEquals(newName, u.getName());
 	}
 
 }

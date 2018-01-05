@@ -2,6 +2,8 @@ package rabbit.open.test;
 
 import java.util.Date;
 
+import junit.framework.TestCase;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +41,14 @@ public class DeleteTest {
 	 */
 	@Test
 	public void clear(){
-		System.out.println(us.clearAll());
+	    us.clearAll();
+	    TestCase.assertEquals(0, us.createQuery().count());
 	}
 	
 	@Test
 	public void deleteByID(){
-		System.out.println(us.deleteByID(1));
+	    us.deleteByID(1);
+	    TestCase.assertEquals(0, us.createQuery().addFilter("id", 1).count());
 	}
 
 	@Test
@@ -55,8 +59,8 @@ public class DeleteTest {
 
 	@Test
 	public void deleteFilterTest(){
-	    long result = us.createDelete().addFilter("id", 3).execute();
-	    System.out.println("deleteFilterTest : " + result);
+	    us.createDelete().addFilter("id", 3).execute();
+	    TestCase.assertEquals(0, us.createQuery().addFilter("id", 3).count());
 	}
 
 	@Test
