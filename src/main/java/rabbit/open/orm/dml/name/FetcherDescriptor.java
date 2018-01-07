@@ -34,20 +34,6 @@ public class FetcherDescriptor {
         return alias;
     }
 
-    /**
-     * @param fetchers
-     * @param joinFetchers
-     * @param entityClass
-     * @param alias
-     */
-    public FetcherDescriptor(List<FetcherDescriptor> fetchers,
-            List<JoinFetcherDescriptor> joinFetchers, String entityClass,
-            String alias) {
-        this(entityClass, alias);
-        this.fetchDescriptors = fetchers;
-        this.joinFetchDescriptors = joinFetchers;
-    }
-
     public FetcherDescriptor(String entityClass,
             String alias) {
         try {
