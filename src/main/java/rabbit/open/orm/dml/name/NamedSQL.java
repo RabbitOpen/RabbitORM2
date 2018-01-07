@@ -109,10 +109,10 @@ public class NamedSQL extends SQLObject {
     public String replaceFields(String fieldsSql) {
         Pattern pattern = Pattern.compile(FIELDS_REPLACE_WORD);
         Matcher matcher = pattern.matcher(sql);
-        while (matcher.find()) {
-            return this.sql.replace(matcher.group(0), fieldsSql);
+        if (matcher.find()) {
+            return sql.replace(matcher.group(0), fieldsSql);
         }
-        return this.sql;
+        return sql;
     }
     
     public String getAlias() {
