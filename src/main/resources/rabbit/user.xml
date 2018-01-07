@@ -86,4 +86,11 @@
 			COUNT(1)
 		FROM T_USER	
 	</jdbc>
+
+	<!-- jdbc操作 -->
+	<jdbc name="countUser">
+		SELECT
+			COUNT(1)
+		FROM T_USER	
+	</jdbc>
 </rabbit-mapping>	
