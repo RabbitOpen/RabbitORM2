@@ -37,6 +37,11 @@ public class NamedQuery<T> {
 		    protected void createQuerySql() {
 		        generateQuerySql();
 		    }
+		    
+		    @Override
+		    protected void createCountSql() {
+		        generateNameCountSql();
+		    }
 		};
 		if(!SQLParser.getQueryByNameAndClass(name, clz).getClass().equals(NamedSQL.class)){
 		    throw new MisMatchedNamedQueryException(name);
@@ -57,10 +62,15 @@ public class NamedQuery<T> {
 	    recursivelyJoinFetchEntities(new ArrayList<>(), nameObject.getFetchDescriptors());
 	    query.prepareMany2oneFilters();
 	    query.createFieldsSql();
-	    nameObject.replaceFields(query.sql.toString());
-	    query.sql = new StringBuilder(nameObject.getSql());
+	    query.sql = new StringBuilder(nameObject.replaceFields(query.sql.toString()));
 		setPreparedValues();
 	}
+	
+	private void generateNameCountSql(){
+        query.sql = new StringBuilder(nameObject.replaceFields("COUNT(1)"));
+        setPreparedValues();
+	}
+	
 
     private void joinFetchEntities() {
         FetchDescriptor<T> buildFetch = query.buildFetch();

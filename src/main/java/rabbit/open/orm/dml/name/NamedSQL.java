@@ -107,14 +107,15 @@ public class NamedSQL extends SQLObject {
      * <b>Description 替换字段sql片段</b>
      * @param fieldsSql
      */
-    public void replaceFields(String fieldsSql) {
+    public String replaceFields(String fieldsSql) {
         Pattern pattern = Pattern.compile(FIELDS_REPLACE_WORD);
         Matcher matcher = pattern.matcher(sql);
         while (matcher.find()) {
-            this.sql = this.sql.replace(matcher.group(0), fieldsSql);
+            return this.sql.replace(matcher.group(0), fieldsSql);
         }
+        return this.sql;
     }
-
+    
     public String getAlias() {
         if (isEmpty(targetAlias)) {
             throw new EmptyAliasException(name);

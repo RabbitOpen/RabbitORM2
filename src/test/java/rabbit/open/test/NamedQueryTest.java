@@ -16,6 +16,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.orm.exception.EmptyAliasException;
 import rabbit.open.orm.exception.MisMatchedNamedQueryException;
 import rabbit.open.orm.exception.NoNamedSQLDefinedException;
+import rabbit.open.orm.exception.RepeatedAliasException;
 import rabbit.open.orm.exception.UnExistedNamedSQLException;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.Organization;
@@ -83,9 +84,20 @@ public class NamedQueryTest {
 	}
 
 	@Test
+	public void countTest() {
+	    User user = createTestData();
+	    long count = us.createNamedQuery("getUserByName")
+    	            .setValue("username", "%leifeng%")
+    	            .setValue("userId", user.getId())
+    	            .count();
+	    //角色个数 * 车辆个数 * 属性个数【 笛卡尔积】
+	    TestCase.assertEquals(2 * 3 * 2 , count);
+	}
+
+	@Test
 	public void misMatchedNamedQueryExceptionTest() {
 	    try {
-	        us.createNamedQuery("countUser")
+	        us.createNamedQuery("misMatchedNamedQueryExceptionTest")
                 .execute().unique();
 	    } catch (Exception e){
 	        TestCase.assertEquals(e.getClass(), MisMatchedNamedQueryException.class);
@@ -93,13 +105,24 @@ public class NamedQueryTest {
 	}
 	
 	@Test
-	public void namedQueryTest2() {
+	public void emptyAliasExceptionTest() {
 	    try{
-	        us.createNamedQuery("getUserByID")
+	        us.createNamedQuery("emptyAliasExceptionTest")
                 .setValue("userId", 1)
                 .execute().unique();
 	    }catch(Exception e){
 	        TestCase.assertEquals(e.getClass(), EmptyAliasException.class);
+	    }
+	}
+
+	@Test
+	public void repeatedAliasExceptionTest() {
+	    try{
+	        us.createNamedQuery("repeatedAliasExceptionTest")
+    	        .setValue("userId", 1)
+    	        .execute().unique();
+	    }catch(Exception e){
+	        TestCase.assertEquals(e.getClass(), RepeatedAliasException.class);
 	    }
 	}
 	
