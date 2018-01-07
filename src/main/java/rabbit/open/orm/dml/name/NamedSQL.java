@@ -35,22 +35,21 @@ public class NamedSQL extends SQLObject {
 
     private List<JoinFetcherDescriptor> joinFetchDescriptors;
     
-    public NamedSQL(String sql, String queryName, Element element, Class<?> rootClz) {
+    public NamedSQL(String sql, String queryName, Element element) {
         super(sql, queryName);
         analyseNameSQL(sql);
         targetAlias = element.attributeValue(ALIAS);
-        joinFetchDescriptors = readJoinFetchers(element, rootClz);
+        joinFetchDescriptors = readJoinFetchers(element);
         fetchDescriptors = readFetchers(element);
     }
 
     /**
      * <b>Description 从节点中读取many2many、one2many关联查询对象 </b>
      * @param element
-     * @param parentClz
      * @return
      */
     @SuppressWarnings("unchecked")
-    private List<JoinFetcherDescriptor> readJoinFetchers(Element element, Class<?> parentClz) {
+    private List<JoinFetcherDescriptor> readJoinFetchers(Element element) {
         List<JoinFetcherDescriptor> joinFetchers = new ArrayList<>();
         Iterator<Element> iterator = element.elementIterator(JOIN_FETCH);
         while(iterator.hasNext()){
@@ -77,7 +76,7 @@ public class NamedSQL extends SQLObject {
             Element jf = iterator.next();
             FetcherDescriptor fetcher = new FetcherDescriptor(jf.attributeValue(ENTITY), jf.attributeValue(ALIAS));
             fetcher.setFetchDescriptors(readFetchers(jf));
-            fetcher.setJoinFetchDescriptors(readJoinFetchers(jf, fetcher.getEntityClass()));
+            fetcher.setJoinFetchDescriptors(readJoinFetchers(jf));
             fetchers.add(fetcher);
         }
         return fetchers;

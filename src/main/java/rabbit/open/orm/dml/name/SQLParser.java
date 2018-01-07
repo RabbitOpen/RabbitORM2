@@ -113,7 +113,7 @@ public class SQLParser {
                 String name = select.attributeValue("name");
                 String sql = select.getText();
                 checkNameQuery(clz, name, sql);
-		        nameQueries.get(clz).put(name.trim(), new NamedSQL(sql, name, select, clz));
+		        nameQueries.get(clz).put(name.trim(), new NamedSQL(sql, name, select));
 			}
 			iterator = root.elementIterator(JDBC);
 			while(iterator.hasNext()) {
