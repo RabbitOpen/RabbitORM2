@@ -14,7 +14,7 @@ import rabbit.open.orm.dialect.dml.DeleteDialectAdapter;
 import rabbit.open.orm.dialect.dml.DialectType;
 import rabbit.open.orm.dml.DialectTransformer;
 import rabbit.open.orm.dml.PolicyInsert;
-import rabbit.open.orm.dml.xml.SQLParser;
+import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.pool.jpa.SessionProxy;
 
 public class SessionFactory {

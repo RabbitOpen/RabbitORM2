@@ -27,7 +27,7 @@ public class FetchDescriptor<T> {
     //关联依赖
     private List<Field> dependencyFields = new ArrayList<>();
     
-    private Class<?> fetchClz = null;
+    private Class<?> joinFetchClz = null;
     
     protected FetchDescriptor(AbstractQuery<T> query){
         path = new ArrayList<>();
@@ -37,7 +37,7 @@ public class FetchDescriptor<T> {
     }
     
     /**
-     * <b>Description  取出一个多对一的关联对象，不可对同一类型的对象重复调用.</b>
+     * <b>Description  取出一个多对一的关联对象</b>
      * @param clz
      * @return
      */
@@ -72,19 +72,19 @@ public class FetchDescriptor<T> {
      * @param clz
      * @return
      */
-    public FetchDescriptor<T> joinFetch(Class<?> clz){
-        fetchClz = clz;
+    public JoinFetcher<T> joinFetch(Class<?> clz){
+        joinFetchClz = clz;
         MetaData<?> meta = MetaData.getMetaByClass(targetClz);
         for(JoinFieldMetaData<?> jfmd : meta.getJoinMetas()){
-            if(jfmd.getJoinClass().equals(fetchClz)){
+            if(jfmd.getJoinClass().equals(joinFetchClz)){
                 if(!isRepeatedJoinFetch()){
                     jfmd.setDependencyFields(dep2Array());
                     query.joinFieldMetas.add(jfmd);
                 }
-                return this;
+                return new JoinFetcher<T>(this);
             }
         }
-        throw new InvalidJoinFetchOperationException(fetchClz, targetClz);
+        throw new InvalidJoinFetchOperationException(joinFetchClz, targetClz);
     }
 
     /**
@@ -92,11 +92,11 @@ public class FetchDescriptor<T> {
      */
     private boolean isRepeatedJoinFetch() {
         for(JoinFieldMetaData<?> jfme : query.joinFieldMetas){
-            if(!jfme.getJoinClass().equals(fetchClz)){
+            if(!jfme.getJoinClass().equals(joinFetchClz)){
                 continue;
             }
             if(!jfme.getTargetClass().equals(targetClz)){
-                throw new RepeatedJoinFetchOperationException(fetchClz, targetClz, jfme.getTargetClass());
+                throw new RepeatedJoinFetchOperationException(joinFetchClz, targetClz, jfme.getTargetClass());
             }else{
                 return true;
             }
@@ -104,20 +104,16 @@ public class FetchDescriptor<T> {
         return false;
     }
     
-    public FetchDescriptor<T> on(String reg, Object value){
-        return on(reg, value, FilterType.EQUAL);
-    }
-
-    public FetchDescriptor<T> on(String reg, Object value, FilterType filterType){
+    protected FetchDescriptor<T> on(String reg, Object value, FilterType filterType){
         String field = query.getFieldByReg(reg);
-        query.checkField(fetchClz, field);
-        if(!query.addedJoinFilters.containsKey(fetchClz)){
-            query.addedJoinFilters.put(fetchClz, new HashMap<String, List<DynamicFilterDescriptor>>());
+        query.checkField(joinFetchClz, field);
+        if(!query.addedJoinFilters.containsKey(joinFetchClz)){
+            query.addedJoinFilters.put(joinFetchClz, new HashMap<String, List<DynamicFilterDescriptor>>());
         }
-        if(!query.addedJoinFilters.get(fetchClz).containsKey(field)){
-            query.addedJoinFilters.get(fetchClz).put(field, new ArrayList<DynamicFilterDescriptor>());
+        if(!query.addedJoinFilters.get(joinFetchClz).containsKey(field)){
+            query.addedJoinFilters.get(joinFetchClz).put(field, new ArrayList<DynamicFilterDescriptor>());
         }
-        query.addedJoinFilters.get(fetchClz).get(field).add(new DynamicFilterDescriptor(reg, filterType, 
+        query.addedJoinFilters.get(joinFetchClz).get(field).add(new DynamicFilterDescriptor(reg, filterType, 
                 value, !field.equals(reg)));
         return this;
     }

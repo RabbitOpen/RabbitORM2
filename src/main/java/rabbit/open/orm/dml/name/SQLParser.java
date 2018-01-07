@@ -1,4 +1,4 @@
-package rabbit.open.orm.dml.xml;
+package rabbit.open.orm.dml.name;
 
 import java.io.File;
 import java.net.URL;
@@ -15,7 +15,8 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 import rabbit.open.orm.exception.MappingFileParsingException;
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.orm.exception.NoNamedSQLDefinedException;
+import rabbit.open.orm.exception.UnExistedNamedSQLException;
 import rabbit.open.orm.exception.WrongMappingFilePathException;
 
 public class SQLParser {
@@ -29,7 +30,7 @@ public class SQLParser {
 	private String sqlPath;
 	
 	//缓存的命名查询对象
-	static Map<Class<?>, Map<String, NameQuery>> nameQueries = new ConcurrentHashMap<>();
+	static Map<Class<?>, Map<String, SQLObject>> nameQueries = new ConcurrentHashMap<>();
 
 	public SQLParser(String path) {
 		super();
@@ -44,19 +45,16 @@ public class SQLParser {
 	 * @return	
 	 * 
 	 */
-	public static NameQuery getNamedQuery(String name, Class<?> clz){
-		Map<String, NameQuery> map = nameQueries.get(clz);
+	public static SQLObject getQueryByNameAndClass(String name, Class<?> clz){
+		Map<String, SQLObject> map = nameQueries.get(clz);
 		if(null == map){
-			throw new RabbitDMLException("no namequery is declared for class[" + clz.getName() + "]");
+			throw new NoNamedSQLDefinedException(clz);
 		}
-		NameQuery nameQuery = map.get(name);
-		if(null == nameQuery){
-			throw new RabbitDMLException("no NameQuery[" + name + "] is declared!");
+		SQLObject namedSql = map.get(name);
+		if(null == namedSql){
+			throw new UnExistedNamedSQLException(name);
 		}
-		if(!nameQuery.isNameQuery()){
-			throw new RabbitDMLException("Query[" + name + "] is declared as a jdbc query!");
-		}
-		return nameQuery;
+		return namedSql;
 	}
 
 	/**
@@ -67,19 +65,16 @@ public class SQLParser {
 	 * @return	
 	 * 
 	 */
-	public static NameQuery getNamedJdbcQuery(String name, Class<?> clz){
-		Map<String, NameQuery> map = nameQueries.get(clz);
+	public static SQLObject getNamedJdbcQuery(String name, Class<?> clz){
+		Map<String, SQLObject> map = nameQueries.get(clz);
 		if(null == map){
-			throw new RabbitDMLException("no namequery is declared for class[" + clz.getName() + "]");
+		    throw new NoNamedSQLDefinedException(clz);
 		}
-		NameQuery nameQuery = map.get(name);
-		if(null == nameQuery){
-			throw new RabbitDMLException("no NameQuery[" + name + "] is declared!");
+		SQLObject namedSql = map.get(name);
+		if(null == namedSql){
+			throw new UnExistedNamedSQLException(name);
 		}
-		if(nameQuery.isNameQuery()){
-			throw new RabbitDMLException("Query[" + name + "] is declared as a named query!");
-		}
-		return nameQuery;
+		return namedSql;
 	}
 	
 	/**
@@ -110,40 +105,38 @@ public class SQLParser {
 		try {
 			doc = reader.read(file);
 			Element root = doc.getRootElement(); 
-			String clzName = root.attributeValue("class");
+			String clzName = root.attributeValue("entity");
 			Class<?> clz = checkClassName(xml, clzName);
 			Iterator<Element> iterator = root.elementIterator(SELECT);
-			while(iterator.hasNext()) {
-				addNameQuery(clz, iterator.next(), SELECT);
+            while(iterator.hasNext()) {
+                Element select = iterator.next();
+                String name = select.attributeValue("name");
+                String sql = select.getText();
+                checkNameQuery(clz, name, sql);
+		        nameQueries.get(clz).put(name.trim(), new NamedSQL(sql, name, select, clz));
 			}
 			iterator = root.elementIterator(JDBC);
 			while(iterator.hasNext()) {
-				addNameQuery(clz, iterator.next(), JDBC);
+			    Element select = iterator.next();
+			    String name = select.attributeValue("name");
+			    String sql = select.getText();
+			    checkNameQuery(clz, name, sql);
+			    nameQueries.get(clz).put(name.trim(), new SQLObject(sql, name));
 			}
 		} catch (DocumentException e) {
 			throw new MappingFileParsingException(e.getMessage());
 		}
 	}
 
-	private void addNameQuery(Class<?> namespaceClz, Element select, String type){
-		String queryName = select.attributeValue("name");
-		String sql = select.getText();
-		checkNameQuery(namespaceClz, queryName, sql, type);
-		nameQueries.get(namespaceClz).put(queryName.trim(), new NameQuery(sql, type, queryName));
-	}
-
-	private void checkNameQuery(Class<?> namespaceClz, String queryName, String sql, String type) {
+	private void checkNameQuery(Class<?> namespaceClz, String queryName, String sql) {
 		if(isEmpty(queryName)){
-			throw new MappingFileParsingException("empty query name[" + queryName + "] is found!");
+			throw new MappingFileParsingException("empty query name is found for[" + namespaceClz + "]");
 		}
 		if(nameQueries.get(namespaceClz).containsKey(queryName)){
 			throw new MappingFileParsingException("repeated query name[" + queryName + "] is found!");
 		}
 		if(isEmpty(sql)){
 			throw new MappingFileParsingException("empty sql is found in [" + queryName + "]");
-		}
-		if(!JDBC.equalsIgnoreCase(type) && !sql.trim().toLowerCase().startsWith("from")){
-			throw new MappingFileParsingException("name query[" + queryName + "] must be started with keyword[FROM]");
 		}
 	}
 
@@ -160,7 +153,7 @@ public class SQLParser {
 		if(nameQueries.containsKey(clz)){
 			throw new MappingFileParsingException("repeated class name[" + className + "] is found!");
 		}else{
-			nameQueries.put(clz, new ConcurrentHashMap<String, NameQuery>());
+			nameQueries.put(clz, new ConcurrentHashMap<String, SQLObject>());
 		}
 		return clz;
 	}

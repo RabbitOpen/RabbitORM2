@@ -136,7 +136,7 @@ public class UpdateTest {
 	public void update2Null(){
 	    User user = new User("lili", 10, null, null);
         us.add(user);
-	    us.createUpdate().addFilter("id", user.getId()).set("name", null).execute();
+	    us.createUpdate(user).addFilter("id", user.getId()).set("name", null).execute();
 	    User u = us.createQuery().addFilter("id", user.getId()).execute().unique();
         TestCase.assertNull(u.getName());
 	}

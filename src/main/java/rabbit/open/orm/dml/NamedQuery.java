@@ -1,13 +1,15 @@
 package rabbit.open.orm.dml;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.TreeMap;
 
-import rabbit.open.orm.annotation.Relation.FilterType;
-import rabbit.open.orm.dml.meta.JoinFilter;
-import rabbit.open.orm.dml.xml.NameQuery;
-import rabbit.open.orm.dml.xml.SQLParser;
-import rabbit.open.orm.exception.UnSupportedMethodException;
+import rabbit.open.orm.dml.name.FetcherDescriptor;
+import rabbit.open.orm.dml.name.JoinFetcherDescriptor;
+import rabbit.open.orm.dml.name.NamedSQL;
+import rabbit.open.orm.dml.name.SQLParser;
+import rabbit.open.orm.exception.MisMatchedNamedQueryException;
 import rabbit.open.orm.pool.SessionFactory;
 
 /**
@@ -16,11 +18,13 @@ import rabbit.open.orm.pool.SessionFactory;
  * @param <T>
  * 
  */
-public class NamedQuery<T> extends AbstractQuery<T> {
+public class NamedQuery<T> {
 
-	private NameQuery query;
+	private NamedSQL nameObject;
 	
-	TreeMap<Integer, Object> fieldsValues;
+	private Query<T> query;
+	
+	private TreeMap<Integer, Object> fieldsValues;
 	
 	/**
 	 * @param fatory
@@ -28,8 +32,16 @@ public class NamedQuery<T> extends AbstractQuery<T> {
 	 * @param name		sql名字
 	 */
 	public NamedQuery(SessionFactory fatory, Class<T> clz, String name) {
-		super(fatory, clz);
-		query = SQLParser.getNamedQuery(name, clz);
+		query = new Query<T>(fatory, clz){
+		    @Override
+		    protected void createQuerySql() {
+		        generateQuerySql();
+		    }
+		};
+		if(!SQLParser.getQueryByNameAndClass(name, clz).getClass().equals(NamedSQL.class)){
+		    throw new MisMatchedNamedQueryException(name);
+		}
+		nameObject = (NamedSQL) SQLParser.getQueryByNameAndClass(name, clz);
 		fieldsValues = new TreeMap<>(new Comparator<Integer>() {
             @Override
             public int compare(Integer o1, Integer o2) {
@@ -38,13 +50,97 @@ public class NamedQuery<T> extends AbstractQuery<T> {
         });
 	}
 
-	@Override
-	protected void createQuerySql() {
-		prepareMany2oneFilters();
-		createFieldsSql();
-		transformFieldsSql();
-		appendNameQuery();
-		convertSettedFieldValues();
+	protected void generateQuerySql() {
+	    setEntityAlias();
+	    recursivelyFetchEntities();
+	    joinFetchEntities();
+	    recursivelyJoinFetchEntities(new ArrayList<>(), nameObject.getFetchDescriptors());
+	    query.prepareMany2oneFilters();
+	    query.createFieldsSql();
+	    nameObject.replaceFields(query.sql.toString());
+	    query.sql = new StringBuilder(nameObject.getSql());
+		setPreparedValues();
+	}
+
+    private void joinFetchEntities() {
+        FetchDescriptor<T> buildFetch = query.buildFetch();
+	    for(JoinFetcherDescriptor jfd : nameObject.getJoinFetchDescriptors()){
+	        buildFetch.joinFetch(jfd.getEntityClass());
+        }
+    }
+
+    private void recursivelyJoinFetchEntities(List<Class<?>> deps, List<FetcherDescriptor> fetchDescriptors) {
+        for(FetcherDescriptor fd : fetchDescriptors){
+	        FetchDescriptor<T> bf = query.buildFetch();
+	        for(Class<?> dep : deps){
+	            bf.fetch(dep);
+	        }
+	        bf.fetch(fd.getEntityClass());
+	        for(JoinFetcherDescriptor jfd : fd.getJoinFetchDescriptors()){
+	            bf.joinFetch(jfd.getEntityClass());
+	        }
+	        List<Class<?>> copyList = copyList(deps);
+	        copyList.add(fd.getEntityClass());
+	        recursivelyJoinFetchEntities(copyList, fd.getFetchDescriptors());
+	        
+	    }
+    }
+
+    /**
+     * <b>Description  级联取出所有many2one对象</b>
+     */
+    private void recursivelyFetchEntities() {
+        List<Class<?>> deps = new ArrayList<>();
+	    deps.add(query.getMetaData().getEntityClz());
+	    fetch(nameObject.getFetchDescriptors(), deps);
+    }
+
+    private void fetch(List<FetcherDescriptor> fetchDescriptors, List<Class<?>> deps) {
+        for(FetcherDescriptor fd : fetchDescriptors){
+	        query.fetch(fd.getEntityClass(), deps.toArray(new Class<?>[deps.size()]));
+	        List<Class<?>> subDeps = copyList(deps);
+            subDeps.add(0, fd.getEntityClass());
+	        fetch(fd.getFetchDescriptors(), subDeps);
+	    }
+    }
+
+    private <D> List<D> copyList(List<D> list){
+        List<D> newList = new ArrayList<>();
+        for(D d : list){
+            newList.add(d);
+        }
+        return newList;
+    }
+    
+    /**
+     * <b>Description  设置别名</b>
+     */
+    private void setEntityAlias() {
+        query.alias(query.getMetaData().getEntityClz(), nameObject.getAlias());
+	    setFetchTableAlias(nameObject.getFetchDescriptors());
+	    setJoinFetchTableAlias(nameObject.getJoinFetchDescriptors());
+    }
+
+    private void setFetchTableAlias(List<FetcherDescriptor> fetchers) {
+        for(FetcherDescriptor fd : fetchers){
+	        query.alias(fd.getEntityClass(), fd.getAlias());
+	        setJoinFetchTableAlias(fd.getJoinFetchDescriptors());
+	        setFetchTableAlias(fd.getFetchDescriptors());
+	    }
+    }
+
+    private void setJoinFetchTableAlias(List<JoinFetcherDescriptor> joinFetchers) {
+        for(JoinFetcherDescriptor jfd : joinFetchers){
+	        query.alias(jfd.getEntityClass(), jfd.getAlias());
+	    }
+    }
+	
+	public Result<T> execute(){
+	    return query.execute();
+	}
+	
+	public long count(){
+	    return query.count();
 	}
 
     /**
@@ -52,18 +148,12 @@ public class NamedQuery<T> extends AbstractQuery<T> {
      * <b>Description:  把setFieldValue设置的值转换到preparedValues中</b><br>.	
      * 
      */
-    private void convertSettedFieldValues() {
+    private void setPreparedValues() {
         if(fieldsValues.isEmpty()){
             return;
         }
-        preparedValues.addAll(fieldsValues.values());
+        query.preparedValues.addAll(fieldsValues.values());
     }
-
-	@Override
-	public NamedQuery<T> distinct() {
-		super.distinct();
-		return this;
-	}
 
 	/**
 	 * 
@@ -73,98 +163,10 @@ public class NamedQuery<T> extends AbstractQuery<T> {
 	 * @return	
 	 * 
 	 */
-	public NamedQuery<T> setParameterValue(String fieldName, Object value){
-	    int index = this.query.getFieldIndex(fieldName);
+	public NamedQuery<T> setValue(String fieldName, Object value){
+	    int index = nameObject.getFieldIndex(fieldName);
 	    fieldsValues.put(index, value);
 	    return this;
 	}
 	
-	
-	@Override
-	public <E> NamedQuery<T> joinFetch(Class<E> entity) {
-		super.joinFetch(entity);
-		return this;
-	}
-	
-	@Override
-	public NamedQuery<T> fetch(Class<?> clz, Class<?>... dependency) {
-		super.fetch(clz, dependency);
-		return this;
-	}
-	
-	@Override
-	public NamedQuery<T> alias(Class<?> entityClz, String alias) {
-		super.alias(entityClz, alias);
-		return this;
-	}
-	
-	/**
-	 * 
-	 * <b>Description:	添加from以后的片段到sql中</b><br>	
-	 * 
-	 */
-	private void appendNameQuery() {
-		sql.append(" " + query.getSql().trim());
-	}
-	
-	@Override
-	public long count() {
-		throw new UnSupportedMethodException(getCurrentMethodName());
-	}
-	
-	@Override
-	public NamedQuery<T> addInnerJoinFilter(JoinFilter filter) {
-	    throw new UnSupportedMethodException(getCurrentMethodName());
-	}
-
-    private String getCurrentMethodName() {
-        return Thread.currentThread().getStackTrace()[2].getMethodName();
-    }
-
-    @Override
-    public NamedQuery<T> addFilter(String reg, Object value, FilterType ft,
-            Class<?>... depsPath) {
-        throw new UnSupportedMethodException(getCurrentMethodName());
-    }
-
-    @Override
-    public NamedQuery<T> addFilter(String reg, Object value,
-            Class<?>... depsPath) {
-        throw new UnSupportedMethodException(getCurrentMethodName());
-    }
-
-    @Override
-    public NamedQuery<T> addNullFilter(String reg, boolean isNull,
-            Class<?>... depsPath) {
-        throw new UnSupportedMethodException(getCurrentMethodName());
-    }
-
-    @Override
-    public NamedQuery<T> addNullFilter(String reg, Class<?>... depsPath) {
-        throw new UnSupportedMethodException(getCurrentMethodName());
-    }
-
-    @Override
-    public NamedQuery<T> addJoinFilter(String reg, FilterType ft,
-            Object value, Class<?> target) {
-        throw new UnSupportedMethodException(getCurrentMethodName());
-    }
-
-    @Override
-    public NamedQuery<T> addJoinFilter(String reg, Object value,
-            Class<?> target) {
-        throw new UnSupportedMethodException(getCurrentMethodName());
-    }
-
-    @Override
-    public NamedQuery<T> addInnerJoinFilter(String reg, FilterType ft,
-            Object value, Class<?> target) {
-        throw new UnSupportedMethodException(getCurrentMethodName());
-    }
-
-    @Override
-    public NamedQuery<T> addInnerJoinFilter(String reg, Object value,
-            Class<?> target) {
-        throw new UnSupportedMethodException(getCurrentMethodName());
-    }
 }

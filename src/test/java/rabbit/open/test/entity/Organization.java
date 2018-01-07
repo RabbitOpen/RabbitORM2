@@ -11,6 +11,14 @@ import rabbit.open.orm.dml.policy.Policy;
 @Entity("T_ORG")
 public class Organization {
     
+    public List<Property> getProps() {
+        return props;
+    }
+
+    public void setProps(List<Property> props) {
+        this.props = props;
+    }
+
     @PrimaryKey(policy=Policy.AUTOINCREMENT)
     @Column("ID")
     private Long id;

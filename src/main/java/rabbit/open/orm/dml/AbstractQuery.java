@@ -31,6 +31,7 @@ import rabbit.open.orm.exception.InvalidFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.OrderAssociationException;
 import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.orm.exception.RepeatedAliasException;
 import rabbit.open.orm.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.pool.SessionFactory;
 
@@ -1347,14 +1348,15 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	}
 	
 	/**
-	 * 
-	 * 设置查询时的别名, SQLQuery对象必须调用该方法来指定表的别名信息
+	 * <b>Description  设置查询时的别名</b>
 	 * @param entityClz
 	 * @param alias
 	 * @return
-	 * 
 	 */
 	public AbstractQuery<T> alias(Class<?> entityClz, String alias){
+	    if(aliasMapping.containsValue(alias.toUpperCase())){
+	        throw new RepeatedAliasException(alias);
+	    }
 		aliasMapping.put(MetaData.getTablenameByClass(entityClz), alias.toUpperCase());
 		return this;
 	}

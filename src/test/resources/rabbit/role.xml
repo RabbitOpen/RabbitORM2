@@ -2,10 +2,12 @@
 <!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
 	"http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd">
 
-<rabbit-mapping class="rabbit.open.test.entity.Role">
+<rabbit-mapping entity="rabbit.open.test.entity.Role">
 
-	<select name="getRoleByID">
+	<select name="getRoleByID" alias="R">
 		<![CDATA[
+		    SELECT 
+		        #{FIELDS}
 			FROM 
 				T_ROLE R
 			WHERE 

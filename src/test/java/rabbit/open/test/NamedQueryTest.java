@@ -1,5 +1,6 @@
 package rabbit.open.test;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -12,13 +13,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.orm.annotation.Relation.FilterType;
-import rabbit.open.orm.dml.Result;
-import rabbit.open.orm.exception.UnSupportedMethodException;
+import rabbit.open.orm.exception.EmptyAliasException;
+import rabbit.open.orm.exception.MisMatchedNamedQueryException;
+import rabbit.open.orm.exception.NoNamedSQLDefinedException;
+import rabbit.open.orm.exception.UnExistedNamedSQLException;
+import rabbit.open.test.entity.Car;
+import rabbit.open.test.entity.Organization;
+import rabbit.open.test.entity.Property;
+import rabbit.open.test.entity.Resources;
 import rabbit.open.test.entity.Role;
 import rabbit.open.test.entity.User;
+import rabbit.open.test.entity.Zone;
+import rabbit.open.test.service.CarService;
+import rabbit.open.test.service.OrganizationService;
+import rabbit.open.test.service.PropertyService;
+import rabbit.open.test.service.ResourcesService;
 import rabbit.open.test.service.RoleService;
 import rabbit.open.test.service.UserService;
+import rabbit.open.test.service.ZoneService;
 
 /**
  * <b>Description: 	NamedQuery测试</b><br>
@@ -34,6 +46,21 @@ public class NamedQueryTest {
 	
 	@Autowired
 	RoleService rs;
+
+	@Autowired
+	OrganizationService os;
+	
+	@Autowired
+    ResourcesService resService;
+	
+	@Autowired
+    CarService cs;
+	
+	@Autowired
+    ZoneService zs;
+	
+	@Autowired
+    PropertyService ps;
 	
 	/**
 	 * 
@@ -42,110 +69,112 @@ public class NamedQueryTest {
 	 * 
 	 */
 	@Test
-	public void namedQueryTest(){
-		createTestData();
-		Result<User> result = us.createNamedQuery("getUserByName")
-				.joinFetch(Role.class)
-				.distinct()
-				.alias(User.class, "u")
-				.alias(Role.class, "r")
-                .setParameterValue("username", "%zhangsan%")
-                .setParameterValue("userId", 1)
-				.execute();
-		result.list().forEach(u -> System.out.println(u));
-		
-		result = us.createNamedQuery("getUserByName")
-				.alias(User.class, "u")
-				.alias(Role.class, "r")
-				.setParameterValue("userId", 1)
-				.setParameterValue("username", "%zhangsan%")
-				.execute();
-		result.list().forEach(u -> System.out.println(u));
+	public void namedQueryTest() {
+	    User user = createTestData();
+	    User u = us.createNamedQuery("getUserByName")
+                .setValue("username", "%leifeng%")
+                .setValue("userId", user.getId())
+				.execute().unique();
+		System.out.println(u);
+		TestCase.assertEquals(user.getName(), u.getName());
+		TestCase.assertEquals(u.getCars().size(), 3);
+		TestCase.assertEquals(u.getRoles().size(), 2);
+		TestCase.assertEquals(u.getOrg().getZone().getName(), user.getOrg().getZone().getName());
 	}
 
 	@Test
-	public void unsupportedMethodTest() {
-	    callCount();
-	    callAddFilter();
-	    callAddFilter2();
-	    callAddNullFilter();
-	    callAddInnerJoinFilter();
-	    callAddInnerJoinFilter2();
+	public void misMatchedNamedQueryExceptionTest() {
+	    try {
+	        us.createNamedQuery("countUser")
+                .execute().unique();
+	    } catch (Exception e){
+	        TestCase.assertEquals(e.getClass(), MisMatchedNamedQueryException.class);
+	    }
+	}
+	
+	@Test
+	public void namedQueryTest2() {
+	    try{
+	        us.createNamedQuery("getUserByID")
+                .setValue("userId", 1)
+                .execute().unique();
+	    }catch(Exception e){
+	        TestCase.assertEquals(e.getClass(), EmptyAliasException.class);
+	    }
+	}
+	
+	@Test
+	public void noNamedSQLDefinedTest(){
+	    try {
+	        os.createNamedQuery("xx").execute();
+	    } catch (Exception e){
+	        TestCase.assertEquals(NoNamedSQLDefinedException.class, e.getClass());
+	    }
 	}
 
-    private void callAddInnerJoinFilter2() {
-        try{
-	        us.createNamedQuery("getUserByName").addInnerJoinFilter(null);
-	        TestCase.assertEquals(true, true);
-	    }catch(Exception e){
-	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
+	@Test
+	public void unExistedNamedSQLTest(){
+	    try {
+	        us.createNamedQuery("xx").execute();
+	    } catch (Exception e){
+	        TestCase.assertEquals(UnExistedNamedSQLException.class, e.getClass());
 	    }
-    }
-
-    private void callAddInnerJoinFilter() {
-        try{
-	        us.createNamedQuery("getUserByName")
-	            .addInnerJoinFilter("id", FilterType.EQUAL, 1, Role.class)
-	            .execute();
-	        TestCase.assertEquals(true, true);
-        }catch(Exception e){
-	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
-	    }
-    }
-
-    private void callAddNullFilter() {
-        try{
-	        us.createNamedQuery("getUserByName").addNullFilter("id").execute();
-	        TestCase.assertEquals(true, true);
-	    }catch(Exception e){
-	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
-	    }
-    }
-
-    private void callAddFilter2() {
-        try{
-	        us.createNamedQuery("getUserByName").addFilter("id", 1, FilterType.LIKE).execute();
-	        TestCase.assertEquals(true, true);
-	    }catch(Exception e){
-	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
-	    }
-    }
-
-    private void callAddFilter() {
-        try{
-	        us.createNamedQuery("getUserByName").addFilter("id", 1).execute();
-	        TestCase.assertEquals(true, true);
-	    }catch(Exception e){
-	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
-	    }
-    }
-
-    private void callCount() {
-        try{
-	        us.createNamedQuery("getUserByName").count();
-	        TestCase.assertEquals(true, true);
-	    }catch(Exception e){
-	        TestCase.assertSame(UnSupportedMethodException.class, e.getClass());
-	    }
-    }
+	}
 
 	/**
 	 * 
 	 * <b>Description:	生成测试数据数据</b><br>	
 	 * 
 	 */
-	private void createTestData() {
+	private User createTestData() {
+	    Zone z = new Zone("华北");
+        zs.add(z);
 		User user = new User();
-		user.setName("zhangsan" + System.currentTimeMillis());
-		user.setBirth(new Date());
-		us.add(user);
-		List<Role> roles = new ArrayList<Role>();
-		for(int i = 0; i < 3; i++){
-			Role r = new Role("R" + i);
-			rs.add(r);
-			roles.add(r);
-		}
-		user.setRoles(roles);
-		us.addJoinRecords(user);
+        //添加组织
+        Organization org = new Organization("FBI", "联邦调查局",z);
+        os.add(org);
+        
+        //添加角色
+        List<Role> roles = new ArrayList<Role>();
+        for(int i = 555; i < 555 + 2; i++){
+            Role r = new Role("R" + i);
+            rs.add(r);
+            roles.add(r);
+            //构建资源
+            List<Resources> resources = new ArrayList<Resources>();
+            for(int j = 0; j < 2; j++){
+                Resources rr = new Resources("baidu_" + j + i + ".com");
+                resService.add(rr);
+                resources.add(rr);
+            }
+            //添加角色资源映射关系
+            r.setResources(resources);
+            rs.addJoinRecords(r);
+        }
+        
+        //添加用户
+        user.setOrg(org);
+        user.setBigField(new BigDecimal(1));
+        user.setShortField((short) 1);
+        user.setDoubleField(0.1);
+        user.setFloatField(0.1f);
+        
+        user.setName("leifeng" + System.currentTimeMillis());
+        user.setBirth(new Date());
+        us.add(user);
+        
+        //添加用户角色之间的映射关系
+        user.setRoles(roles);
+        us.addJoinRecords(user);
+        
+        //添加车辆
+        cs.add(new Car("川A110", user));
+        cs.add(new Car("川A120", user));
+        cs.add(new Car("川A130", user));
+        
+        ps.add(new Property(user.getOrg().getId(), "P1"));
+        ps.add(new Property(user.getOrg().getId(), "P2"));
+        
+        return user;
 	}
 }

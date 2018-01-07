@@ -65,6 +65,14 @@ public class DeleteTest {
 	}
 
 	@Test
+	public void deleteFilterTest1(){
+	    User u = new User();
+	    u.setAge(10);
+	    us.createDelete(u).addFilter("id", 55).execute();
+	    TestCase.assertEquals(0, us.createQuery().addFilter("id", 55).count());
+	}
+
+	@Test
 	public void deleteFilterTest2(){
 	    long result = us.createDelete().addNullFilter("birth").addFilter("orgCode", "myorg", Organization.class).execute();
 	    System.out.println("deleteFilterTest2 : " + result);

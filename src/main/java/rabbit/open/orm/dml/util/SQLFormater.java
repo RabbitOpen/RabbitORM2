@@ -18,8 +18,8 @@ public class SQLFormater {
 	private static final Set<String> QUANTIFIERS = new HashSet<>();
 	private static final Set<String> DML = new HashSet<>();
 	private static final Set<String> MISC = new HashSet<>();
-	static final String indentString = "    ";
-	static final String initial = "\n    ";
+	static final String INDENTSTRING = "    ";
+	static final String INITIAL = "\n    ";
 
 	public static String format(String source) {
 		return new FormatProcess(source).perform().trim();
@@ -268,8 +268,8 @@ public class SQLFormater {
 			this.parensSinceSelect -= 1;
 			if (this.parensSinceSelect < 0) {
 				this.indent -= 1;
-				this.parensSinceSelect = ((Integer) this.parenCounts.removeLast()).intValue();
-				this.afterByOrSetOrFromOrSelect = ((Boolean) this.afterByOrFromOrSelects.removeLast()).booleanValue();
+				this.parensSinceSelect = (this.parenCounts.removeLast()).intValue();
+				this.afterByOrSetOrFromOrSelect = (this.afterByOrFromOrSelects.removeLast()).booleanValue();
 			}
 			if (this.inFunction > 0) {
 				this.inFunction -= 1;

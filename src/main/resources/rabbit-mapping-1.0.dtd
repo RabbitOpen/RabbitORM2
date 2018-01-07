@@ -8,12 +8,24 @@
 	select*,
 	jdbc*
 )>	
-	<!ATTLIST rabbit-mapping class CDATA #REQUIRED>
+	<!ATTLIST rabbit-mapping entity CDATA #REQUIRED>
+
+<!ELEMENT join-fetch EMPTY>
+    <!ATTLIST join-fetch entity CDATA #REQUIRED>
+    <!ATTLIST join-fetch alias CDATA #REQUIRED>
+
+<!ELEMENT fetch (
+    fetch*,
+    join-fetch*
+)>
+    <!ATTLIST fetch entity CDATA #REQUIRED>
+    <!ATTLIST fetch alias CDATA #REQUIRED>
 	
 <!ELEMENT select (
-	#PCDATA
-)>
+    #PCDATA|fetch|join-fetch
+)*>
 	<!ATTLIST select name CDATA #REQUIRED>
+	<!ATTLIST select alias CDATA #REQUIRED>
 
 <!ELEMENT jdbc (
 	#PCDATA

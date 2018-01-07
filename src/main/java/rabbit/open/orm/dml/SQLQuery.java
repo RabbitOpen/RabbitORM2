@@ -3,16 +3,21 @@ package rabbit.open.orm.dml;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
-import rabbit.open.orm.dml.xml.NameQuery;
-import rabbit.open.orm.dml.xml.SQLParser;
+import org.apache.log4j.Logger;
+
+import rabbit.open.orm.dml.name.SQLObject;
+import rabbit.open.orm.dml.name.SQLParser;
+import rabbit.open.orm.dml.util.SQLFormater;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
 
 public class SQLQuery<T> {
 
+    Logger logger = Logger.getLogger(getClass());
+    
 	private SessionFactory sessionFactory;
 	
-	private NameQuery query;
+	private SQLObject query;
 	
 	private SQLCallBack<T> callBack;
 	
@@ -34,6 +39,7 @@ public class SQLQuery<T> {
 		PreparedStatement stmt = null;
 		try{
 			conn = sessionFactory.getConnection();
+			showSQL(query.getSql());
 			stmt = conn.prepareStatement(query.getSql());
             return callBack.execute(stmt);
 		} catch (Exception e){
@@ -42,6 +48,11 @@ public class SQLQuery<T> {
 		    DMLAdapter.closeConnection(conn);
 		    DMLAdapter.closeStmt(stmt);
 		}
+	}
+	
+	private void showSQL(String sql){
+	    logger.info("\n" + (sessionFactory.isFormatSql() ? 
+                SQLFormater.format(sql) : sql));
 	}
 
 }

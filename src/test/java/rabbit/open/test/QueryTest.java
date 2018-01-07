@@ -149,8 +149,10 @@ public class QueryTest {
 
 	@Test
 	public void invalidFetchOperationExceptionTest(){
+	    User u = new User();
+	    u.setId(10L);
 	    try{
-	        us.createQuery().fetch(Role.class).execute().list();
+	        us.createQuery(u).fetch(Role.class).execute().list();
 	    }catch(Exception e){
 	        TestCase.assertSame(e.getClass(), InvalidFetchOperationException.class);
 	    }
@@ -423,10 +425,6 @@ public class QueryTest {
 	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP4"));
 	    zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP3"));
 	    
-	    
-	    List<User> list = null;
-	   
-	    
 	    try{
 	        //验证非法的joinFetch操作
 	        us.createQuery().buildFetch().joinFetch(Property.class).build().execute().list();
@@ -437,24 +435,36 @@ public class QueryTest {
 	    }
 	    
 	    //主表joinFetch
-	    list = us.createQuery().buildFetch()
-	            .joinFetch(Role.class).on("id", 1).build().execute().list();
-	    list.forEach(u -> System.out.println(u));
+	    User u = us.createQuery().addFilter("id", user.getId())
+	            .buildFetch().joinFetch(Role.class).on("id", user.getRoles().get(0).getId()).build()
+	            .execute().unique();
+	    TestCase.assertNotNull(u.getRoles());
+	    TestCase.assertEquals(u.getRoles().size(), 1);
 	    
 	    
 	    //从表joinFetch
-	    list = us.createQuery().buildFetch().joinFetch(Role.class).fetch(Organization.class)
+	    u = us.createQuery().addFilter("id", user.getId())
+	            .buildFetch().joinFetch(Role.class).fetch(Organization.class)
 	            .joinFetch(Property.class).build()
-	            .addFilter("id", 1)
-	            .addJoinFilter("id", 1, Role.class)
-	            .execute().list();
-	    list.forEach(u -> System.out.println(u));
+	            .addJoinFilter("id", user.getRoles().get(0).getId(), Role.class)
+	            .execute().unique();
+        TestCase.assertEquals(u.getRoles().size(), 1);
+        TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg().getOrgCode());
+        TestCase.assertEquals(u.getOrg().getName(), user.getOrg().getName());
+        TestCase.assertEquals(u.getOrg().getProps().size(), 2);
 
 	    //从表joinFetch
-	    list = us.createQuery().buildFetch().joinFetch(Role.class).fetch(Organization.class).joinFetch(Property.class).fetch(Zone.class)
+	    u = us.createQuery().addFilter("id", user.getId()).buildFetch().joinFetch(Role.class)
+	            .fetch(Organization.class).joinFetch(Property.class)
+	            .fetch(Zone.class)
 	            .joinFetch(ZProperty.class).build()
-	            .execute().list();
-	    list.forEach(u -> System.out.println(u));
+	            .execute().unique();
+	    TestCase.assertEquals(u.getRoles().size(), 2);
+	    TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg().getOrgCode());
+        TestCase.assertEquals(u.getOrg().getName(), user.getOrg().getName());
+        TestCase.assertEquals(u.getOrg().getProps().size(), 2);
+        TestCase.assertEquals(u.getOrg().getZone().getProps().size(), 2);
+        
 	}
 	
 	@Test
