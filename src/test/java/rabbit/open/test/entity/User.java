@@ -38,7 +38,7 @@ public class User {
 	@Column("ID")
 	private Long id;
 	
-	//名字
+    //名字
 	@Column("NAME")
 	private String name;
 	

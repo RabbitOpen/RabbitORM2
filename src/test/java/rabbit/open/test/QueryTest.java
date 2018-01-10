@@ -78,60 +78,6 @@ public class QueryTest {
 	
 	/**
 	 * 
-	 * <b>Description:  添加测试数据</b><br>.
-	 * @param start	
-	 * 
-	 */
-	public User addInitData(int start){
-	    User user = new User();
-	    //添加组织
-	    Organization org = new Organization("FBI", "联邦调查局");
-	    os.add(org);
-	    
-	    //添加角色
-	    List<Role> roles = new ArrayList<Role>();
-	    for(int i = start; i < start + 2; i++){
-	        Role r = new Role("R" + i);
-	        rs.add(r);
-	        roles.add(r);
-	        //构建资源
-	        List<Resources> resources = new ArrayList<Resources>();
-	        for(int j = 0; j < 2; j++){
-	            Resources rr = new Resources("baidu_" + j + i + ".com");
-	            resService.add(rr);
-	            resources.add(rr);
-	        }
-	        //添加角色资源映射关系
-	        r.setResources(resources);
-	        rs.addJoinRecords(r);
-	    }
-	    
-	    //添加用户
-	    user.setOrg(org);
-	    user.setBigField(new BigDecimal(1));
-	    user.setShortField((short) 1);
-	    user.setDoubleField(0.1);
-	    user.setFloatField(0.1f);
-	    
-	    user.setName("zhangsan" + System.currentTimeMillis());
-		user.setBirth(new Date());
-		us.add(user);
-		
-		//添加用户角色之间的映射关系
-		user.setRoles(roles);
-		us.addJoinRecords(user);
-		
-		//添加车辆
-		cs.add(new Car("川A110", user));
-		cs.add(new Car("川A120", user));
-		cs.add(new Car("川A130", user));
-		
-		return user;
-		
-	}
-	
-	/**
-	 * 
 	 * <b>Description:  分页 + 排序 + 关联(多对一、多对多)查询 + distinct  </b><br>.	
 	 * 
 	 */
@@ -165,19 +111,21 @@ public class QueryTest {
 
 	@Test
 	public void queryTest(){
-		addInitData(110);
-		List<User> list = us.createQuery()
+		User user = addInitData(110);
+		User u = us.createQuery()
 		        .page(0, 10)
 		        .joinFetch(Role.class)
 		        .fetch(Organization.class)
-		        .addFilter("${id}", new Integer[]{1}, FilterType.IN)
-		        .addFilter("birth", new Date(), FilterType.LTE)
-		        .addFilter("name", new String[]{"zhangsan"}, FilterType.IN)
-		        .addFilter("orgCode", "MY_ORG", Organization.class)
-		        .addFilter("org", new Integer[]{1}, FilterType.IN)
+		        .addFilter("${id}", new Long[]{user.getId()}, FilterType.IN)
+		        .addFilter("birth", user.getBirth(), FilterType.LTE)
+		        .addFilter("name", new String[]{user.getName()}, FilterType.IN)
+		        .addFilter("orgCode", user.getOrg().getOrgCode(), Organization.class)
+		        .addFilter("org", new Long[]{user.getOrg().getId()}, FilterType.IN)
 		        .alias(User.class, "U")
-		        .execute().list();
-		list.forEach(u -> System.out.println(u));
+		        .execute().unique();
+		TestCase.assertEquals(user.getName(), u.getName());
+		TestCase.assertEquals(user.getOrg().getName(), u.getOrg().getName());
+		TestCase.assertEquals(user.getOrg().getOrgCode(), u.getOrg().getOrgCode());
 	}
 
 	@Test
@@ -189,7 +137,8 @@ public class QueryTest {
 	            .desc("id")
 	            .asc("name")
 	            .execute().list();
-	    list.forEach(u -> System.out.println(u));
+	    TestCase.assertTrue(list.size() >= 1);
+	    TestCase.assertTrue(list.size() <= 10);
 	}
 	
 	/**
@@ -297,16 +246,23 @@ public class QueryTest {
 	 */
 	@Test
 	public void addJoinFilterTest(){
-	    addInitData(150);
-        List<User> list = us.createQuery()
-                .page(0, 10)
-//                .joinFetch(Role.class)
-                .joinFetch(Car.class)
-                .addJoinFilter("id", 1, Role.class)
-                .addJoinFilter("roleName", "R150", Role.class)
-                .addJoinFilter("id", 2, Car.class)
-                .execute().list();
-        list.forEach(u -> System.out.println(u));
+	    User user = addInitData(150);
+	    Car c = new Car();
+	    String carNo = "川A110";
+        c.setCarNo(carNo);
+	    String roleName = "R150";
+        User u = us.createQuery()
+                .addFilter("id", user.getId())
+                .joinFetch(Role.class, user.getRoles().get(0))
+                .joinFetch(Car.class, c)
+                .addJoinFilter("id", user.getRoles().get(0).getId(), Role.class)
+                .addJoinFilter("roleName", roleName, Role.class)
+                .addJoinFilter("carNo", carNo, Car.class)
+                .execute().unique();
+        TestCase.assertEquals(u.getCars().size(), 1);
+        TestCase.assertEquals(u.getCars().get(0).getCarNo(), carNo);
+        TestCase.assertEquals(u.getRoles().size(), 1);
+        TestCase.assertEquals(u.getRoles().get(0).getRoleName(), roleName);
 	}
 
 	/**
@@ -514,5 +470,58 @@ public class QueryTest {
 	    }
 	}
 	
-	
+	   /**
+     * 
+     * <b>Description:  添加测试数据</b><br>.
+     * @param start 
+     * 
+     */
+    public User addInitData(int start){
+        User user = new User();
+        //添加组织
+        Organization org = new Organization("FBI", "联邦调查局");
+        os.add(org);
+        
+        //添加角色
+        List<Role> roles = new ArrayList<Role>();
+        for(int i = start; i < start + 2; i++){
+            Role r = new Role("R" + i);
+            rs.add(r);
+            roles.add(r);
+            //构建资源
+            List<Resources> resources = new ArrayList<Resources>();
+            for(int j = 0; j < 2; j++){
+                Resources rr = new Resources("baidu_" + j + i + ".com");
+                resService.add(rr);
+                resources.add(rr);
+            }
+            //添加角色资源映射关系
+            r.setResources(resources);
+            rs.addJoinRecords(r);
+        }
+        
+        //添加用户
+        user.setOrg(org);
+        user.setBigField(new BigDecimal(1));
+        user.setShortField((short) 1);
+        user.setDoubleField(0.1);
+        user.setFloatField(0.1f);
+        
+        user.setName("zhangsan" + System.currentTimeMillis());
+        user.setBirth(new Date());
+        us.add(user);
+        
+        //添加用户角色之间的映射关系
+        user.setRoles(roles);
+        us.addJoinRecords(user);
+        
+        //添加车辆
+        cs.add(new Car("川A110", user));
+        cs.add(new Car("川A120", user));
+        cs.add(new Car("川A130", user));
+        
+        return user;
+        
+    }
+
 }

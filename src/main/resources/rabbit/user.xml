@@ -1,96 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
-	"http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd"> 
+    "http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd"> 
 
 <rabbit-mapping entity="rabbit.open.test.entity.User">
-	<!-- 根据用户名查询用户 -->
-	<select name="getUserByName" alias="U">
-	    <join-fetch entity="rabbit.open.test.entity.Role" alias="R"/>
-	    <join-fetch entity="rabbit.open.test.entity.Car" alias="C"/>
-	    <fetch entity="rabbit.open.test.entity.Organization" alias="O">
-	       <fetch entity="rabbit.open.test.entity.Zone" alias="Z"/>
-	       <join-fetch entity="rabbit.open.test.entity.Property" alias="P"/>
-	    </fetch>
-	    
-		<![CDATA[
-		    SELECT 
-		        #{FILEDS}
-			FROM 
-				T_USER U
-			LEFT JOIN
+    <!-- 根据用户名查询用户 -->
+    <select name="getUserByName" alias="U">
+        <join-fetch entity="rabbit.open.test.entity.Role" alias="R"/>
+        <join-fetch entity="rabbit.open.test.entity.Car" alias="C"/>
+        <fetch entity="rabbit.open.test.entity.Organization" alias="O">
+           <fetch entity="rabbit.open.test.entity.Zone" alias="Z"/>
+           <join-fetch entity="rabbit.open.test.entity.Property" alias="P"/>
+        </fetch>
+        
+        <![CDATA[
+            SELECT 
+                #{FILEDS}
+            FROM 
+                T_USER U
+            LEFT JOIN
                 T_ORG O 
             ON 
                 U.ORG_ID = O.ID 
-			LEFT JOIN
+            LEFT JOIN
                 T_ZONE Z 
             ON 
                 O.ZONE_ID = Z.ID 
-			LEFT JOIN 
-				T_USER_ROLE UR
-			ON
-				UR.USER_ID = U.ID
-			LEFT JOIN 
-				T_ROLE R
-			ON 
-				UR.ROLE_ID = R.ID
-		    LEFT JOIN 
-		      T_CAR C
-		    ON
-		      U.ID = C.USER_ID
-		    LEFT JOIN
-		      T_PROPERTY P
-		    ON
-		      P.ORG_ID = O.ID
-			WHERE 
-				U.ID = ${userId} 
-				AND U.NAME LIKE ${username} 
-		]]>
-	</select>
+            LEFT JOIN 
+                T_USER_ROLE UR
+            ON
+                UR.USER_ID = U.ID
+            LEFT JOIN 
+                T_ROLE R
+            ON 
+                UR.ROLE_ID = R.ID
+            LEFT JOIN 
+              T_CAR C
+            ON
+              U.ID = C.USER_ID
+            LEFT JOIN
+              T_PROPERTY P
+            ON
+              P.ORG_ID = O.ID
+            WHERE 
+                U.ID = ${userId} 
+                AND U.NAME LIKE ${username} 
+        ]]>
+    </select>
 
-	<select name="emptyAliasExceptionTest" alias="">
-	    <fetch entity="rabbit.open.test.entity.Organization" alias="O"/>
-		<![CDATA[
-		    SELECT
-		      #{FILEDS}
-			FROM 
-				T_USER U
-			LEFT JOIN
-			    T_ORG O
-			ON
-			    U.ORG_ID = O.ID	
-			WHERE 
-				U.ID = ${userId}  
-		]]>
-	</select>
+    <select name="emptyAliasExceptionTest" alias="">
+        <fetch entity="rabbit.open.test.entity.Organization" alias="O"/>
+        <![CDATA[
+            SELECT
+              #{FILEDS}
+            FROM 
+                T_USER U
+            LEFT JOIN
+                T_ORG O
+            ON
+                U.ORG_ID = O.ID 
+            WHERE 
+                U.ID = ${userId}  
+        ]]>
+    </select>
 
-	<select name="repeatedAliasExceptionTest" alias="U">
-	    <fetch entity="rabbit.open.test.entity.Organization" alias="O"/>
-	    <fetch entity="rabbit.open.test.entity.Zone" alias="O"/>
-		<![CDATA[
-		    SELECT
-		      #{FILEDS}
-			FROM 
-				T_USER U
-			LEFT JOIN
-			    T_ORG O
-			ON
-			    U.ORG_ID = O.ID	
-			WHERE 
-				U.ID = ${userId}  
-		]]>
-	</select>
-	
-	<!-- jdbc操作 -->
-	<jdbc name="misMatchedNamedQueryExceptionTest">
-		SELECT
-			COUNT(1)
-		FROM T_USER	
-	</jdbc>
+    <select name="repeatedAliasExceptionTest" alias="U">
+        <fetch entity="rabbit.open.test.entity.Organization" alias="O"/>
+        <fetch entity="rabbit.open.test.entity.Zone" alias="O"/>
+        <![CDATA[
+            SELECT
+              #{FILEDS}
+            FROM 
+                T_USER U
+            LEFT JOIN
+                T_ORG O
+            ON
+                U.ORG_ID = O.ID 
+            WHERE 
+                U.ID = ${userId}  
+        ]]>
+    </select>
+    
+    <!-- jdbc操作 -->
+    <jdbc name="misMatchedNamedQueryExceptionTest">
+        SELECT
+            COUNT(1)
+        FROM T_USER 
+    </jdbc>
 
-	<!-- jdbc操作 -->
-	<jdbc name="countUser">
-		SELECT
-			COUNT(1)
-		FROM T_USER	
-	</jdbc>
-</rabbit-mapping>	
+    <!-- jdbc操作 -->
+    <jdbc name="countUser">
+        SELECT
+            COUNT(1)
+        FROM T_USER 
+    </jdbc>
+</rabbit-mapping>   

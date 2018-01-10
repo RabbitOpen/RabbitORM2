@@ -3,6 +3,8 @@ package rabbit.open.test;
 import java.sql.Connection;
 import java.util.concurrent.Semaphore;
 
+import junit.framework.TestCase;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,12 +71,14 @@ public class DataSourceTest {
             wait(6000);
         }
 		rds.shutdown();
+		TestCase.assertEquals(0, rds.getConnectors().size());
 	}
 	
 	@Test
 	public void restartTest(){
 	    rds.restart();
 	    rds.shutdown();
+	    TestCase.assertEquals(0, rds.getConnectors().size());
 	}
 	
 }

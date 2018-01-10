@@ -140,7 +140,6 @@ public abstract class AbstractConnection implements Connection{
 	@Override
 	public void rollback(Savepoint savepoint) throws SQLException {
 		
-		
 	}
 
 	@Override

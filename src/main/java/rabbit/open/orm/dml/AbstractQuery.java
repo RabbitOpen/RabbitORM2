@@ -691,14 +691,14 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 					continue;
 				}
 				String key = getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value();
-				String filter = FilterType.EQUAL.name();
+				String filter = FilterType.EQUAL.value();
 				sb.append(AND + key);
 				Object hv = RabbitValueConverter.convert(pkv, fmd);
 				cachePreparedValues(hv);
 				sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
 			}else{
 				String key = getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value();
-				String filter = FilterType.EQUAL.name();
+				String filter = FilterType.EQUAL.value();
 				sb.append(AND + key);
 				Object hv = RabbitValueConverter.convert(fmd.getFieldValue(), fmd);
 				cachePreparedValues(hv);
@@ -737,14 +737,14 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 					continue;
 				}
 				String key = getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value();
-				String filter = FilterType.EQUAL.name();
+				String filter = FilterType.EQUAL.value();
 				sb.append(AND + key);
 				Object hv = RabbitValueConverter.convert(pkv, fmd);
 				cachePreparedValues(hv);
 				sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
 			}else{
 				String key = getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value();
-				String filter = FilterType.EQUAL.name();
+				String filter = FilterType.EQUAL.value();
 				sb.append(AND + key);
 				Object hv = RabbitValueConverter.convert(fmd.getFieldValue(), fmd);
 				cachePreparedValues(hv);

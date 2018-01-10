@@ -70,7 +70,7 @@ public abstract class DMLAdapter<T> {
 	//过滤条件
 	protected List<FilterDescriptor> filterDescriptors = new ArrayList<>();
 	
-	//能够被当前表对应的class join fetch的class
+	//能够被当前表对应的class fetch(many2one)的class
 	protected Map<Class<?>, List<FilterDescriptor>> clzesEnabled2Join;
 	
 	protected Pattern pattern;
@@ -478,32 +478,48 @@ public abstract class DMLAdapter<T> {
 	
 	//找出该实体下所有能够被关联查询的类
 	private void findOutEnable2JoinClzes(Class<?> clz){
-		for(FieldMetaData fmd : MetaData.getCachedFieldsMetas(clz)){
-			if(!fmd.isForeignKey()){
-				continue;
-			}
-			String fkName = MetaData.getPrimaryKeyField(fmd.getField().getType()).getAnnotation(Column.class).value();
-			String fkTable = MetaData.getTablenameByClass(fmd.getField().getType());
-			FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(MetaData.getTablenameByClass(clz)) + "." + fmd.getColumn().value(), 
-					getAliasByTableName(fkTable) + "." + fkName);
-			desc.setFilterTable(fkTable);
-			desc.setJoinOn(true);
-			desc.setJoinDependency(clz);
-			desc.setJoinField(fmd.getField());
+        for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(clz)) {
+            if (!fmd.isForeignKey()) {
+                continue;
+            }
+            String fkName = MetaData.getPrimaryKeyField(fmd.getField().getType())
+                    .getAnnotation(Column.class).value();
+            String fkTable = MetaData.getTablenameByClass(fmd.getField().getType());
+            FilterDescriptor desc = new FilterDescriptor(
+                    getAliasByTableName(MetaData.getTablenameByClass(clz))
+                            + "." + fmd.getColumn().value(),
+                    getAliasByTableName(fkTable) + "." + fkName);
+            desc.setFilterTable(fkTable);
+            desc.setJoinOn(true);
+            desc.setJoinDependency(clz);
+            desc.setJoinField(fmd.getField());
 			//防止递归查询出现死循环
-			if(null == clzesEnabled2Join.get(fmd.getField().getType())){
-				List<FilterDescriptor> list = new ArrayList<>();
-				list.add(desc);
-				clzesEnabled2Join.put(fmd.getField().getType(), list);
-				findOutEnable2JoinClzes(fmd.getField().getType());
-			}else{
-				if(!isDependencyExists(clz, fmd)){
-					clzesEnabled2Join.get(fmd.getField().getType()).add(desc);
-					findOutEnable2JoinClzes(fmd.getField().getType());
-				}
-			}
+            if (null == clzesEnabled2Join.get(fmd.getField().getType())) {
+                List<FilterDescriptor> list = new ArrayList<>();
+                list.add(desc);
+                clzesEnabled2Join.put(fmd.getField().getType(), list);
+                findOutEnable2JoinClzes(fmd.getField().getType());
+            } else {
+                if (!isDependencyExists(clz, fmd)) {
+                    clzesEnabled2Join.get(fmd.getField().getType()).add(desc);
+                    findOutEnable2JoinClzes(fmd.getField().getType());
+                } else {
+                    combineJoinFields(clz, fmd);
+                }
+            }
 		}
 	}
+
+    private void combineJoinFields(Class<?> clz, FieldMetaData fmd) {
+        Class<?> type = fmd.getField().getType();
+        for(FilterDescriptor fd : clzesEnabled2Join.get(type)){
+            if(!fd.getJoinDependency().equals(clz)){
+                continue;
+            }
+            fd.addJoinField(fmd.getField());
+            break;
+        }
+    }
 
     /**
      * 
