@@ -444,7 +444,7 @@ public abstract class DMLAdapter<T> {
 				break;
 			}
 			if(!clz2j.containsKey(deps[i])){
-				throw new RabbitDMLException(deps[i] + " can't be joined by [" + metaData.getEntityClz().getName() + "]");
+				throw new RabbitDMLException(deps[i] + " can't be fetched by [" + metaData.getEntityClz().getName() + "]");
 			}
 			List<FilterDescriptor> list = clz2j.get(deps[i]);
 			boolean right = false;
@@ -503,23 +503,10 @@ public abstract class DMLAdapter<T> {
                 if (!isDependencyExists(clz, fmd)) {
                     clzesEnabled2Join.get(fmd.getField().getType()).add(desc);
                     findOutEnable2JoinClzes(fmd.getField().getType());
-                } else {
-                    combineJoinFields(clz, fmd);
-                }
+                } 
             }
 		}
 	}
-
-    private void combineJoinFields(Class<?> clz, FieldMetaData fmd) {
-        Class<?> type = fmd.getField().getType();
-        for(FilterDescriptor fd : clzesEnabled2Join.get(type)){
-            if(!fd.getJoinDependency().equals(clz)){
-                continue;
-            }
-            fd.addJoinField(fmd.getField());
-            break;
-        }
-    }
 
     /**
      * 

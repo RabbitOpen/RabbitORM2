@@ -893,7 +893,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	
 	/**
 	 * 
-	 * <b>Description:	将fetch的filterdescriptor信息准备好</b><br>	
+	 * <b>Description:	将fetch的filterdescriptor信息准备好, 
+	 *     循环递归按照依赖关系调整过滤条件在many2oneFilterDescripters中的顺序
+	 * </b>
 	 * 
 	 */
 	protected void prepareMany2oneFilters(){

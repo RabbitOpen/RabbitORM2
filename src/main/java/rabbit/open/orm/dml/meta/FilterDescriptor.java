@@ -1,8 +1,6 @@
 package rabbit.open.orm.dml.meta;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 import rabbit.open.orm.annotation.Relation.FilterType;
 
@@ -30,31 +28,14 @@ public class FilterDescriptor {
 	//在父类表中的字段
 	private Field joinField;
 	
-	//在父类表中的字段
-	private List<Field> joinFields;
-	
 	public Field getJoinField() {
 		return joinField;
 	}
 
-	public List<Field> getJoinFields() {
-	    return joinFields;
-	}
-
 	public void setJoinField(Field joinField) {
 		this.joinField = joinField;
-		addJoinField(this.joinField);
 	}
 	
-    public void addJoinField(Field joinField) {
-        for (Field f : this.joinFields) {
-            if (f.equals(joinField)) {
-                return;
-            }
-        }
-        joinFields.add(joinField);
-    }
-
 	//表示该filter是否是表之间关联的过滤条件
 	private boolean isJoinOn = false;
 
@@ -87,7 +68,6 @@ public class FilterDescriptor {
 		this.key = key;
 		this.value = value;
 		this.filter = filter;
-		joinFields = new ArrayList<>();
 	}
 
 	public FilterDescriptor(String key, Object value) {
