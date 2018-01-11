@@ -156,7 +156,7 @@ public class UpdateTest {
         us.add(user);
 		String newName = "lisi44";
         us.createUpdate().addFilter("id", user.getId()).set("name", newName)
-		    .addFilter("id", 120, Organization.class)
+		    .addFilter("id", 120, Organization.class, User.class)
 		    .execute();
 		User u = us.createQuery().addFilter("id", user.getId()).execute().unique();
         TestCase.assertEquals(newName, u.getName());

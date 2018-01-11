@@ -28,6 +28,28 @@ public class FilterDescriptor {
 	//在父类表中的字段
 	private Field joinField;
 	
+	//同类型字段下标
+    private int index = 0;
+	
+	//标识是否是拥有同类型字段
+    private boolean multiFetchField = false;
+    
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public boolean isMultiFetchField() {
+        return multiFetchField;
+    }
+
+    public void setMultiFetchField(boolean multiFetchField) {
+        this.multiFetchField = multiFetchField;
+    }
+	
 	public Field getJoinField() {
 		return joinField;
 	}

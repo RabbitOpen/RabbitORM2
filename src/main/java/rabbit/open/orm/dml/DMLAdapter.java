@@ -31,6 +31,8 @@ import rabbit.open.orm.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFilter;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.util.SQLFormater;
+import rabbit.open.orm.exception.AmbiguousDependencyException;
+import rabbit.open.orm.exception.InvalidFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
@@ -44,7 +46,9 @@ import rabbit.open.orm.pool.SessionFactory;
  */
 public abstract class DMLAdapter<T> {
 
-	Logger logger = Logger.getLogger(getClass());
+	protected static final String UNDERLINE = "_";
+
+    Logger logger = Logger.getLogger(getClass());
 	
 	protected List<CallBackTask> filterTasks;
 	
@@ -67,7 +71,7 @@ public abstract class DMLAdapter<T> {
 	
 	protected MetaData<T> metaData;
 	
-	//过滤条件
+	//where关键字后面的过滤条件
 	protected List<FilterDescriptor> filterDescriptors = new ArrayList<>();
 	
 	//能够被当前表对应的class fetch(many2one)的class
@@ -421,11 +425,11 @@ public abstract class DMLAdapter<T> {
 		}
 		while(true){
 			if(!clz2j.containsKey(last)){
-				throw new RabbitDMLException(last + " can't be joined by [" + metaData.getEntityClz().getName() + "]");
+				throw new InvalidFetchOperationException(last + " can't be joined by [" + metaData.getEntityClz().getName() + "]");
 			}
 			List<FilterDescriptor> list = clz2j.get(last);
 			if(list.size() != 1){
-				throw new RabbitDMLException("ambiguous query dependency for " + last);
+				throw new AmbiguousDependencyException(last);
 			}
 			fds.add(list.get(0));
 			if(list.get(0).getJoinDependency().equals(metaData.getEntityClz())){
@@ -485,10 +489,14 @@ public abstract class DMLAdapter<T> {
             String fkName = MetaData.getPrimaryKeyField(fmd.getField().getType())
                     .getAnnotation(Column.class).value();
             String fkTable = MetaData.getTablenameByClass(fmd.getField().getType());
-            FilterDescriptor desc = new FilterDescriptor(
-                    getAliasByTableName(MetaData.getTablenameByClass(clz))
-                            + "." + fmd.getColumn().value(),
-                    getAliasByTableName(fkTable) + "." + fkName);
+            String tableAlias = getAliasByTableName(fkTable);
+            if(fmd.isMutiFetchField()){
+                tableAlias = tableAlias + UNDERLINE + fmd.getIndex();
+            }
+            FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(MetaData.getTablenameByClass(clz))
+                            + "." + fmd.getColumn().value(), tableAlias + "." + fkName);
+            desc.setMultiFetchField(fmd.isMutiFetchField());
+            desc.setIndex(fmd.getIndex());
             desc.setFilterTable(fkTable);
             desc.setJoinOn(true);
             desc.setJoinDependency(clz);
@@ -498,15 +506,22 @@ public abstract class DMLAdapter<T> {
                 List<FilterDescriptor> list = new ArrayList<>();
                 list.add(desc);
                 clzesEnabled2Join.put(fmd.getField().getType(), list);
-                findOutEnable2JoinClzes(fmd.getField().getType());
+                recusiveFindOutEnable2JoinClzes(fmd);
             } else {
                 if (!isDependencyExists(clz, fmd)) {
                     clzesEnabled2Join.get(fmd.getField().getType()).add(desc);
-                    findOutEnable2JoinClzes(fmd.getField().getType());
-                } 
+                    recusiveFindOutEnable2JoinClzes(fmd);
+                }
             }
 		}
 	}
+
+    private void recusiveFindOutEnable2JoinClzes(FieldMetaData fmd) {
+        if(fmd.isMutiFetchField() && fmd.getIndex() != 1){
+            return;
+        }
+        findOutEnable2JoinClzes(fmd.getField().getType());
+    }
 
     /**
      * 
@@ -519,7 +534,7 @@ public abstract class DMLAdapter<T> {
     private boolean isDependencyExists(Class<?> clz, FieldMetaData fmd) {
         Class<?> type = fmd.getField().getType();
         for(FilterDescriptor fd : clzesEnabled2Join.get(type)){
-        	if(fd.getJoinDependency().equals(clz)){
+        	if(fd.getJoinDependency().equals(clz) && fd.getJoinField().equals(fmd.getField())){
         		return true;
         	}
         }

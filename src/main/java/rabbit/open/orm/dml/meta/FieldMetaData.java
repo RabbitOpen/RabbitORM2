@@ -36,9 +36,30 @@ public class FieldMetaData {
 	private boolean isPrimaryKey = false;
 
 	private PrimaryKey primaryKey;
-		
+	
+	//同类型字段下标
+	private int index = 0;
+	
+	//标识是否是拥有同类型字段
+	private boolean mutiFetchField = false;
+	
+	public boolean isMutiFetchField() {
+        return mutiFetchField;
+    }
 
-	public FieldMetaData(Field field, Column column) {
+    public void setMutiFetchField(boolean mutiFetchField) {
+        this.mutiFetchField = mutiFetchField;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public FieldMetaData(Field field, Column column) {
 		super();
 		this.field = field;
 		this.column = column;

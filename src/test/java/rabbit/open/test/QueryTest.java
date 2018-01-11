@@ -85,12 +85,11 @@ public class QueryTest {
 	public void query(){
 		User user = addInitData(100);
 		List<User> list = us.createQuery(user)
-		        .page(0, 10)
 		        .joinFetch(Role.class)
 		        .fetch(Organization.class)
 		        .distinct()
 		        .execute().list();
-		list.forEach(u -> System.out.println(u));
+		TestCase.assertTrue(list.size() > 0);
 	}
 
 	@Test
@@ -106,20 +105,22 @@ public class QueryTest {
 
 	@Test
 	public void queryByID(){
-	    System.out.println(us.getByID(100L));
+	    User user = addInitData(100);
+	    User u = us.getByID(user.getId());
+	    TestCase.assertEquals(user.getId(), u.getId());
+	    TestCase.assertEquals(user.getName(), u.getName());
 	}
 
 	@Test
 	public void queryTest(){
 		User user = addInitData(110);
 		User u = us.createQuery()
-		        .page(0, 10)
 		        .joinFetch(Role.class)
 		        .fetch(Organization.class)
 		        .addFilter("${id}", new Long[]{user.getId()}, FilterType.IN)
 		        .addFilter("birth", user.getBirth(), FilterType.LTE)
 		        .addFilter("name", new String[]{user.getName()}, FilterType.IN)
-		        .addFilter("orgCode", user.getOrg().getOrgCode(), Organization.class)
+		        .addFilter("orgCode", user.getOrg().getOrgCode(), Organization.class, User.class)
 		        .addFilter("org", new Long[]{user.getOrg().getId()}, FilterType.IN)
 		        .alias(User.class, "U")
 		        .execute().unique();
@@ -148,16 +149,19 @@ public class QueryTest {
 	 */
 	@Test
 	public void innerJoinQueryTest(){
-	    addInitData(120);
-	    List<User> list = us.createQuery()
-                .page(0, 10)
-                .joinFetch(Role.class)
-                .fetch(Organization.class)
-                .addFilter("id", 1)
-                .addInnerJoinFilter("id", FilterType.IN, new Integer[]{1, 3, 2}, Role.class)
-                .addInnerJoinFilter("roleName", "R121", Role.class)
-                .execute().list();
-        list.forEach(u -> System.out.println(u));
+	    User user = addInitData(120);
+	    User u = us.createQuery()
+                    .joinFetch(Role.class)
+                    .fetch(Organization.class)
+                    .addFilter("id", user.getId())
+                    .addInnerJoinFilter("id", FilterType.IN, new Integer[]{user.getRoles().get(0).getId(), 
+                            user.getRoles().get(1).getId()}, Role.class)
+                    .addInnerJoinFilter("roleName", user.getRoles().get(0).getRoleName(), Role.class)
+                    .execute().unique();
+	    TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg().getOrgCode());
+	    TestCase.assertEquals(u.getRoles().size(), 1);
+	    TestCase.assertEquals(u.getRoles().get(0).getRoleName(), user.getRoles().get(0).getRoleName());
+	    System.out.println(u);
 	}
 
 	/**
@@ -168,16 +172,22 @@ public class QueryTest {
 	 */
 	@Test
 	public void joinFilterBuilderTest(){
-	    addInitData(120);
+	    User user = addInitData(120);
 	    Query<User> query = us.createQuery();
-        List<User> list = query.page(0, 10)
-	            .joinFetch(Role.class)
-	            .fetch(Organization.class)
-	            .addFilter("id", 1)
-	            .addInnerJoinFilter(JoinFilterBuilder.prepare(query).join(Role.class)
-	                    .on("id", 1).on("roleName", "R120").join(Resources.class).on("${id}", 2L).build())
-	            .execute().list();
-	    list.forEach(u -> System.out.println(u));
+        User u = query.joinFetch(Role.class)
+    	            .fetch(Organization.class)
+    	            .addFilter("id", user.getId())
+    	            .addInnerJoinFilter(JoinFilterBuilder.prepare(query).join(Role.class)
+    	                    .on("id", user.getRoles().get(0).getId())
+    	                    .on("roleName", user.getRoles().get(0).getRoleName())
+    	                    .join(Resources.class)
+    	                    .on("${id}", user.getRoles().get(0).getResources().get(0).getId())
+    	                    .build())
+    	            .execute().unique();
+        TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg().getOrgCode());
+        TestCase.assertEquals(u.getRoles().size(), 1);
+        TestCase.assertEquals(u.getRoles().get(0).getRoleName(), user.getRoles().get(0).getRoleName());
+        System.out.println(u);
 	}
 
 	/**
@@ -188,20 +198,28 @@ public class QueryTest {
 	 */
 	@Test
 	public void joinFilterBuilderTest2(){
-	    addInitData(125);
+	    User user = addInitData(125);
 	    Query<User> query = us.createQuery();
-	    List<User> list = query.page(0, 10)
-	            .joinFetch(Role.class)
-	            .distinct()
-	            .alias(Resources.class, "RESOURCES")
-	            .fetch(Organization.class)
-	            .joinFetch(Car.class)
-	            .addInnerJoinFilter(JoinFilterBuilder.prepare(query).join(Role.class)
-	                    .on("id", 1).on("roleName", "R120").join(Resources.class).on("${id}", 2L).build())
-                .addInnerJoinFilter(JoinFilterBuilder.prepare(query).join(Car.class)
-                        .on("${id}", 1).build())
-                .execute().list();
-	    list.forEach(u -> System.out.println(u));
+	    User u = query.joinFetch(Role.class)
+    	            .distinct()
+    	            .addFilter("id", user.getId())
+    	            .alias(Resources.class, "RESOURCES")
+    	            .fetch(Organization.class)
+    	            .joinFetch(Car.class)
+    	            .addInnerJoinFilter(JoinFilterBuilder.prepare(query).join(Role.class)
+    	                    .on("id", user.getRoles().get(0).getId())
+    	                    .on("roleName", user.getRoles().get(0).getRoleName())
+    	                    .join(Resources.class)
+    	                    .on("${id}", user.getRoles().get(0).getResources().get(0).getId()).build())
+                    .addInnerJoinFilter(JoinFilterBuilder.prepare(query).join(Car.class)
+                            .on("${id}", user.getCars().get(0).getId()).build())
+                    .execute().unique();
+	    TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg().getOrgCode());
+        TestCase.assertEquals(u.getRoles().size(), 1);
+        TestCase.assertEquals(u.getRoles().get(0).getRoleName(), user.getRoles().get(0).getRoleName());
+        TestCase.assertEquals(u.getCars().size(), 1);
+        TestCase.assertEquals(u.getCars().get(0).getCarNo(), user.getCars().get(0).getCarNo());
+	    System.out.println(u);
 	}
 
 	/**
@@ -300,26 +318,24 @@ public class QueryTest {
 	public void addNullFilterTest(){
 	    addInitData(150);
 	    List<User> list = us.createQuery()
-	            .page(0, 10)
-	            .addNullFilter("id", false)
-	            .joinFetch(Role.class)
-	            .joinFetch(Car.class)
-	            .addJoinFilter("id", 1, Role.class)
-	            .addJoinFilter("roleName", "R150", Role.class)
-	            .addJoinFilter("id", 2, Car.class)
-	            .execute().list();
-	    list.forEach(u -> System.out.println(u));
+    	            .addNullFilter("id", false)
+    	            .joinFetch(Role.class)
+    	            .joinFetch(Car.class)
+    	            .addJoinFilter("id", 1, Role.class)
+    	            .addJoinFilter("roleName", "R150", Role.class)
+    	            .addJoinFilter("id", 2, Car.class)
+    	            .execute().list();
+	    TestCase.assertTrue(list.size() > 0);
 	    
-	    list = us.createQuery()
-	            .page(0, 10)
+	    User u = us.createQuery()
 	            .addNullFilter("id")
 	            .joinFetch(Role.class)
 	            .joinFetch(Car.class)
 	            .addJoinFilter("id", 1, Role.class)
 	            .addJoinFilter("roleName", "R150", Role.class)
 	            .addJoinFilter("id", 2, Car.class)
-	            .execute().list();
-	    list.forEach(u -> System.out.println(u));
+	            .execute().unique();
+	    TestCase.assertNull(u);
 	}
 	
 	
@@ -410,10 +426,11 @@ public class QueryTest {
         TestCase.assertEquals(u.getOrg().getProps().size(), 2);
 
 	    //从表joinFetch
-	    u = us.createQuery().addFilter("id", user.getId()).buildFetch().joinFetch(Role.class)
+	    u = us.createQuery().addFilter("id", user.getId())
+	            .buildFetch().joinFetch(Role.class)
 	            .fetch(Organization.class).joinFetch(Property.class)
-	            .fetch(Zone.class)
-	            .joinFetch(ZProperty.class).build()
+	            .fetch(Zone.class).joinFetch(ZProperty.class)
+	            .build()
 	            .execute().unique();
 	    TestCase.assertEquals(u.getRoles().size(), 2);
 	    TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg().getOrgCode());
@@ -424,7 +441,35 @@ public class QueryTest {
 	}
 	
 	@Test
-	public void mutilFetchTest(){
+	public void deepFetchTest(){
+	    
+	    String zoneName = "华中地区";
+        Zone z = new Zone(zoneName);
+	    zs.add(z);
+        //添加组织
+        Organization org = new Organization("FBI", "联邦调查局", z);
+        os.add(org);
+        User user = new User();
+        user.setAge(10);
+        user.setName("wangwu");
+        user.setOrg(org);
+        us.add(user);
+        
+        User u = us.createQuery().addFilter("id", user.getId())
+            .fetch(Zone.class, Organization.class)
+            .fetch(Organization.class)
+            .execute().unique();
+        
+        TestCase.assertEquals(u.getName(), user.getName());
+        TestCase.assertEquals(u.getOrg().getOrgCode(), "FBI");
+        TestCase.assertEquals(u.getOrg().getZone().getName(), zoneName);
+        
+        
+	}
+	
+	
+	@Test
+	public void buildFetchTest2(){
 	    Zone z = new Zone("华强北");
         zs.add(z);
         Leader l = new Leader("LEADER");
@@ -452,8 +497,7 @@ public class QueryTest {
 	@Test
 	public void fetchExceptionTest(){
 	    try{
-	        us.createQuery().buildFetch().fetch(Organization.class)
-                .fetch(Zone.class).build()
+	        us.createQuery().buildFetch().fetch(Organization.class).fetch(Zone.class).build()
                 .fetch(Zone.class)
                 .execute().list();
 	        throw new RuntimeException();
@@ -514,12 +558,14 @@ public class QueryTest {
         //添加用户角色之间的映射关系
         user.setRoles(roles);
         us.addJoinRecords(user);
-        
-        //添加车辆
-        cs.add(new Car("川A110", user));
-        cs.add(new Car("川A120", user));
-        cs.add(new Car("川A130", user));
-        
+        List<Car> cars = new ArrayList<>();
+        for(int i = 0; i < 3; i++){
+            //添加车辆
+            Car car = new Car("川A11" + i, user);
+            cs.add(car);
+            cars.add(car);
+        }
+        user.setCars(cars);
         return user;
         
     }

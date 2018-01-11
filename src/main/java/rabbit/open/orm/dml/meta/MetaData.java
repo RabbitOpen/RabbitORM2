@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -138,17 +139,38 @@ public class MetaData<T> {
 	private static List<FieldMetaData> getMappingFieldMetas(Class<?> clzz){
 	    Class<?> clz = clzz;
 		List<FieldMetaData> fields = new ArrayList<>();
+		Map<Class<?>, Integer> counter = new HashMap<>();
 		while(!clz.equals(Object.class)){
 			for(Field f : clz.getDeclaredFields()){
 				Column col = f.getAnnotation(Column.class);
 				if(null != col){
-					fields.add(new FieldMetaData(f, col));
+				    if(counter.containsKey(f.getType())){
+				        counter.put(f.getType(), counter.get(f.getType()) + 1);
+				    }else{
+				        counter.put(f.getType(), 1);
+				    }
+					FieldMetaData fmd = new FieldMetaData(f, col);
+					fmd.setIndex(counter.get(f.getType()));
+					if(fmd.getIndex() > 1){
+					    fmd.setMutiFetchField(true);
+					    flagMutiFetchFieldByType(fields, f.getType());
+					}
+                    fields.add(fmd);
 				}
 			}
 			clz = clz.getSuperclass();
 		}
 		return fields;
 	}
+
+	//标识type对应的字段为mutiFetchField
+    private static void flagMutiFetchFieldByType(List<FieldMetaData> fields, Class<?> type) {
+        for(FieldMetaData fmd : fields){
+            if(fmd.getField().getType().equals(type)){
+                fmd.setMutiFetchField(true);
+            }
+        }
+    }
 
 	public List<FieldMetaData> getFieldMetas() {
 		return fieldMetas;

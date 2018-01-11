@@ -74,7 +74,8 @@ public class DeleteTest {
 
 	@Test
 	public void deleteFilterTest2(){
-	    long result = us.createDelete().addNullFilter("birth").addFilter("orgCode", "myorg", Organization.class).execute();
+	    long result = us.createDelete().addNullFilter("birth")
+	            .addFilter("orgCode", "myorg", Organization.class, User.class).execute();
 	    System.out.println("deleteFilterTest2 : " + result);
 	}
 	

@@ -18,6 +18,12 @@ public class Car {
     @Column("USER_ID")
     private User user;
 
+    @Column("TEAM_ID")
+    private Team team;
+
+    @Column("ZONE_ID")
+    private Zone zone;
+    
     public Integer getId() {
         return id;
     }
@@ -57,9 +63,31 @@ public class Car {
         this.user = user;
     }
 
+    public Car(String carNo, Team team) {
+        super();
+        this.carNo = carNo;
+        this.team = team;
+    }
+
     @Override
     public String toString() {
         return "Car [id=" + id + ", carNo=" + carNo + ", user=" + user + "]";
+    }
+
+    public Team getTeam() {
+        return team;
+    }
+
+    public void setTeam(Team team) {
+        this.team = team;
+    }
+
+    public Zone getZone() {
+        return zone;
+    }
+
+    public void setZone(Zone zone) {
+        this.zone = zone;
     } 
     
     

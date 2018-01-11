@@ -38,7 +38,18 @@ public class Organization {
 	@OneToMany(joinColumn="ORG_ID")
 	List<Property> props;
 	
-	public String getOrgCode() {
+	@Column("TEAM_ID")
+	private Team team;
+	
+	public Team getTeam() {
+        return team;
+    }
+
+    public void setTeam(Team team) {
+        this.team = team;
+    }
+
+    public String getOrgCode() {
 		return orgCode;
 	}
 

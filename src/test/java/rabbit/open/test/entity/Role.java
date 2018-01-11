@@ -22,6 +22,9 @@ public class Role {
             joinTable="T_ROLE_RESOURCE", 
             joinColumn="ROLE_ID", reverseJoinColumn="RESOURCE_ID")
     private List<Resources> resources;
+	
+	@Column("ZONE_ID")
+	private Zone zone;
 
 	public Integer getId() {
 		return id;
@@ -55,11 +58,24 @@ public class Role {
     @Override
     public String toString() {
         return "Role [id=" + id + ", roleName=" + roleName + ", resources="
-                + resources + "]";
+                + resources + ", zone=" + zone + "]";
     }
 
     public void setResources(List<Resources> resources) {
         this.resources = resources;
     }
-	
+    
+    public List<Resources> getResources() {
+        return resources;
+    }
+
+    public Zone getZone() {
+        return zone;
+    }
+
+    public void setZone(Zone zone) {
+        this.zone = zone;
+    }
+
+    
 }

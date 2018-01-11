@@ -10,13 +10,6 @@ import java.sql.SQLException;
 @SuppressWarnings("serial")
 public class RabbitORMException extends SQLException{
 
-	public RabbitORMException() {
-		super();
-	}
-	public RabbitORMException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
 	public RabbitORMException(String message) {
 		super(message);
 	}
