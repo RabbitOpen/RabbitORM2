@@ -38,7 +38,7 @@ public class User {
 	@Column("ID")
 	private Long id;
 	
-	//名字
+    //名字
 	@Column("NAME")
 	private String name;
 	
@@ -63,9 +63,9 @@ public class User {
 	private Date birth;
 
 	//描述，关键字
-	@Column(value="\"DESC\"")
-    private String desc;
-    
+	@Column(value="`DESC`")
+	private String desc;
+
 	/**
 	 * 角色列表
 	 */
@@ -82,6 +82,9 @@ public class User {
 
 	@Column(value="ORG_ID")
 	private Organization org;
+	
+	@Column("ZONE_ID")
+    private Zone zone;
 
     public Long getId() {
         return id;
@@ -179,5 +182,5 @@ public class User {
                 + ", birth=" + birth + ", desc=" + desc + ", roles=" + roles
                 + ", cars=" + cars + ", org=" + org + "]";
     }
-	
+
 }

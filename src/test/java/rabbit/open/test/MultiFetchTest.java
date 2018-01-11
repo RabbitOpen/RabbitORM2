@@ -15,12 +15,14 @@ import rabbit.open.orm.exception.AmbiguousDependencyException;
 import rabbit.open.orm.exception.CycleFetchException;
 import rabbit.open.orm.exception.RepeatedFetchOperationException;
 import rabbit.open.test.entity.Car;
+import rabbit.open.test.entity.Department;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.Role;
 import rabbit.open.test.entity.Team;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.entity.Zone;
 import rabbit.open.test.service.CarService;
+import rabbit.open.test.service.DepartmentService;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.RoleService;
 import rabbit.open.test.service.TeamService;
@@ -51,6 +53,9 @@ public class MultiFetchTest {
     
     @Autowired
     CarService cs;
+    
+    @Autowired
+    DepartmentService ds;
 
 
     
@@ -71,6 +76,8 @@ public class MultiFetchTest {
         TestCase.assertEquals(team.getFollower().getName(), t.getFollower().getName());
         TestCase.assertEquals(team.getId(), t.getId());
     }
+    
+    
     
     @Test
     public void multiFetchTest(){
@@ -259,6 +266,30 @@ public class MultiFetchTest {
             TestCase.assertEquals(e.getClass(), AmbiguousDependencyException.class);
         }
        
+    }
+    
+    @Test
+    public void ambiguousDependencyExceptionTest2(){
+        Team t = addTestData();
+        Department d = new Department("成都研发中心", t);
+        ds.add(d);
+        Department dept = ds.createQuery().addFilter("id", d.getId())
+                    .fetch(Team.class)
+                    .execute().unique();
+        TestCase.assertNotNull(dept.getTeam().getLeader());
+        TestCase.assertNotNull(dept.getTeam().getFollower());
+        TestCase.assertNull(dept.getTeam().getLeader().getName());
+        TestCase.assertNull(dept.getTeam().getFollower().getName());
+        TestCase.assertEquals(dept.getTeam().getName(), t.getName());
+        
+        try{
+            ds.createQuery().addFilter("id", d.getId())
+                .fetch(User.class, Team.class)
+                .execute().unique();
+            throw new RuntimeException();
+        }catch(Exception e){
+            TestCase.assertEquals(e.getClass(), AmbiguousDependencyException.class);
+        }
     }
 
     private Team addTestData() {
