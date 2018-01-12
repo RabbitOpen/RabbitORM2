@@ -196,14 +196,18 @@ public abstract class DMLAdapter<T> {
 	 * 
 	 */
 	protected void setPreparedStatementValue(PreparedStatement stmt) throws SQLException{
-		for(int i = 1; i <= preparedValues.size(); i++){
-			Object value = preparedValues.get(i - 1);
-			if(value instanceof Date){
-				stmt.setTimestamp(i, new Timestamp(((Date) value).getTime()));
-			}else{
-				stmt.setObject(i, value);
-			}
-		}
+        for (int i = 1; i <= preparedValues.size(); i++) {
+            Object value = preparedValues.get(i - 1);
+            if (value instanceof Date) {
+                stmt.setTimestamp(i, new Timestamp(((Date) value).getTime()));
+            } else if (value instanceof Double){ 
+                stmt.setDouble(i, (double) value);
+            } else if (value instanceof Float){ 
+                stmt.setFloat(i, (float) value);
+            } else {
+                stmt.setObject(i, value);
+            }
+        }
 	}
 	
 	/**

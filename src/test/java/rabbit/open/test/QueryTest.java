@@ -571,7 +571,7 @@ public class QueryTest {
 	    }
 	}
 	
-	   /**
+   /**
      * 
      * <b>Description:  添加测试数据</b><br>.
      * @param start 
@@ -605,7 +605,7 @@ public class QueryTest {
         user.setOrg(org);
         user.setBigField(new BigDecimal(1));
         user.setShortField((short) 1);
-        user.setDoubleField(0.1);
+        user.setDoubleField(0.2);
         user.setFloatField(0.1f);
         
         user.setName("zhangsan" + System.currentTimeMillis());
