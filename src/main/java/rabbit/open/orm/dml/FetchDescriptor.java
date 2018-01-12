@@ -81,7 +81,7 @@ public class FetchDescriptor<T> {
                     jfmd.setDependencyFields(dep2Array());
                     query.joinFieldMetas.add(jfmd);
                 }
-                return new JoinFetcher<T>(this);
+                return new JoinFetcher<>(this);
             }
         }
         throw new InvalidJoinFetchOperationException(joinFetchClz, targetClz);

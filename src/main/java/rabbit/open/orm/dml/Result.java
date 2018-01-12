@@ -29,7 +29,7 @@ public class Result<T>{
 	 * @return
 	 */
 	public T unique(){
-		if(null == resultList || resultList.isEmpty()){
+		if(resultList.isEmpty()){
 			return null;
 		}
 		return resultList.get(0);

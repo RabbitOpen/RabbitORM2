@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
+    "http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd"> 
+
+<rabbit-mapping entity="rabbit.open.test.entity.Department">
+   
+    <select name="multiFetchByXml" alias="B">
+        <fetch entity="rabbit.open.test.entity.Team" alias="A">
+           <fetch entity="rabbit.open.test.entity.User" alias="F"/>
+        </fetch>
+        
+        <![CDATA[
+            SELECT 
+                #{FILEDS}
+            FROM
+		        T_DEPARTMENT B 
+		    LEFT JOIN
+		        T_TEAM A 
+		            ON B.TEAM_ID = A.ID 
+		    LEFT JOIN
+		        T_USER F_2 
+		            ON A.FOLLOWER = F_2.ID 
+		    LEFT JOIN
+		        T_USER F_1 
+		            ON A.LEADER = F_1.ID  
+		    WHERE
+		        B.ID = ${deptID}
+        ]]>
+    </select>
+
+    <select name="multiFetchAll" alias="B">
+        <fetch entity="rabbit.open.test.entity.Team" alias="A">
+           <fetch entity="rabbit.open.test.entity.User" alias="F"/>
+        </fetch>
+        
+        <![CDATA[
+            SELECT 
+                #{FILEDS}
+            FROM
+		        T_DEPARTMENT B 
+		    LEFT JOIN
+		        T_TEAM A 
+		            ON B.TEAM_ID = A.ID 
+		    LEFT JOIN
+		        T_USER F_2 
+		            ON A.FOLLOWER = F_2.ID 
+		    LEFT JOIN
+		        T_USER F_1 
+		            ON A.LEADER = F_1.ID
+        ]]>
+    </select>
+
+</rabbit-mapping>   

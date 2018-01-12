@@ -110,6 +110,10 @@ public class NamedQueryTest {
         TestCase.assertEquals(dept.getTeam().getFollower().getName(), t.getFollower().getName());
         TestCase.assertEquals(dept.getTeam().getName(), t.getName());
         TestCase.assertEquals(dept.getTeam().getId(), t.getId());
+        
+        
+        List<Department> list = ds.createNamedQuery("multiFetchAll").execute().list();
+        TestCase.assertTrue(list.size() > 0);
 	}
 
 	private Team addTestData() {
@@ -144,6 +148,7 @@ public class NamedQueryTest {
 	    try {
 	        us.createNamedQuery("misMatchedNamedQueryExceptionTest")
                 .execute().unique();
+	        throw new RuntimeException();
 	    } catch (Exception e){
 	        TestCase.assertEquals(e.getClass(), MisMatchedNamedQueryException.class);
 	    }
@@ -155,6 +160,7 @@ public class NamedQueryTest {
 	        us.createNamedQuery("emptyAliasExceptionTest")
                 .set("userId", 1)
                 .execute().unique();
+	        throw new RuntimeException();
 	    }catch(Exception e){
 	        TestCase.assertEquals(e.getClass(), EmptyAliasException.class);
 	    }
@@ -166,6 +172,7 @@ public class NamedQueryTest {
 	        us.createNamedQuery("repeatedAliasExceptionTest")
     	        .set("userId", 1)
     	        .execute().unique();
+	        throw new RuntimeException();
 	    }catch(Exception e){
 	        TestCase.assertEquals(e.getClass(), RepeatedAliasException.class);
 	    }
@@ -175,6 +182,7 @@ public class NamedQueryTest {
 	public void noNamedSQLDefinedTest(){
 	    try {
 	        os.createNamedQuery("xx").execute();
+	        throw new RuntimeException();
 	    } catch (Exception e){
 	        TestCase.assertEquals(NoNamedSQLDefinedException.class, e.getClass());
 	    }
@@ -184,6 +192,7 @@ public class NamedQueryTest {
 	public void unExistedNamedSQLTest(){
 	    try {
 	        us.createNamedQuery("xx").execute();
+	        throw new RuntimeException();
 	    } catch (Exception e){
 	        TestCase.assertEquals(UnExistedNamedSQLException.class, e.getClass());
 	    }
@@ -192,9 +201,10 @@ public class NamedQueryTest {
 	@Test
 	public void unKnownFieldExceptionTest(){
 	    try {
-	        ds.createNamedQuery("multiFetchByXml")
-                .set("dept", 1)
+	        ds.createNamedQuery("multiFetchAll")
+	            .set("id", 1)
                 .execute().unique();
+	        throw new RuntimeException();
 	    } catch (Exception e){
 	        TestCase.assertEquals(UnKnownFieldException.class, e.getClass());
 	    }

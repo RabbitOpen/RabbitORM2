@@ -230,11 +230,19 @@ public class QueryTest {
 	@Test
 	public void wrongOrderTest(){
 	    try{
-	        us.createQuery().desc("id", UUIDPolicyEntity.class).execute();
+	        us.createQuery().joinFetch(Role.class).fetch(Organization.class)
+	            .asc("id", Organization.class)
+	            .desc("id")
+	            .asc("id", Role.class)
+	            .desc("id", UUIDPolicyEntity.class).execute();
+	        throw new RuntimeException();
 	    } catch (Exception e){
-	        System.out.println(e.getMessage());
 	        TestCase.assertSame(e.getClass(), OrderAssociationException.class);
 	    }
+	    us.createQuery().joinFetch(Role.class).fetch(Organization.class)
+                .asc("id", Organization.class)
+                .desc("id")
+                .asc("id", Role.class).execute();
 	}
 	
 	/**
