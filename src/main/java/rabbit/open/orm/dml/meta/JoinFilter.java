@@ -25,16 +25,6 @@ public class JoinFilter {
     
     /**
      * 
-     * <b>Description:  获取内链接字段描述元数据</b><br>.
-     * @return	
-     * 
-     */
-    public JoinFieldMetaData<?> getJoinFieldMetaData(){
-        return descriptor.getJoinFieldMetaData();
-    }
-    
-    /**
-     * 
      * <b>Description:  获取内链接sql</b><br>.
      * @return	
      * 
