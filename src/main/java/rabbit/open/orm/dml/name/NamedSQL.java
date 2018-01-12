@@ -17,8 +17,6 @@ public class NamedSQL extends SQLObject {
 
     private static final String JOIN_FETCH = "join-fetch";
 
-    private static final String JOIN_TABLE_ALIAS = "join-table-alias";
-
     private static final String ALIAS = "alias";
 
     private static final String ENTITY = "entity";
@@ -55,8 +53,7 @@ public class NamedSQL extends SQLObject {
         while(iterator.hasNext()){
             Element jf = iterator.next();
             JoinFetcherDescriptor fetcher = new JoinFetcherDescriptor(jf.attributeValue(ENTITY), 
-                    jf.attributeValue(ALIAS), 
-                    jf.attributeValue(JOIN_TABLE_ALIAS));
+                    jf.attributeValue(ALIAS));
             joinFetchers.add(fetcher);
         }
         return joinFetchers;
