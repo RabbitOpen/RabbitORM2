@@ -98,8 +98,9 @@ public class FilterDescriptor {
 
 	public boolean isEqual(FilterDescriptor fd){
 		return this.key.equals(fd.getKey()) 
-			&& ((null == this.filter && null == fd.getFilter()) || (null != this.filter && null != fd.getFilter() && this.filter.equals(fd.getFilter())))
-			&& ((null == this.value && null == fd.getValue()) || (null != this.value && null != fd.getValue() && this.value.equals(fd.getValue())));
+			&& ((null == filter && null == fd.getFilter()) || (null != filter && null != fd.getFilter() && filter.equals(fd.getFilter())))
+			&& ((null == value && null == fd.getValue()) || (null != value && null != fd.getValue() && value.equals(fd.getValue())))
+			&& joinField.equals(fd.getJoinField());
 	}
 
 	public String getFilterTable() {

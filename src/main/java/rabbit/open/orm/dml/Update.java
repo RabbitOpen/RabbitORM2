@@ -257,8 +257,8 @@ public class Update<T> extends NonQueryAdapter<T>{
 		int fields2Update = 0;
 		for(int i = 0; i < valueMetas.size(); i++){
 			FieldMetaData fmd = valueMetas.get(i);
-			if(fmd.isPrimaryKey() && 
-			        (sessionFactory.getDialectType().isSQLServer() || sessionFactory.getDialectType().isDB2())){
+			if(fmd.isPrimaryKey() && (sessionFactory.getDialectType().isSQLServer() 
+			        || sessionFactory.getDialectType().isDB2())){
 				//sqlserver的主键是不能被更新的
 			    //DB2不更新主键
 				continue;

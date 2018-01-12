@@ -7,8 +7,7 @@ package rabbit.open.orm.exception;
 public class CycleFetchException extends RuntimeException{
     
     public CycleFetchException(Class<?> clz) {
-        super("cycle fetch operation for class[" 
-                    + clz.getName() + "]");
+        super("cycle fetch operation for class[" + clz.getName() + "]");
     }
 
 }

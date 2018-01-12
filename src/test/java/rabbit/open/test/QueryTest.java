@@ -16,8 +16,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.orm.annotation.Relation.FilterType;
 import rabbit.open.orm.dml.Query;
 import rabbit.open.orm.dml.meta.JoinFilterBuilder;
+import rabbit.open.orm.exception.CycleDependencyException;
 import rabbit.open.orm.exception.InvalidFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
+import rabbit.open.orm.exception.InvalidJoinFilterException;
+import rabbit.open.orm.exception.InvalidQueryPathException;
 import rabbit.open.orm.exception.OrderAssociationException;
 import rabbit.open.orm.exception.RepeatedFetchOperationException;
 import rabbit.open.test.entity.Car;
@@ -26,6 +29,7 @@ import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.Property;
 import rabbit.open.test.entity.Resources;
 import rabbit.open.test.entity.Role;
+import rabbit.open.test.entity.Team;
 import rabbit.open.test.entity.UUIDPolicyEntity;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.entity.ZProperty;
@@ -78,11 +82,11 @@ public class QueryTest {
 	
 	/**
 	 * 
-	 * <b>Description:  分页 + 排序 + 关联(多对一、多对多)查询 + distinct  </b><br>.	
+	 * <b>Description:  关联(多对一、多对多)查询 + distinct  </b><br>.	
 	 * 
 	 */
 	@Test
-	public void query(){
+	public void simpleQueryTest(){
 		User user = addInitData(100);
 		List<User> list = us.createQuery(user)
 		        .joinFetch(Role.class)
@@ -112,11 +116,12 @@ public class QueryTest {
 	}
 
 	@Test
-	public void queryTest(){
+	public void addFilterQueryTest(){
 		User user = addInitData(110);
 		User u = us.createQuery()
 		        .joinFetch(Role.class)
 		        .fetch(Organization.class)
+		        .addFilter("id", user.getOrg().getId(), Organization.class, User.class)
 		        .addFilter("${id}", new Long[]{user.getId()}, FilterType.IN)
 		        .addFilter("birth", user.getBirth(), FilterType.LTE)
 		        .addFilter("name", new String[]{user.getName()}, FilterType.IN)
@@ -127,6 +132,31 @@ public class QueryTest {
 		TestCase.assertEquals(user.getName(), u.getName());
 		TestCase.assertEquals(user.getOrg().getName(), u.getOrg().getName());
 		TestCase.assertEquals(user.getOrg().getOrgCode(), u.getOrg().getOrgCode());
+	}
+
+	@Test
+	public void invalidQueryPathTest(){
+	    try {
+	        us.createQuery().joinFetch(Role.class)
+                    .fetch(Organization.class)
+                    .addFilter("id", 1, Organization.class, User.class)
+                    .addFilter("id", 1, Organization.class, User.class)
+                    .addFilter("id", 1L, Organization.class, Team.class, Organization.class, User.class)
+                    .execute().unique();
+	        throw new RuntimeException();
+	    } catch (Exception e) {
+	        TestCase.assertEquals(e.getClass(), InvalidQueryPathException.class);
+	    }
+
+	    try {
+	        us.createQuery().joinFetch(Role.class)
+        	        .fetch(Organization.class)
+        	        .addFilter("id", 1L, Organization.class, Team.class, Organization.class, User.class)
+        	        .execute().unique();
+	        throw new RuntimeException();
+	    } catch (Exception e) {
+	        TestCase.assertEquals(e.getClass(), CycleDependencyException.class);
+	    }
 	}
 
 	@Test
@@ -188,6 +218,23 @@ public class QueryTest {
         TestCase.assertEquals(u.getRoles().size(), 1);
         TestCase.assertEquals(u.getRoles().get(0).getRoleName(), user.getRoles().get(0).getRoleName());
         System.out.println(u);
+	}
+
+	/**
+	 * <b>Description  测试添加非法join filter</b>
+	 */
+	@Test
+	public void invalidJoinFilterExceptionTest(){
+	    Query<User> query = us.createQuery();
+	    try {
+	        query.joinFetch(Role.class)
+                .addInnerJoinFilter(JoinFilterBuilder.prepare(query).join(Organization.class)
+                .on("id", 1)
+                .build())
+                .execute().unique();
+	    } catch (Exception e){
+	        TestCase.assertEquals(e.getClass(), InvalidJoinFilterException.class);
+	    }
 	}
 
 	/**

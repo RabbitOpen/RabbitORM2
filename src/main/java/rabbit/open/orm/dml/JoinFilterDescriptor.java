@@ -9,7 +9,7 @@ import rabbit.open.orm.annotation.ManyToMany;
 import rabbit.open.orm.annotation.Relation.FilterType;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.orm.exception.InvalidJoinFilterException;
 
 
 /**
@@ -144,8 +144,7 @@ public class JoinFilterDescriptor {
                 return;
             }
         }
-        throw new RabbitDMLException("[" + clz.getName() + "] can't be joined by [" 
-                + query.getMetaData().getEntityClz().getName() + "]");
+        throw new InvalidJoinFilterException(clz, query.getMetaData().getEntityClz());
     }
     
     public JoinFieldMetaData<?> getJoinFieldMetaData() {

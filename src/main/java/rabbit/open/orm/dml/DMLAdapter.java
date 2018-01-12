@@ -21,8 +21,6 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.ManyToMany;
-import rabbit.open.orm.annotation.OneToMany;
 import rabbit.open.orm.annotation.Relation.FilterType;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
@@ -32,8 +30,10 @@ import rabbit.open.orm.dml.meta.JoinFilter;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.util.SQLFormater;
 import rabbit.open.orm.exception.AmbiguousDependencyException;
+import rabbit.open.orm.exception.CycleDependencyException;
 import rabbit.open.orm.exception.InvalidFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
+import rabbit.open.orm.exception.InvalidQueryPathException;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
@@ -395,19 +395,37 @@ public abstract class DMLAdapter<T> {
 		List<FilterDescriptor> jds = findJoinDepFilterDescriptors(deps);
 		if(!dependencyPath.containsKey(deps[0])){
 			dependencyPath.put(deps[0], jds);
+			checkCyclePath(deps);
 		}else{
 			List<FilterDescriptor> exists = dependencyPath.get(deps[0]);
 			if(exists.size() != jds.size()){
-				throw new RabbitDMLException("only one query path can be specified to " + deps[0]);
+				throw new InvalidQueryPathException(deps[0]);
 			}
 			for(int i = 0; i < jds.size(); i++){
 				if(exists.get(i).isEqual(jds.get(i))){
 					continue;
 				}
-				throw new RabbitDMLException("only one query path can be specified to " + deps[0]);
+				throw new InvalidQueryPathException(deps[0]);
 			}
 		}
 	}
+
+    private void checkCyclePath(Class<?>... deps) {
+        Map<Class<?>, Integer> counter = new HashMap<>();
+        for(Class<?> clz : deps){
+            counter.put(clz, 0);
+            for(Class<?> c : deps){
+                if(c.equals(clz)){
+                    counter.put(clz, counter.get(clz) + 1);
+                }
+            }
+        }
+        for(Entry<Class<?>, Integer> entry : counter.entrySet()){
+            if(entry.getValue() > 1){
+                throw new CycleDependencyException(entry.getKey());
+            }
+        }
+    }
 
 	/**
 	 * 
@@ -655,31 +673,6 @@ public abstract class DMLAdapter<T> {
 		}
 		if(!validTarget){
 			throw new InvalidJoinFetchOperationException(target, metaData.getEntityClz());
-		}
-	}
-	
-	/**
-	 * 
-	 * <b>Description:	核对innerJoinFilter参数的合法性</b><br>
-	 * @param target	
-	 * 
-	 */
-	protected void checkInnerJoinFilterClass(Class<?> target){
-		boolean validTarget = false;
-		for(JoinFieldMetaData<?> jfm : metaData.getJoinMetas()){
-			if(jfm.getJoinClass().equals(target)){
-				if(jfm.getAnnotation() instanceof ManyToMany){
-					validTarget = true;
-				}else if(jfm.getAnnotation() instanceof OneToMany){
-					validTarget = true;
-				}else{
-					throw new RabbitDMLException("method[addInnerJoinFilter] can only be user for @ManyToMany/@OneToMany fields!");
-				}
-				break;
-			}
-		}
-		if(!validTarget){
-			throw new RabbitDMLException(target + " can't be specified as a joinFilter!");
 		}
 	}
 	
