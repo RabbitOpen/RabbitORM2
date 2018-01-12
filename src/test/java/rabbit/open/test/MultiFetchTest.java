@@ -274,23 +274,27 @@ public class MultiFetchTest {
         Department d = new Department("成都研发中心", t);
         ds.add(d);
         Department dept = ds.createQuery().addFilter("id", d.getId())
-                    .fetch(Team.class)
-                    .execute().unique();
+                .fetch(User.class, Team.class, Department.class)
+                .execute().unique();
         TestCase.assertNotNull(dept.getTeam().getLeader());
         TestCase.assertNotNull(dept.getTeam().getFollower());
-        TestCase.assertNull(dept.getTeam().getLeader().getName());
-        TestCase.assertNull(dept.getTeam().getFollower().getName());
+        TestCase.assertEquals(dept.getTeam().getLeader().getName(), t.getLeader().getName());
+        TestCase.assertEquals(dept.getTeam().getFollower().getName(), t.getFollower().getName());
         TestCase.assertEquals(dept.getTeam().getName(), t.getName());
+        TestCase.assertEquals(dept.getTeam().getId(), t.getId());
         
         try{
             ds.createQuery().addFilter("id", d.getId())
                 .fetch(User.class, Team.class)
+                //因为涉及循环引用，所以上面的fetch不一定一直正确
+                //.fetch(User.class, Team.class, Department.class)
                 .execute().unique();
             throw new RuntimeException();
         }catch(Exception e){
             TestCase.assertEquals(e.getClass(), AmbiguousDependencyException.class);
         }
     }
+
 
     private Team addTestData() {
         User leader = new User();

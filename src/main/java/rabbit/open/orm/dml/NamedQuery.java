@@ -173,7 +173,7 @@ public class NamedQuery<T> {
 	 * @return	
 	 * 
 	 */
-	public NamedQuery<T> setValue(String fieldName, Object value){
+	public NamedQuery<T> set(String fieldName, Object value){
 	    int index = nameObject.getFieldIndex(fieldName);
 	    fieldsValues.put(index, value);
 	    return this;

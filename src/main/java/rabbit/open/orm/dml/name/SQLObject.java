@@ -3,7 +3,7 @@ package rabbit.open.orm.dml.name;
 import java.util.HashMap;
 import java.util.Map;
 
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.orm.exception.UnKnownFieldException;
 
 
 /**
@@ -40,7 +40,7 @@ public class SQLObject {
 	 */
 	public int getFieldIndex(String fieldName){
 	    if(!fieldsMapping.containsKey(fieldName)){
-	        throw new RabbitDMLException("unkown field[" + fieldName + "] is found!");
+	        throw new UnKnownFieldException("field[" + fieldName + "] is not existed in query[" + name + "]!");
 	    }
 	    return fieldsMapping.get(fieldName);
 	}

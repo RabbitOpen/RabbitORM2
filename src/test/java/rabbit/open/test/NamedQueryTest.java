@@ -18,18 +18,23 @@ import rabbit.open.orm.exception.MisMatchedNamedQueryException;
 import rabbit.open.orm.exception.NoNamedSQLDefinedException;
 import rabbit.open.orm.exception.RepeatedAliasException;
 import rabbit.open.orm.exception.UnExistedNamedSQLException;
+import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.test.entity.Car;
+import rabbit.open.test.entity.Department;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.Property;
 import rabbit.open.test.entity.Resources;
 import rabbit.open.test.entity.Role;
+import rabbit.open.test.entity.Team;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.entity.Zone;
 import rabbit.open.test.service.CarService;
+import rabbit.open.test.service.DepartmentService;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.PropertyService;
 import rabbit.open.test.service.ResourcesService;
 import rabbit.open.test.service.RoleService;
+import rabbit.open.test.service.TeamService;
 import rabbit.open.test.service.UserService;
 import rabbit.open.test.service.ZoneService;
 
@@ -63,6 +68,12 @@ public class NamedQueryTest {
 	@Autowired
     PropertyService ps;
 	
+	@Autowired
+	TeamService ts;
+	
+	@Autowired
+	DepartmentService ds;
+	
 	/**
 	 * 
 	 * <b>Description:	命名查询测试</b><br>	
@@ -73,8 +84,8 @@ public class NamedQueryTest {
 	public void namedQueryTest() {
 	    User user = createTestData();
 	    User u = us.createNamedQuery("getUserByName")
-                .setValue("username", "%leifeng%")
-                .setValue("userId", user.getId())
+                .set("username", "%leifeng%")
+                .set("userId", user.getId())
 				.execute().unique();
 		System.out.println(u);
 		TestCase.assertEquals(user.getName(), u.getName());
@@ -84,11 +95,45 @@ public class NamedQueryTest {
 	}
 
 	@Test
+	public void multiFetchByXmlTest() {
+	    Team t = addTestData();
+        Department d = new Department("成都研发中心", t);
+        ds.add(d);
+        Department dept = ds.createNamedQuery("multiFetchByXml")
+                .set("deptID", d.getId())
+	            .execute().unique();
+	    System.out.println(dept);
+	    
+	    TestCase.assertNotNull(dept.getTeam().getLeader());
+        TestCase.assertNotNull(dept.getTeam().getFollower());
+        TestCase.assertEquals(dept.getTeam().getLeader().getName(), t.getLeader().getName());
+        TestCase.assertEquals(dept.getTeam().getFollower().getName(), t.getFollower().getName());
+        TestCase.assertEquals(dept.getTeam().getName(), t.getName());
+        TestCase.assertEquals(dept.getTeam().getId(), t.getId());
+	}
+
+	private Team addTestData() {
+        User leader = new User();
+        leader.setAge(10);
+        leader.setName("leader");
+        us.add(leader);
+        User follower = new User();
+        follower.setAge(11);
+        follower.setName("follower");
+        us.add(follower);
+        
+        Team t = new Team("myteam", leader, follower);
+        ts.add(t);
+        return t;
+    }
+	
+	
+	@Test
 	public void countTest() {
 	    User user = createTestData();
 	    long count = us.createNamedQuery("getUserByName")
-    	            .setValue("username", "%leifeng%")
-    	            .setValue("userId", user.getId())
+    	            .set("username", "%leifeng%")
+    	            .set("userId", user.getId())
     	            .count();
 	    //角色个数 * 车辆个数 * 属性个数【 笛卡尔积】
 	    TestCase.assertEquals(2 * 3 * 2 , count);
@@ -108,7 +153,7 @@ public class NamedQueryTest {
 	public void emptyAliasExceptionTest() {
 	    try{
 	        us.createNamedQuery("emptyAliasExceptionTest")
-                .setValue("userId", 1)
+                .set("userId", 1)
                 .execute().unique();
 	    }catch(Exception e){
 	        TestCase.assertEquals(e.getClass(), EmptyAliasException.class);
@@ -119,7 +164,7 @@ public class NamedQueryTest {
 	public void repeatedAliasExceptionTest() {
 	    try{
 	        us.createNamedQuery("repeatedAliasExceptionTest")
-    	        .setValue("userId", 1)
+    	        .set("userId", 1)
     	        .execute().unique();
 	    }catch(Exception e){
 	        TestCase.assertEquals(e.getClass(), RepeatedAliasException.class);
@@ -141,6 +186,17 @@ public class NamedQueryTest {
 	        us.createNamedQuery("xx").execute();
 	    } catch (Exception e){
 	        TestCase.assertEquals(UnExistedNamedSQLException.class, e.getClass());
+	    }
+	}
+
+	@Test
+	public void unKnownFieldExceptionTest(){
+	    try {
+	        ds.createNamedQuery("multiFetchByXml")
+                .set("dept", 1)
+                .execute().unique();
+	    } catch (Exception e){
+	        TestCase.assertEquals(UnKnownFieldException.class, e.getClass());
 	    }
 	}
 
