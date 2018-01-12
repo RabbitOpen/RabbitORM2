@@ -77,11 +77,10 @@ public class MultiFetchTest {
         TestCase.assertEquals(team.getId(), t.getId());
     }
     
-    
-    
     @Test
     public void multiFetchTest(){
         User leader = new User();
+        leader.setDesc("mydesc");
         leader.setAge(10);
         leader.setName("leader");
         us.add(leader);
@@ -123,6 +122,7 @@ public class MultiFetchTest {
         
         //验证同时取出了两个team对象
         TestCase.assertEquals(team.getLeader().getName(), t.getLeader().getName());
+        TestCase.assertEquals(team.getLeader().getDesc(), "mydesc");
         TestCase.assertEquals(team.getFollower().getName(), t.getFollower().getName());
         TestCase.assertEquals(team.getId(), t.getId());
     }

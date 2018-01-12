@@ -14,6 +14,14 @@ import rabbit.open.orm.dml.policy.Policy;
 @Entity("T_USER")
 public class User {
 
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
     public User() {
         super();
     }
@@ -69,7 +77,7 @@ public class User {
 	/**
 	 * 角色列表
 	 */
-	@ManyToMany(id="ID", policy=Policy.AUTOINCREMENT, sequence="MYSEQ",
+	@ManyToMany(id="ID", policy=Policy.AUTOINCREMENT, 
 			joinTable="T_USER_ROLE", 
 			joinColumn="USER_ID", reverseJoinColumn="ROLE_ID")
 	private List<Role> roles;

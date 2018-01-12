@@ -1,9 +1,7 @@
 package rabbit.open.orm.dialect.ddl.impl;
 
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -143,38 +141,27 @@ public class MySQLDDLHelper extends DDLHelper{
 		}
 	}
 
-
-	/**
-	 * 
-	 * <b>Description:	根据java类型转sql类型</b><br>
-	 * @param type
-	 * @param length
-	 * @return	
-	 * 
-	 */
-	protected String getSqlTypeByJavaType(Class<?> type, int length) {
-		if(type.equals(Date.class)){
-			return getDateType();
-		}
-		if(type.equals(String.class)){
-			return getVarcharType() + "(" + length + ")";
-		}
-		if(type.equals(Integer.class) || type.equals(Short.class) || type.equals(Long.class)){
-			return "BIGINT ";
-		}
-		if(type.equals(Float.class)){
-			return "FLOAT ";
-		}
-		if(type.equals(Double.class)){
-			return "DOUBLE ";
-		}
-		if(type.equals(BigDecimal.class)){
-		    return "BIGINT ";
-		}
-		throw new RabbitDDLException("unsupported java type[" + type.getName() + "] is found!");
-	}
-	
 	@Override
+    public String getNumberType() {
+        return "BIGINT ";
+    }
+
+    @Override
+    public String getFloatType() {
+        return "FLOAT ";
+    }
+
+    @Override
+    public String getDoubleType() {
+        return "DOUBLE ";
+    }
+
+    @Override
+    public String getBigDecimalType() {
+        return "BIGINT ";
+    }
+
+    @Override
 	protected String getVarcharType() {
 		return "VARCHAR";
 	}

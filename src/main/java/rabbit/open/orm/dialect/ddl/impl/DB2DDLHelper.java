@@ -1,9 +1,5 @@
 package rabbit.open.orm.dialect.ddl.impl;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
-import rabbit.open.orm.exception.RabbitDDLException;
 
 /**
  * <b>Description: 	db2 ddl助手</b><br>
@@ -24,37 +20,10 @@ public class DB2DDLHelper extends SQLServerDDLHelper{
         return "SELECT CONSTNAME AS FK_NAME, TABNAME AS TABLE_NAME FROM SYSCAT.REFERENCES";
     }
     
-	/**
-	 * 
-	 * <b>Description:	根据java类型转sql类型</b><br>
-	 * @param type
-	 * @param length
-	 * @return	
-	 * 
-	 */
     @Override
-	protected String getSqlTypeByJavaType(Class<?> type, int length) {
-		if(type.equals(Date.class)){
-			return getDateType();
-		}
-		if(type.equals(String.class)){
-			return getVarcharType() + "(" + length + ")";
-		}
-		if(type.equals(Integer.class) || type.equals(Short.class) || type.equals(Long.class)){
-            return "BIGINT ";
-        }
-		if(type.equals(Float.class)){
-			return "FLOAT ";
-		}
-		if(type.equals(Double.class)){
-			return "DOUBLE ";
-		}
-		if(type.equals(BigDecimal.class)){
-            return "BIGINT ";
-        }
-		throw new RabbitDDLException("unsupported java type[" + type.getName() + "] is found!");
-	}
-	
+    public String getDoubleType() {
+        return "DOUBLE ";
+    }
 
 	@Override
 	protected String getDateType() {

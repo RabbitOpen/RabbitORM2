@@ -150,13 +150,13 @@ public class UpdateTest {
 	@Test
 	public void joinUpdate() throws Exception{
 	    Organization org = new Organization();
-        org.setId(120L);
+	    org.setName("myorg");
         os.add(org);
         User user = new User("lili", 10, null, org);
         us.add(user);
 		String newName = "lisi44";
         us.createUpdate().addFilter("id", user.getId()).set("name", newName)
-		    .addFilter("id", 120, Organization.class, User.class)
+		    .addFilter("id", org.getId(), Organization.class, User.class)
 		    .execute();
 		User u = us.createQuery().addFilter("id", user.getId()).execute().unique();
         TestCase.assertEquals(newName, u.getName());

@@ -1,11 +1,9 @@
 package rabbit.open.orm.dialect.ddl.impl;
 
-import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -102,6 +100,10 @@ public class OracleDDLHelper extends DDLHelper{
             closeResultSet(rs);
             closeStmt(stmt);
         }
+    }
+    
+    protected StringBuilder callSuperCreateJoinTableSql(String tb, List<JoinTableDescriptor> list) {
+        return super.createJoinTableSql(tb, list);
     }
 
     /**
@@ -230,35 +232,25 @@ public class OracleDDLHelper extends DDLHelper{
 		}
 	}
 
-	/**
-	 * 
-	 * <b>Description:	根据java类型转sql类型</b><br>
-	 * @param type
-	 * @param length
-	 * @return	
-	 * 
-	 */
-	protected String getSqlTypeByJavaType(Class<?> type, int length) {
-		if(type.equals(Date.class)){
-			return getDateType();
-		}
-		if(type.equals(String.class)){
-			return getVarcharType() + "(" + length + ")";
-		}
-		if(type.equals(Integer.class) || type.equals(Short.class) || type.equals(Long.class)){
-			return "NUMBER(20, 0) ";
-		}
-		if(type.equals(Float.class)){
-			return "NUMBER(8,5) ";
-		}
-		if(type.equals(Double.class)){
-			return "NUMBER(8,5) ";
-		}
-		if(type.equals(BigDecimal.class)){
-            return "NUMBER(20, 0) ";
-        }
-		throw new RabbitDDLException("unsupported java type[" + type.getName() + "] is found!");
-	}
+	@Override
+    public String getNumberType() {
+	    return "NUMBER(20, 0) ";
+    }
+
+	@Override
+    public String getFloatType() {
+	    return "NUMBER(8,5) ";
+    }
+
+    @Override
+    public String getDoubleType() {
+        return "NUMBER(8,5) ";
+    }
+
+    @Override
+    public String getBigDecimalType() {
+        return "NUMBER(20, 0) ";
+    }
 	
 	@Override
 	protected String getVarcharType() {

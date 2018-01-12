@@ -2,11 +2,13 @@ package rabbit.open.orm.dialect.ddl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -355,7 +357,35 @@ public abstract class DDLHelper {
         return sql;
     }
     
-    protected abstract String getSqlTypeByJavaType(Class<?> type, int length);
+    public abstract String getNumberType();
+
+    public abstract String getFloatType();
+
+    public abstract String getDoubleType();
+
+    public abstract String getBigDecimalType();
+    
+    protected String getSqlTypeByJavaType(Class<?> type, int length) {
+        if(type.equals(Date.class)){
+            return getDateType();
+        }
+        if(type.equals(String.class)){
+            return getVarcharType() + "(" + length + ")";
+        }
+        if(type.equals(Integer.class) || type.equals(Short.class) || type.equals(Long.class)){
+            return getNumberType();
+        }
+        if(type.equals(Float.class)){
+            return getFloatType();
+        }
+        if(type.equals(Double.class)){
+            return getDoubleType();
+        }
+        if(type.equals(BigDecimal.class)){
+            return getBigDecimalType();
+        }
+        throw new RabbitDDLException("unsupported java type[" + type.getName() + "] is found!");
+    };
     
     protected boolean isTableExists(HashSet<String> existsTables,
             String table) {
