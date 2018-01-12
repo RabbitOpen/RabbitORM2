@@ -32,20 +32,6 @@ public class UpdateTest {
 	@Autowired
 	OrganizationService os;
 	
-	/**
-	 * 
-	 * <b>Description:	updateByID测试</b><br>	
-	 * 
-	 */
-	@Test
-	public void updateByID(){ 
-	    User user = new User();
-	    user.setName("hello");
-	    us.add(user);
-	    user.setName("htllo1");
-	    us.updateByID(user);
-	    TestCase.assertEquals(user.getName(), us.getByID(user.getId()).getName());
-	}
 
 	/**
 	 * 
@@ -162,4 +148,17 @@ public class UpdateTest {
         TestCase.assertEquals(newName, u.getName());
 	}
 
+	/**
+     * 
+     * <b>Description:  updateByIDTest测试</b><br>    
+     * 
+     */
+    @Test
+    public void updateByIDTest(){ 
+        Organization org = new Organization("code", "name");
+        os.add(org);
+        org.setName("newname");
+        os.updateByID(org);
+        TestCase.assertEquals(org.getName(), "newname");
+    }
 }

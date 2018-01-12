@@ -113,7 +113,6 @@ public class User {
     public Integer getAge() {
         return age;
     }
-
     public void setAge(Integer age) {
         this.age = age;
     }
@@ -180,15 +179,6 @@ public class User {
 
     public void setOrg(Organization org) {
         this.org = org;
-    }
-
-    @Override
-    public String toString() {
-        return "User [id=" + id + ", name=" + name + ", age=" + age
-                + ", shortField=" + shortField + ", floatField=" + floatField
-                + ", doubleField=" + doubleField + ", bigField=" + bigField
-                + ", birth=" + birth + ", desc=" + desc + ", roles=" + roles
-                + ", cars=" + cars + ", org=" + org + "]";
     }
 
 }
