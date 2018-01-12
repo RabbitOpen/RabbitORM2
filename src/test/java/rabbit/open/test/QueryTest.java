@@ -239,7 +239,9 @@ public class QueryTest {
 	    } catch (Exception e){
 	        TestCase.assertSame(e.getClass(), OrderAssociationException.class);
 	    }
-	    us.createQuery().joinFetch(Role.class).fetch(Organization.class)
+	    Query<User> query = us.createQuery();
+	    query.addInnerJoinFilter(JoinFilterBuilder.prepare(query).join(Role.class).on("id", 1).build())
+	            .fetch(Organization.class)
                 .asc("id", Organization.class)
                 .desc("id")
                 .asc("id", Role.class).execute();
