@@ -385,7 +385,7 @@ public abstract class DDLHelper {
             return getBigDecimalType();
         }
         throw new RabbitDDLException("unsupported java type[" + type.getName() + "] is found!");
-    };
+    }
     
     protected boolean isTableExists(HashSet<String> existsTables,
             String table) {

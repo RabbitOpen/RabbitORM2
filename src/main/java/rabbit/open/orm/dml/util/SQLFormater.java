@@ -78,7 +78,7 @@ public class SQLFormater {
 
 		int indent = 1;
 
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		StringTokenizer tokens;
 		String lastToken;
 		String token;
@@ -213,7 +213,7 @@ public class SQLFormater {
 			out();
 			this.indent += 1;
 			newline();
-			this.parenCounts.addLast(new Integer(this.parensSinceSelect));
+			this.parenCounts.addLast(this.parensSinceSelect);
 			this.afterByOrFromOrSelects.addLast(Boolean.valueOf(this.afterByOrSetOrFromOrSelect));
 			this.parensSinceSelect = 0;
 			this.afterByOrSetOrFromOrSelect = true;

@@ -694,33 +694,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
 		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.reverseJoinColumn() + " = ");
 		sb.append(getAliasByTableName(jfm.getTableName()) + "." + jfm.getPrimaryKey());
-		List<FieldMetaData> filterMetas = getNonEmptyFieldMetas(jfm.getFilter(), jfm.getJoinClass());
-		for(FieldMetaData fmd : filterMetas){
-			if(fmd.isForeignKey()){
-				if(fmd.getFieldValue().getClass().equals(metaData.getEntityClz())){
-					continue;
-				}
-				Field pk = MetaData.getPrimaryKeyField(fmd.getFieldValue().getClass());
-				pk.setAccessible(true);
-				Object pkv = getValue(pk, fmd.getFieldValue());
-				if(null == pkv){
-					continue;
-				}
-				String key = getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value();
-				String filter = FilterType.EQUAL.value();
-				sb.append(AND + key);
-				Object hv = RabbitValueConverter.convert(pkv, fmd);
-				cachePreparedValues(hv);
-				sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
-			}else{
-				String key = getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value();
-				String filter = FilterType.EQUAL.value();
-				sb.append(AND + key);
-				Object hv = RabbitValueConverter.convert(fmd.getFieldValue(), fmd);
-				cachePreparedValues(hv);
-				sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
-			}
-		}
+		appendJoinFilterSqlSegment(jfm, sb);
 		sb.append(" ");
 		return sb;
 	}
@@ -740,7 +714,19 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		sb.append(lj + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
 		sb.append(getAliasByTableName(MetaData.getTablenameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
 		sb.append(getAliasByTableName(jfm.getTableName()) + "." + otm.joinColumn());
-		List<FieldMetaData> filterMetas = getNonEmptyFieldMetas(jfm.getFilter(), jfm.getJoinClass());
+		appendJoinFilterSqlSegment(jfm, sb);
+		sb.append(" ");
+		return sb;
+	}
+
+    /**
+     * <b>Description 添加一对多、多对多的过滤条件部分sql </b>
+     * @param jfm
+     * @param sb
+     */
+    private void appendJoinFilterSqlSegment(JoinFieldMetaData<?> jfm,
+            StringBuilder sb) {
+        List<FieldMetaData> filterMetas = getNonEmptyFieldMetas(jfm.getFilter(), jfm.getJoinClass());
 		for(FieldMetaData fmd : filterMetas){
 			if(fmd.isForeignKey()){
 				if(fmd.getFieldValue().getClass().equals(metaData.getEntityClz())){
@@ -767,9 +753,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 				sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
 			}
 		}
-		sb.append(" ");
-		return sb;
-	}
+    }
 
 	/**
 	 * 
