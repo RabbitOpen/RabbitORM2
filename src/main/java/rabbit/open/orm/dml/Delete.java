@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
-import rabbit.open.orm.annotation.Relation.FilterType;
+import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dialect.dml.DeleteDialectAdapter;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.exception.RabbitDMLException;

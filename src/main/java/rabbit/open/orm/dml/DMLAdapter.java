@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.Relation.FilterType;
+import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.FilterDescriptor;

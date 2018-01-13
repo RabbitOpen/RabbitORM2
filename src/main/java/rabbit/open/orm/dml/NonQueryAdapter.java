@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.annotation.ManyToMany;
-import rabbit.open.orm.annotation.Relation.FilterType;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;

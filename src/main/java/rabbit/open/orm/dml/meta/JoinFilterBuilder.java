@@ -1,6 +1,6 @@
 package rabbit.open.orm.dml.meta;
 
-import rabbit.open.orm.annotation.Relation.FilterType;
+import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dml.AbstractQuery;
 import rabbit.open.orm.dml.JoinFilterDescriptor;
 

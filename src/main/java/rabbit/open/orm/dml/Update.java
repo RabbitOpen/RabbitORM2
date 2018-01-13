@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.Relation.FilterType;
+import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.FilterDescriptor;
 import rabbit.open.orm.dml.meta.MetaData;

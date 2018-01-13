@@ -1,6 +1,6 @@
 package rabbit.open.orm.dml;
 
-import rabbit.open.orm.annotation.Relation.FilterType;
+import rabbit.open.orm.annotation.FilterType;
 
 public class JoinFetcher<T> {
 
