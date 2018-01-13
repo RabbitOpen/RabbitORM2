@@ -175,7 +175,7 @@ public class SessionFactory {
         DeleteDialectAdapter.init();
         PolicyInsert.init();
         DDLHelper.init();
-        DDLHelper.executeDDL(this, packages2Scan);
+        DDLHelper.executeDDL(this, getPackages2Scan());
         if (!isEmpty(mappingFiles)) {
             new SQLParser(mappingFiles).doXmlParsing();
         }
