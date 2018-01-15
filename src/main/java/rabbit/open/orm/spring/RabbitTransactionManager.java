@@ -33,16 +33,25 @@ public class RabbitTransactionManager extends AbstractPlatformTransactionManager
     
     @Override
     protected void doBegin(Object obj, TransactionDefinition def) {
+        if(def.isReadOnly()){
+            return;
+        }
         SessionFactory.beginTransaction(obj);
     }
 
     @Override
     protected void doCommit(DefaultTransactionStatus status) {
+        if(status.isReadOnly()){
+            return;
+        }
         SessionFactory.commit(status.getTransaction());
     }
 
     @Override
     protected void doRollback(DefaultTransactionStatus status) {
+        if(status.isReadOnly()){
+            return;
+        }
         SessionFactory.rollBack(status.getTransaction());
     }
     

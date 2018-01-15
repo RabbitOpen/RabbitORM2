@@ -181,4 +181,14 @@ public class Session extends AbstractConnection{
     
     }
 
+    @Override
+    public void setReadOnly(boolean readOnly) throws SQLException {
+        conn.setReadOnly(readOnly);
+    }
+
+    @Override
+    public boolean isReadOnly() throws SQLException {
+        return conn.isReadOnly();
+    }
+
 }

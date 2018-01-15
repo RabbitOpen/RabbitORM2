@@ -72,6 +72,14 @@ public class TransactionTest {
             TestCase.assertEquals(counter.get("annotationRollbackTest2").intValue(), 
                     us.createQuery().count());
         }
+        if(counter.containsKey("readOnlyTest")){
+            TestCase.assertEquals(counter.get("readOnlyTest").intValue() + 2, 
+                    us.createQuery().count());
+        }
+        if(counter.containsKey("readOnlyTest2")){
+            TestCase.assertEquals(counter.get("readOnlyTest2").intValue() + 2, 
+                    us.createQuery().count());
+        }
     }
 
     /**
@@ -86,4 +94,32 @@ public class TransactionTest {
         counter.put("annotationRollbackTest2", us.createQuery().count());
         us.springTransactionTest();
     }
+
+    /**
+     * 
+     * <b>Description: Rollback(true)失效测试 </b><br>.	
+     * 
+     */
+    @Test
+    @Transactional(readOnly=true)
+    @Rollback(true)
+    public void readOnlyTest(){
+        counter.put("readOnlyTest", us.createQuery().count());
+        us.springTransactionTest();
+    }
+
+    /**
+     * 
+     * <b>Description: Rollback(false)失效测试 </b><br>.	
+     * 
+     */
+    @Test
+    @Transactional(readOnly=true)
+    @Rollback(false)
+    public void readOnlyTest2(){
+        counter.put("readOnlyTest2", us.createQuery().count());
+        us.springTransactionTest();
+    }
+    
+    
 }
