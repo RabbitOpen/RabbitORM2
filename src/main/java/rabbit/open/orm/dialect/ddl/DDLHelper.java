@@ -164,7 +164,7 @@ public abstract class DDLHelper {
                 continue;
             }
             if(!isTableExists(existedTables, entity.value())){
-                table2Create.add(entity.value());
+                table2Create.add(clz.getName());
             }
         }
         return table2Create;
