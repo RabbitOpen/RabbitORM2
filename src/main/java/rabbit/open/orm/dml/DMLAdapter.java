@@ -46,7 +46,10 @@ import rabbit.open.orm.pool.SessionFactory;
  */
 public abstract class DMLAdapter<T> {
 
-	protected static final String UNDERLINE = "_";
+    //换行
+	private static final String NEW_LINE = "\n";
+
+    protected static final String UNDERLINE = "_";
 
     Logger logger = Logger.getLogger(getClass());
 	
@@ -125,7 +128,7 @@ public abstract class DMLAdapter<T> {
      * <b>Description  显示带问号的sql.</b>
      */
     private void showMaskedPreparedSql() {
-        logger.info("\n" + (sessionFactory.isFormatSql() ? 
+        logger.info(NEW_LINE + (sessionFactory.isFormatSql() ? 
                 SQLFormater.format(sql.toString()) : sql.toString()));
         
     }
@@ -148,8 +151,8 @@ public abstract class DMLAdapter<T> {
 				vs.deleteCharAt(index);
 			}
 			vs.append(")");
-			logger.info("\n" + (sessionFactory.isFormatSql() ? SQLFormater.format(valuesql) : valuesql)
-					+ (preparedValues.isEmpty() ? "" : ("\n" + vs.toString())));
+			logger.info(NEW_LINE + (sessionFactory.isFormatSql() ? SQLFormater.format(valuesql) : valuesql)
+					+ (preparedValues.isEmpty() ? "" : (NEW_LINE + vs.toString())));
 		}catch(Exception e){
 			logger.error("show sql error for " + e.getMessage(), e);
 		}
