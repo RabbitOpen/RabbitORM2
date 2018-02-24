@@ -29,7 +29,7 @@ public class MySQLDeleteGenerator extends DeleteDialectAdapter{
 						|| FilterType.IS_NOT.value().equals(fd.getFilter().trim())){
 					sql.append(key + " " + fd.getFilter() + " NULL ");
 				}else{
-					delete.cachePreparedValues(fd.getValue());
+					delete.cachePreparedValues(fd.getValue(), fd.getField());
 					sql.append(key + fd.getFilter() + delete.createPlaceHolder(fd.getFilter(), fd.getValue()));
 				}
 			}else{

@@ -4,6 +4,7 @@ import java.util.List;
 
 import rabbit.open.orm.dml.AbstractQuery;
 import rabbit.open.orm.dml.DialectTransformer;
+import rabbit.open.orm.dml.filter.PreparedValue;
 
 public class DB2Transformer extends DialectTransformer{
 
@@ -59,8 +60,8 @@ public class DB2Transformer extends DialectTransformer{
         List<Object> preparedValues = getPreparedValues(query);
         long start = 1L + pageIndex * pageSize;
         long end = (1L + pageIndex) * pageSize;
-        preparedValues.add(start);
-        preparedValues.add(end);
+        preparedValues.add(new PreparedValue(start));
+        preparedValues.add(new PreparedValue(end));
         return new StringBuilder("SELECT * FROM (" + getSql(query) + ")T WHERE RN BETWEEN ? AND ?");
     }
 

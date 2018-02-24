@@ -13,6 +13,8 @@ import java.util.Map;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.FilterType;
+import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.FilterDescriptor;
 import rabbit.open.orm.dml.meta.MetaData;
@@ -50,7 +52,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 	                sql.append(createFilterSql());
 	                showSql();
 	                stmt = conn.prepareStatement(sql.toString());
-	                setPreparedStatementValue(stmt);
+	                setPreparedStatementValue(stmt, DMLType.UPDATE);
 	                return stmt.executeUpdate();
 				} finally {
 				    closeStmt(stmt);
@@ -187,7 +189,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 		if(null == pkValue){
 			throw new RabbitDMLException("primary key can't be empty!");
 		}
-		preparedValues.add(RabbitValueConverter.convert(pkValue, new FieldMetaData(pk, pk.getAnnotation(Column.class))));
+		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(pkValue, new FieldMetaData(pk, pk.getAnnotation(Column.class))), pk));
 		sql.append(" WHERE " + metaData.getTableName() + "." + metaData.getPrimaryKey() + " = " + PLACE_HOLDER);
 		sqlOperation = new SQLOperation() {
 			@Override
@@ -196,7 +198,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 				try {
 				    showSql();
 	                stmt = conn.prepareStatement(sql.toString());
-	                setPreparedStatementValue(stmt);
+	                setPreparedStatementValue(stmt, DMLType.UPDATE);
 	                return stmt.executeUpdate();
 				} finally {
 				    closeStmt(stmt);
@@ -264,7 +266,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 				continue;
 			}
 			if(null == fmd.getFieldValue()){
-				preparedValues.add(null);
+				preparedValues.add(new PreparedValue(null));
 				fields2Update++;
 				sql.append(" " + metaData.getTableName() + "." + fmd.getColumn().value() + " = " + PLACE_HOLDER + ", ");
 				continue;
@@ -291,7 +293,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private void appendCommonFieldsValue(StringBuilder sql, FieldMetaData fmd) {
-		preparedValues.add(RabbitValueConverter.convert(fmd.getFieldValue(), fmd));
+		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fmd.getFieldValue(), fmd), fmd.getField()));
 		sql.append(" " + metaData.getTableName() + "." + fmd.getColumn().value() + "=");
 		sql.append(PLACE_HOLDER);
 		sql.append(",");
@@ -310,8 +312,8 @@ public class Update<T> extends NonQueryAdapter<T>{
 			foreignField.setAccessible(true);
 			Object fkValue = foreignField.get(fmd.getFieldValue());
 			if(null != fkValue){
-				preparedValues.add(RabbitValueConverter.convert(fkValue, new FieldMetaData(foreignField, 
-						foreignField.getAnnotation(Column.class))));
+				preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fkValue, new FieldMetaData(foreignField, 
+                        foreignField.getAnnotation(Column.class))), foreignField));
 				sql.append(" " + metaData.getTableName() + "." + fmd.getColumn().value() + "=");
 				sql.append(PLACE_HOLDER);
 				sql.append(",");

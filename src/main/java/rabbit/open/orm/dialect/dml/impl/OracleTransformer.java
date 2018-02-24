@@ -4,6 +4,7 @@ import java.util.List;
 
 import rabbit.open.orm.dml.AbstractQuery;
 import rabbit.open.orm.dml.DialectTransformer;
+import rabbit.open.orm.dml.filter.PreparedValue;
 
 public class OracleTransformer extends DialectTransformer{
 
@@ -37,8 +38,8 @@ public class OracleTransformer extends DialectTransformer{
         StringBuilder sql = getSql(query);
         long start = 1L + pageIndex * pageSize;
         long end = (1L + pageIndex) * pageSize;
-        preparedValues.add(start);
-        preparedValues.add(end);
+        preparedValues.add(new PreparedValue(start));
+        preparedValues.add(new PreparedValue(end));
         if(!doOrder(query)){
             sql = new StringBuilder("SELECT * FROM (")
                 .append(sql)

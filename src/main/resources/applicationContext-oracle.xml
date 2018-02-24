@@ -88,6 +88,7 @@
 			<value>true</value>
 		</property>
 		<property name="dataSource" ref="rabbit-oracle" />
+        <property name="filter" ref="myDMLFilter" />
 	</bean>
 
 </beans>	

@@ -55,6 +55,7 @@ public class OracleTest {
 		        .distinct()
 		        .execute().list();
 		list.forEach(us -> System.out.println(us));
+		TestCase.assertTrue(list.size() > 0);
 	}
 
 	@Test

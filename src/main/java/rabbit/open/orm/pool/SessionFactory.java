@@ -14,6 +14,9 @@ import rabbit.open.orm.dialect.dml.DeleteDialectAdapter;
 import rabbit.open.orm.dialect.dml.DialectType;
 import rabbit.open.orm.dml.DialectTransformer;
 import rabbit.open.orm.dml.PolicyInsert;
+import rabbit.open.orm.dml.filter.DMLFilter;
+import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.pool.jpa.SessionProxy;
 
@@ -33,6 +36,8 @@ public class SessionFactory {
 
     // ddl类型
     protected String ddl = DDLType.NONE.name();
+    
+    protected DMLFilter filter;
 
     // 方言
     protected String dialect;
@@ -237,4 +242,27 @@ public class SessionFactory {
         this.maskPreparedSql = maskPreparedSql;
     }
 
+    public void setFilter(DMLFilter filter) {
+        this.filter = filter;
+    }
+    
+    public DMLFilter getFilter() {
+        return filter;
+    }
+    
+    public Object onValueSetted(PreparedValue pv, DMLType dmlType) {
+        if (null == pv) {
+            return null;
+        }
+        if (null == dmlType) {
+            return pv.getValue();
+        }
+        if (null == pv.getField()) {
+            return pv.getValue();
+        }
+        if (null != filter) {
+            return filter.onValueSetted(pv.getValue(), pv.getField(), dmlType);
+        }
+        return pv.getValue();
+    }
 }

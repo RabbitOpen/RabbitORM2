@@ -22,6 +22,8 @@ import org.apache.log4j.Logger;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.FilterType;
+import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.FilterDescriptor;
@@ -141,9 +143,9 @@ public abstract class DMLAdapter<T> {
 			String valuesql = sql.toString();
 			StringBuilder vs = new StringBuilder("prepareStatement values(");
 			for(Object v : preparedValues){
-				v = convert2Str(v);
-				valuesql = replace(valuesql, v.toString());
-				vs.append(v + ", ");
+			    Object text = convert2Str((PreparedValue) v);
+				valuesql = replace(valuesql, text.toString());
+				vs.append(text + ", ");
 			}
 			if(-1 != vs.indexOf(",")){
 				int index = vs.lastIndexOf(",");
@@ -165,22 +167,22 @@ public abstract class DMLAdapter<T> {
      * @return	
      * 
      */
-    private Object convert2Str(Object v) {
-        if(null == v){
+    private Object convert2Str(PreparedValue v) {
+        if(null == v || null == v.getValue()){
         	return "null";
         }
-    	if(v instanceof String){
-    		return "'" + v.toString() + "'";
+    	if(v.getValue() instanceof String){
+    		return "'" + v.getValue().toString() + "'";
     	}
-    	if(v instanceof Date){
-    		String ds = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(v);
+    	if(v.getValue() instanceof Date){
+    		String ds = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(v.getValue());
     		if(sessionFactory.getDialectType().isOracle()){
     			return "to_date('" + ds + "','YYYY-MM-DD HH24:MI:SS')";
     		}else{
     			return "'" + ds + "'";
     		}
         }
-        return v;
+        return v.getValue();
     }
 	
 	private String replace(String src, String replace){
@@ -198,9 +200,10 @@ public abstract class DMLAdapter<T> {
 	 * @throws 	SQLException	
 	 * 
 	 */
-	protected void setPreparedStatementValue(PreparedStatement stmt) throws SQLException{
+	protected void setPreparedStatementValue(PreparedStatement stmt, DMLType dmlType) throws SQLException{
         for (int i = 1; i <= preparedValues.size(); i++) {
-            Object value = preparedValues.get(i - 1);
+            PreparedValue pv = (PreparedValue) preparedValues.get(i - 1);
+            Object value = sessionFactory.onValueSetted(pv, dmlType);
             if (value instanceof Date) {
                 stmt.setTimestamp(i, new Timestamp(((Date) value).getTime()));
             } else if (value instanceof Double){ 
@@ -291,6 +294,7 @@ public abstract class DMLAdapter<T> {
 				MetaData.updateTableMapping(fkTable, fmd.getField().getType());
 				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName()) + "." + fmd.getColumn().value(), 
 						getAliasByTableName(fkTable) + "." + fkName);
+				desc.setField(fmd.getField());
 				desc.setJoinOn(true);
 				desc.setFilterTable(fkTable);
 				filterDescriptors.add(desc);
@@ -299,6 +303,7 @@ public abstract class DMLAdapter<T> {
 				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName())+ "." + fmd.getColumn().value(), 
 						RabbitValueConverter.convert(fmd.getFieldValue(), fmd), 
 						FilterType.EQUAL.value());
+				desc.setField(fmd.getField());
 				desc.setFilterTable(fmd.getFieldTableName());
 				filterDescriptors.add(desc);
 			}
@@ -326,6 +331,7 @@ public abstract class DMLAdapter<T> {
 							        + fmd.getColumn().value(), 
 							RabbitValueConverter.convert(dfd.getValue(), fmd), 
 							dfd.getFilter().value());
+					desc.setField(fmd.getField());
 					if(dfd.isReg()){
 						desc.setKey(dfd.getKeyReg().replaceAll(REPLACE_WORD, desc.getKey()));
 					}
@@ -520,6 +526,7 @@ public abstract class DMLAdapter<T> {
             }
             FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(MetaData.getTablenameByClass(clz))
                             + "." + fmd.getColumn().value(), tableAlias + "." + fkName);
+            desc.setField(fmd.getField());
             desc.setMultiFetchField(fmd.isMutiFetchField());
             desc.setIndex(fmd.getIndex());
             desc.setFilterTable(fkTable);
@@ -601,28 +608,29 @@ public abstract class DMLAdapter<T> {
 	 * 
 	 * <b>Description:	缓存jdbc存储过程中需要写入的值</b><br>
 	 * @param value	
+	 * @param field	
 	 * 
 	 */
-	protected void cachePreparedValues(Object value){
+	protected void cachePreparedValues(Object value, Field field){
 		if(null == value){
-			preparedValues.add(value);
+			preparedValues.add(new PreparedValue(null, field));
 			return;
 		}
 		if(value.getClass().isArray()){
-			Object[] vs = (Object[]) value;
+		    Object[] vs = (Object[]) value;
 			for(Object v : vs){
-				preparedValues.add(v);
+				preparedValues.add(new PreparedValue(v, field));
 			}
 			return;
 		}
 		if(value instanceof Collection){
-			Collection<?> c = (Collection<?>)value;
+            Collection<?> c = (Collection<?>)value;
 			for(Object v : c){
-				preparedValues.add(v);
+			    preparedValues.add(new PreparedValue(v, field));
 			}
 			return;
 		}
-		preparedValues.add(value);
+		preparedValues.add(new PreparedValue(value, field));
 	}
 	
 	/**
@@ -710,7 +718,7 @@ public abstract class DMLAdapter<T> {
 						|| FilterType.IS_NOT.value().equals(fdi.getFilter().trim())){
 					sb.append(" AND " + key + " " + fdi.getFilter() + " NULL ");
 				}else{
-					cachePreparedValues(fdi.getValue());
+					cachePreparedValues(fdi.getValue(), fdi.getField());
 					sb.append(" AND " + key + fdi.getFilter() + createPlaceHolder(fdi.getFilter(), fdi.getValue()));
 				}
 			}
@@ -748,7 +756,7 @@ public abstract class DMLAdapter<T> {
                     || FilterType.IS_NOT.value().equals(filter.trim())){
                 filterSql.append(key + " " + filter + " NULL ");
             }else{
-                cachePreparedValues(fd.getValue());
+                cachePreparedValues(fd.getValue(), fd.getField());
                 filterSql.append(key + filter + createPlaceHolder(filter, fd.getValue()));
             }
             if(i != fds.size() - 1){

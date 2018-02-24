@@ -49,13 +49,10 @@ public class UpdateTest {
 	        .setNull("birth")
 	        .set("name", "lisi")
 	        .execute();
-	    User u = us.createQuery().addFilter("id", user.getId())
+	    user = us.createQuery().addFilter("id", user.getId())
 	            .fetch(Organization.class).execute()
 	            .unique();
-//	    Date birth = u.getBirth();
-//        TestCase.assertNull(birth);
-//        TestCase.assertEquals(u.getOrg().getId().intValue(), 12);
-	    TestCase.assertEquals(u.getName(), "lisi");
+	    TestCase.assertEquals(user.getName(), "lisi");
 	   
 	}
 

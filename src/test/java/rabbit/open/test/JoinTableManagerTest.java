@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import junit.framework.TestCase;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +37,6 @@ public class JoinTableManagerTest {
 	@Autowired
 	OrganizationService os;
 	
-	User user = new User();
-	
 	/**
 	 * 
 	 * <b>Description:	添加中间表记录</b><br>	
@@ -44,8 +44,9 @@ public class JoinTableManagerTest {
 	 */
 	@Test
 	public void addJoinRecordsTest(){
-		addRecords(1);
-		query();
+		User user = addRecords(1);
+		User u = query(user);
+		TestCase.assertEquals(u.getRoles().size(), 1);
 	}
 
 	/**
@@ -55,10 +56,12 @@ public class JoinTableManagerTest {
 	 */
 	@Test
 	public void removeJoinRecordsTest(){
-		addRecords(2);
-		query();
+		User user = addRecords(2);
+		user = query(user);
+		TestCase.assertEquals(user.getRoles().size(), 2);
 		us.removeJoinRecords(user);
-		query();
+		user = query(user);
+		TestCase.assertNull(user.getRoles());
 	}
 	
 	/**
@@ -68,10 +71,12 @@ public class JoinTableManagerTest {
 	 */
 	@Test
 	public void clearJoinRecordsTest(){
-		addRecords(3);
-		query();
+		User user = addRecords(3);
+		user = query(user);
+		TestCase.assertEquals(user.getRoles().size(), 3);
 		us.clearJoinRecords(user, Role.class);
-		query();
+		user = query(user);
+		TestCase.assertNull(user.getRoles());
 	}
 	
 	/**
@@ -81,8 +86,9 @@ public class JoinTableManagerTest {
 	 */
 	@Test
 	public void replaceJoinRecordsTest(){
-		addRecords(1);
-		query();
+		User user = addRecords(1);
+		user = query(user);
+		TestCase.assertEquals(user.getRoles().size(), 1);
 		List<Role> roles = new ArrayList<Role>();
 		for(int i = 3; i < 5; i++){
 			Role r = new Role("R" + i);
@@ -91,11 +97,13 @@ public class JoinTableManagerTest {
 		}
 		user.setRoles(roles);
 		us.replaceJoinRecords(user);
-		query();
+		user = query(user);
+		TestCase.assertEquals(user.getRoles().size(), 3);
 	}
 	
 
-	private void addRecords(int count) {
+	private User addRecords(int count) {
+	    User user = new User();
 		user.setName("zhangsan" + System.currentTimeMillis());
 		user.setBirth(new Date());
 		us.add(user);
@@ -107,15 +115,14 @@ public class JoinTableManagerTest {
 		}
 		user.setRoles(roles);
 		us.addJoinRecords(user);
+		return user;
 	}
 	
-	private void query(){
-	    List<User> list = us.createQuery(user)
-	            .page(0, 10)
+	private User query(User user){
+	    return us.createQuery(user)
 	            .joinFetch(Role.class)
 	            .fetch(Organization.class)
-	            .execute().list();
-	    list.forEach(u -> System.out.println(u));
+	            .execute().unique();
 	}
 	
 }

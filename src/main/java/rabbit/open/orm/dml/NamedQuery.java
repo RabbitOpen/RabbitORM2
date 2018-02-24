@@ -1,10 +1,12 @@
 package rabbit.open.orm.dml;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeMap;
 
+import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.name.FetcherDescriptor;
 import rabbit.open.orm.dml.name.JoinFetcherDescriptor;
 import rabbit.open.orm.dml.name.NamedSQL;
@@ -162,7 +164,11 @@ public class NamedQuery<T> {
         if(fieldsValues.isEmpty()){
             return;
         }
-        query.preparedValues.addAll(fieldsValues.values());
+        Collection<Object> values = fieldsValues.values();
+        for (Object v : values) {
+            query.preparedValues.add(new PreparedValue(v));
+        }
+        
     }
 
 	/**

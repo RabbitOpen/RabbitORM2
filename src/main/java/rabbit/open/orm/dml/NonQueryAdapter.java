@@ -13,6 +13,7 @@ import java.util.Map;
 
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.annotation.ManyToMany;
+import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
@@ -185,7 +186,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 			PreparedSqlDescriptor psd){
 		for(Object o : jrs){
 			StringBuilder rsql = new StringBuilder();
-			List<Object> values = new ArrayList<>();
+			List<PreparedValue> values = new ArrayList<>();
 			Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
 			jpk.setAccessible(true);
 			//子表的主键值
@@ -202,13 +203,15 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 					throw new RabbitDMLException("ManyToMany id must be specified when policy is [" + mtm.policy() + "]");
 				}
 			}
-			values.add(RabbitValueConverter.convert(value, getPrimayKeyFieldMeta(metaData.getEntityClz())));
-			values.add(RabbitValueConverter.convert(jpkv, getPrimayKeyFieldMeta(jfm.getJoinClass())));
+			FieldMetaData pkfmd = getPrimayKeyFieldMeta(metaData.getEntityClz());
+            values.add(new PreparedValue(RabbitValueConverter.convert(value, pkfmd), pkfmd.getField()));
+			FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
+            values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
 			rsql.append(")VALUES(" + PLACE_HOLDER);
 			rsql.append("," + PLACE_HOLDER);
 			if(!isEmpty(mtm.id())){
 				if(mtm.policy().equals(Policy.UUID)){
-					values.add(UUIDPolicy.getID());
+					values.add(new PreparedValue(UUIDPolicy.getID(), jfm.getField()));
 					rsql.append(", " + PLACE_HOLDER + ")");
 				}
 				if(mtm.policy().equals(Policy.SEQUENCE)){
@@ -260,7 +263,8 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	 * @throws SQLException	
 	 * 
 	 */
-	protected int executeBatch(Connection conn, List<PreparedSqlDescriptor> psds, int counter) throws SQLException {
+	@SuppressWarnings("unchecked")
+    protected int executeBatch(Connection conn, List<PreparedSqlDescriptor> psds, int counter) throws SQLException {
 		for(PreparedSqlDescriptor psd : psds){
 			PreparedStatement stmt = null;
 			try{
@@ -268,13 +272,13 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	            stmt.clearBatch();
 	            sql = new StringBuilder("\n" + (sessionFactory.isFormatSql() ? SQLFormater.format(psd.getSql().toString()) : psd.getSql().toString()));
 	            for(int i = 0; i < psd.getExecuteTimes(); i++){
-	                List<?> values = (List<?>) preparedValues.get(counter);
+	                List<PreparedValue> values = (List<PreparedValue>) preparedValues.get(counter);
 	                counter++;
 	                sql.append("\n");
 	                sql.append("prepareStatement values(");
 	                for(int j = 1; j <= values.size(); j++){
 	                    setStmtValue(j, values.get(j - 1), stmt);
-	                    sql.append(values.get(j - 1) + ", ");
+	                    sql.append(values.get(j - 1).getValue() + ", ");
 	                }
 	                sql.deleteCharAt(sql.lastIndexOf(","));
 	                sql.deleteCharAt(sql.lastIndexOf(" "));
@@ -303,11 +307,11 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
         }
     }
 	
-	private void setStmtValue(int index, Object value, PreparedStatement stmt) throws SQLException{
-		if(value instanceof Date){
-			stmt.setTimestamp(index, new Timestamp(((Date) value).getTime()));
+	private void setStmtValue(int index, PreparedValue value, PreparedStatement stmt) throws SQLException{
+		if(value.getValue() instanceof Date){
+			stmt.setTimestamp(index, new Timestamp(((Date) value.getValue()).getTime()));
 		}else{
-			stmt.setObject(index, value);
+			stmt.setObject(index, value.getValue());
 		}
 	}
 	
@@ -339,9 +343,10 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 			ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 			StringBuilder rsql = new StringBuilder();
 			rsql.append("DELETE FROM " + mtm.joinTable() + " WHERE ");
-			Object pv = RabbitValueConverter.convert(value, getPrimayKeyFieldMeta(metaData.getEntityClz()));
+			FieldMetaData pkfmd = getPrimayKeyFieldMeta(metaData.getEntityClz());
+            Object pv = RabbitValueConverter.convert(value, pkfmd);
 			List<Object> values = new ArrayList<>();
-			values.add(pv);
+			values.add(new PreparedValue(pv, pkfmd.getField()));
 			rsql.append(mtm.joinColumn() + " = " + PLACE_HOLDER);
 			rsql.append(" AND " + mtm.reverseJoinColumn() + " IN (");
 			for(Object o : jrs){
@@ -349,7 +354,8 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 				jpk.setAccessible(true);
 				//子表的主键值
 				Object jpkv = getValue(o, jpk);
-				values.add(RabbitValueConverter.convert(jpkv, getPrimayKeyFieldMeta(jfm.getJoinClass())));
+				FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
+                values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
 				rsql.append("?,");
 			}
 			rsql.deleteCharAt(rsql.lastIndexOf(","));

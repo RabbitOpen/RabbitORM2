@@ -5,6 +5,7 @@ import java.sql.Connection;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.PrimaryKey;
+import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.policy.Policy;
@@ -105,7 +106,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 				if(fmd.isPrimaryKey() && fmd.getPrimaryKey().policy().equals(Policy.SEQUENCE)){
 					values.append(value);
 				}else{
-					preparedValues.add(RabbitValueConverter.convert(value, fmd));
+					preparedValues.add(new PreparedValue(RabbitValueConverter.convert(value, fmd), fmd.getField()));
 					values.append(PLACE_HOLDER);
 				}
 			}
@@ -137,7 +138,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 		} catch (Exception e) {
 			throw new RabbitDMLException(e);
 		} 
-		preparedValues.add(RabbitValueConverter.convert(vv, foreignKey));
+		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(vv, foreignKey), foreignKey.getField()));
 		values.append(PLACE_HOLDER);
 	}
 

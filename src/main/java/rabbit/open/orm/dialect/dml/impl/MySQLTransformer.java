@@ -4,6 +4,7 @@ import java.util.List;
 
 import rabbit.open.orm.dml.AbstractQuery;
 import rabbit.open.orm.dml.DialectTransformer;
+import rabbit.open.orm.dml.filter.PreparedValue;
 
 /**
  * <b>Description: 	mysql方言转换器</b><br>
@@ -24,8 +25,8 @@ public class MySQLTransformer extends DialectTransformer{
 	    int pageSize = getPageSize(query);
 	    int pageIndex = getPageIndex(query);
 	    List<Object> preparedValues = getPreparedValues(query);
-	    preparedValues.add(pageIndex * pageSize);
-        preparedValues.add(pageSize);
+	    preparedValues.add(new PreparedValue(pageIndex * pageSize));
+        preparedValues.add(new PreparedValue(pageSize));
         return getSql(query).append(" LIMIT ?, ?");
     }
 	

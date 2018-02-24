@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.util.List;
 
 import rabbit.open.orm.annotation.ManyToMany;
+import rabbit.open.orm.dml.filter.PreparedValue;
+import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.meta.PreparedSqlDescriptor;
@@ -117,7 +119,8 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 			sql.append("DELETE FROM " + mtm.joinTable() + " WHERE ");
 			sql.append(mtm.joinColumn() + " = ");
 			sql.append(PLACE_HOLDER);
-			preparedValues.add(RabbitValueConverter.convert(value, getPrimayKeyFieldMeta(metaData.getEntityClz())));
+			FieldMetaData fmd = getPrimayKeyFieldMeta(metaData.getEntityClz());
+            preparedValues.add(new PreparedValue(RabbitValueConverter.convert(value, fmd), fmd.getField()));
 		}
 		if(0 == sql.length()){
 			throw new RabbitDMLException("no record to clear!");
@@ -129,7 +132,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
                 try {
                     showSql();
                     stmt = conn.prepareStatement(sql.toString());
-                    setPreparedStatementValue(stmt);
+                    setPreparedStatementValue(stmt, null);
                     return stmt.executeUpdate();
                 } finally {
                     closeStmt(stmt);

@@ -28,6 +28,9 @@ public class FilterDescriptor {
 	//在父类表中的字段
 	private Field joinField;
 	
+	//过滤条件对应的字段
+	private Field field;
+	
 	//同类型字段下标
     private int index = 0;
 	
@@ -122,5 +125,14 @@ public class FilterDescriptor {
 	public String getConnector() {
 		return connector;
 	}
+
+    public Field getField() {
+        return field;
+    }
+
+    public void setField(Field field) {
+        this.field = field;
+    }
+	
 	
 }

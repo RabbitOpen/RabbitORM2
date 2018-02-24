@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import rabbit.open.orm.dialect.dml.impl.AutoIncrementPolicy;
 import rabbit.open.orm.dialect.dml.impl.SequencePolicy;
+import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.policy.Policy;
 import rabbit.open.orm.exception.RabbitDMLException;
 
@@ -41,7 +42,7 @@ public class PolicyInsert {
         PreparedStatement stmt = null;
         try{
             stmt = conn.prepareStatement(adapter.sql.toString());
-            adapter.setPreparedStatementValue(stmt);
+            adapter.setPreparedStatementValue(stmt, DMLType.INSERT);
             stmt.executeUpdate();
             return data;
         } catch (Exception e){
@@ -74,7 +75,7 @@ public class PolicyInsert {
     }
     
     public <T> void setPreparedStatementValue(NonQueryAdapter<T> adapter, PreparedStatement stmt) throws SQLException{
-        adapter.setPreparedStatementValue(stmt);
+        adapter.setPreparedStatementValue(stmt, DMLType.INSERT);
     }
     
     public static PolicyInsert getInsertPolicy(Policy p){

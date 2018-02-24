@@ -20,6 +20,7 @@ import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.annotation.ManyToMany;
 import rabbit.open.orm.annotation.OneToMany;
+import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.FilterDescriptor;
@@ -105,7 +106,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			conn = sessionFactory.getConnection();
 			showSql();
 			stmt = conn.prepareStatement(sql.toString());
-			setPreparedStatementValue(stmt);
+			setPreparedStatementValue(stmt, DMLType.SELECT);
 			rs = stmt.executeQuery();
 			List<T> resultList = readDataFromResultSets(rs);
 			rs.close();
@@ -669,7 +670,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 				if(FilterType.IS.value().equals(filter.trim()) || FilterType.IS_NOT.value().equals(filter.trim())){
 					sql.append(key + " " + filter + " NULL ");
 				}else{
-					cachePreparedValues(holderValue);
+					cachePreparedValues(holderValue, fmd.getField());
 					sql.append(key + " " + filter + " " + createPlaceHolder(filter, holderValue) + " ");
 				}
 			}
@@ -742,14 +743,14 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 				String filter = FilterType.EQUAL.value();
 				sb.append(AND + key);
 				Object hv = RabbitValueConverter.convert(pkv, fmd);
-				cachePreparedValues(hv);
+				cachePreparedValues(hv, fmd.getField());
 				sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
 			}else{
 				String key = getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value();
 				String filter = FilterType.EQUAL.value();
 				sb.append(AND + key);
 				Object hv = RabbitValueConverter.convert(fmd.getFieldValue(), fmd);
-				cachePreparedValues(hv);
+				cachePreparedValues(hv, fmd.getField());
 				sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
 			}
 		}
@@ -1229,7 +1230,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			conn = sessionFactory.getConnection();
 			showSql();
 			stmt = conn.prepareStatement(sql.toString());
-			setPreparedStatementValue(stmt);
+			setPreparedStatementValue(stmt, null);
 			rs = stmt.executeQuery();
 			if(rs.next()){
 				return Long.parseLong(rs.getObject(1).toString());

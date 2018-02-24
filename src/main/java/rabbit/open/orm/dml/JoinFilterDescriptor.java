@@ -1,5 +1,6 @@
 package rabbit.open.orm.dml;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,8 +56,8 @@ public class JoinFilterDescriptor {
              * 重载cachePreparedValues方法，将jdbc存储过程的值存储到顶级query中
              */
             @Override
-            protected void cachePreparedValues(Object value) {
-                JoinFilterDescriptor.this.query.cachePreparedValues(value);
+            protected void cachePreparedValues(Object value, Field field) {
+                JoinFilterDescriptor.this.query.cachePreparedValues(value, field);
             }
         };
     }

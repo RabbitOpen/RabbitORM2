@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dialect.dml.DeleteDialectAdapter;
+import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
@@ -33,7 +35,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 	                createDeleteSql();
 	                showSql();
 	                stmt = conn.prepareStatement(sql.toString());
-	                setPreparedStatementValue(stmt);
+	                setPreparedStatementValue(stmt, DMLType.DELETE);
 	                return stmt.executeUpdate();
 				} finally {
 				    closeStmt(stmt);
@@ -73,7 +75,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			if(!fmd.isPrimaryKey()){
 				continue;
 			}
-			preparedValues.add(RabbitValueConverter.convert(id, fmd));
+			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(id, fmd), fmd.getField()));
 			sql.append(fmd.getColumn().value() + " = " + PLACE_HOLDER);
 		}
 		sqlOperation = new SQLOperation(){
@@ -83,7 +85,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 				try{
 				    showSql();
 	                stmt = conn.prepareStatement(sql.toString());
-	                setPreparedStatementValue(stmt);
+	                setPreparedStatementValue(stmt, DMLType.DELETE);
 	                return stmt.executeUpdate();
 				} finally {
 				    closeStmt(stmt);
