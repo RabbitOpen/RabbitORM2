@@ -1,8 +1,10 @@
 package oracle.test.filter;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 import oracle.test.entity.UUIDPolicyEntity;
+import oracle.test.entity.User;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -28,5 +30,16 @@ public class MyDMLFilter implements DMLFilter {
             }
         }
         return value;
+    }
+
+    @Override
+    public List<Object> queryCompleted(List<Object> result, Class<?> clz) {
+        if (User.class.equals(clz)) {
+           for (Object o : result) {
+               User u = (User) o;
+               u.setAge(1000);
+           }
+        }
+        return result;
     }
 }

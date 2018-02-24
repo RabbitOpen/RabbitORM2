@@ -97,7 +97,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	 * @return
 	 * 
 	 */
-	public Result<T> execute() {
+    public Result<T> execute() {
 		createQuerySql();
 		Connection conn = null;
 		PreparedStatement stmt = null;
@@ -110,6 +110,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			rs = stmt.executeQuery();
 			List<T> resultList = readDataFromResultSets(rs);
 			rs.close();
+			resultList = sessionFactory.queryCompleted(resultList, getMetaData().getEntityClz());
 			return new Result<>(resultList);
 		} catch (Exception e){
 			throw new RabbitDMLException(e.getMessage(), e);

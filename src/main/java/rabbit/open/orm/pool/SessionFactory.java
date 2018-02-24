@@ -2,6 +2,7 @@ package rabbit.open.orm.pool;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -264,5 +265,13 @@ public class SessionFactory {
             return filter.onValueSetted(pv.getValue(), pv.getField(), dmlType);
         }
         return pv.getValue();
+    }
+    
+    @SuppressWarnings("unchecked")
+    public <T> List<T> queryCompleted(List<T> result, Class<?> clz) {
+        if (null != filter) {
+            return (List<T>) filter.queryCompleted((List<Object>) result, clz);
+        }
+        return result;
     }
 }
