@@ -120,7 +120,7 @@ public class MultiFetchTest {
         TestCase.assertEquals(team.getRoles().size(), roles.size());
         
         
-        //验证同时取出了两个team对象
+        //验证同时取出了两个User对象
         TestCase.assertEquals(team.getLeader().getName(), t.getLeader().getName());
         TestCase.assertEquals(team.getLeader().getDesc(), "mydesc");
         TestCase.assertEquals(team.getFollower().getName(), t.getFollower().getName());
@@ -214,7 +214,7 @@ public class MultiFetchTest {
         TestCase.assertEquals(zone.getId(), team.getCars().get(0).getZone().getId());
         
         
-        //验证同时取出了两个team对象
+        //验证同时取出了两个User对象
         TestCase.assertEquals(team.getLeader().getName(), t.getLeader().getName());
         TestCase.assertEquals(team.getFollower().getName(), t.getFollower().getName());
         TestCase.assertEquals(team.getId(), t.getId());
