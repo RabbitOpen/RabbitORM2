@@ -247,10 +247,6 @@ public class SessionFactory {
         this.filter = filter;
     }
     
-    public DMLFilter getFilter() {
-        return filter;
-    }
-    
     public Object onValueSetted(PreparedValue pv, DMLType dmlType) {
         if (null == pv) {
             return null;
