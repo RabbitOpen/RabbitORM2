@@ -84,6 +84,9 @@
 		<property name="packages2Scan">
 			<value>${jdbc.packages}</value>
 		</property>
+		<property name="mappingFiles">
+            <value>${jdbc.mappingFiles}</value>
+        </property>
 		<property name="maskPreparedSql">
 			<value>true</value>
 		</property>

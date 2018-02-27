@@ -1021,7 +1021,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	 * 
 	 */
 	public String getAliasByTableName(String tableName){
-		if(isEmpty(aliasMapping.get(tableName))){
+		if(SessionFactory.isEmpty(aliasMapping.get(tableName))){
 			Collection<String> alias = aliasMapping.values();
 			for(int i = 0; ; i++){
 				String suffix = "";

@@ -187,7 +187,7 @@ public class SessionFactory {
         }
     }
 
-    private boolean isEmpty(String str) {
+    public static boolean isEmpty(String str) {
         return null == str || "".equals(str.trim());
     }
 

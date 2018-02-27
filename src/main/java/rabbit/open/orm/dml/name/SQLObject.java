@@ -27,10 +27,6 @@ public class SQLObject {
 		return sql;
 	}
 	
-	protected boolean isEmpty(String str){
-	    return null == str || "".equals(str.trim());
-	}
-	
 	/**
 	 * 
 	 * <b>Description:  根据字段名查找数序号</b><br>.

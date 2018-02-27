@@ -12,6 +12,7 @@ import rabbit.open.orm.dml.name.JoinFetcherDescriptor;
 import rabbit.open.orm.dml.name.NamedSQL;
 import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.exception.MisMatchedNamedQueryException;
+import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
 
 /**
@@ -26,7 +27,7 @@ public class NamedQuery<T> {
 	
 	private Query<T> query;
 	
-	private TreeMap<Integer, Object> fieldsValues;
+	private TreeMap<Integer, PreparedValue> fieldsValues;
 	
 	/**
 	 * @param fatory
@@ -164,25 +165,45 @@ public class NamedQuery<T> {
         if(fieldsValues.isEmpty()){
             return;
         }
-        Collection<Object> values = fieldsValues.values();
-        for (Object v : values) {
-            query.preparedValues.add(new PreparedValue(v));
+        Collection<PreparedValue> values = fieldsValues.values();
+        for (PreparedValue v : values) {
+            query.preparedValues.add(v);
         }
         
     }
 
 	/**
 	 * 
-	 * <b>Description:    单个设值</b><br>.
-	 * @param fieldName
-	 * @param value
+	 * <b>Description:     单个设值</b><br>.
+	 * @param fieldAlias   字段在sql中的别名
+	 * @param value        字段的值
 	 * @return	
 	 * 
 	 */
-	public NamedQuery<T> set(String fieldName, Object value){
-	    int index = nameObject.getFieldIndex(fieldName);
-	    fieldsValues.put(index, value);
+	public NamedQuery<T> set(String fieldAlias, Object value){
+	    return set(fieldAlias, value, null, null);
+	}
+
+	/**
+	 * <b>Description      单个设值</b>
+	 * @param fieldAlias   字段在sql中的别名
+	 * @param value        字段的值
+	 * @param fieldName    字段在对应实体中的名字
+	 * @param entityClz    字段所属的实体
+	 * @return
+	 */
+	public NamedQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz){
+	    int index = nameObject.getFieldIndex(fieldAlias);
+	    if (null != entityClz && !SessionFactory.isEmpty(fieldName)) {
+	        try {
+	            fieldsValues.put(index, new PreparedValue(value, entityClz.getDeclaredField(fieldName)));
+	        } catch (Exception e) {
+	            throw new UnKnownFieldException(e.getMessage());
+	        }
+	    } else {
+	        fieldsValues.put(index, new PreparedValue(value));
+	    }
 	    return this;
 	}
-	
+
 }

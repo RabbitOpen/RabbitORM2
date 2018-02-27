@@ -18,6 +18,7 @@ import rabbit.open.orm.exception.MappingFileParsingException;
 import rabbit.open.orm.exception.NoNamedSQLDefinedException;
 import rabbit.open.orm.exception.UnExistedNamedSQLException;
 import rabbit.open.orm.exception.WrongMappingFilePathException;
+import rabbit.open.orm.pool.SessionFactory;
 
 public class SQLParser {
 
@@ -129,19 +130,19 @@ public class SQLParser {
 	}
 
 	private void checkNameQuery(Class<?> namespaceClz, String queryName, String sql) {
-		if(isEmpty(queryName)){
+		if(SessionFactory.isEmpty(queryName)){
 			throw new MappingFileParsingException("empty query name is found for[" + namespaceClz + "]");
 		}
 		if(nameQueries.get(namespaceClz).containsKey(queryName)){
 			throw new MappingFileParsingException("repeated query name[" + queryName + "] is found!");
 		}
-		if(isEmpty(sql)){
+		if(SessionFactory.isEmpty(sql)){
 			throw new MappingFileParsingException("empty sql is found in [" + queryName + "]");
 		}
 	}
 
 	private Class<?> checkClassName(String xml, String className) {
-		if(isEmpty(className)){
+		if(SessionFactory.isEmpty(className)){
 			throw new MappingFileParsingException("invalid class name[" + className + "] for " + xml);
 		}
 		Class<?> clz = null;
@@ -158,10 +159,6 @@ public class SQLParser {
 		return clz;
 	}
 
-	private boolean isEmpty(String namespace) {
-		return null == namespace || "".equals(namespace.trim());
-	}
-	
 	/**
 	 * 
 	 * <b>Description:	读取sql定义文件</b><br>
@@ -175,7 +172,9 @@ public class SQLParser {
 		}
 		List<String> xmls = new ArrayList<>();
 		scanMappingPath(url.getPath(), xmls);
-		scanMappingPath(url.getPath().replace("test-classes", "classes"), xmls);
+		if (url.getPath().contains("/test-classes")) {
+		    scanMappingPath(url.getPath().replace("test-classes", "classes"), xmls);
+		}
 		return xmls;
 	}
 

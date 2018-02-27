@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
+    "http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd"> 
+
+<rabbit-mapping entity="oracle.test.entity.User">
+    <!-- 根据用户名查询用户 -->
+    <select name="getUserByName" alias="U">
+        <![CDATA[
+            SELECT 
+                #{FILEDS}
+            FROM 
+                T_USER U
+            WHERE 
+                U.ID = ${userId} 
+                AND U.NAME LIKE ${username} 
+        ]]>
+    </select>
+</rabbit-mapping>   

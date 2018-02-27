@@ -69,6 +69,17 @@ public class OracleTest {
         TestCase.assertTrue(list.size() > 0);
     }
 	
+	@Test
+    public void namedQueryTest() {
+        User user = addInitData(111);
+        User u = us.createNamedQuery("getUserByName")
+                .set("username", "%zhangsan%", "name", User.class)
+                .set("userId", user.getId(), "id", User.class)
+                .execute().unique();
+        System.out.println(u);
+        TestCase.assertEquals(user.getName(), u.getName());
+    }
+	
 	/**
      * 
      * <b>Description:  添加测试数据</b><br>.

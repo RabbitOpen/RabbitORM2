@@ -385,17 +385,6 @@ public abstract class DMLAdapter<T> {
 		}
 	}
 	
-	/**
-	 * 
-	 * <b>Description:	字符串判空</b><br>
-	 * @param str
-	 * @return	
-	 * 
-	 */
-	protected boolean isEmpty(String str) {
-		return null == str || "".equals(str.trim());
-	}
-	
 	protected abstract String getAliasByTableName(String tableName);
 	
 	/**

@@ -194,7 +194,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 			ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 			rsql.append("INSERT INTO " + mtm.joinTable() + "(");
 			rsql.append(mtm.joinColumn() + "," + mtm.reverseJoinColumn());
-			if(!isEmpty(mtm.id())){
+			if(!SessionFactory.isEmpty(mtm.id())){
 				if(!mtm.policy().equals(Policy.AUTOINCREMENT)){
 					rsql.append(", " + mtm.id());
 				}
@@ -209,7 +209,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
             values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
 			rsql.append(")VALUES(" + PLACE_HOLDER);
 			rsql.append("," + PLACE_HOLDER);
-			if(!isEmpty(mtm.id())){
+			if(!SessionFactory.isEmpty(mtm.id())){
 				if(mtm.policy().equals(Policy.UUID)){
 					values.add(new PreparedValue(UUIDPolicy.getID(), jfm.getField()));
 					rsql.append(", " + PLACE_HOLDER + ")");

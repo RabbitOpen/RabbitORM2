@@ -10,6 +10,7 @@ import org.dom4j.Element;
 
 import rabbit.open.orm.exception.EmptyAliasException;
 import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.orm.pool.SessionFactory;
 
 public class NamedSQL extends SQLObject {
 
@@ -90,7 +91,7 @@ public class NamedSQL extends SQLObject {
         Matcher matcher = pattern.matcher(sql);
         int index = 0;
         while (matcher.find()) {
-            if (isEmpty(matcher.group(1))) {
+            if (SessionFactory.isEmpty(matcher.group(1))) {
                 throw new RabbitDMLException(
                         "empty field is defined in NamedSQL[" + this.name + "]");
             }
@@ -113,7 +114,7 @@ public class NamedSQL extends SQLObject {
     }
     
     public String getAlias() {
-        if (isEmpty(targetAlias)) {
+        if (SessionFactory.isEmpty(targetAlias)) {
             throw new EmptyAliasException(name);
         }
         return targetAlias;
