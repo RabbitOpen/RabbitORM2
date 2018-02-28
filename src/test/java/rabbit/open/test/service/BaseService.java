@@ -16,4 +16,7 @@ public class BaseService<T> extends SpringDaoAdapter<T>{
 		setSessionFactory(factory);
 	}
 	
+	public SessionFactory getFactory() {
+        return factory;
+    }
 }

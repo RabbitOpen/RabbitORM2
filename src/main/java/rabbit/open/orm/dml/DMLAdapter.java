@@ -39,6 +39,8 @@ import rabbit.open.orm.exception.InvalidQueryPathException;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.shard.ShardFactor;
+import rabbit.open.orm.shard.ShardingPolicy;
 
 /**
  * <b>Description: 	所有dml操作的基类</b><br>
@@ -100,10 +102,11 @@ public abstract class DMLAdapter<T> {
 		this(sessionFactory, null, clz);
 	}
 
-	public DMLAdapter(SessionFactory sessionFactory, T filterData, Class<T> clz) {
+	@SuppressWarnings("unchecked")
+    public DMLAdapter(SessionFactory sessionFactory, T filterData, Class<T> clz) {
 		this.sessionFactory = sessionFactory;
 		this.filterData = filterData;
-		metaData = new MetaData<>(clz);
+		metaData = (MetaData<T>) MetaData.getMetaByClass(clz);
 		pattern  = Pattern.compile(REPLACE_WORD);
 		addedFilters = new HashMap<>();
 		addedJoinFilters = new HashMap<>();
@@ -251,7 +254,7 @@ public abstract class DMLAdapter<T> {
 		if(null == data){
 			return new ArrayList<>();
 		}
-		String tableName = MetaData.getTablenameByClass(clz);
+		String tableName = MetaData.getTableNameByClass(clz);
 		List<FieldMetaData> fields = new ArrayList<>();
 		Class<?> clzSuper = clz;
 		while(!clzSuper.equals(Object.class)){
@@ -290,7 +293,7 @@ public abstract class DMLAdapter<T> {
 		for(FieldMetaData fmd : fieldMetas){
 			if(fmd.isForeignKey()){
 				String fkName = MetaData.getPrimaryKeyField(fmd.getFieldValue().getClass()).getAnnotation(Column.class).value();
-				String fkTable = MetaData.getTablenameByClass(fmd.getField().getType());
+				String fkTable = MetaData.getTableNameByClass(fmd.getField().getType());
 				MetaData.updateTableMapping(fkTable, fmd.getField().getType());
 				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName()) + "." + fmd.getColumn().value(), 
 						getAliasByTableName(fkTable) + "." + fkName);
@@ -327,7 +330,7 @@ public abstract class DMLAdapter<T> {
 				List<DynamicFilterDescriptor> dfds = map.get(fieldName);
 				for(DynamicFilterDescriptor dfd : dfds){
 					FilterDescriptor desc = new FilterDescriptor(
-							getAliasByTableName(MetaData.getTablenameByClass(entry.getKey())) + "." 
+							getAliasByTableName(MetaData.getTableNameByClass(entry.getKey())) + "." 
 							        + fmd.getColumn().value(), 
 							RabbitValueConverter.convert(dfd.getValue(), fmd), 
 							dfd.getFilter().value());
@@ -335,7 +338,7 @@ public abstract class DMLAdapter<T> {
 					if(dfd.isReg()){
 						desc.setKey(dfd.getKeyReg().replaceAll(REPLACE_WORD, desc.getKey()));
 					}
-					desc.setFilterTable(MetaData.getTablenameByClass(entry.getKey()));
+					desc.setFilterTable(MetaData.getTableNameByClass(entry.getKey()));
 					filterDescriptors.add(desc);
 				}
 			}
@@ -508,12 +511,12 @@ public abstract class DMLAdapter<T> {
             }
             String fkName = MetaData.getPrimaryKeyField(fmd.getField().getType())
                     .getAnnotation(Column.class).value();
-            String fkTable = MetaData.getTablenameByClass(fmd.getField().getType());
+            String fkTable = MetaData.getTableNameByClass(fmd.getField().getType());
             String tableAlias = getAliasByTableName(fkTable);
             if(fmd.isMutiFetchField()){
                 tableAlias = tableAlias + UNDERLINE + fmd.getIndex();
             }
-            FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(MetaData.getTablenameByClass(clz))
+            FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(MetaData.getTableNameByClass(clz))
                             + "." + fmd.getColumn().value(), tableAlias + "." + fkName);
             desc.setField(fmd.getField());
             desc.setMultiFetchField(fmd.isMutiFetchField());
@@ -730,8 +733,49 @@ public abstract class DMLAdapter<T> {
 		if(fds.isEmpty()){
 		    return filterSql;
 		}
+		compatibleSharddingFilter(fds);
 		appendFilters(filterSql, fds);
 		return filterSql;
+	}
+
+    /**
+     * <b>Description  兼容分片表过滤条件</b>
+     * @param fds
+     */
+    private void compatibleSharddingFilter(List<FilterDescriptor> fds) {
+        List<ShardFactor> factors = getFactors();
+        if(null == factors || factors.isEmpty()){
+            return;
+        }
+        String shardingTable = metaData.getShardingPolicy().getShardingTable(metaData.getEntityClz(), 
+                metaData.getTableName(), factors);
+        for(FilterDescriptor fd : fds){
+	        if(fd.getFilterTable().equals(shardingTable)){
+	            continue;
+	        }
+	        String[] kp = fd.getKey().split("\\.");
+	        fd.setKey(getAliasByTableName(shardingTable) + "." + kp[1]);
+		}
+    }
+    
+    /**
+     * <b>Description  获取真实表名，兼容分片表</b>
+     * @return
+     */
+    protected String getRealTableName(){
+        ShardingPolicy policy = metaData.getShardingPolicy();
+        List<ShardFactor> factors = getFactors();
+        Class<T> entityClz = metaData.getEntityClz();
+        return policy.getShardingTable(entityClz, metaData.getTableName(), factors);
+    }
+    
+	protected List<ShardFactor> getFactors() {
+	    List<FilterDescriptor> fds = getFilterDescriptors();
+        List<ShardFactor> factors = new ArrayList<>();
+        for (FilterDescriptor fd : fds) {
+            factors.add(new ShardFactor(fd.getField(), fd.getValue()));
+        }
+        return factors;
 	}
 
     private void appendFilters(StringBuilder filterSql,
@@ -754,7 +798,7 @@ public abstract class DMLAdapter<T> {
         }
     }
 
-    private List<FilterDescriptor> getFilterDescriptors() {
+    protected List<FilterDescriptor> getFilterDescriptors() {
         List<FilterDescriptor> fds = new ArrayList<>();
         for(FilterDescriptor fd : filterDescriptors){
 			if(fd.isJoinOn()){

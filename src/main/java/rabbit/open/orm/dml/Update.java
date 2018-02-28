@@ -335,7 +335,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 		if(null == data){
 			return new ArrayList<>();
 		}
-		String tableName = MetaData.getTablenameByClass(data.getClass());
+		String tableName = MetaData.getTableNameByClass(data.getClass());
 		Class<?> clz = data.getClass();
 		List<FieldMetaData> fields = new ArrayList<>();
 		while(!clz.equals(Object.class)){

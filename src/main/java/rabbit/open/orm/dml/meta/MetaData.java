@@ -16,6 +16,7 @@ import rabbit.open.orm.annotation.OneToMany;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
+import rabbit.open.orm.shard.ShardingPolicy;
 
 
 /**
@@ -49,6 +50,10 @@ public class MetaData<T> {
 	//能进行一对多、多对多查询的实体信息
 	protected List<JoinFieldMetaData<?>> joinMetas;
 	
+	private ShardingPolicy shardingPolicy;
+	
+	private Map<Class<? extends ShardingPolicy>, ShardingPolicy> policyMapping = new ConcurrentHashMap<>();
+	
 	//表名
 	protected String tableName;
 	
@@ -58,35 +63,20 @@ public class MetaData<T> {
 	//实体对应的类的class信息
 	protected Class<T> entityClz;
 	
-	public MetaData(Class<T> entityClz) {
-		this.entityClz = entityClz;
-		if(metaMapping.containsKey(entityClz)){
-			loadMetaFromCache(entityClz);
-			return;
-		}
-		registClassTableMapping(entityClz);
-		registMetaData(entityClz);
-	}
+    public MetaData(Class<T> entityClz) {
+        this.entityClz = entityClz;
+        if (metaMapping.containsKey(entityClz)) {
+            return;
+        }
+        registClassTableMapping(entityClz);
+    }
 	
 	public static <D> MetaData<?> getMetaByClass(Class<D> clz){
 	    if(metaMapping.containsKey(clz)){
 	        return metaMapping.get(clz);
 	    }
-	    new MetaData<D>(clz);
+	    metaMapping.put(clz, new MetaData<D>(clz));
 	    return metaMapping.get(clz);
-	}
-
-	/**
-	 * 
-	 * <b>Description:	从缓存中加载meta信息</b><br>
-	 * @param entityClz	
-	 * 
-	 */
-	private void loadMetaFromCache(Class<T> entityClz) {
-		this.fieldMetas = metaMapping.get(entityClz).getFieldMetas();
-		this.tableName = metaMapping.get(entityClz).getTableName();
-		this.joinMetas = metaMapping.get(entityClz).getJoinMetas();
-		this.primaryKey = metaMapping.get(entityClz).getPrimaryKey();
 	}
 
 	public List<JoinFieldMetaData<?>> getJoinMetas() {
@@ -101,6 +91,10 @@ public class MetaData<T> {
 		return primaryKey;
 	}
 
+	public ShardingPolicy getShardingPolicy() {
+        return shardingPolicy;
+    }
+	
 	public static String getPrimaryKey(Class<?> clz) {
 	    return getPrimaryKeyField(clz).getAnnotation(Column.class).value();
 	}
@@ -111,25 +105,32 @@ public class MetaData<T> {
 	 * @param entityClz	
 	 * 
 	 */
-	private void registClassTableMapping(Class<T> entityClz) {
+	private synchronized void registClassTableMapping(Class<T> entityClz) {
+	    if (metaMapping.containsKey(entityClz)) {
+            return;
+        }
 		tableName = entityClz.getAnnotation(Entity.class).value();
+		shardingPolicy = loadShardingPolicy(entityClz);
 		primaryKey = getPrimaryKeyField(entityClz).getAnnotation(Column.class).value();
 		tableMapping.put(tableName, entityClz);
 		clzMapping.put(entityClz, tableName);
 		joinMetas = getJoinMetas(entityClz);
+		fieldMetas = getMappingFieldMetas(entityClz);
 	}
 
-	/**
-	 * 
-	 * <b>Description:	注册元信息</b><br>
-	 * @param entityClz	
-	 * 
-	 */
-	private void registMetaData(Class<T> entityClz) {
-		fieldMetas = getMappingFieldMetas(entityClz);
-		metaMapping.put(entityClz, this);
-	}
-	
+    private ShardingPolicy loadShardingPolicy(Class<T> entityClz) {
+        Entity entity = entityClz.getAnnotation(Entity.class);
+        if (policyMapping.containsKey(entity.policy())) {
+            return policyMapping.get(entity.policy());
+        }
+        try {
+            policyMapping.put(entity.policy(), entity.policy().newInstance());
+        } catch (Exception e) {
+            throw new RabbitDMLException(e);
+        }
+        return policyMapping.get(entity.policy());
+    }
+
 	/**
 	 * 
 	 * 获取类中和表有映射关系的字段
@@ -206,7 +207,7 @@ public class MetaData<T> {
 	}
 	
 	//通过类信息查表名
-	public static String getTablenameByClass(Class<?> clz){
+	public static String getTableNameByClass(Class<?> clz){
 		String tableName = clzMapping.get(clz);
 		if(null == tableName){
 			Class<?> c = clz;

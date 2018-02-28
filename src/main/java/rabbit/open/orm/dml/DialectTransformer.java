@@ -56,7 +56,7 @@ public abstract class DialectTransformer {
             Class<?> clz = it.next();
             HashSet<String> fields = asc.get(clz);
             for(String f : fields){
-                sql.append(query.getAliasByTableName(MetaData.getTablenameByClass(clz)) + "." + f + " ASC, ");
+                sql.append(query.getAliasByTableName(MetaData.getTableNameByClass(clz)) + "." + f + " ASC, ");
             }
         }
         it = desc.keySet().iterator();
@@ -64,7 +64,7 @@ public abstract class DialectTransformer {
             Class<?> clz = it.next();
             HashSet<String> fields = desc.get(clz);
             for(String f : fields){
-                sql.append(query.getAliasByTableName(MetaData.getTablenameByClass(clz)) + "." + f + " DESC, ");
+                sql.append(query.getAliasByTableName(MetaData.getTableNameByClass(clz)) + "." + f + " DESC, ");
             }
         }
         sql.deleteCharAt(sql.lastIndexOf(","));

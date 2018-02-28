@@ -203,6 +203,27 @@ public abstract class DDLHelper {
 		}
 	}
 	
+    /**
+     * <b>Description  新建分表</b>
+     * @param factory
+     * @param tableName
+     * @param entityClz
+     */
+    public static void addShardingTable(SessionFactory factory,
+            String tableName, Class<?> entityClz) {
+        DDLHelper ddlHelper = helpers.get(factory.getDialectType());
+        Connection connection = null;
+        try {
+            connection = factory.getConnection();
+            ddlHelper.setConnection(connection);
+            ddlHelper.createShardingTable(entityClz, tableName);
+        } catch (Exception e) {
+            throw new RabbitDDLException(e);
+        } finally {
+            DMLAdapter.closeConnection(connection);
+        }
+    }
+	
 	/**
 	 * 
 	 * <b>Description:	执行重建表行为</b><br>
@@ -500,6 +521,35 @@ public abstract class DDLHelper {
             return null;
         }
         String tableName = entity.value();  
+        return createTableSQL(clz, tableName);
+    }
+
+    /**
+     * <b>Description  创建分区表</b>
+     * @param clz
+     * @param tableName
+     */
+    private void createShardingTable(Class<?> clz, String tableName) {
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+            StringBuilder sql = createTableSQL(clz, tableName);
+            logger.info(SQLFormater.format(sql.toString()).toUpperCase());
+            stmt.execute(sql.toString());
+        } catch (Exception e) {
+            logger.warn(e.getMessage());
+        } finally {
+            closeStmt(stmt);
+        }
+    }
+    
+    /**
+     * <b>Description  生成创建分区表的sql</b>
+     * @param clz
+     * @param tableName
+     * @return
+     */
+    private StringBuilder createTableSQL(Class<?> clz, String tableName) {
         List<FieldMetaData> fmds = MetaData.getCachedFieldsMetas(clz);
         StringBuilder sql = new StringBuilder("CREATE TABLE " + tableName.toUpperCase() + "(");
         FieldMetaData pkm = null;

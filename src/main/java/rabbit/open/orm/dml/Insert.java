@@ -2,9 +2,12 @@ package rabbit.open.orm.dml;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.PrimaryKey;
+import rabbit.open.orm.dialect.ddl.DDLHelper;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
@@ -12,6 +15,8 @@ import rabbit.open.orm.dml.policy.Policy;
 import rabbit.open.orm.dml.policy.UUIDPolicy;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.shard.ShardFactor;
+import rabbit.open.orm.shard.ShardingPolicy;
 
 /**
  * <b>Description: 	新增操作</b><br>
@@ -55,10 +60,6 @@ public class Insert<T> extends NonQueryAdapter<T>{
         return 1L;
 	}
 
-	public StringBuilder getSql(){
-		return sql;
-	}
-	
 	/**
 	 * 
 	 * <b>Description:	创建一个Insert语句</b><br>
@@ -71,13 +72,42 @@ public class Insert<T> extends NonQueryAdapter<T>{
 			return this;
 		}
 		StringBuilder fields = createFieldsSql(data);
+		StringBuilder valueSql = createValuesSql(data);
 		sql = new StringBuilder();
-		sql.append("INSERT INTO " + metaData.getTableName() + " ");
+		String tableName = getRealTableName();
+        sql.append("INSERT INTO " + tableName + " ");
 		sql.append(fields);
 		sql.append(" VALUES ");
-		sql.append(createValuesSql(data));
+        sql.append(valueSql);
 		return this;
 	}
+
+    /**
+     * <b>Description  获取真实表名，兼容分片表</b>
+     * @return
+     */
+	@Override
+    protected String getRealTableName() {
+        ShardingPolicy policy = metaData.getShardingPolicy();
+		List<ShardFactor> factors = getFactors();
+        Class<T> entityClz = metaData.getEntityClz();
+        String tableName = policy.getShardingTable(entityClz, metaData.getTableName(), factors);
+        if (!policy.isTableExists(entityClz, tableName, factors)) {
+            DDLHelper.addShardingTable(sessionFactory, tableName, entityClz);
+            policy.tableCreated(entityClz, tableName, factors);
+        }
+        return tableName;
+    }
+	
+    @Override
+    protected List<ShardFactor> getFactors() {
+        List<ShardFactor> factors = new ArrayList<>();
+        for (Object v : preparedValues) {
+            PreparedValue pv = (PreparedValue) v;
+            factors.add(new ShardFactor(pv.getField(), pv.getValue()));
+        }
+        return factors;
+    }
 	
 	/**
 	 * 

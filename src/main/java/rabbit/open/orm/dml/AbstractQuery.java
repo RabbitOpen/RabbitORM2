@@ -36,6 +36,7 @@ import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.RepeatedAliasException;
 import rabbit.open.orm.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.shard.ShardingPolicy;
 
 /**
  * <b>Description: 	查询操作</b><br>
@@ -255,7 +256,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		//缓存缓存【表名】和joinFetch的实体
 		Map<String, Object> joinFetcEntity = new HashMap<>();
 		readEntity(rs, fetchEntity, joinFetcEntity);
-		T target = (T) fetchEntity.get(getAliasByTableName(metaData.getTableName()));
+		T target = (T) fetchEntity.get(getAliasByTableName(getRealTableName()));
 		for(Object entity : fetchEntity.values()){
 			if(entity == target){
 				continue;
@@ -279,7 +280,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			jfd.getField().setAccessible(true);
 			ArrayList<Object> list = new ArrayList<>();
 			list.add(entity);
-			Object target = fetchEntity.get(getAliasByTableName(MetaData.getTablenameByClass(jfd.getTargetClass())));
+			Object target = fetchEntity.get(getAliasByTableName(MetaData.getTableNameByClass(jfd.getTargetClass())));
 			jfd.getField().set(target, list);
 		}
 	}
@@ -297,7 +298,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		}
 		List<FilterDescriptor> deps = clzesEnabled2Join.get(entity.getClass());
 		for(FilterDescriptor fd : deps){
-			Object depObj = fetchEntity.get(getAliasByTableName(MetaData.getTablenameByClass(fd.getJoinDependency())));
+			Object depObj = fetchEntity.get(getAliasByTableName(MetaData.getTableNameByClass(fd.getJoinDependency())));
 			if(null == depObj){
 				continue;
 			}
@@ -691,7 +692,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		StringBuilder sb = new StringBuilder();
 		ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + mtm.joinTable() + " " + getAliasByTableName(mtm.joinTable()) + " ON ");
-		sb.append(getAliasByTableName(MetaData.getTablenameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
+		sb.append(getAliasByTableName(MetaData.getTableNameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
 		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.joinColumn() + " ");
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
 		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.reverseJoinColumn() + " = ");
@@ -714,7 +715,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		OneToMany otm = (OneToMany) jfm.getAnnotation();
 		String lj = leftJoin ? " LEFT JOIN " : INNER_JOIN;
 		sb.append(lj + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
-		sb.append(getAliasByTableName(MetaData.getTablenameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
+		sb.append(getAliasByTableName(MetaData.getTableNameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
 		sb.append(getAliasByTableName(jfm.getTableName()) + "." + otm.joinColumn());
 		appendJoinFilterSqlSegment(jfm, sb);
 		sb.append(" ");
@@ -764,8 +765,10 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	 * 
 	 */
 	protected void createFromSql(){
-		sql.append(" FROM " + metaData.getTableName() + " " + getAliasByTableName(metaData.getTableName()));
+        String tbName = getRealTableName();
+        sql.append(" FROM " + tbName + " " + getAliasByTableName(tbName));
 	}
+
 	/**
 	 * 
 	 * <b>Description:	根据db的不同，对字段片段的sql部分进行包装</b><br>	
@@ -885,7 +888,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			String fn = fmd.getField().getName();
 			String alias = Integer.toString(i);
 			aliasMappings.put(alias, fn);
-			String tableAlias = getAliasByTableName(MetaData.getTablenameByClass(clz));
+			String tableAlias = "";
+            tableAlias = getTableAliasByClass(clz);
 			if(fetchTimesMappingTable.containsKey(clz) && fetchTimesMappingTable.get(clz) > 1){
 			    for(int j = 1; j <= fetchTimesMappingTable.get(clz); j++){
 			        sql.append(tableAlias + UNDERLINE + j + "." + fmd.getColumn().value());
@@ -902,6 +906,22 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		}
 		return sb;
 	}
+
+	/**
+	 * <b>Description  通过类信息获取表的别名，兼容分片表</b>
+	 * @param clz
+	 * @return
+	 */
+	private String getTableAliasByClass(Class<?> clz) {
+        if (clz.equals(metaData.getEntityClz())) {
+            ShardingPolicy policy = metaData.getShardingPolicy();
+            String tableName = policy.getShardingTable(clz, metaData.getTableName(), getFactors());
+            MetaData.updateTableMapping(tableName, metaData.getEntityClz());
+            return getAliasByTableName(tableName);
+        } else {
+            return getAliasByTableName(MetaData.getTableNameByClass(clz));
+        }
+    }
 	
 	/**
 	 * 
@@ -1020,25 +1040,26 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	 * @return
 	 * 
 	 */
-	public String getAliasByTableName(String tableName){
-		if(SessionFactory.isEmpty(aliasMapping.get(tableName))){
-			Collection<String> alias = aliasMapping.values();
-			for(int i = 0; ; i++){
-				String suffix = "";
-				if(0 != i){
-					suffix = Integer.toString(i);
-				}
-				for(char c = 'A'; c <= 'Z'; c++){
-					if(alias.contains((c + suffix).toUpperCase())){
-						continue;
-					}
-					aliasMapping.put(tableName, c + suffix);
-					return aliasMapping.get(tableName);
-				}
-			}
-		}
-		return aliasMapping.get(tableName);
-	}
+	@Override
+    public String getAliasByTableName(String tableName) {
+        if (SessionFactory.isEmpty(aliasMapping.get(tableName))) {
+            Collection<String> alias = aliasMapping.values();
+            for (int i = 0;; i++) {
+                String suffix = "";
+                if (0 != i) {
+                    suffix = Integer.toString(i);
+                }
+                for (char c = 'A'; c <= 'Z'; c++) {
+                    if (alias.contains((c + suffix).toUpperCase())) {
+                        continue;
+                    }
+                    aliasMapping.put(tableName, c + suffix);
+                    return aliasMapping.get(tableName);
+                }
+            }
+        }
+        return aliasMapping.get(tableName);
+    }
 	
 	/**
 	 * 
@@ -1389,7 +1410,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	    if(aliasMapping.containsValue(alias.toUpperCase())){
 	        throw new RepeatedAliasException(alias);
 	    }
-		aliasMapping.put(MetaData.getTablenameByClass(entityClz), alias.toUpperCase());
+		aliasMapping.put(MetaData.getTableNameByClass(entityClz), alias.toUpperCase());
 		return this;
 	}
 
