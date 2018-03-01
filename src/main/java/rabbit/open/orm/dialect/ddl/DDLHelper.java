@@ -218,7 +218,7 @@ public abstract class DDLHelper {
             ddlHelper.setConnection(connection);
             ddlHelper.createShardingTable(entityClz, tableName);
         } catch (Exception e) {
-            throw new RabbitDDLException(e);
+            logger.warn(e.getMessage(), e);
         } finally {
             DMLAdapter.closeConnection(connection);
         }

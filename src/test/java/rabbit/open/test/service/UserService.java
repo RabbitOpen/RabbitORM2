@@ -14,7 +14,8 @@ public class UserService extends BaseService<User>{
     @Transactional
     public void rollBakcTest(){
         add(new User("lisi", 10, new Date()));
-        add(new User("lisi", 10, new Date()));
+        add(new User("lisi", 11, new Date()));
+        add(new User("lisi", 12, new Date()));
         throw new RabbitDMLException("rollback");
     }
 

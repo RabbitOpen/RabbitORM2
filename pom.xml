@@ -248,6 +248,8 @@
 							<finalName>${project.artifactId}</finalName>
 							<excludes>
 								<exclude>*.xml</exclude>
+								<exclude>**/*.xml</exclude>
+								<exclude>rabbit/oracle</exclude>
 								<exclude>*.properties</exclude>
 							</excludes>
 						</configuration>

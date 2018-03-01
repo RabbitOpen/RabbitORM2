@@ -71,7 +71,7 @@ public class JoinFieldMetaData<T> {
 		this.targetClass = targetClass;
 		this.joinClass = joinClass;
 		this.annotation = annotation;
-		this.tableName = MetaData.getTableNameByClass(joinClass);
+		this.tableName = MetaData.getTablenameByClass(joinClass);
 		this.primaryKey = MetaData.getPrimaryKeyField(joinClass).getAnnotation(Column.class).value();
 	}
 	

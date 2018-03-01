@@ -63,21 +63,21 @@ public class MetaData<T> {
 	//实体对应的类的class信息
 	protected Class<T> entityClz;
 	
-    public MetaData(Class<T> entityClz) {
+	public MetaData(Class<T> entityClz) {
         this.entityClz = entityClz;
         if (metaMapping.containsKey(entityClz)) {
             return;
         }
         registClassTableMapping(entityClz);
     }
-	
-	public static <D> MetaData<?> getMetaByClass(Class<D> clz){
-	    if(metaMapping.containsKey(clz)){
-	        return metaMapping.get(clz);
-	    }
-	    metaMapping.put(clz, new MetaData<D>(clz));
-	    return metaMapping.get(clz);
-	}
+    
+    public static <D> MetaData<?> getMetaByClass(Class<D> clz){
+        if(metaMapping.containsKey(clz)){
+            return metaMapping.get(clz);
+        }
+        metaMapping.put(clz, new MetaData<D>(clz));
+        return metaMapping.get(clz);
+    }
 
 	public List<JoinFieldMetaData<?>> getJoinMetas() {
 		return joinMetas;
@@ -100,23 +100,23 @@ public class MetaData<T> {
 	}
 
 	/**
-	 * 
-	 * <b>Description:	注册类和表的映射关系</b><br>
-	 * @param entityClz	
-	 * 
-	 */
-	private synchronized void registClassTableMapping(Class<T> entityClz) {
-	    if (metaMapping.containsKey(entityClz)) {
+     * 
+     * <b>Description:  注册类和表的映射关系</b><br>
+     * @param entityClz 
+     * 
+     */
+    private synchronized void registClassTableMapping(Class<T> entityClz) {
+        if (metaMapping.containsKey(entityClz)) {
             return;
         }
-		tableName = entityClz.getAnnotation(Entity.class).value();
-		shardingPolicy = loadShardingPolicy(entityClz);
-		primaryKey = getPrimaryKeyField(entityClz).getAnnotation(Column.class).value();
-		tableMapping.put(tableName, entityClz);
-		clzMapping.put(entityClz, tableName);
-		joinMetas = getJoinMetas(entityClz);
-		fieldMetas = getMappingFieldMetas(entityClz);
-	}
+        tableName = entityClz.getAnnotation(Entity.class).value();
+        shardingPolicy = loadShardingPolicy(entityClz);
+        primaryKey = getPrimaryKeyField(entityClz).getAnnotation(Column.class).value();
+        tableMapping.put(tableName, entityClz);
+        clzMapping.put(entityClz, tableName);
+        joinMetas = getJoinMetas(entityClz);
+        fieldMetas = getMappingFieldMetas(entityClz);
+    }
 
     private ShardingPolicy loadShardingPolicy(Class<T> entityClz) {
         Entity entity = entityClz.getAnnotation(Entity.class);
@@ -130,7 +130,6 @@ public class MetaData<T> {
         }
         return policyMapping.get(entity.policy());
     }
-
 	/**
 	 * 
 	 * 获取类中和表有映射关系的字段
@@ -207,7 +206,7 @@ public class MetaData<T> {
 	}
 	
 	//通过类信息查表名
-	public static String getTableNameByClass(Class<?> clz){
+	public static String getTablenameByClass(Class<?> clz){
 		String tableName = clzMapping.get(clz);
 		if(null == tableName){
 			Class<?> c = clz;

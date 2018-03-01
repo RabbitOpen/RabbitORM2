@@ -5,6 +5,7 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ public class TransactionTest {
     
     Map<String, Long> counter = new HashMap<>();
     
+    Logger logger = Logger.getLogger(getClass());
     /**
      * 
      * <b>Description: 回滚测试 </b><br>.	
