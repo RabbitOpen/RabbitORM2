@@ -2,8 +2,11 @@ package rabbit.open.orm.dml;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 import rabbit.open.orm.annotation.Column;
+import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
@@ -12,6 +15,7 @@ import rabbit.open.orm.dml.policy.Policy;
 import rabbit.open.orm.dml.policy.UUIDPolicy;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.shard.ShardFactor;
 
 /**
  * <b>Description: 	新增操作</b><br>
@@ -34,10 +38,22 @@ public class Insert<T> extends NonQueryAdapter<T>{
 		sqlOperation = new SQLOperation() {
 			@Override
 			public long executeSQL(Connection conn) throws Exception {
+			    updateTargetTableName();
 				return doExecute(conn);
 			}
+
 		};
 	}
+
+	@Override
+    protected List<ShardFactor> getFactors() {
+        List<ShardFactor> factors = new ArrayList<>();
+        for (Object o : preparedValues) {
+            PreparedValue pv = (PreparedValue) o;
+            factors.add(new ShardFactor(pv.getField(), FilterType.EQUAL.value(), pv.getValue()));
+        }
+        return factors;
+    }
 	
 	/**
 	 * 
@@ -55,10 +71,6 @@ public class Insert<T> extends NonQueryAdapter<T>{
         return 1L;
 	}
 
-	public StringBuilder getSql(){
-		return sql;
-	}
-	
 	/**
 	 * 
 	 * <b>Description:	创建一个Insert语句</b><br>
@@ -72,7 +84,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 		}
 		StringBuilder fields = createFieldsSql(data);
 		sql = new StringBuilder();
-		sql.append("INSERT INTO " + metaData.getTableName() + " ");
+		sql.append("INSERT INTO " +  TARGET_TABLE_NAME + "" );
 		sql.append(fields);
 		sql.append(" VALUES ");
 		sql.append(createValuesSql(data));

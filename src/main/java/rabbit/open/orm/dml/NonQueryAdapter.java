@@ -16,6 +16,7 @@ import rabbit.open.orm.annotation.ManyToMany;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
+import rabbit.open.orm.dml.meta.FilterDescriptor;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.meta.PreparedSqlDescriptor;
@@ -25,6 +26,7 @@ import rabbit.open.orm.dml.util.SQLFormater;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.shard.ShardFactor;
 
 /**
  * <b>Description: 	非查询操作的适配器</b><br>
@@ -35,6 +37,12 @@ import rabbit.open.orm.pool.SessionFactory;
 public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 
 	protected SQLOperation sqlOperation;
+	
+	protected static final String TABLE_NAME_REG = "\\#\\{TARGETTABLENAME\\}";
+
+	protected static final String TARGET_TABLE_NAME = "#{TARGETTABLENAME}";
+	
+	protected List<ShardFactor> factors = new ArrayList<>();
 	
 	public NonQueryAdapter(SessionFactory sessionFactory, Class<T> clz) {
 		super(sessionFactory, clz);
@@ -57,6 +65,38 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 		 */
 		public long executeSQL(Connection conn) throws Exception;
 	}
+	
+	/**
+     * <b>Description  设置当前操作的目标表的名字</b>
+     */
+    protected void updateTargetTableName() {
+        if(isShardingOperation()){
+            String tableName = getCurrentShardedTableName(getFactors());
+            String replaceAll = sql.toString().replaceAll(TABLE_NAME_REG, tableName);
+            sql = new StringBuilder(replaceAll);
+        }else{
+            sql = new StringBuilder(sql.toString().replaceAll(TABLE_NAME_REG, metaData.getTableName()));
+        }
+    }
+    
+    protected void doShardingCheck(){
+        if(!isShardingOperation()){
+            return;
+        }
+        List<FilterDescriptor> mfds = getMainFilterDescriptors();
+        List<ShardFactor> fcs = new ArrayList<>();
+        for (FilterDescriptor fd : mfds) {
+            fcs.add(new ShardFactor(fd.getField(), fd.getFilter(), fd.getValue()));
+        }
+        metaData.updateTableName(getCurrentShardedTableName(fcs));
+        filterDescriptors.clear();
+        prepareFilterMetas();
+        combineFilters();
+    }
+    
+    protected List<ShardFactor> getFactors() {
+        return factors;
+    }
 	
 	/**
 	 * 

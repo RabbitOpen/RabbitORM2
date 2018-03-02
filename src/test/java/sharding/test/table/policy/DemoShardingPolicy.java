@@ -1,11 +1,11 @@
-package sharding.test.policy;
+package sharding.test.table.policy;
 
 import java.util.List;
 
+import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.shard.ShardFactor;
 import rabbit.open.orm.shard.ShardingPolicy;
-import sharding.test.entity.ShardingUser;
-import sharding.test.exception.UnKownShardException;
+import sharding.test.table.exception.UnKownShardException;
 
 /**
  * <b>Description  自定义分表策略</b>
@@ -20,7 +20,7 @@ public class DemoShardingPolicy extends ShardingPolicy {
      */
     @Override
     public String getShardingTable(Class<?> clz, String tableName, List<ShardFactor> factors) {
-        if (ShardingUser.class.equals(clz)) {
+        if (!ShardingPolicy.class.equals(clz.getAnnotation(Entity.class).policy())) {
             if (containShardFactor(factors)) {
                 for (ShardFactor sf : factors) {
                     if ("id".equals(sf.getField().getName())) {

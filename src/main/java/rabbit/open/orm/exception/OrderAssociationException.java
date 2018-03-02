@@ -11,7 +11,7 @@ import rabbit.open.orm.dml.meta.MetaData;
 public class OrderAssociationException extends RuntimeException{
 
 	public OrderAssociationException(Class<?> clz) {
-	    super("table[" + MetaData.getTablenameByClass(clz) + "] is not associcated with this query!");
+	    super("table[" + MetaData.getTableNameByClass(clz) + "] is not associcated with this query!");
 	}
 
 }

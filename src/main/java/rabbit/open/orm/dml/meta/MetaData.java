@@ -206,7 +206,7 @@ public class MetaData<T> {
 	}
 	
 	//通过类信息查表名
-	public static String getTablenameByClass(Class<?> clz){
+	public static String getTableNameByClass(Class<?> clz){
 		String tableName = clzMapping.get(clz);
 		if(null == tableName){
 			Class<?> c = clz;
@@ -224,6 +224,15 @@ public class MetaData<T> {
 		}
 		return tableName;
 	}
+	
+	/**
+	 * <b>Description  修改表名：   当前表名-->分区表名</b>
+	 * @param tableName
+	 */
+	public void updateTableName(String tableName) {
+        this.tableName = tableName;
+        tableMapping.put(tableName, entityClz);
+    }
 	
 	/**
 	 * 

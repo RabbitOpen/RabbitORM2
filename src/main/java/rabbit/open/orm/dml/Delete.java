@@ -11,6 +11,7 @@ import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.shard.ShardFactor;
 
 /**
  * <b>Description: 	删除操作</b><br>
@@ -32,6 +33,8 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			    PreparedStatement stmt = null;
 				try{
 				    prepareFilterMetas();
+				    combineFilters();
+				    doShardingCheck();
 	                createDeleteSql();
 	                showSql();
 	                stmt = conn.prepareStatement(sql.toString());
@@ -43,14 +46,13 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			}
 		};
 	}
-
+	
 	/**
 	 * 
 	 * <b>Description:	生成删除sql</b><br>
 	 * 
 	 */
 	private void createDeleteSql() {
-		combineFilters();
 		if(filterDescriptors.isEmpty()){
 			sql = new StringBuilder("DELETE FROM " + metaData.getTableName());
 			return;
@@ -70,11 +72,12 @@ public class Delete<T> extends NonQueryAdapter<T> {
 		if(null == id){
 			throw new RabbitDMLException("id can't be null");
 		}
-		sql = new StringBuilder("DELETE FROM " + metaData.getTableName() + " WHERE ");
+		sql = new StringBuilder("DELETE FROM " + TARGET_TABLE_NAME + " WHERE ");
 		for(FieldMetaData fmd : metaData.getFieldMetas()){
 			if(!fmd.isPrimaryKey()){
 				continue;
 			}
+			factors.add(new ShardFactor(fmd.getField(), FilterType.EQUAL.value(), id));
 			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(id, fmd), fmd.getField()));
 			sql.append(fmd.getColumn().value() + " = " + PLACE_HOLDER);
 		}
@@ -92,6 +95,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 				}
 			}
 		};
+        updateTargetTableName();
 		return execute();
 	}
 	

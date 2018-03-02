@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import rabbit.open.orm.annotation.Entity;
@@ -36,6 +37,7 @@ import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.RepeatedAliasException;
 import rabbit.open.orm.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.shard.ShardFactor;
 
 /**
  * <b>Description: 	查询操作</b><br>
@@ -279,7 +281,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			jfd.getField().setAccessible(true);
 			ArrayList<Object> list = new ArrayList<>();
 			list.add(entity);
-			Object target = fetchEntity.get(getAliasByTableName(MetaData.getTablenameByClass(jfd.getTargetClass())));
+			Object target = fetchEntity.get(getAliasByTableName(getTableNameByClass(jfd.getTargetClass())));
 			jfd.getField().set(target, list);
 		}
 	}
@@ -297,7 +299,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		}
 		List<FilterDescriptor> deps = clzesEnabled2Join.get(entity.getClass());
 		for(FilterDescriptor fd : deps){
-			Object depObj = fetchEntity.get(getAliasByTableName(MetaData.getTablenameByClass(fd.getJoinDependency())));
+			Object depObj = fetchEntity.get(getAliasByTableName(getTableNameByClass(fd.getJoinDependency())));
 			if(null == depObj){
 				continue;
 			}
@@ -456,6 +458,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		combineFilters();
 		convertJoinFilter2Metas();
 		prepareMany2oneFilters();
+		doShardingCheck();
 		doOrderCheck();
 		//创建被查询的表字段sql片段
 		createFieldsSql();
@@ -466,6 +469,56 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		createOrderSql();
 		createPageSql();
 	}
+
+    /**
+     * <b>Description  分区表检查</b>
+     */
+    private void doShardingCheck() {
+        if(!isShardingOperation()){
+		    return;
+		}
+        metaData.updateTableName(getCurrentShardedTableName(getFactors()));
+        filterDescriptors.clear();
+        many2oneFilterDescripters.clear();
+        restClzesEnabled2Join();
+        prepareFilterMetas();
+        combineFilters();
+        prepareMany2oneFilters();
+    }
+
+    private void restClzesEnabled2Join() {
+        clzesEnabled2Join = null;
+        //刷新clzesEnabled2Join对象的值
+        getClzesEnabled2Join();
+        resetDependencyPath();
+    }
+
+    /**
+     * <b>Description  重置依赖路径中表的别名</b>
+     */
+    private void resetDependencyPath() {
+        for(Entry<Class<?>, List<FilterDescriptor>> entry : dependencyPath.entrySet()){
+            if(!clzesEnabled2Join.containsKey(entry.getKey())){
+                continue;
+            }
+            for(FilterDescriptor fdc : clzesEnabled2Join.get(entry.getKey())){
+                for(FilterDescriptor fd : entry.getValue()){
+                    if(fd.getField().equals(fdc.getField())){
+                        fd.setKey(fdc.getKey());
+                    }
+                }
+            }
+        }
+    }
+
+    private List<ShardFactor> getFactors() {
+        List<FilterDescriptor> mfds = getMainFilterDescriptors();
+        List<ShardFactor> factors = new ArrayList<>();
+        for (FilterDescriptor fd : mfds) {
+            factors.add(new ShardFactor(fd.getField(), fd.getFilter(), fd.getValue()));
+        }
+        return factors;
+    }
 
     /**
      * 
@@ -691,7 +744,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		StringBuilder sb = new StringBuilder();
 		ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + mtm.joinTable() + " " + getAliasByTableName(mtm.joinTable()) + " ON ");
-		sb.append(getAliasByTableName(MetaData.getTablenameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
+		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
 		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.joinColumn() + " ");
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
 		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.reverseJoinColumn() + " = ");
@@ -714,7 +767,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		OneToMany otm = (OneToMany) jfm.getAnnotation();
 		String lj = leftJoin ? " LEFT JOIN " : INNER_JOIN;
 		sb.append(lj + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
-		sb.append(getAliasByTableName(MetaData.getTablenameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
+		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
 		sb.append(getAliasByTableName(jfm.getTableName()) + "." + otm.joinColumn());
 		appendJoinFilterSqlSegment(jfm, sb);
 		sb.append(" ");
@@ -885,7 +938,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			String fn = fmd.getField().getName();
 			String alias = Integer.toString(i);
 			aliasMappings.put(alias, fn);
-			String tableAlias = getAliasByTableName(MetaData.getTablenameByClass(clz));
+			String tableAlias = getAliasByTableName(getTableNameByClass(clz));
 			if(fetchTimesMappingTable.containsKey(clz) && fetchTimesMappingTable.get(clz) > 1){
 			    for(int j = 1; j <= fetchTimesMappingTable.get(clz); j++){
 			        sql.append(tableAlias + UNDERLINE + j + "." + fmd.getColumn().value());
@@ -1261,6 +1314,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		prepareFilterMetas();
 		combineFilters();
 		prepareMany2oneFilters();
+		doShardingCheck();
 		generateCountSql();
 		createFromSql();
 		createJoinSql();
@@ -1389,7 +1443,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	    if(aliasMapping.containsValue(alias.toUpperCase())){
 	        throw new RepeatedAliasException(alias);
 	    }
-		aliasMapping.put(MetaData.getTablenameByClass(entityClz), alias.toUpperCase());
+		aliasMapping.put(getTableNameByClass(entityClz), alias.toUpperCase());
 		return this;
 	}
 

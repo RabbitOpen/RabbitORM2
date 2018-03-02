@@ -20,6 +20,7 @@ import rabbit.open.orm.dml.meta.FilterDescriptor;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.shard.ShardFactor;
 
 /**
  * <b>Description: 	更新操作</b><br>
@@ -48,8 +49,11 @@ public class Update<T> extends NonQueryAdapter<T>{
 			    PreparedStatement stmt = null;
 				try {
 				    prepareFilterMetas();
+				    combineFilters();
+				    doShardingCheck();
 	                sql.append(createUpdateSql(value2Update));
 	                sql.append(createFilterSql());
+	                replaceTableName();
 	                showSql();
 	                stmt = conn.prepareStatement(sql.toString());
 	                setPreparedStatementValue(stmt, DMLType.UPDATE);
@@ -58,9 +62,14 @@ public class Update<T> extends NonQueryAdapter<T>{
 				    closeStmt(stmt);
 				}
 			}
+
+            private void replaceTableName() {
+                String replaceAll = sql.toString().replaceAll(TABLE_NAME_REG, metaData.getTableName());
+                sql = new StringBuilder(replaceAll);
+            }
 		};
 	}
-
+	
 	public Update(SessionFactory sessionFactory, Class<T> clz) {
 		this(sessionFactory, null, clz);
 	}
@@ -190,7 +199,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 			throw new RabbitDMLException("primary key can't be empty!");
 		}
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(pkValue, new FieldMetaData(pk, pk.getAnnotation(Column.class))), pk));
-		sql.append(" WHERE " + metaData.getTableName() + "." + metaData.getPrimaryKey() + " = " + PLACE_HOLDER);
+		sql.append(" WHERE " + TARGET_TABLE_NAME + "." + metaData.getPrimaryKey() + " = " + PLACE_HOLDER);
 		sqlOperation = new SQLOperation() {
 			@Override
 			public long executeSQL(Connection conn) throws Exception {
@@ -205,8 +214,11 @@ public class Update<T> extends NonQueryAdapter<T>{
 				}
 			}
 		};
+		factors.add(new ShardFactor(pk, FilterType.EQUAL.value(), pkValue));
+		updateTargetTableName();
 		return execute();
 	}
+	
 
 	/**
 	 * 
@@ -215,7 +227,6 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private StringBuilder createFilterSql() {
-		combineFilters();
 		StringBuilder sql = new StringBuilder();
 		if(filterDescriptors.isEmpty()){
 			return sql;
@@ -255,7 +266,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 		if(valueMetas.isEmpty()){
 			throw new RabbitDMLException("no field is expected to update!");
 		}
-		sql.append("UPDATE " + metaData.getTableName() + " SET");
+		sql.append("UPDATE " + TARGET_TABLE_NAME + " SET");
 		int fields2Update = 0;
 		for(int i = 0; i < valueMetas.size(); i++){
 			FieldMetaData fmd = valueMetas.get(i);
@@ -294,7 +305,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 */
 	private void appendCommonFieldsValue(StringBuilder sql, FieldMetaData fmd) {
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fmd.getFieldValue(), fmd), fmd.getField()));
-		sql.append(" " + metaData.getTableName() + "." + fmd.getColumn().value() + "=");
+		sql.append(" " + TARGET_TABLE_NAME + "." + fmd.getColumn().value() + "=");
 		sql.append(PLACE_HOLDER);
 		sql.append(",");
 	}
@@ -314,7 +325,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 			if(null != fkValue){
 				preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fkValue, new FieldMetaData(foreignField, 
                         foreignField.getAnnotation(Column.class))), foreignField));
-				sql.append(" " + metaData.getTableName() + "." + fmd.getColumn().value() + "=");
+				sql.append(" " + TARGET_TABLE_NAME + "." + fmd.getColumn().value() + "=");
 				sql.append(PLACE_HOLDER);
 				sql.append(",");
 			}
@@ -335,7 +346,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 		if(null == data){
 			return new ArrayList<>();
 		}
-		String tableName = MetaData.getTablenameByClass(data.getClass());
+		String tableName = getTableNameByClass(data.getClass());
 		Class<?> clz = data.getClass();
 		List<FieldMetaData> fields = new ArrayList<>();
 		while(!clz.equals(Object.class)){

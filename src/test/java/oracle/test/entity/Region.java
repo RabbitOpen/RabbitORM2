@@ -1,4 +1,4 @@
-package sharding.test.entity;
+package oracle.test.entity;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.Entity;

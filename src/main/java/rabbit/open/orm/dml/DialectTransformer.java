@@ -11,7 +11,6 @@ import rabbit.open.orm.dialect.dml.impl.DB2Transformer;
 import rabbit.open.orm.dialect.dml.impl.MySQLTransformer;
 import rabbit.open.orm.dialect.dml.impl.OracleTransformer;
 import rabbit.open.orm.dialect.dml.impl.SQLServerTransformer;
-import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.exception.RabbitDMLException;
 
 /**
@@ -56,7 +55,7 @@ public abstract class DialectTransformer {
             Class<?> clz = it.next();
             HashSet<String> fields = asc.get(clz);
             for(String f : fields){
-                sql.append(query.getAliasByTableName(MetaData.getTablenameByClass(clz)) + "." + f + " ASC, ");
+                sql.append(query.getAliasByTableName(query.getTableNameByClass(clz)) + "." + f + " ASC, ");
             }
         }
         it = desc.keySet().iterator();
@@ -64,7 +63,7 @@ public abstract class DialectTransformer {
             Class<?> clz = it.next();
             HashSet<String> fields = desc.get(clz);
             for(String f : fields){
-                sql.append(query.getAliasByTableName(MetaData.getTablenameByClass(clz)) + "." + f + " DESC, ");
+                sql.append(query.getAliasByTableName(query.getTableNameByClass(clz)) + "." + f + " DESC, ");
             }
         }
         sql.deleteCharAt(sql.lastIndexOf(","));

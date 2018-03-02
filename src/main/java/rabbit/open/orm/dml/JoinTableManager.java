@@ -3,6 +3,7 @@ package rabbit.open.orm.dml;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.List;
 
 import rabbit.open.orm.annotation.ManyToMany;
@@ -13,6 +14,7 @@ import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.meta.PreparedSqlDescriptor;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.shard.ShardFactor;
 
 /**
  * <b>Description: 	中间表管理器</b><br>
@@ -57,6 +59,11 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 			}
 		};
 		return execute();
+	}
+	
+	@Override
+	protected List<ShardFactor> getFactors() {
+	    return new ArrayList<>();
 	}
 	
 	/**

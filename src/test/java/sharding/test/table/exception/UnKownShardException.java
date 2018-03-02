@@ -1,4 +1,4 @@
-package sharding.test.exception;
+package sharding.test.table.exception;
 
 /**
  * <b>Description  无法确认切片异常</b>

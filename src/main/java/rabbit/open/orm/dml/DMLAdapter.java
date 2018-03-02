@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import rabbit.open.orm.annotation.Column;
+import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
@@ -39,6 +40,8 @@ import rabbit.open.orm.exception.InvalidQueryPathException;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.shard.ShardFactor;
+import rabbit.open.orm.shard.ShardingPolicy;
 
 /**
  * <b>Description: 	所有dml操作的基类</b><br>
@@ -94,7 +97,7 @@ public abstract class DMLAdapter<T> {
 	protected Map<Class<?>, JoinFilter> joinFilters = new HashMap<>();
 	
 	//缓存class的依赖路径, 同一个clz不能有多个路径
-	private Map<Class<?>, List<FilterDescriptor>> dependencyPath = new HashMap<>();
+	protected Map<Class<?>, List<FilterDescriptor>> dependencyPath = new HashMap<>();
 
 	public DMLAdapter(SessionFactory sessionFactory, Class<T> clz) {
 		this(sessionFactory, null, clz);
@@ -252,7 +255,7 @@ public abstract class DMLAdapter<T> {
 		if(null == data){
 			return new ArrayList<>();
 		}
-		String tableName = MetaData.getTablenameByClass(clz);
+		String tableName = getTableNameByClass(clz);
 		List<FieldMetaData> fields = new ArrayList<>();
 		Class<?> clzSuper = clz;
 		while(!clzSuper.equals(Object.class)){
@@ -291,7 +294,7 @@ public abstract class DMLAdapter<T> {
 		for(FieldMetaData fmd : fieldMetas){
 			if(fmd.isForeignKey()){
 				String fkName = MetaData.getPrimaryKeyField(fmd.getFieldValue().getClass()).getAnnotation(Column.class).value();
-				String fkTable = MetaData.getTablenameByClass(fmd.getField().getType());
+				String fkTable = getTableNameByClass(fmd.getField().getType());
 				MetaData.updateTableMapping(fkTable, fmd.getField().getType());
 				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName()) + "." + fmd.getColumn().value(), 
 						getAliasByTableName(fkTable) + "." + fkName);
@@ -328,7 +331,7 @@ public abstract class DMLAdapter<T> {
 				List<DynamicFilterDescriptor> dfds = map.get(fieldName);
 				for(DynamicFilterDescriptor dfd : dfds){
 					FilterDescriptor desc = new FilterDescriptor(
-							getAliasByTableName(MetaData.getTablenameByClass(entry.getKey())) + "." 
+							getAliasByTableName(getTableNameByClass(entry.getKey())) + "." 
 							        + fmd.getColumn().value(), 
 							RabbitValueConverter.convert(dfd.getValue(), fmd), 
 							dfd.getFilter().value());
@@ -336,11 +339,19 @@ public abstract class DMLAdapter<T> {
 					if(dfd.isReg()){
 						desc.setKey(dfd.getKeyReg().replaceAll(REPLACE_WORD, desc.getKey()));
 					}
-					desc.setFilterTable(MetaData.getTablenameByClass(entry.getKey()));
+					desc.setFilterTable(getTableNameByClass(entry.getKey()));
 					filterDescriptors.add(desc);
 				}
 			}
 		}
+	}
+	
+	protected String getTableNameByClass(Class<?> clz) {
+	    if (metaData.getEntityClz().equals(clz)) {
+	        return metaData.getTableName();
+	    } else {
+	        return MetaData.getTableNameByClass(clz);
+	    }
 	}
 	
 	/**
@@ -509,12 +520,12 @@ public abstract class DMLAdapter<T> {
             }
             String fkName = MetaData.getPrimaryKeyField(fmd.getField().getType())
                     .getAnnotation(Column.class).value();
-            String fkTable = MetaData.getTablenameByClass(fmd.getField().getType());
+            String fkTable = getTableNameByClass(fmd.getField().getType());
             String tableAlias = getAliasByTableName(fkTable);
             if(fmd.isMutiFetchField()){
                 tableAlias = tableAlias + UNDERLINE + fmd.getIndex();
             }
-            FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(MetaData.getTablenameByClass(clz))
+            FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(getTableNameByClass(clz))
                             + "." + fmd.getColumn().value(), tableAlias + "." + fkName);
             desc.setField(fmd.getField());
             desc.setMultiFetchField(fmd.isMutiFetchField());
@@ -768,6 +779,50 @@ public abstract class DMLAdapter<T> {
         return fds;
     }
 	
+    /**
+     * <b>Description  获取主表的过滤条件描述符</b>
+     * @return
+     */
+    protected List<FilterDescriptor> getMainFilterDescriptors() {
+        List<FilterDescriptor> fds = new ArrayList<>();
+        for(FilterDescriptor fd : filterDescriptors){
+            if(fd.getFilterTable().equals(metaData.getTableName())){
+                fds.add(fd);
+            }
+        }
+        return fds;
+    }
+    
+    /**
+     * <b>Description  获取当前操作的分片表名</b>
+     * @param factors
+     * @return
+     */
+    protected String getCurrentShardedTableName(List<ShardFactor> factors){
+        String tableName = getDeclaredTableName();
+        return getShardingPolicy().getShardingTable(metaData.getEntityClz(), tableName, factors);
+    }
+
+    /**
+     * <b>Description  获取声明的原始表名</b>
+     * @return
+     */
+    protected String getDeclaredTableName() {
+        return metaData.getEntityClz().getDeclaredAnnotation(Entity.class).value();
+    }
+
+    protected ShardingPolicy getShardingPolicy() {
+        return metaData.getShardingPolicy();
+    }
+    
+    /**
+     * <b>Description  判断该操作是否发生分片表上</b>
+     * @return
+     */
+    protected boolean isShardingOperation() {
+        return !ShardingPolicy.class.equals(getShardingPolicy().getClass());
+    }
+    
 	 /**
 	 * 
 	 * <b>Description:    关闭sql连接</b><br>.
