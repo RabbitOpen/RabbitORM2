@@ -80,7 +80,7 @@ public class FetchDescriptor<T> {
             if(jfmd.getJoinClass().equals(joinFetchClz)){
                 if(!isRepeatedJoinFetch()){
                     jfmd.setDependencyFields(dep2Array());
-                    query.joinFieldMetas.add(jfmd.copy());
+                    query.joinFieldMetas.add(jfmd.clone());
                 }
                 return new JoinFetcher<>(this);
             }

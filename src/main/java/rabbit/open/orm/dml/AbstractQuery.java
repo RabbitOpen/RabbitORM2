@@ -1438,7 +1438,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			if(!entityClz.equals(jfmo.getJoinClass())){
 				continue;
 			}
-			JoinFieldMetaData jfm = jfmo.copy();
+			JoinFieldMetaData jfm = jfmo.clone();
 			validFetch = true;
 			jfm.setFilter(filter);
 			for(JoinFieldMetaData jfme : joinFieldMetas){

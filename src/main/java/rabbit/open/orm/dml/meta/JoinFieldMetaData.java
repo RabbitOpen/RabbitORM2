@@ -15,7 +15,7 @@ import rabbit.open.orm.exception.RabbitDMLException;
 public class JoinFieldMetaData<T> implements Cloneable{
     
     @SuppressWarnings("unchecked")
-    public JoinFieldMetaData<T> copy(){
+    public JoinFieldMetaData<T> clone(){
         try {
             return (JoinFieldMetaData<T>) super.clone();
         } catch (CloneNotSupportedException e) {
