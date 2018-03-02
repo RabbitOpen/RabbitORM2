@@ -30,6 +30,7 @@ import rabbit.open.orm.dml.meta.JoinFilter;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.exception.AmbiguousDependencyException;
 import rabbit.open.orm.exception.CycleFetchException;
+import rabbit.open.orm.exception.FetchShardEntityException;
 import rabbit.open.orm.exception.InvalidFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.OrderAssociationException;
@@ -38,6 +39,7 @@ import rabbit.open.orm.exception.RepeatedAliasException;
 import rabbit.open.orm.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.shard.ShardFactor;
+import rabbit.open.orm.shard.ShardingPolicy;
 
 /**
  * <b>Description: 	查询操作</b><br>
@@ -1334,6 +1336,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	 * 
 	 */
 	public AbstractQuery<T> fetch(Class<?> clz, Class<?>... dependency){
+	    doShardedFetchChecking(clz, dependency);
 		if(0 == dependency.length){
 			fetchEntity(clz);
 		}else{
@@ -1347,6 +1350,24 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		}
 		return this;
 	}
+
+    private void doShardedFetchChecking(Class<?> clz, Class<?>... dependency) {
+        for(Class<?> c : dependency){
+	        checkShardedFetch(c);
+	    }
+	    checkShardedFetch(clz);
+    }
+
+    /**
+     * <b>Description  检查是否取了分区表</b>
+     * @param clz
+     */
+    protected void checkShardedFetch(Class<?> clz) {
+        Entity entity = clz.getAnnotation(Entity.class);
+        if(null != entity && !ShardingPolicy.class.equals(entity.policy())){
+            throw new FetchShardEntityException(clz);
+        }
+    }
 	
 	/**
 	 * 
@@ -1411,11 +1432,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public <E> AbstractQuery<T> joinFetch(Class<E> entityClz, E filter){
+	    checkShardedFetch(entityClz);
 	    boolean validFetch = false;
-		for(JoinFieldMetaData jfm : metaData.getJoinMetas()){
-			if(!entityClz.equals(jfm.getJoinClass())){
+		for(JoinFieldMetaData jfmo : metaData.getJoinMetas()){
+			if(!entityClz.equals(jfmo.getJoinClass())){
 				continue;
 			}
+			JoinFieldMetaData jfm = jfmo.copy();
 			validFetch = true;
 			jfm.setFilter(filter);
 			for(JoinFieldMetaData jfme : joinFieldMetas){

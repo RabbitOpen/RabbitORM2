@@ -73,13 +73,14 @@ public class FetchDescriptor<T> {
      * @return
      */
     public JoinFetcher<T> joinFetch(Class<?> clz){
+        query.checkShardedFetch(clz);
         joinFetchClz = clz;
         MetaData<?> meta = MetaData.getMetaByClass(targetClz);
         for(JoinFieldMetaData<?> jfmd : meta.getJoinMetas()){
             if(jfmd.getJoinClass().equals(joinFetchClz)){
                 if(!isRepeatedJoinFetch()){
                     jfmd.setDependencyFields(dep2Array());
-                    query.joinFieldMetas.add(jfmd);
+                    query.joinFieldMetas.add(jfmd.copy());
                 }
                 return new JoinFetcher<>(this);
             }

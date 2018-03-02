@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
 import rabbit.open.orm.annotation.Column;
+import rabbit.open.orm.exception.RabbitDMLException;
 
 /**
  * 
@@ -11,7 +12,16 @@ import rabbit.open.orm.annotation.Column;
  * @author	肖乾斌
  * 
  */
-public class JoinFieldMetaData<T> {
+public class JoinFieldMetaData<T> implements Cloneable{
+    
+    @SuppressWarnings("unchecked")
+    public JoinFieldMetaData<T> copy(){
+        try {
+            return (JoinFieldMetaData<T>) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RabbitDMLException(e);
+        }
+    }
 
 	//在实体中对应的字段信息
 	private Field field;

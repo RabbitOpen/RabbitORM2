@@ -1,12 +1,33 @@
 package sharding.test.table.entity;
 
+import java.util.List;
+
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.Entity;
+import rabbit.open.orm.annotation.ManyToMany;
+import rabbit.open.orm.annotation.OneToMany;
 import rabbit.open.orm.annotation.PrimaryKey;
+import rabbit.open.orm.dml.policy.Policy;
 import sharding.test.table.policy.DemoShardingPolicy;
 
 @Entity(value = "T_SHARD_USER", policy=DemoShardingPolicy.class)
 public class ShardingUser {
+
+    public List<ShardRoom> getRooms() {
+        return rooms;
+    }
+
+    public void setRooms(List<ShardRoom> rooms) {
+        this.rooms = rooms;
+    }
+
+    public List<ShardCar> getCars() {
+        return cars;
+    }
+
+    public void setCars(List<ShardCar> cars) {
+        this.cars = cars;
+    }
 
     @PrimaryKey()
     @Column("ID")
@@ -25,6 +46,14 @@ public class ShardingUser {
     @Column("REGION")
     private Region region;
 
+    @ManyToMany(id="ID", policy=Policy.AUTOINCREMENT, 
+            joinTable="T_SHARD_USER_ROOM", 
+            joinColumn="USER_ID", reverseJoinColumn="ROOM_ID")
+    private List<ShardRoom> rooms;
+    
+    @OneToMany(joinColumn="USER_ID")
+    private List<ShardCar> cars;
+    
     public Long getId() {
         return id;
     }
