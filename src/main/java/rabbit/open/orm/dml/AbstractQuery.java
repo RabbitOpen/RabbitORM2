@@ -1364,7 +1364,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
      */
     protected void checkShardedFetch(Class<?> clz) {
         Entity entity = clz.getAnnotation(Entity.class);
-        if(null != entity && !ShardingPolicy.class.equals(entity.policy())){
+        if(null != entity && !metaData.getEntityClz().equals(clz) && !ShardingPolicy.class.equals(entity.policy())){
             throw new FetchShardEntityException(clz);
         }
     }
