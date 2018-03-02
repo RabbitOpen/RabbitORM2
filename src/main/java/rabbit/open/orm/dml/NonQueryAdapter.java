@@ -42,8 +42,6 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 
 	protected static final String TARGET_TABLE_NAME = "#{TARGETTABLENAME}";
 	
-	protected List<ShardFactor> factors = new ArrayList<>();
-	
 	public NonQueryAdapter(SessionFactory sessionFactory, Class<T> clz) {
 		super(sessionFactory, clz);
 	}
@@ -84,11 +82,10 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
             return;
         }
         List<FilterDescriptor> mfds = getMainFilterDescriptors();
-        List<ShardFactor> fcs = new ArrayList<>();
         for (FilterDescriptor fd : mfds) {
-            fcs.add(new ShardFactor(fd.getField(), fd.getFilter(), fd.getValue()));
+            factors.add(new ShardFactor(fd.getField(), fd.getFilter(), fd.getValue()));
         }
-        metaData.updateTableName(getCurrentShardedTableName(fcs));
+        metaData.updateTableName(getCurrentShardedTableName(factors));
         filterDescriptors.clear();
         prepareFilterMetas();
         combineFilters();

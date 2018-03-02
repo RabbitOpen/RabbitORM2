@@ -98,6 +98,8 @@ public abstract class DMLAdapter<T> {
 	
 	//缓存class的依赖路径, 同一个clz不能有多个路径
 	protected Map<Class<?>, List<FilterDescriptor>> dependencyPath = new HashMap<>();
+	
+	protected List<ShardFactor> factors = new ArrayList<>();
 
 	public DMLAdapter(SessionFactory sessionFactory, Class<T> clz) {
 		this(sessionFactory, null, clz);
@@ -114,6 +116,8 @@ public abstract class DMLAdapter<T> {
 		filterTasks = new ArrayList<>();
 	}
 	
+	protected abstract List<ShardFactor> getFactors();
+ 	
 	/**
 	 * 
 	 * <b>Description:	打印sql</b><br>	

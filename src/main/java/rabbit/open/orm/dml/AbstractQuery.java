@@ -513,9 +513,12 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
         }
     }
 
-    private List<ShardFactor> getFactors() {
+    @Override
+    protected List<ShardFactor> getFactors() {
+        if (!factors.isEmpty()) {
+            return factors;
+        }
         List<FilterDescriptor> mfds = getMainFilterDescriptors();
-        List<ShardFactor> factors = new ArrayList<>();
         for (FilterDescriptor fd : mfds) {
             factors.add(new ShardFactor(fd.getField(), fd.getFilter(), fd.getValue()));
         }

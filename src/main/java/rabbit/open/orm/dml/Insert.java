@@ -2,7 +2,6 @@ package rabbit.open.orm.dml;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.List;
 
 import rabbit.open.orm.annotation.Column;
@@ -47,7 +46,9 @@ public class Insert<T> extends NonQueryAdapter<T>{
 
 	@Override
     protected List<ShardFactor> getFactors() {
-        List<ShardFactor> factors = new ArrayList<>();
+	    if (!factors.isEmpty()) {
+	        return factors;
+	    }
         for (Object o : preparedValues) {
             PreparedValue pv = (PreparedValue) o;
             factors.add(new ShardFactor(pv.getField(), FilterType.EQUAL.value(), pv.getValue()));
