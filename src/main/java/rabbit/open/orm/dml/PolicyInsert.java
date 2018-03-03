@@ -60,7 +60,7 @@ public class PolicyInsert {
      * 
      */
     public <T> Class<T> getEntityClass(NonQueryAdapter<T> adapter){
-        return adapter.metaData.getEntityClz();
+        return adapter.getEntityClz();
     }
     
     /**

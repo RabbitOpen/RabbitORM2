@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 
 import org.apache.log4j.Logger;
 
+import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.name.SQLObject;
 import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.dml.util.SQLFormater;
@@ -19,12 +20,15 @@ public class SQLQuery<T> {
 	
 	private SQLObject query;
 	
+	private Class<?> clz;
+	
 	private SQLCallBack<T> callBack;
 	
 	public SQLQuery(SessionFactory sessionFactory, String queryName, Class<?> clz, SQLCallBack<T> callBack) {
 		super();
 		this.sessionFactory = sessionFactory;
 		query = SQLParser.getNamedJdbcQuery(queryName, clz);
+		this.clz = clz;
 		this.callBack = callBack;
 	}
 
@@ -38,7 +42,7 @@ public class SQLQuery<T> {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		try{
-			conn = sessionFactory.getConnection();
+			conn = sessionFactory.getConnection(clz, null, DMLType.SELECT);
 			showSQL(query.getSql());
 			stmt = conn.prepareStatement(query.getSql());
             return callBack.execute(stmt);

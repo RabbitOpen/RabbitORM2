@@ -40,17 +40,19 @@ public class Update<T> extends NonQueryAdapter<T>{
 	
 	private List<FieldMetaData> valueMetas;
 	
+	public Update(SessionFactory sessionFactory, Class<T> clz) {
+        this(sessionFactory, null, clz);
+    }
+	
 	public Update(SessionFactory sessionFactory, T filterData, Class<T> clz) {
 		super(sessionFactory, filterData, clz);
+		setDmlType(DMLType.UPDATE);
 		sqlOperation = new SQLOperation() {
 
 			@Override
 			public long executeSQL(Connection conn) throws Exception {
 			    PreparedStatement stmt = null;
 				try {
-				    prepareFilterMetas();
-				    combineFilters();
-				    doShardingCheck();
 	                sql.append(createUpdateSql(value2Update));
 	                sql.append(createFilterSql());
 	                replaceTableName();
@@ -70,10 +72,14 @@ public class Update<T> extends NonQueryAdapter<T>{
 		};
 	}
 	
-	public Update(SessionFactory sessionFactory, Class<T> clz) {
-		this(sessionFactory, null, clz);
+	@Override
+	public long execute() {
+	    prepareFilterMetas();
+        combineFilters();
+        doShardingCheck();
+	    return super.execute();
 	}
-
+	
 	/**
 	 * 
 	 * <b>Description:	动态新增一个过滤条件</b><br>
@@ -191,7 +197,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 		if(valueMetas.isEmpty()){
 			throw new RabbitDMLException("no fields 2 update!");
 		}
-		Field pk = MetaData.getPrimaryKeyField(metaData.getEntityClz());
+		Field pk = MetaData.getPrimaryKeyField(getEntityClz());
 		pk.setAccessible(true);
 		Object pkValue;
 		pkValue = getValue(pk, data);
@@ -216,7 +222,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 		};
 		factors.add(new ShardFactor(pk, FilterType.EQUAL.value(), pkValue));
 		updateTargetTableName();
-		return execute();
+		return super.execute();
 	}
 	
 
@@ -393,7 +399,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 		Iterator<String> it = settedValue.keySet().iterator();
 		while(it.hasNext()){
 			String key = it.next();
-			FieldMetaData fmd = MetaData.getCachedFieldsMeta(metaData.getEntityClz(), key);
+			FieldMetaData fmd = MetaData.getCachedFieldsMeta(getEntityClz(), key);
 			fmd.getField().setAccessible(true);
 			Object value = settedValue.get(key);
             try{
@@ -440,7 +446,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 */
 	private Object constructData() {
 		try {
-			return metaData.getEntityClz().getDeclaredConstructor().newInstance();
+			return getEntityClz().getDeclaredConstructor().newInstance();
 		} catch (Exception e) {
 			throw new RabbitDMLException(e.getMessage(), e);
 		}

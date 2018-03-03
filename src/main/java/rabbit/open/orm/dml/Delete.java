@@ -27,14 +27,12 @@ public class Delete<T> extends NonQueryAdapter<T> {
 
 	public Delete(SessionFactory sessionFactory, T filterData, Class<T> clz) {
 		super(sessionFactory, filterData, clz);
+		setDmlType(DMLType.DELETE);
 		sqlOperation = new SQLOperation() {
 			@Override
 			public long executeSQL(Connection conn) throws Exception {
 			    PreparedStatement stmt = null;
 				try{
-				    prepareFilterMetas();
-				    combineFilters();
-				    doShardingCheck();
 	                createDeleteSql();
 	                showSql();
 	                stmt = conn.prepareStatement(sql.toString());
@@ -45,6 +43,14 @@ public class Delete<T> extends NonQueryAdapter<T> {
 				}
 			}
 		};
+	}
+	
+	@Override
+	public long execute() {
+	    prepareFilterMetas();
+        combineFilters();
+        doShardingCheck();
+	    return super.execute();
 	}
 	
 	/**
@@ -96,7 +102,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			}
 		};
         updateTargetTableName();
-		return execute();
+		return super.execute();
 	}
 	
 	/**

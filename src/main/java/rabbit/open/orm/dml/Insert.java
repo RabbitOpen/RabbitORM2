@@ -7,6 +7,7 @@ import java.util.List;
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.annotation.PrimaryKey;
+import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
@@ -33,6 +34,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 		if(null == data){
 			throw new RabbitDMLException("empty data[" + data + "] can't be inserted!");
 		}
+		setDmlType(DMLType.INSERT);
 		createInsertSql(data);
 		sqlOperation = new SQLOperation() {
 			@Override
@@ -65,7 +67,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	 */
 	private long doExecute(Connection conn){
 		showSql();
-		Field pk = MetaData.getPrimaryKeyField(metaData.getEntityClz());
+		Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         Policy policy = pk.getAnnotation(PrimaryKey.class).policy();
         PolicyInsert insertPolicy = PolicyInsert.getInsertPolicy(policy);
         data = insertPolicy.insert(conn, this, data);

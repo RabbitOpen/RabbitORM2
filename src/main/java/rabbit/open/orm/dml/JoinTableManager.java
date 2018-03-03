@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import rabbit.open.orm.annotation.ManyToMany;
+import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
@@ -28,6 +29,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 
     public JoinTableManager(SessionFactory sessionFactory, Class<T> clz) {
 		super(sessionFactory, clz);
+		setDmlType(DMLType.UPDATE);
 	}
 
 	/**
@@ -38,7 +40,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	public long addJoinRecords(T data){
-		Field pk = MetaData.getPrimaryKeyField(metaData.getEntityClz());
+		Field pk = MetaData.getPrimaryKeyField(getEntityClz());
 		pk.setAccessible(true);
 		Object value;
 		try {
@@ -58,7 +60,16 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 				return 0;
 			}
 		};
+		setDmlType(DMLType.INSERT);
 		return execute();
+	}
+	
+	/**
+	 * 用主表名替代中间表名
+	 */
+	@Override
+	protected String getCurrentTableName() {
+	    return getDeclaredTableName();
 	}
 	
 	@Override
@@ -74,7 +85,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	public long removeJoinRecords(T data){
-		Field pk = MetaData.getPrimaryKeyField(metaData.getEntityClz());
+		Field pk = MetaData.getPrimaryKeyField(getEntityClz());
 		pk.setAccessible(true);
 		Object value = getFieldValue(data, pk);
 		if(null == value){
@@ -91,6 +102,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 				return 0;
 			}
 		};
+		setDmlType(DMLType.DELETE);
 		return execute();
 	}
 
@@ -110,7 +122,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	public void clearJoinRecords(T data, Class<?> join) {
-		Field pk = MetaData.getPrimaryKeyField(metaData.getEntityClz());
+		Field pk = MetaData.getPrimaryKeyField(getEntityClz());
 		pk.setAccessible(true);
 		Object value;
 		value = getFieldValue(data, pk);
@@ -126,7 +138,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 			sql.append("DELETE FROM " + mtm.joinTable() + " WHERE ");
 			sql.append(mtm.joinColumn() + " = ");
 			sql.append(PLACE_HOLDER);
-			FieldMetaData fmd = getPrimayKeyFieldMeta(metaData.getEntityClz());
+			FieldMetaData fmd = getPrimayKeyFieldMeta(getEntityClz());
             preparedValues.add(new PreparedValue(RabbitValueConverter.convert(value, fmd), fmd.getField()));
 		}
 		if(0 == sql.length()){
@@ -146,6 +158,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
                 }
 			}
 		};
+		setDmlType(DMLType.DELETE);
 		execute();
 	}
 	
@@ -156,7 +169,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	public void replaceJoinRecords(T data) {
-		Field pk = MetaData.getPrimaryKeyField(metaData.getEntityClz());
+		Field pk = MetaData.getPrimaryKeyField(getEntityClz());
 		pk.setAccessible(true);
 		Object value = getFieldValue(data, pk);
 		if(null == value){
@@ -172,6 +185,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 				return 0;
 			}
 		};
+		setDmlType(DMLType.UPDATE);
 		execute();
 	}
 }

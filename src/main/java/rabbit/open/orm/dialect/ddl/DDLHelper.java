@@ -204,19 +204,19 @@ public abstract class DDLHelper {
 	}
 	
     /**
-     * <b>Description  新建分表</b>
+     * <b>Description  新建表</b>
      * @param factory
      * @param tableName
      * @param entityClz
      */
-    public static void addShardingTable(SessionFactory factory,
+    public static void createTable(SessionFactory factory,
             String tableName, Class<?> entityClz) {
         DDLHelper ddlHelper = helpers.get(factory.getDialectType());
         Connection connection = null;
         try {
             connection = factory.getConnection();
             ddlHelper.setConnection(connection);
-            ddlHelper.createShardingTable(entityClz, tableName);
+            ddlHelper.createTable(entityClz, tableName);
         } catch (Exception e) {
             logger.warn(e.getMessage(), e);
         } finally {
@@ -525,11 +525,11 @@ public abstract class DDLHelper {
     }
 
     /**
-     * <b>Description  创建分区表</b>
+     * <b>Description  创建表</b>
      * @param clz
      * @param tableName
      */
-    private void createShardingTable(Class<?> clz, String tableName) {
+    private void createTable(Class<?> clz, String tableName) {
         Statement stmt = null;
         try {
             stmt = conn.createStatement();

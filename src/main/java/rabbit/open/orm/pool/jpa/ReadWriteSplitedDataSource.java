@@ -17,7 +17,10 @@ public class ReadWriteSplitedDataSource implements CombinedDataSource {
     
     @Override
     public DataSource getDataSource(Class<?> entityClz, String tableName, DMLType type) {
-        return null;
+        if(DMLType.SELECT.equals(type)){
+            return getReadSource();
+        }
+        return getWriteSource();
     }
 
     public DataSource getReadSource() {

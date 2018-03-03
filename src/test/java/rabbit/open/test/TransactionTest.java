@@ -123,5 +123,23 @@ public class TransactionTest {
         us.springTransactionTest();
     }
     
+    /**
+     * <b>Description  空任务事务，什么都不做</b>
+     */
+    @Test
+    @Transactional
+    @Rollback(false)
+    public void emptyTransactionTestCommit() {
+        
+    }
+
+    /**
+     * <b>Description  空任务事务，什么都不做</b>
+     */
+    @Test
+    @Transactional
+    public void emptyTransactionTestRollBack() {
+        
+    }
     
 }

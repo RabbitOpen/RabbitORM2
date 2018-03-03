@@ -13,6 +13,7 @@ import java.util.Map;
 
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.annotation.ManyToMany;
+import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
@@ -42,6 +43,8 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 
 	protected static final String TARGET_TABLE_NAME = "#{TARGETTABLENAME}";
 	
+	private DMLType dmlType;
+	
 	public NonQueryAdapter(SessionFactory sessionFactory, Class<T> clz) {
 		super(sessionFactory, clz);
 	}
@@ -55,9 +58,8 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 		
 		/**
 		 * 
-		 * <b>Description:	Description:	执行sql操作</b><br>
+		 * <b>Description:	执行sql操作</b><br>
 		 * @param conn
-		 * @return
 		 * @throws Exception	
 		 * 
 		 */
@@ -75,6 +77,10 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
         }else{
             sql = new StringBuilder(sql.toString().replaceAll(TABLE_NAME_REG, metaData.getTableName()));
         }
+    }
+    
+    public void setDmlType(DMLType dmlType) {
+        this.dmlType = dmlType;
     }
     
     protected void doShardingCheck(){
@@ -104,7 +110,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	public long execute(){
 		Connection conn = null;
 		try{
-			conn = sessionFactory.getConnection();
+			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), dmlType);
 			return sqlOperation.executeSQL(conn);
 		} catch (UnKnownFieldException e){
 			throw e;
@@ -128,7 +134,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	public NonQueryAdapter<T> addFilter(String fieldReg, Object value, FilterType ft, 
 			Class<?>... depsPath){
 		if(depsPath.length == 0){
-			return addFilter(fieldReg, value, ft, metaData.getEntityClz());
+			return addFilter(fieldReg, value, ft, getEntityClz());
 		}
 		String field = getFieldByReg(fieldReg);
 		checkField(depsPath[0], field);
@@ -231,36 +237,37 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 			ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 			rsql.append("INSERT INTO " + mtm.joinTable() + "(");
 			rsql.append(mtm.joinColumn() + "," + mtm.reverseJoinColumn());
-			if(!SessionFactory.isEmpty(mtm.id())){
-				if(!mtm.policy().equals(Policy.AUTOINCREMENT)){
-					rsql.append(", " + mtm.id());
-				}
-			}else{
-				if(mtm.policy().equals(Policy.UUID) || mtm.policy().equals(Policy.SEQUENCE)){
-					throw new RabbitDMLException("ManyToMany id must be specified when policy is [" + mtm.policy() + "]");
-				}
-			}
-			FieldMetaData pkfmd = getPrimayKeyFieldMeta(metaData.getEntityClz());
+            if (!SessionFactory.isEmpty(mtm.id())) {
+                if (!mtm.policy().equals(Policy.AUTOINCREMENT)) {
+                    rsql.append(", " + mtm.id());
+                }
+            } else {
+                if (mtm.policy().equals(Policy.UUID) || mtm.policy().equals(Policy.SEQUENCE)) {
+                    throw new RabbitDMLException("ManyToMany id must be specified when policy is ["
+                                    + mtm.policy() + "]");
+                }
+            }
+			FieldMetaData pkfmd = getPrimayKeyFieldMeta(getEntityClz());
             values.add(new PreparedValue(RabbitValueConverter.convert(value, pkfmd), pkfmd.getField()));
 			FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
             values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
 			rsql.append(")VALUES(" + PLACE_HOLDER);
 			rsql.append("," + PLACE_HOLDER);
-			if(!SessionFactory.isEmpty(mtm.id())){
-				if(mtm.policy().equals(Policy.UUID)){
-					values.add(new PreparedValue(UUIDPolicy.getID(), jfm.getField()));
-					rsql.append(", " + PLACE_HOLDER + ")");
-				}
-				if(mtm.policy().equals(Policy.SEQUENCE)){
-					rsql.append(", " + mtm.sequence() + ".NEXTVAL)");
-				}
-				if(mtm.policy().equals(Policy.AUTOINCREMENT)){
-					rsql.append(")");
-				}
-				
-			}else{
-				rsql.append(")");
-			}
+            if (!SessionFactory.isEmpty(mtm.id())) {
+                if (mtm.policy().equals(Policy.UUID)) {
+                    values.add(new PreparedValue(UUIDPolicy.getID(), jfm.getField()));
+                    rsql.append(", " + PLACE_HOLDER + ")");
+                }
+                if (mtm.policy().equals(Policy.SEQUENCE)) {
+                    rsql.append(", " + mtm.sequence() + ".NEXTVAL)");
+                }
+                if (mtm.policy().equals(Policy.AUTOINCREMENT)) {
+                    rsql.append(")");
+                }
+
+            } else {
+                rsql.append(")");
+            }
 			psd.setSql(rsql);
 			preparedValues.add(values);
 		}
@@ -380,7 +387,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 			ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 			StringBuilder rsql = new StringBuilder();
 			rsql.append("DELETE FROM " + mtm.joinTable() + " WHERE ");
-			FieldMetaData pkfmd = getPrimayKeyFieldMeta(metaData.getEntityClz());
+			FieldMetaData pkfmd = getPrimayKeyFieldMeta(getEntityClz());
             Object pv = RabbitValueConverter.convert(value, pkfmd);
 			List<Object> values = new ArrayList<>();
 			values.add(new PreparedValue(pv, pkfmd.getField()));

@@ -2,7 +2,10 @@ package rabbit.open.orm.pool;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -19,6 +22,7 @@ import rabbit.open.orm.dml.filter.DMLFilter;
 import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.name.SQLParser;
+import rabbit.open.orm.pool.jpa.CombinedDataSource;
 import rabbit.open.orm.pool.jpa.SessionProxy;
 
 public class SessionFactory {
@@ -26,6 +30,9 @@ public class SessionFactory {
     // 数据源
     protected DataSource dataSource;
 
+    //复合数据源
+    protected CombinedDataSource combinedDataSource;
+    
     // 是否显示sql
     protected boolean showSql = false;
 
@@ -52,28 +59,55 @@ public class SessionFactory {
 
     private static ThreadLocal<Object> tag = new ThreadLocal<>();
 
-    private static ThreadLocal<Connection> connectionContext = new ThreadLocal<>();
+    private static ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
 
     public Connection getConnection() throws SQLException {
+        return getConnection(null, null, null);
+    }
+
+    public Connection getConnection(Class<?> entityClz, String tableName,
+            DMLType type) throws SQLException {
+        DataSource ds = getDataSource(entityClz, tableName, type);
         if (isTransactionOpen()) {
-            if (null != connectionContext.get()) {
-                return connectionContext.get();
+            if (null == dataSourceContext.get()) {
+                dataSourceContext.set(new HashMap<>());
+            }
+            if (null != dataSourceContext.get().get(ds)) {
+                return dataSourceContext.get().get(ds);
             } else {
-                Connection conn = SessionProxy.getProxy(dataSource
-                        .getConnection());
-                connectionContext.set(conn);
+                Connection conn = SessionProxy.getProxy(ds.getConnection());
+                dataSourceContext.get().put(ds, conn);
                 if (conn.getAutoCommit()) {
                     conn.setAutoCommit(false);
                 }
                 return conn;
             }
         } else {
-            Connection conn = SessionProxy.getProxy(dataSource.getConnection());
+            Connection conn = SessionProxy.getProxy(ds.getConnection());
             if (!conn.getAutoCommit()) {
                 conn.setAutoCommit(true);
             }
             return conn;
         }
+    }
+    
+    /**
+     * <b>Description   获取一个数据源</b>
+     * @param entityClz
+     * @param tableName
+     * @param type
+     * @return
+     */
+    private DataSource getDataSource(Class<?> entityClz, String tableName,
+            DMLType type) {
+        if (null != combinedDataSource) {
+            return combinedDataSource.getDataSource(entityClz, tableName, type);
+        }
+        return dataSource;
+    }
+    
+    public void setCombinedDataSource(CombinedDataSource combinedDataSource) {
+        this.combinedDataSource = combinedDataSource;
     }
 
     // 开启事务
@@ -94,22 +128,27 @@ public class SessionFactory {
             return;
         }
         tag.remove();
-        Connection conn = connectionContext.get();
-        if (null == conn) {
+        if (null == dataSourceContext.get()) {
             return;
         }
-        try {
-            conn.commit();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        } finally {
+        for (Entry<DataSource, Connection> entry : dataSourceContext.get().entrySet()) {
+            Connection conn = entry.getValue();
+            if (null == conn) {
+                continue;
+            }
             try {
-                conn.close();
+                conn.commit();
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
+            } finally {
+                try {
+                    conn.close();
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
             }
-            connectionContext.remove();
         }
+        dataSourceContext.remove();
     }
 
     /**
@@ -123,28 +162,32 @@ public class SessionFactory {
             return;
         }
         tag.remove();
-        Connection conn = connectionContext.get();
-        if (null == conn) {
+        if (null == dataSourceContext.get()) {
             return;
         }
-        try {
-            conn.rollback();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        } finally {
+        for (Entry<DataSource, Connection> entry : dataSourceContext.get().entrySet()) {
+            Connection conn = entry.getValue();
+            if (null == conn) {
+                continue;
+            }
             try {
-                conn.close();
+                conn.rollback();
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
+            } finally {
+                try {
+                    conn.close();
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
             }
-            connectionContext.remove();
         }
+        dataSourceContext.remove();
     }
 
     /**
      * 
-     * <b>Description: 释放连接</b><br>
-     * 
+     * <b>Description: 释放连接到连接池</b><br>
      * @param conn
      * 
      */
@@ -181,7 +224,10 @@ public class SessionFactory {
         DeleteDialectAdapter.init();
         PolicyInsert.init();
         DDLHelper.init();
-        DDLHelper.executeDDL(this, getPackages2Scan());
+        //组合数据源不支持ddl
+        if (null == combinedDataSource) {
+            DDLHelper.executeDDL(this, getPackages2Scan());
+        }
         if (!isEmpty(mappingFiles)) {
             new SQLParser(mappingFiles).doXmlParsing();
         }

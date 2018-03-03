@@ -99,6 +99,7 @@ public abstract class DMLAdapter<T> {
 	//缓存class的依赖路径, 同一个clz不能有多个路径
 	protected Map<Class<?>, List<FilterDescriptor>> dependencyPath = new HashMap<>();
 	
+	//分片表分片时的因子
 	protected List<ShardFactor> factors = new ArrayList<>();
 
 	public DMLAdapter(SessionFactory sessionFactory, Class<T> clz) {
@@ -134,6 +135,10 @@ public abstract class DMLAdapter<T> {
 		}
 	}
 
+	protected Class<T> getEntityClz() {
+        return metaData.getEntityClz();
+    }
+	
     /**
      * <b>Description  显示带问号的sql.</b>
      */
@@ -230,7 +235,7 @@ public abstract class DMLAdapter<T> {
 	 */
 	protected void prepareFilterMetas(){
 		if(this.filterData != null){
-			generateFilters(getNonEmptyFieldMetas(this.filterData, metaData.getEntityClz()));
+			generateFilters(getNonEmptyFieldMetas(this.filterData, getEntityClz()));
 		}
 	}
 	
@@ -351,7 +356,7 @@ public abstract class DMLAdapter<T> {
 	}
 	
 	protected String getTableNameByClass(Class<?> clz) {
-	    if (metaData.getEntityClz().equals(clz)) {
+	    if (getEntityClz().equals(clz)) {
 	        return metaData.getTableName();
 	    } else {
 	        return MetaData.getTableNameByClass(clz);
@@ -456,19 +461,19 @@ public abstract class DMLAdapter<T> {
 	    List<FilterDescriptor> fds = getFilterDescriptorsByCache(deps);
 		Map<Class<?>, List<FilterDescriptor>> clz2j = getClzesEnabled2Join();
 		Class<?> last = deps[deps.length - 1];
-		if(last.equals(metaData.getEntityClz())){
+		if(last.equals(getEntityClz())){
 			return fds;
 		}
 		while(true){
 			if(!clz2j.containsKey(last)){
-				throw new InvalidFetchOperationException(last + " can't be joined by [" + metaData.getEntityClz().getName() + "]");
+				throw new InvalidFetchOperationException(last + " can't be joined by [" + getEntityClz().getName() + "]");
 			}
 			List<FilterDescriptor> list = clz2j.get(last);
 			if(list.size() != 1){
 				throw new AmbiguousDependencyException(last);
 			}
 			fds.add(list.get(0));
-			if(list.get(0).getJoinDependency().equals(metaData.getEntityClz())){
+			if(list.get(0).getJoinDependency().equals(getEntityClz())){
 				break;
 			}
 			last = list.get(0).getJoinDependency();
@@ -484,7 +489,7 @@ public abstract class DMLAdapter<T> {
 				break;
 			}
 			if(!clz2j.containsKey(deps[i])){
-				throw new RabbitDMLException(deps[i] + " can't be fetched by [" + metaData.getEntityClz().getName() + "]");
+				throw new RabbitDMLException(deps[i] + " can't be fetched by [" + getEntityClz().getName() + "]");
 			}
 			List<FilterDescriptor> list = clz2j.get(deps[i]);
 			boolean right = false;
@@ -511,7 +516,7 @@ public abstract class DMLAdapter<T> {
 	protected Map<Class<?>, List<FilterDescriptor>> getClzesEnabled2Join(){
 		if(null == clzesEnabled2Join){
 			clzesEnabled2Join = new ConcurrentHashMap<>();
-			findOutEnable2JoinClzes(metaData.getEntityClz());
+			findOutEnable2JoinClzes(getEntityClz());
 		}
 		return clzesEnabled2Join;
 	}
@@ -692,7 +697,7 @@ public abstract class DMLAdapter<T> {
 			}
 		}
 		if(!validTarget){
-			throw new InvalidJoinFetchOperationException(target, metaData.getEntityClz());
+			throw new InvalidJoinFetchOperationException(target, getEntityClz());
 		}
 	}
 	
@@ -804,7 +809,14 @@ public abstract class DMLAdapter<T> {
      */
     protected String getCurrentShardedTableName(List<ShardFactor> factors){
         String tableName = getDeclaredTableName();
-        return getShardingPolicy().getShardingTable(metaData.getEntityClz(), tableName, factors);
+        return getShardingPolicy().getShardingTable(getEntityClz(), tableName, factors);
+    }
+    
+    protected String getCurrentTableName(){
+        if(isShardingOperation()){
+            return getCurrentShardedTableName(getFactors());
+        }
+        return metaData.getTableName();
     }
 
     /**
@@ -812,7 +824,7 @@ public abstract class DMLAdapter<T> {
      * @return
      */
     protected String getDeclaredTableName() {
-        return metaData.getEntityClz().getDeclaredAnnotation(Entity.class).value();
+        return getEntityClz().getDeclaredAnnotation(Entity.class).value();
     }
 
     protected ShardingPolicy getShardingPolicy() {
