@@ -356,6 +356,7 @@ public abstract class DMLAdapter<T> {
 	}
 	
 	protected String getTableNameByClass(Class<?> clz) {
+	    //分片表在clzMapping中查出来的名字和getDeclaredTableName()一样
 	    if (getEntityClz().equals(clz)) {
 	        return metaData.getTableName();
 	    } else {
