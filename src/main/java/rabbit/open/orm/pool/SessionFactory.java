@@ -62,7 +62,7 @@ public class SessionFactory {
     private static ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
     
     //标记sql异常
-    private static ThreadLocal<Object> sqlExceptionContext = new ThreadLocal<Object>();
+    private static ThreadLocal<Object> sqlExceptionContext = new ThreadLocal<>();
     
     public Connection getConnection() throws SQLException {
         return getConnection(null, null, null);
