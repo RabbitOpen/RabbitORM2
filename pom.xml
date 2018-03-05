@@ -4,7 +4,7 @@
 
 	<groupId>rabbit.open</groupId>
 	<artifactId>orm</artifactId>
-	<version>2.3</version>
+	<version>2.4</version>
 	<packaging>jar</packaging>
 
 	<name>rabbit.open</name>
@@ -156,7 +156,9 @@
 	<distributionManagement>
 		<repository>
 			<id>rabbit-open</id>
-			<url>http://www.rabbit-open.top/nexus/content/repositories/thirdparty</url>
+			<url>http://www.rabbit-open.top/nexus/content/repositories/thirdparty</url> 
+			<!-- <id>hn-thirdparty-chengdu</id>
+            <url>http://10.71.88.241:8085/nexus/content/repositories/releases/</url> -->
 		</repository>
 	</distributionManagement>
 	
@@ -168,6 +170,7 @@
 			</activation>
 			<properties>
 				<sonar.host.url>http://localhost:9000/sonar</sonar.host.url>
+				<!-- <sonar.host.url>http://10.121.30.146/sonar</sonar.host.url> -->
 			</properties>
 		</profile>
 	</profiles>
