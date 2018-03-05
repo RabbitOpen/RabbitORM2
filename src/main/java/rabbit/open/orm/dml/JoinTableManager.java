@@ -3,6 +3,7 @@ package rabbit.open.orm.dml;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +55,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 		this.sqlOperation = new SQLOperation(){
 
 			@Override
-			public long executeSQL(Connection conn) throws Exception {
+			public long executeSQL(Connection conn) throws SQLException {
 				List<PreparedSqlDescriptor> psds = createAddJoinRecordsSql(data, value);
 				executeBatch(conn, psds, 0);
 				return 0;
@@ -93,7 +94,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 		}
 		this.sqlOperation = new SQLOperation(){
 			@Override
-			public long executeSQL(Connection conn) throws Exception {
+			public long executeSQL(Connection conn) throws SQLException {
 				List<PreparedSqlDescriptor> psds = createRemoveJoinRecordsSql(data, value);
 				if(psds.isEmpty()){
 					throw new RabbitDMLException("no record to remove!");
@@ -146,7 +147,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 		}
 		this.sqlOperation = new SQLOperation(){
 			@Override
-			public long executeSQL(Connection conn) throws Exception {
+			public long executeSQL(Connection conn) throws SQLException {
 			    PreparedStatement stmt = null;
                 try {
                     showSql();
@@ -177,7 +178,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 		}
 		this.sqlOperation = new SQLOperation(){
 			@Override
-			public long executeSQL(Connection conn) throws Exception {
+			public long executeSQL(Connection conn) throws SQLException {
 				List<PreparedSqlDescriptor> psds2r = createRemoveJoinRecordsSql(data, value);
 				int counter = executeBatch(conn, psds2r, 0);
 				List<PreparedSqlDescriptor> psds = createAddJoinRecordsSql(data, value);

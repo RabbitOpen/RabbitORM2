@@ -151,7 +151,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		return this;
 	}
 
-	private List<T> readDataFromResultSets(ResultSet rs) throws Exception{
+	private List<T> readDataFromResultSets(ResultSet rs) throws ReflectiveOperationException, SQLException {
 		List<T> resultList = new ArrayList<>();
 		while(rs.next()){
 			T rowData = readRowData(rs);

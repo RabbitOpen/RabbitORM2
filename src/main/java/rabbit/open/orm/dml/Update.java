@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +51,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 		sqlOperation = new SQLOperation() {
 
 			@Override
-			public long executeSQL(Connection conn) throws Exception {
+			public long executeSQL(Connection conn) throws SQLException {
 			    PreparedStatement stmt = null;
 				try {
 	                sql.append(createUpdateSql(value2Update));
@@ -208,7 +209,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 		sql.append(" WHERE " + TARGET_TABLE_NAME + "." + metaData.getPrimaryKey() + " = " + PLACE_HOLDER);
 		sqlOperation = new SQLOperation() {
 			@Override
-			public long executeSQL(Connection conn) throws Exception {
+			public long executeSQL(Connection conn) throws SQLException {
 			    PreparedStatement stmt = null;
 				try {
 				    showSql();

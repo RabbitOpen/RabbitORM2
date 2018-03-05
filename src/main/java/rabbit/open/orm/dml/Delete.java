@@ -3,6 +3,7 @@ package rabbit.open.orm.dml;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dialect.dml.DeleteDialectAdapter;
@@ -30,7 +31,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 		setDmlType(DMLType.DELETE);
 		sqlOperation = new SQLOperation() {
 			@Override
-			public long executeSQL(Connection conn) throws Exception {
+			public long executeSQL(Connection conn) throws SQLException {
 			    PreparedStatement stmt = null;
 				try{
 	                createDeleteSql();
@@ -89,7 +90,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 		}
 		sqlOperation = new SQLOperation(){
 			@Override
-			public long executeSQL(Connection conn) throws Exception {
+			public long executeSQL(Connection conn) throws SQLException {
 			    PreparedStatement stmt = null;
 				try{
 				    showSql();

@@ -2,6 +2,7 @@ package rabbit.open.orm.dml;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 import rabbit.open.orm.annotation.Column;
@@ -38,7 +39,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 		createInsertSql(data);
 		sqlOperation = new SQLOperation() {
 			@Override
-			public long executeSQL(Connection conn) throws Exception {
+			public long executeSQL(Connection conn) throws SQLException {
 			    updateTargetTableName();
 				return doExecute(conn);
 			}

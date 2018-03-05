@@ -63,7 +63,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 		 * @throws Exception	
 		 * 
 		 */
-		public long executeSQL(Connection conn) throws Exception;
+		public long executeSQL(Connection conn) throws SQLException;
 	}
 	
 	/**

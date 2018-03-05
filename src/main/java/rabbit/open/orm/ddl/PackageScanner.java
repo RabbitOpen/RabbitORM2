@@ -39,7 +39,7 @@ public class PackageScanner implements Serializable{
 					if(null != clz.getAnnotation(annotation)){
 						targets.add(name);
 					}
-				}catch(Throwable e){
+				}catch(Exception e){
 				    logger.error(e.getMessage());
 				}
 			}
@@ -65,7 +65,7 @@ public class PackageScanner implements Serializable{
 					if(interfaceClz.isAssignableFrom(clz)){
 						targets.add(name);
 					}
-				}catch(Throwable e){
+				}catch(Exception e){
 					logger.error(e.getMessage(), e);
 				}
 			}
@@ -198,7 +198,7 @@ public class PackageScanner implements Serializable{
                 if(interfaceClz.isAssignableFrom(clz)){
                     return true;
                 }
-            }catch(Throwable t){
+            }catch(Exception t){
                 return false;
             }
         }
@@ -278,7 +278,7 @@ public class PackageScanner implements Serializable{
                 if(null != clz.getAnnotation(anno)){
                     return true;
                 }
-            }catch(Throwable t){
+            }catch(Exception t){
                 return false;
             }
         }
