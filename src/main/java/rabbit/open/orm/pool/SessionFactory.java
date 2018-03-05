@@ -95,9 +95,18 @@ public class SessionFactory {
     }
     
     public void occurSQLException(Exception e) {
-        if (e instanceof SQLException) {
+        Throwable cause = getRootCause(e);
+        if (cause instanceof SQLException) {
             sqlExceptionContext.set(true);
         } 
+    }
+
+    public static Throwable getRootCause(Exception e) {
+        Throwable cause = e;
+        while(null != cause.getCause()) {
+            cause = cause.getCause();
+        }
+        return cause;
     }
     
     public static boolean occuredSQLException() {
@@ -226,6 +235,10 @@ public class SessionFactory {
 
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+    
+    public DataSource getDataSource() {
+        return dataSource;
     }
 
     /**
