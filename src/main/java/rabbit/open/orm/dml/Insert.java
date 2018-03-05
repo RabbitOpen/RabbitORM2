@@ -66,7 +66,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	 * @return	
 	 * 
 	 */
-	private long doExecute(Connection conn){
+	private long doExecute(Connection conn) throws SQLException{
 		showSql();
 		Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         Policy policy = pk.getAnnotation(PrimaryKey.class).policy();

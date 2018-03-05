@@ -60,7 +60,10 @@ public class SessionFactory {
     private static ThreadLocal<Object> tag = new ThreadLocal<>();
 
     private static ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
-
+    
+    //标记sql异常
+    private static ThreadLocal<Object> sqlExceptionContext = new ThreadLocal<Object>();
+    
     public Connection getConnection() throws SQLException {
         return getConnection(null, null, null);
     }
@@ -89,6 +92,18 @@ public class SessionFactory {
             }
             return conn;
         }
+    }
+    
+    public void occurSQLException(Exception e) {
+        if (e instanceof SQLException) {
+            sqlExceptionContext.set(true);
+        } 
+    }
+    
+    public static boolean occuredSQLException() {
+        Object obj = sqlExceptionContext.get();
+        sqlExceptionContext.remove();
+        return null != obj;
     }
     
     /**

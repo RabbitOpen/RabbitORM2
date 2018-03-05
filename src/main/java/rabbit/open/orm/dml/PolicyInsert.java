@@ -38,15 +38,15 @@ public class PolicyInsert {
      * @return	
      * 
      */
-    public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data){
+    public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) throws SQLException{
         PreparedStatement stmt = null;
         try{
             stmt = conn.prepareStatement(adapter.sql.toString());
             adapter.setPreparedStatementValue(stmt, DMLType.INSERT);
             stmt.executeUpdate();
             return data;
-        } catch (Exception e){
-            throw new RabbitDMLException(e);
+        } catch (SQLException e){
+            throw e;
         } finally {
             DMLAdapter.closeStmt(stmt);
         }

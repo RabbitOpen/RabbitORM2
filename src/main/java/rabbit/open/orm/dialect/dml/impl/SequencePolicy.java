@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 
 import rabbit.open.orm.annotation.Column;
@@ -23,7 +24,7 @@ import rabbit.open.orm.exception.RabbitDMLException;
 public class SequencePolicy extends PolicyInsert {
 
     @Override
-    public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) {
+    public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try{
@@ -48,6 +49,8 @@ public class SequencePolicy extends PolicyInsert {
                 pk.set(data, RabbitValueConverter.cast(rs.getBigDecimal(1), pk.getType()));
             }
             return data;
+        } catch (SQLException e){
+            throw e;
         } catch (Exception e){
             throw new RabbitDMLException(e);
         } finally {

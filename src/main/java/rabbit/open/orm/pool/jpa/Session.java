@@ -10,6 +10,8 @@ import java.util.LinkedHashMap;
 
 import org.apache.log4j.Logger;
 
+import rabbit.open.orm.pool.SessionFactory;
+
 /**
  * <b>Description: 连接对象</b><br>
  * <b>@author</b>	肖乾斌
@@ -46,9 +48,17 @@ public class Session extends AbstractConnection{
 	 */
 	@Override
 	public void close(){
-		activeTime = System.currentTimeMillis();
-		dataSource.releaseSession(this);
+	    if (SessionFactory.occuredSQLException()) {
+	        destroy();
+	    } else {
+	        releaseSession();
+	    }
 	}
+
+    private void releaseSession() {
+        activeTime = System.currentTimeMillis();
+        dataSource.releaseSession(this);
+    }
 	
 	@Override
 	public boolean isClosed() throws SQLException {

@@ -117,6 +117,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			resultList = sessionFactory.queryCompleted(resultList, getMetaData().getEntityClz());
 			return new Result<>(resultList);
 		} catch (Exception e){
+		    sessionFactory.occurSQLException(e);
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
 		    closeResultSet(rs);
@@ -1296,6 +1297,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			}
 			return 0L;
 		} catch (Exception e) {
+		    sessionFactory.occurSQLException(e);
 		    throw new RabbitDMLException(e);
 		} finally {
 		    closeResultSet(rs);
