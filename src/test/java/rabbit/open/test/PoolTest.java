@@ -43,7 +43,9 @@ public class PoolTest {
         long counter = rds.getCounter();
         try {
             us.add(data);
+            us.createQuery().count();
             us.add(data);
+            throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertTrue(SQLException.class.isAssignableFrom(e.getCause().getCause().getCause().getClass()));
             TestCase.assertEquals(rds.getCounter(), counter - 1);

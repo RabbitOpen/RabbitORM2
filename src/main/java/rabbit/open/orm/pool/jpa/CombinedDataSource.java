@@ -16,8 +16,8 @@ public interface CombinedDataSource {
      *                      当操作中间表时该值是主表的名字， 所以中间表应该和主表在一个库
      *                      执行SQLQuery时， tableName 为空
      *                      执行NamedQuery时，tableName 为实体类Entity注解中申明表名
-     * @param type
-     * @return
+     * @param type          INSERT, DELETE, SELECT, UPDATE
+     * @return              数据源
      */
     public abstract DataSource getDataSource(Class<?> entityClz, String tableName, DMLType type);
 
