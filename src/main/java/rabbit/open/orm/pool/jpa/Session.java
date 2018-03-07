@@ -48,7 +48,7 @@ public class Session extends AbstractConnection{
 	 */
 	@Override
 	public void close(){
-	    if (SessionFactory.occuredSQLException()) {
+	    if (SessionFactory.hasSQLException()) {
 	        destroy();
 	    } else {
 	        releaseSession();

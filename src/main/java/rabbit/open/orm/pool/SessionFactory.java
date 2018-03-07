@@ -94,11 +94,18 @@ public class SessionFactory {
         }
     }
     
-    public void occurSQLException(Exception e) {
+    public void flagSQLException(Exception e) {
         Throwable cause = getRootCause(e);
         if (cause instanceof SQLException) {
             sqlExceptionContext.set(true);
         } 
+    }
+
+    /**
+     * <b>Description  清除异常context</b>
+     */
+    public void clearSQLException() {
+        sqlExceptionContext.remove();
     }
 
     public static Throwable getRootCause(Exception e) {
@@ -109,10 +116,8 @@ public class SessionFactory {
         return cause;
     }
     
-    public static boolean occuredSQLException() {
-        Object obj = sqlExceptionContext.get();
-        sqlExceptionContext.remove();
-        return null != obj;
+    public static boolean hasSQLException() {
+        return null != sqlExceptionContext.get();
     }
     
     /**

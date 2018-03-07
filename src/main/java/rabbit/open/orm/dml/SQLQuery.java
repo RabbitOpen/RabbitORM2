@@ -47,11 +47,12 @@ public class SQLQuery<T> {
 			stmt = conn.prepareStatement(query.getSql());
             return callBack.execute(stmt);
 		} catch (Exception e){
-		    sessionFactory.occurSQLException(e);
+		    sessionFactory.flagSQLException(e);
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
-		    DMLAdapter.closeConnection(conn);
 		    DMLAdapter.closeStmt(stmt);
+		    DMLAdapter.closeConnection(conn);
+		    sessionFactory.clearSQLException();
 		}
 	}
 	

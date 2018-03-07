@@ -117,12 +117,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			resultList = sessionFactory.queryCompleted(resultList, getMetaData().getEntityClz());
 			return new Result<>(resultList);
 		} catch (Exception e){
-		    sessionFactory.occurSQLException(e);
+		    sessionFactory.flagSQLException(e);
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
 		    closeResultSet(rs);
-		    closeConnection(conn);
 		    DMLAdapter.closeStmt(stmt);
+		    closeConnection(conn);
+		    sessionFactory.clearSQLException();
 		}
 	}
 
@@ -1297,12 +1298,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			}
 			return 0L;
 		} catch (Exception e) {
-		    sessionFactory.occurSQLException(e);
+		    sessionFactory.flagSQLException(e);
 		    throw new RabbitDMLException(e);
 		} finally {
 		    closeResultSet(rs);
+		    closeStmt(stmt);
 			closeConnection(conn);
-			closeStmt(stmt);
+			sessionFactory.clearSQLException();
 		}
 	}
 
