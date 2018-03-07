@@ -37,9 +37,10 @@ public class AutoIncrementPolicy extends PolicyInsert{
                 pk.set(data, RabbitValueConverter.cast(rs.getBigDecimal(1), pk.getType()));
             }
             return data;
-        } catch (SQLException e){
-            throw e;
-        } catch (Exception e){
+        } catch (IllegalArgumentException e) {
+            logger.error(e.getMessage(), e);
+            throw new RabbitDMLException(e);
+        } catch (IllegalAccessException e) {
             throw new RabbitDMLException(e);
         } finally {
             closeResultSet(rs);
