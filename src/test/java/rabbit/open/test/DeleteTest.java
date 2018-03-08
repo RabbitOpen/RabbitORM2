@@ -12,6 +12,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.User;
+import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.UserService;
 
 /**
@@ -25,6 +26,9 @@ public class DeleteTest {
 
 	@Autowired
 	UserService us;
+	
+	@Autowired
+	OrganizationService os;
 	
 	public User addInitUser(){
 	    User user = new User();
@@ -41,42 +45,47 @@ public class DeleteTest {
 	 */
 	@Test
 	public void clear(){
+	    addInitUser();
+	    TestCase.assertEquals(1, us.createQuery().count());
 	    us.clearAll();
 	    TestCase.assertEquals(0, us.createQuery().count());
 	}
 	
 	@Test
 	public void deleteByID(){
-	    us.deleteByID(1);
-	    TestCase.assertEquals(0, us.createQuery().addFilter("id", 1).count());
+	    User user = addInitUser();
+	    TestCase.assertEquals(1, us.createQuery().addFilter("id", user.getId()).count());
+	    us.deleteByID(user.getId());
+	    TestCase.assertEquals(0, us.createQuery().addFilter("id", user.getId()).count());
 	}
 
 	@Test
 	public void delete(){
 	    User user = addInitUser();
+	    TestCase.assertNotNull(us.createQuery(user).execute().unique());
 		us.delete(user);
 		TestCase.assertNull(us.createQuery(user).execute().unique());
 	}
 
 	@Test
 	public void deleteFilterTest(){
-	    us.createDelete().addFilter("id", 3).execute();
-	    TestCase.assertEquals(0, us.createQuery().addFilter("id", 3).count());
+	    User user = addInitUser();
+	    TestCase.assertEquals(1, us.createQuery().addFilter("id", user.getId()).count());
+	    us.createDelete().addFilter("id", user.getId()).execute();
+	    TestCase.assertEquals(0, us.createQuery().addFilter("id", user.getId()).count());
 	}
 
 	@Test
-	public void deleteFilterTest1(){
-	    User u = new User();
-	    u.setAge(10);
-	    us.createDelete(u).addFilter("id", 55).execute();
-	    TestCase.assertEquals(0, us.createQuery().addFilter("id", 55).count());
-	}
-
-	@Test
-	public void deleteFilterTest2(){
+	public void joinDelete(){
+	    Organization o = new Organization("deleteOrg", "deleteOrg");
+	    os.add(o);
+	    User user = new User();
+        user.setName("wangwu");
+        user.setOrg(o);
+        us.add(user);
 	    long result = us.createDelete().addNullFilter("birth")
-	            .addFilter("orgCode", "myorg", Organization.class, User.class).execute();
-	    System.out.println("deleteFilterTest2 : " + result);
+	            .addFilter("orgCode", o.getOrgCode(), Organization.class, User.class).execute();
+	    TestCase.assertEquals(1, result);
 	}
 	
 	
