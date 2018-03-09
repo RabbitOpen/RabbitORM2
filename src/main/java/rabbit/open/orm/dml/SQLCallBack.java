@@ -1,6 +1,7 @@
 package rabbit.open.orm.dml;
 
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 /**
  * <b>Description: 	sql回调</b><br>
@@ -16,5 +17,5 @@ public interface SQLCallBack<T> {
 	 * @return	
 	 * 
 	 */
-	public T execute(PreparedStatement stmt);
+	public T execute(PreparedStatement stmt) throws SQLException;
 }

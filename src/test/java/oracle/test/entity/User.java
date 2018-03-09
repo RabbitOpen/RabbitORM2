@@ -63,8 +63,12 @@ public class User {
 	private Date birth;
 
 	//描述，关键字
-	@Column(value="\"DESC\"")
+	@Column(value="DESC", keyWord=true)
 	private String desc;
+
+	//描述，关键字
+	@Column(value="index", keyWord=true)
+	private String index;
 
 	/**
 	 * 角色列表
@@ -182,5 +186,15 @@ public class User {
                 + ", birth=" + birth + ", desc=" + desc + ", roles=" + roles
                 + ", cars=" + cars + ", org=" + org + "]";
     }
+
+    public String getIndex() {
+        return index;
+    }
+
+    public void setIndex(String index) {
+        this.index = index;
+    }
+    
+    
 
 }

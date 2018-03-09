@@ -29,7 +29,8 @@ public class SequencePolicy extends PolicyInsert {
         ResultSet rs = null;
         try{
             Field pk = MetaData.getPrimaryKeyField(getEntityClass(adapter));
-            String sql = getSql(adapter).toString() + " returning " + pk.getAnnotation(Column.class).value() 
+            String columnName = adapter.getSessionFactory().getColumnName(pk.getAnnotation(Column.class));
+            String sql = getSql(adapter).toString() + " returning " + columnName
                     + " into ?";
             stmt = conn.prepareStatement(sql);
             Method method = getMethod(stmt, "registerReturnParameter", new Class<?>[]{int.class, int.class});

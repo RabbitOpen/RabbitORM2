@@ -722,7 +722,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			for(DynamicFilterDescriptor dfd : list){
 				FieldMetaData fmd = MetaData.getCachedFieldsMeta(jc, field);
 				sql.append("AND ");
-				String key = getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value();
+				String key = getAliasByTableName(jfm.getTableName()) + "." + sessionFactory.getColumnName(fmd.getColumn());
 				String filter = dfd.getFilter().value();
 				if(dfd.isReg()){
 					key = dfd.getKeyReg().replaceAll(REPLACE_WORD, key);
@@ -751,11 +751,12 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		StringBuilder sb = new StringBuilder();
 		ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + mtm.joinTable() + " " + getAliasByTableName(mtm.joinTable()) + " ON ");
-		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
+		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "." 
+		        + MetaData.getPrimaryKey(jfm.getTargetClass(), sessionFactory) + " = ");
 		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.joinColumn() + " ");
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
 		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.reverseJoinColumn() + " = ");
-		sb.append(getAliasByTableName(jfm.getTableName()) + "." + jfm.getPrimaryKey());
+		sb.append(getAliasByTableName(jfm.getTableName()) + "." + sessionFactory.getColumnName(jfm.getPrimaryKey()));
 		appendJoinFilterSqlSegment(jfm, sb);
 		sb.append(" ");
 		return sb;
@@ -774,7 +775,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		OneToMany otm = (OneToMany) jfm.getAnnotation();
 		String lj = leftJoin ? " LEFT JOIN " : INNER_JOIN;
 		sb.append(lj + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
-		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "." + MetaData.getPrimaryKey(jfm.getTargetClass()) + " = ");
+		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "." 
+		        + MetaData.getPrimaryKey(jfm.getTargetClass(), sessionFactory) + " = ");
 		sb.append(getAliasByTableName(jfm.getTableName()) + "." + otm.joinColumn());
 		appendJoinFilterSqlSegment(jfm, sb);
 		sb.append(" ");
@@ -800,14 +802,14 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 				if(null == pkv){
 					continue;
 				}
-				String key = getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value();
+				String key = getAliasByTableName(jfm.getTableName()) + "." + sessionFactory.getColumnName(fmd.getColumn());
 				String filter = FilterType.EQUAL.value();
 				sb.append(AND + key);
 				Object hv = RabbitValueConverter.convert(pkv, fmd);
 				cachePreparedValues(hv, fmd.getField());
 				sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
 			}else{
-				String key = getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value();
+				String key = getAliasByTableName(jfm.getTableName()) + "." + sessionFactory.getColumnName(fmd.getColumn());
 				String filter = FilterType.EQUAL.value();
 				sb.append(AND + key);
 				Object hv = RabbitValueConverter.convert(fmd.getFieldValue(), fmd);
@@ -917,7 +919,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			String fn = fmd.getField().getName();
 			String alias = Integer.toString(i);
 			aliasMappings.put(alias, fn);
-			sql.append(getAliasByTableName(jfm.getTableName()) + "." + fmd.getColumn().value());
+			sql.append(getAliasByTableName(jfm.getTableName()) + "." + sessionFactory.getColumnName(fmd.getColumn()));
 			sql.append(" AS ");
 			sql.append("J" + SEPARATOR + getAliasByTableName(jfm.getTableName()) + SEPARATOR + alias);
 			sql.append(", ");
@@ -948,13 +950,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 			String tableAlias = getAliasByTableName(getTableNameByClass(clz));
 			if(fetchTimesMappingTable.containsKey(clz) && fetchTimesMappingTable.get(clz) > 1){
 			    for(int j = 1; j <= fetchTimesMappingTable.get(clz); j++){
-			        sql.append(tableAlias + UNDERLINE + j + "." + fmd.getColumn().value());
+			        sql.append(tableAlias + UNDERLINE + j + "." + sessionFactory.getColumnName(fmd.getColumn()));
 	                sql.append(" AS ");
 	                sql.append(tableAlias + UNDERLINE + j  + SEPARATOR + alias);
 	                sql.append(", ");
 			    }
 	        }else{
-	            sql.append(tableAlias + "." + fmd.getColumn().value());
+	            sql.append(tableAlias + "." + sessionFactory.getColumnName(fmd.getColumn()));
 	            sql.append(" AS ");
 	            sql.append(tableAlias + SEPARATOR + alias);
 	            sql.append(", ");
@@ -1243,7 +1245,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		List<FieldMetaData> fms = MetaData.getCachedFieldsMetas(targetClz);
 		for(FieldMetaData fmd : fms){
 			if(fmd.getField().getName().equals(fieldName)){
-				return fmd.getColumn().value();
+				return sessionFactory.getColumnName(fmd.getColumn());
 			}
 		}
 		throw new RabbitDMLException("field [" + fieldName + "] is no declared in " + targetClz.getName());

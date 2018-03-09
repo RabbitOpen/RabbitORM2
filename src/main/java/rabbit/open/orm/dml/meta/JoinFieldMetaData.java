@@ -45,9 +45,9 @@ public class JoinFieldMetaData<T> implements Cloneable{
 	private String tableName;
 	
 	//主键名
-	private String primaryKey;
+	private Column primaryKey;
 	
-	public String getPrimaryKey() {
+	public Column getPrimaryKey() {
 		return primaryKey;
 	}
 
@@ -82,7 +82,7 @@ public class JoinFieldMetaData<T> implements Cloneable{
 		this.joinClass = joinClass;
 		this.annotation = annotation;
 		this.tableName = MetaData.getTableNameByClass(joinClass);
-		this.primaryKey = MetaData.getPrimaryKeyField(joinClass).getAnnotation(Column.class).value();
+		this.primaryKey = MetaData.getPrimaryKeyField(joinClass).getAnnotation(Column.class);
 	}
 	
 	public Class<?> getTargetClass() {

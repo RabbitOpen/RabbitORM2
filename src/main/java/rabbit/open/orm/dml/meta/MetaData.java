@@ -16,6 +16,7 @@ import rabbit.open.orm.annotation.OneToMany;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
+import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.shard.ShardingPolicy;
 
 
@@ -57,8 +58,8 @@ public class MetaData<T> {
 	//表名
 	protected String tableName;
 	
-	//主键字段名
-	protected String primaryKey;
+	//主键字段Column信息
+	protected Column primaryKey;
 		
 	//实体对应的类的class信息
 	protected Class<T> entityClz;
@@ -87,7 +88,7 @@ public class MetaData<T> {
 		return tableName;
 	}
 
-	public String getPrimaryKey() {
+	public Column getPrimaryKey() {
 		return primaryKey;
 	}
 
@@ -95,8 +96,9 @@ public class MetaData<T> {
         return shardingPolicy;
     }
 	
-	public static String getPrimaryKey(Class<?> clz) {
-	    return getPrimaryKeyField(clz).getAnnotation(Column.class).value();
+	public static String getPrimaryKey(Class<?> clz, SessionFactory factory) {
+	    Column column = getPrimaryKeyField(clz).getAnnotation(Column.class);
+        return factory.getColumnName(column);
 	}
 
 	/**
@@ -111,7 +113,7 @@ public class MetaData<T> {
         }
         tableName = entityClz.getAnnotation(Entity.class).value();
         shardingPolicy = loadShardingPolicy(entityClz);
-        primaryKey = getPrimaryKeyField(entityClz).getAnnotation(Column.class).value();
+        primaryKey = getPrimaryKeyField(entityClz).getAnnotation(Column.class);
         tableMapping.put(tableName, entityClz);
         clzMapping.put(entityClz, tableName);
         joinMetas = getJoinMetas(entityClz);

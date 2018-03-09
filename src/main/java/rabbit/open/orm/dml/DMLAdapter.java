@@ -302,10 +302,12 @@ public abstract class DMLAdapter<T> {
 	protected void generateFilters(List<FieldMetaData> fieldMetas) {
 		for(FieldMetaData fmd : fieldMetas){
 			if(fmd.isForeignKey()){
-				String fkName = MetaData.getPrimaryKeyField(fmd.getFieldValue().getClass()).getAnnotation(Column.class).value();
+				Column column = MetaData.getPrimaryKeyField(fmd.getFieldValue().getClass()).getAnnotation(Column.class);
+                String fkName = sessionFactory.getColumnName(column);
 				String fkTable = getTableNameByClass(fmd.getField().getType());
 				MetaData.updateTableMapping(fkTable, fmd.getField().getType());
-				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName()) + "." + fmd.getColumn().value(), 
+				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName()) + "." 
+				        + sessionFactory.getColumnName(fmd.getColumn()), 
 						getAliasByTableName(fkTable) + "." + fkName);
 				desc.setField(fmd.getField());
 				desc.setJoinOn(true);
@@ -313,7 +315,8 @@ public abstract class DMLAdapter<T> {
 				filterDescriptors.add(desc);
 				generateFilters(getNonEmptyFieldMetas(fmd.getFieldValue(), fmd.getField().getType()));
 			}else{
-				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName())+ "." + fmd.getColumn().value(), 
+				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName()) + "." 
+				        + sessionFactory.getColumnName(fmd.getColumn()), 
 						RabbitValueConverter.convert(fmd.getFieldValue(), fmd), 
 						FilterType.EQUAL.value());
 				desc.setField(fmd.getField());
@@ -341,7 +344,7 @@ public abstract class DMLAdapter<T> {
 				for(DynamicFilterDescriptor dfd : dfds){
 					FilterDescriptor desc = new FilterDescriptor(
 							getAliasByTableName(getTableNameByClass(entry.getKey())) + "." 
-							        + fmd.getColumn().value(), 
+							        + sessionFactory.getColumnName(fmd.getColumn()), 
 							RabbitValueConverter.convert(dfd.getValue(), fmd), 
 							dfd.getFilter().value());
 					desc.setField(fmd.getField());
@@ -354,6 +357,10 @@ public abstract class DMLAdapter<T> {
 			}
 		}
 	}
+	
+	public SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
 	
 	protected String getTableNameByClass(Class<?> clz) {
 	    //分片表在clzMapping中查出来的名字和getDeclaredTableName()一样
@@ -528,15 +535,16 @@ public abstract class DMLAdapter<T> {
             if (!fmd.isForeignKey()) {
                 continue;
             }
-            String fkName = MetaData.getPrimaryKeyField(fmd.getField().getType())
-                    .getAnnotation(Column.class).value();
+            Column column = MetaData.getPrimaryKeyField(fmd.getField().getType())
+                    .getAnnotation(Column.class);
+            String fkName = sessionFactory.getColumnName(column);
             String fkTable = getTableNameByClass(fmd.getField().getType());
             String tableAlias = getAliasByTableName(fkTable);
             if(fmd.isMutiFetchField()){
                 tableAlias = tableAlias + UNDERLINE + fmd.getIndex();
             }
             FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(getTableNameByClass(clz))
-                            + "." + fmd.getColumn().value(), tableAlias + "." + fkName);
+                            + "." + sessionFactory.getColumnName(fmd.getColumn()), tableAlias + "." + fkName);
             desc.setField(fmd.getField());
             desc.setMultiFetchField(fmd.isMutiFetchField());
             desc.setIndex(fmd.getIndex());

@@ -2,13 +2,11 @@ package rabbit.open.orm.dialect.ddl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,8 +46,21 @@ public abstract class DDLHelper {
     
 	protected static Logger logger = Logger.getLogger(DDLHelper.class);
 	
+	protected Map<Class<?>, String> typeStringCache = new HashMap<>();
+	
 	//缓存所有dllhelper
     private static Map<DialectType, DDLHelper> helpers = new ConcurrentHashMap<>();
+    
+    protected static final String DATETIME = "DATETIME";
+    protected static final String TIMESTAMP = "TIMESTAMP";
+    protected static final String DATE = "DATE";
+    protected static final String VARCHAR = "VARCHAR";
+    protected static final String VARCHAR2 = "VARCHAR2";
+    protected static final String FLOAT = "FLOAT";
+    protected static final String BIGINT = "BIGINT";
+    protected static final String DOUBLE = "DOUBLE";
+    protected static final String NUMBER20 = "NUMBER(20, 0)";
+    protected static final String NUMBER8_5 = "NUMBER(8, 5)";
     
     public static void init(){
         helpers.put(DialectType.MYSQL, new MySQLDDLHelper());
@@ -203,6 +214,15 @@ public abstract class DDLHelper {
 		}
 	}
 	
+	/**
+	 * <b>Description  获取当前的helper</b>
+	 * @param factory
+	 * @return
+	 */
+	public static DDLHelper getCurrentDDLHelper(SessionFactory factory) {
+	    return helpers.get(factory.getDialectType());
+	}
+	
     /**
      * <b>Description  新建表</b>
      * @param factory
@@ -320,10 +340,6 @@ public abstract class DDLHelper {
 		return false;
 	}
 	
-	protected abstract String getVarcharType();
-
-	protected abstract String getDateType();
-	
 	protected abstract String getAutoIncrement();
 	
 	/**
@@ -378,34 +394,18 @@ public abstract class DDLHelper {
         return sql;
     }
     
-    public abstract String getNumberType();
-
-    public abstract String getFloatType();
-
-    public abstract String getDoubleType();
-
-    public abstract String getBigDecimalType();
+    private String getTypeString(Class<?> type){
+        if(!typeStringCache.containsKey(type)){
+            throw new RabbitDDLException("unsupported java type[" + type.getName() + "] is found!");
+        }
+        return typeStringCache.get(type);
+    }
     
     protected String getSqlTypeByJavaType(Class<?> type, int length) {
-        if(type.equals(Date.class)){
-            return getDateType();
-        }
         if(type.equals(String.class)){
-            return getVarcharType() + "(" + length + ")";
+            return getTypeString(type) + "(" + length + ")";
         }
-        if(type.equals(Integer.class) || type.equals(Short.class) || type.equals(Long.class)){
-            return getNumberType();
-        }
-        if(type.equals(Float.class)){
-            return getFloatType();
-        }
-        if(type.equals(Double.class)){
-            return getDoubleType();
-        }
-        if(type.equals(BigDecimal.class)){
-            return getBigDecimalType();
-        }
-        throw new RabbitDDLException("unsupported java type[" + type.getName() + "] is found!");
+        return getTypeString(type);
     }
     
     protected boolean isTableExists(HashSet<String> existsTables,
@@ -472,10 +472,10 @@ public abstract class DDLHelper {
         List<StringBuilder> sqls = new ArrayList<>();
         for(FieldMetaData fmd : MetaData.getCachedFieldsMetas(entityClz)){
             StringBuilder sql = new StringBuilder();
-            if(cols.contains(fmd.getColumn().value().toUpperCase().replaceAll("\"", "").replaceAll("`", ""))){
+            if(cols.contains(fmd.getColumn().value().toUpperCase())){
                 continue;
             }
-            sql.append("ALTER TABLE " + tableName + getAddColumnKeywords() + getColumnName(fmd.getColumn().value()) + " ");
+            sql.append("ALTER TABLE " + tableName + getAddColumnKeywords() + getColumnName(fmd.getColumn()).toUpperCase() + " ");
             if (fmd.isForeignKey()) {
                 sql.append(getSqlTypeByJavaType(fmd.getForeignField().getType(), fmd.getForeignField().getAnnotation(Column.class).length()));
             } else if(fmd.isPrimaryKey()) {
@@ -562,7 +562,7 @@ public abstract class DDLHelper {
         if(null == pkm){
             throw new RabbitDDLException("no @PrimaryKey was found in class[" + clz.getName() + "]!");
         }
-        sql.append("PRIMARY KEY (" + getColumnName(pkm.getColumn().value().toUpperCase()) + "))");
+        sql.append("PRIMARY KEY (" + getColumnName(pkm.getColumn()).toUpperCase() + "))");
         return sql;
     }
     
@@ -574,7 +574,7 @@ public abstract class DDLHelper {
      */
     private StringBuilder createFieldSqlByMeta(FieldMetaData fmd){
         StringBuilder sql = new StringBuilder();
-        sql.append(getColumnName(fmd.getColumn().value().toUpperCase()) + " ");
+        sql.append(getColumnName(fmd.getColumn()).toUpperCase() + " ");
         if(fmd.isForeignKey()){
             FieldMetaData pk = MetaData.getCachedFieldsMeta(fmd.getField().getType(), fmd.getForeignField().getName());
             sql.append(getSqlTypeByJavaType(pk.getField().getType(), pk.getColumn().length()));
@@ -591,7 +591,11 @@ public abstract class DDLHelper {
         return sql;
     }
     
-    protected abstract String getColumnName(String realName);
+    protected String getColumnName(String realName) {
+        return realName;
+    }
+
+    public abstract String getColumnName(Column column);
     
     /**
      * 

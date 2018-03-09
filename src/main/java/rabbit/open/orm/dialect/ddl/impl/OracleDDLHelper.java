@@ -1,14 +1,17 @@
 package rabbit.open.orm.dialect.ddl.impl;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 
+import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.ddl.JoinTableDescriptor;
 import rabbit.open.orm.dialect.ddl.DDLHelper;
 import rabbit.open.orm.dml.util.SQLFormater;
@@ -23,6 +26,17 @@ public class OracleDDLHelper extends DDLHelper{
 
 	private static final String GET_FOREIGN_KEY_TABLE_SQL = "SELECT TABLE_NAME, A.CONSTRAINT_NAME AS FK_NAME FROM USER_CONSTRAINTS A WHERE A.CONSTRAINT_TYPE = 'R'";
 
+	public OracleDDLHelper() {
+        typeStringCache.put(Date.class, DATE);
+        typeStringCache.put(String.class, VARCHAR2);
+        typeStringCache.put(BigDecimal.class, NUMBER20);
+        typeStringCache.put(Double.class, NUMBER8_5);
+        typeStringCache.put(Float.class, NUMBER8_5);
+        typeStringCache.put(Integer.class, NUMBER20);
+        typeStringCache.put(Short.class, NUMBER20);
+        typeStringCache.put(Long.class, NUMBER20);
+    }
+	
     /**
 	 * 
 	 * <b>Description:	删除指定表</b><br>
@@ -233,38 +247,8 @@ public class OracleDDLHelper extends DDLHelper{
 	}
 
 	@Override
-    public String getNumberType() {
-	    return "NUMBER(20, 0) ";
-    }
-
-	@Override
-    public String getFloatType() {
-	    return "NUMBER(8,5) ";
-    }
-
-    @Override
-    public String getDoubleType() {
-        return "NUMBER(8,5) ";
-    }
-
-    @Override
-    public String getBigDecimalType() {
-        return "NUMBER(20, 0) ";
-    }
-	
-	@Override
-	protected String getVarcharType() {
-		return "VARCHAR2";
-	}
-
-	@Override
-	protected String getDateType() {
-		return "DATE";
-	}
-	
-	@Override
 	protected String getAutoIncrement() {
-		return "AUTO_INCREMENT";
+		return null;
 	}
 	
 	@Override
@@ -273,9 +257,11 @@ public class OracleDDLHelper extends DDLHelper{
 	}
 
     @Override
-    protected String getColumnName(String realName) {
-        return  realName;
+    public String getColumnName(Column column) {
+        if (!column.keyWord()) {
+            return column.value();
+        }
+        return "\"" + column.value().toUpperCase() + "\"";
     }
-	
 	
 }

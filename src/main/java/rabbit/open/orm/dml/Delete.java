@@ -86,7 +86,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			}
 			factors.add(new ShardFactor(fmd.getField(), FilterType.EQUAL.value(), id));
 			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(id, fmd), fmd.getField()));
-			sql.append(fmd.getColumn().value() + " = " + PLACE_HOLDER);
+			sql.append(sessionFactory.getColumnName(fmd.getColumn()) + " = " + PLACE_HOLDER);
 		}
 		sqlOperation = new SQLOperation(){
 			@Override

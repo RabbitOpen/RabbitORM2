@@ -53,7 +53,7 @@ public class SQLServerTransformer extends DialectTransformer{
     private StringBuilder generateOrderSql(AbstractQuery<?> query) {
         if(!doOrder(query)){
             return new StringBuilder("ORDER BY " + getAliasByTableName(query, query.getMetaData().getTableName()) 
-                    + "." + query.getMetaData().getPrimaryKey());
+                    + "." + query.getSessionFactory().getColumnName(query.getMetaData().getPrimaryKey()));
         }
         return super.createOrderSql(query);
     }

@@ -1,5 +1,8 @@
 package rabbit.open.orm.dialect.ddl.impl;
 
+import java.math.BigDecimal;
+import java.util.Date;
+
 
 /**
  * <b>Description: 	db2 ddl助手</b><br>
@@ -20,19 +23,21 @@ public class DB2DDLHelper extends SQLServerDDLHelper{
         return "SELECT CONSTNAME AS FK_NAME, TABNAME AS TABLE_NAME FROM SYSCAT.REFERENCES";
     }
     
-    @Override
-    public String getDoubleType() {
-        return "DOUBLE ";
-    }
-
-	@Override
-	protected String getDateType() {
-		return "TIMESTAMP";
-	}
-	
 	@Override
 	protected String getAutoIncrement() {
 		return " GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1 )";
 	}
+	
+	public DB2DDLHelper() {
+        typeStringCache.put(Date.class, TIMESTAMP);
+        typeStringCache.put(String.class, VARCHAR);
+        typeStringCache.put(BigDecimal.class, BIGINT);
+        typeStringCache.put(Double.class, DOUBLE);
+        typeStringCache.put(Float.class, FLOAT);
+        typeStringCache.put(Integer.class, BIGINT);
+        typeStringCache.put(Short.class, BIGINT);
+        typeStringCache.put(Long.class, BIGINT);
+    }
+    
 	
 }

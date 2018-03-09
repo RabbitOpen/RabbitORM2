@@ -71,7 +71,7 @@ public class User {
 	private Date birth;
 
 	//描述，关键字
-	@Column(value="`DESC`")
+	@Column(value="DESC", keyWord=true)
 	private String desc;
 
 	/**

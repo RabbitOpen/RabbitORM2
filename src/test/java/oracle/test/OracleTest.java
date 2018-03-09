@@ -47,9 +47,11 @@ public class OracleTest {
 	public void query(){
 	    User u = new User();
 	    u.setAge(10);
+	    u.setIndex("myindex");
 	    us.add(u);
 		List<User> list = us.createQuery()
 		        .page(0, 10)
+		        .addFilter("index", u.getIndex())
 		        .joinFetch(Role.class)
 		        .fetch(Organization.class)
 		        .distinct()

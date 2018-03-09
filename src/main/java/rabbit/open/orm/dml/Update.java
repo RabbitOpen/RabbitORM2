@@ -206,7 +206,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 			throw new RabbitDMLException("primary key can't be empty!");
 		}
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(pkValue, new FieldMetaData(pk, pk.getAnnotation(Column.class))), pk));
-		sql.append(" WHERE " + TARGET_TABLE_NAME + "." + metaData.getPrimaryKey() + " = " + PLACE_HOLDER);
+		sql.append(" WHERE " + TARGET_TABLE_NAME + "." + sessionFactory.getColumnName(metaData.getPrimaryKey()) + " = " + PLACE_HOLDER);
 		sqlOperation = new SQLOperation() {
 			@Override
 			public long executeSQL(Connection conn) throws SQLException {
@@ -247,9 +247,9 @@ public class Update<T> extends NonQueryAdapter<T>{
 		}
 		if(isJoin){
 			//联合更新
-			sql.append(" WHERE " + metaData.getTableName() + "." + metaData.getPrimaryKey() + " IN "
+			sql.append(" WHERE " + metaData.getTableName() + "." + sessionFactory.getColumnName(metaData.getPrimaryKey()) + " IN "
 					+ "(SELECT * FROM (");
-			sql.append("SELECT " + metaData.getTableName() + "." + metaData.getPrimaryKey() 
+			sql.append("SELECT " + metaData.getTableName() + "." + sessionFactory.getColumnName(metaData.getPrimaryKey()) 
 					+ " FROM " + metaData.getTableName());
 			sql.append(generateInnerJoinsql());
 			sql.append(generateFilterSql());
@@ -286,7 +286,9 @@ public class Update<T> extends NonQueryAdapter<T>{
 			if(null == fmd.getFieldValue()){
 				preparedValues.add(new PreparedValue(null));
 				fields2Update++;
-				sql.append(" " + metaData.getTableName() + "." + fmd.getColumn().value() + " = " + PLACE_HOLDER + ", ");
+				sql.append(" " + metaData.getTableName() + "." 
+				        + sessionFactory.getColumnName(fmd.getColumn()) 
+				        + " = " + PLACE_HOLDER + ", ");
 				continue;
 			}
 			if(fmd.isForeignKey()){
@@ -312,7 +314,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 */
 	private void appendCommonFieldsValue(StringBuilder sql, FieldMetaData fmd) {
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fmd.getFieldValue(), fmd), fmd.getField()));
-		sql.append(" " + TARGET_TABLE_NAME + "." + fmd.getColumn().value() + "=");
+		sql.append(" " + TARGET_TABLE_NAME + "." + sessionFactory.getColumnName(fmd.getColumn()) + "=");
 		sql.append(PLACE_HOLDER);
 		sql.append(",");
 	}
@@ -332,7 +334,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 			if(null != fkValue){
 				preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fkValue, new FieldMetaData(foreignField, 
                         foreignField.getAnnotation(Column.class))), foreignField));
-				sql.append(" " + TARGET_TABLE_NAME + "." + fmd.getColumn().value() + "=");
+				sql.append(" " + TARGET_TABLE_NAME + "." + sessionFactory.getColumnName(fmd.getColumn()) + "=");
 				sql.append(PLACE_HOLDER);
 				sql.append(",");
 			}

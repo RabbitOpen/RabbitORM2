@@ -191,7 +191,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 			    }
 			}
 			nonEmptyFields++;
-			fields.append(fmd.getColumn().value() + ",");
+			fields.append(sessionFactory.getColumnName(fmd.getColumn()) + ",");
 		}
 		if(0 == nonEmptyFields){
 		    throw new RabbitDMLException("no fields to insert!");

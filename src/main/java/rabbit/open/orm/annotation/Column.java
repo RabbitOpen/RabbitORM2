@@ -23,4 +23,7 @@ public @interface Column {
 	
 	//默认字符型字段长度
 	public int length() default 50;
+	
+	//标识该字段名是SQL关键字
+	public boolean keyWord() default false;
 }

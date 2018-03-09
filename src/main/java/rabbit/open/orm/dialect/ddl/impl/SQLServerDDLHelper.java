@@ -1,6 +1,8 @@
 package rabbit.open.orm.dialect.ddl.impl;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
@@ -14,7 +16,7 @@ import rabbit.open.orm.exception.RabbitDDLException;
  */
 public class SQLServerDDLHelper extends OracleDDLHelper{
 
-	@Override
+    @Override
 	protected HashSet<String> getExistedTables() {
 	    try {
             return readTablesFromDB();
@@ -39,39 +41,20 @@ public class SQLServerDDLHelper extends OracleDDLHelper{
         return callSuperCreateJoinTableSql(tb, list);
     }
     
-    @Override
-    public String getNumberType() {
-        return "BIGINT ";
+    public SQLServerDDLHelper() {
+        typeStringCache.put(Date.class, DATETIME);
+        typeStringCache.put(String.class, VARCHAR);
+        typeStringCache.put(BigDecimal.class, BIGINT);
+        typeStringCache.put(Double.class, FLOAT);
+        typeStringCache.put(Float.class, FLOAT);
+        typeStringCache.put(Integer.class, BIGINT);
+        typeStringCache.put(Short.class, BIGINT);
+        typeStringCache.put(Long.class, BIGINT);
     }
-
-    @Override
-    public String getFloatType() {
-        return "FLOAT ";
-    }
-
-    @Override
-    public String getDoubleType() {
-        return "FLOAT ";
-    }
-
-    @Override
-    public String getBigDecimalType() {
-        return "BIGINT ";
-    }
-	
-	@Override
-	protected String getVarcharType() {
-		return "VARCHAR";
-	}
-
-	@Override
-	protected String getDateType() {
-		return "DATETIME";
-	}
-	
+    
 	@Override
 	protected String getAutoIncrement() {
-		return "IDENTITY(1,1) ";
+		return " IDENTITY(1,1) ";
 	}
 	
 }

@@ -93,4 +93,9 @@
             COUNT(1)
         FROM T_USER 
     </jdbc>
+    <jdbc name="countUser4Exception">
+        SELECT
+            COUNT(abc)
+        FROM T_USER 
+    </jdbc>
 </rabbit-mapping>   

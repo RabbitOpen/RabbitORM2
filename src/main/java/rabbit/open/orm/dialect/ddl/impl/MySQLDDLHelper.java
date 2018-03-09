@@ -1,12 +1,15 @@
 package rabbit.open.orm.dialect.ddl.impl;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 
+import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.ddl.JoinTableDescriptor;
 import rabbit.open.orm.dialect.ddl.DDLHelper;
 import rabbit.open.orm.dml.util.SQLFormater;
@@ -112,6 +115,7 @@ public class MySQLDDLHelper extends DDLHelper{
 		}
 	}
 
+	
 	/**
 	 * 
 	 * <b>Description:	实体表</b><br>
@@ -141,39 +145,21 @@ public class MySQLDDLHelper extends DDLHelper{
 		}
 	}
 
-	@Override
-    public String getNumberType() {
-        return "BIGINT ";
+	public MySQLDDLHelper() {
+        typeStringCache.put(Date.class, DATETIME);
+        typeStringCache.put(String.class, VARCHAR);
+        typeStringCache.put(BigDecimal.class, BIGINT);
+        typeStringCache.put(Double.class, DOUBLE);
+        typeStringCache.put(Float.class, FLOAT);
+        typeStringCache.put(Integer.class, BIGINT);
+        typeStringCache.put(Short.class, BIGINT);
+        typeStringCache.put(Long.class, BIGINT);
+        
     }
 
-    @Override
-    public String getFloatType() {
-        return "FLOAT ";
-    }
-
-    @Override
-    public String getDoubleType() {
-        return "DOUBLE ";
-    }
-
-    @Override
-    public String getBigDecimalType() {
-        return "BIGINT ";
-    }
-
-    @Override
-	protected String getVarcharType() {
-		return "VARCHAR";
-	}
-
-	@Override
-	protected String getDateType() {
-		return "DATETIME";
-	}
-	
 	@Override
 	protected String getAutoIncrement() {
-		return "AUTO_INCREMENT";
+		return " AUTO_INCREMENT";
 	}
 	
 	@Override
@@ -182,9 +168,11 @@ public class MySQLDDLHelper extends DDLHelper{
 	}
 
     @Override
-    protected String getColumnName(String realName) {
-        return realName;
+    public String getColumnName(Column column) {
+        if (!column.keyWord()) {
+            return column.value();
+        }
+        return "`" + column.value() + "`";
     }
-	
 	
 }

@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
+import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.ddl.DDLType;
 import rabbit.open.orm.dialect.ddl.DDLHelper;
 import rabbit.open.orm.dialect.dml.DeleteDialectAdapter;
@@ -348,5 +349,14 @@ public class SessionFactory {
             return (List<T>) filter.queryCompleted((List<Object>) result, clz);
         }
         return result;
+    }
+    
+    /**
+     * <b>Description  获取字段名</b>
+     * @param col
+     * @return
+     */
+    public String getColumnName(Column col) {
+        return DDLHelper.getCurrentDDLHelper(this).getColumnName(col);
     }
 }
