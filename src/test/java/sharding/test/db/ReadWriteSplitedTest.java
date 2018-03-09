@@ -22,10 +22,10 @@ import sharding.test.db.service.RWUserService;
 import sharding.test.db.service.WriteOnlyUserService;
 
 /**
- * <b>Description  读写分离测试</b>
+ * <b>Description 读写分离测试</b>
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations={"classpath:read-write-splited-context.xml"})
+@ContextConfiguration(locations = { "classpath:read-write-splited-context.xml" })
 public class ReadWriteSplitedTest {
 
     @Autowired
@@ -33,49 +33,53 @@ public class ReadWriteSplitedTest {
 
     @Autowired
     WriteOnlyUserService wus;
-    
+
     Logger logger = Logger.getLogger(getClass());
-    
+
     /**
-     * <b>Description  初始化表</b>
+     * <b>Description 初始化表</b>
      */
     @Before
     public void init() {
         try {
-            Connection read = rwUserService.getFactory().getConnection(null, null, DMLType.SELECT);
-            reCreateTable(RWUser.class.getAnnotation(Entity.class).value(), read);
+            Connection read = rwUserService.getFactory().getConnection(null,
+                    null, DMLType.SELECT);
+            reCreateTable(RWUser.class.getAnnotation(Entity.class).value(),
+                    read);
             read.close();
         } catch (SQLException e) {
             logger.error(e.getMessage());
         }
         try {
-            Connection write = rwUserService.getFactory().getConnection(null, null, DMLType.INSERT);
-            reCreateTable(RWUser.class.getAnnotation(Entity.class).value(), write);
+            Connection write = rwUserService.getFactory().getConnection(null,
+                    null, DMLType.INSERT);
+            reCreateTable(RWUser.class.getAnnotation(Entity.class).value(),
+                    write);
             write.close();
         } catch (SQLException e) {
             logger.error(e.getMessage());
         }
     }
-    
+
     /**
-     * <b>Description  读写分离测试</b>
+     * <b>Description 读写分离测试</b>
      */
     @Test
-    public void readWriteSplitedTest(){
+    public void readWriteSplitedTest() {
         RWUser user = new RWUser("zhangsan", 10);
         rwUserService.add(user);
-        //读写分离后，读库中是没有数据的
+        // 读写分离后，读库中是没有数据的
         TestCase.assertNull(rwUserService.getByID(user.getId()));
-        
-        //直接查询写库
+
+        // 直接查询写库
         RWUser u = wus.getByID(user.getId());
         TestCase.assertEquals(u.getName(), user.getName());
         TestCase.assertEquals(u.getId(), user.getId());
         TestCase.assertEquals(u.getAge(), user.getAge());
     }
-    
+
     @Test
-    public void transactionTest(){
+    public void transactionTest() {
         rwUserService.doTransaction();
         TestCase.assertEquals(0, rwUserService.createQuery().count());
         TestCase.assertEquals(2, wus.createQuery().count());
@@ -88,7 +92,7 @@ public class ReadWriteSplitedTest {
             TestCase.assertEquals(2, wus.createQuery().count());
         }
     }
-    
+
     /**
      * <b>Description 删除表</b>
      */
@@ -99,12 +103,12 @@ public class ReadWriteSplitedTest {
             stmt.execute("drop table " + tableName);
         } catch (Exception e) {
             logger.error(e.getMessage());
-        } 
+        }
         try {
             stmt.execute("CREATE TABLE T_USER(ID BIGINT  NOT NULL AUTO_INCREMENT,NAME VARCHAR(50), AGE BIGINT, PRIMARY KEY (ID)) ");
         } catch (Exception e) {
             logger.error(e.getMessage());
-        } 
+        }
         try {
             stmt.close();
         } catch (SQLException e) {

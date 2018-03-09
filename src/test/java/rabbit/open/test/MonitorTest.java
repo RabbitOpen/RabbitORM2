@@ -12,20 +12,21 @@ import rabbit.open.orm.pool.jpa.RabbitDataSource;
 public class MonitorTest {
 
     RabbitDataSource rds;
-    
+
     @Before
-    public void setUp(){
-        rds = new RabbitDataSource(){
+    public void setUp() {
+        rds = new RabbitDataSource() {
             @Override
             public void init() {
                 loadDriverClass();
                 initSessions();
-                monitor = new DataSourceMonitor(rds){
+                monitor = new DataSourceMonitor(rds) {
                     @Override
                     protected long getMaxIdle() {
-                        //调整空闲间隔时间，方便测试
+                        // 调整空闲间隔时间，方便测试
                         return 1L;
                     }
+
                     @Override
                     protected void sleep5s() {
                         try {
@@ -34,6 +35,7 @@ public class MonitorTest {
                             logger.info("database monitor is interrupted");
                         }
                     }
+
                     @Override
                     protected boolean tooManyIdleSessions() {
                         return dataSource.getCounter() > 2;
@@ -52,10 +54,10 @@ public class MonitorTest {
         rds.setPassword("123");
         rds.init();
     }
-    
+
     @Test
-    public void monitorTest() throws InterruptedException{
-        synchronized(this){
+    public void monitorTest() throws InterruptedException {
+        synchronized (this) {
             wait(5000);
         }
         rds.shutdown();

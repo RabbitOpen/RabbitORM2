@@ -204,8 +204,7 @@ public class OracleShardingTest {
 
     private void reCreateTable(String tableName) {
         dropShardingTable(tableName, sus.getFactory());
-        DDLHelper.createTable(sus.getFactory(), tableName,
-                ShardingUser.class);
+        DDLHelper.createTable(sus.getFactory(), tableName, ShardingUser.class);
     }
 
     /**

@@ -46,10 +46,10 @@ public class ShardingTableTest {
 
     @Autowired
     RegionService rs;
-    
+
     @Autowired
     ShardCarService scs;
-    
+
     @Autowired
     ShardRoomService srs;
 
@@ -218,23 +218,23 @@ public class ShardingTableTest {
         TestCase.assertEquals(user.getName(), u.getName());
         TestCase.assertEquals(u.getRegion().getId(), r.getId());
         TestCase.assertEquals(u.getRegion().getName(), r.getName());
-        
+
         u = sus.createQuery().addFilter("id", user.getId())
-                .addFilter("name", regionName, Region.class)
-                .buildFetch().fetch(Region.class).build().execute().unique();
+                .addFilter("name", regionName, Region.class).buildFetch()
+                .fetch(Region.class).build().execute().unique();
         TestCase.assertEquals(user.getId(), u.getId());
         TestCase.assertEquals(user.getName(), u.getName());
         TestCase.assertEquals(u.getRegion().getId(), r.getId());
         TestCase.assertEquals(u.getRegion().getName(), r.getName());
     }
-    
+
     /**
-     * <b>Description  一对多/多对多 查询测试</b>
+     * <b>Description 一对多/多对多 查询测试</b>
      */
     @Test
     public void joinFetchTest() {
-        
-        //=========构造测试数据=============
+
+        // =========构造测试数据=============
         reCreateTable("T_SHARD_USER0");
         Region r = new Region();
         String regionId = "myregionID";
@@ -250,69 +250,68 @@ public class ShardingTableTest {
         List<ShardCar> cars = new ArrayList<>();
         cars.add(sc1);
         cars.add(sc2);
-        
+
         ShardRoom sr1 = new ShardRoom("sr1", "406");
         ShardRoom sr2 = new ShardRoom("sr2", "407");
         srs.add(sr1);
         srs.add(sr2);
-        
+
         List<ShardRoom> rooms = new ArrayList<>();
         rooms.add(sr1);
         rooms.add(sr2);
         user.setRooms(rooms);
         sus.addJoinRecords(user);
-        
-        //test
+
+        // test
         ShardingUser su = sus.createQuery().addFilter("id", user.getId())
-                .fetch(Region.class)   
-                .joinFetch(ShardCar.class)
-                .joinFetch(ShardRoom.class)
-                .execute().unique();
-        TestCase.assertEquals(su.getRegion().getName(), user.getRegion().getName());
+                .fetch(Region.class).joinFetch(ShardCar.class)
+                .joinFetch(ShardRoom.class).execute().unique();
+        TestCase.assertEquals(su.getRegion().getName(), user.getRegion()
+                .getName());
         TestCase.assertEquals(su.getRooms().size(), user.getRooms().size());
         TestCase.assertEquals(su.getCars().size(), cars.size());
 
         su = sus.createQuery().addFilter("id", user.getId())
-                .fetch(Region.class)   
-                .buildFetch().joinFetch(ShardCar.class).on("id", sc1.getId()).build()
-                .joinFetch(ShardRoom.class)
+                .fetch(Region.class).buildFetch().joinFetch(ShardCar.class)
+                .on("id", sc1.getId()).build().joinFetch(ShardRoom.class)
                 .execute().unique();
-        TestCase.assertEquals(su.getRegion().getName(), user.getRegion().getName());
+        TestCase.assertEquals(su.getRegion().getName(), user.getRegion()
+                .getName());
         TestCase.assertEquals(su.getRooms().size(), user.getRooms().size());
         TestCase.assertEquals(su.getCars().size(), 1);
         TestCase.assertEquals(su.getCars().get(0).getCarNo(), sc1.getCarNo());
 
         su = sus.createQuery().addFilter("id", user.getId())
-                .fetch(Region.class)   
-                .buildFetch().joinFetch(ShardCar.class).on("id", sc1.getId()).build()
-                .buildFetch().joinFetch(ShardRoom.class).on("id", sr1.getId()).build()
+                .fetch(Region.class).buildFetch().joinFetch(ShardCar.class)
+                .on("id", sc1.getId()).build().buildFetch()
+                .joinFetch(ShardRoom.class).on("id", sr1.getId()).build()
                 .execute().unique();
-        TestCase.assertEquals(su.getRegion().getName(), user.getRegion().getName());
+        TestCase.assertEquals(su.getRegion().getName(), user.getRegion()
+                .getName());
         TestCase.assertEquals(su.getRooms().size(), 1);
         TestCase.assertEquals(su.getRooms().get(0).getRoomNo(), sr1.getRoomNo());
         TestCase.assertEquals(su.getCars().size(), 1);
         TestCase.assertEquals(su.getCars().get(0).getCarNo(), sc1.getCarNo());
 
         su = sus.createQuery().addFilter("id", user.getId())
-                .fetch(Region.class)   
-                .buildFetch().joinFetch(ShardCar.class).on("id", sc1.getId()).build()
-                .joinFetch(ShardRoom.class, sr1)
+                .fetch(Region.class).buildFetch().joinFetch(ShardCar.class)
+                .on("id", sc1.getId()).build().joinFetch(ShardRoom.class, sr1)
                 .execute().unique();
-        TestCase.assertEquals(su.getRegion().getName(), user.getRegion().getName());
+        TestCase.assertEquals(su.getRegion().getName(), user.getRegion()
+                .getName());
         TestCase.assertEquals(su.getRooms().size(), 1);
         TestCase.assertEquals(su.getRooms().get(0).getRoomNo(), sr1.getRoomNo());
         TestCase.assertEquals(su.getCars().size(), 1);
         TestCase.assertEquals(su.getCars().get(0).getCarNo(), sc1.getCarNo());
-        
-        
+
         su = sus.createQuery().addFilter("id", user.getId())
-                .fetch(Region.class)   
+                .fetch(Region.class)
                 .addInnerJoinFilter("id", sr1.getId(), ShardRoom.class)
                 .addInnerJoinFilter("carNo", sc1.getCarNo(), ShardCar.class)
-                .joinFetch(ShardRoom.class)
-                .joinFetch(ShardCar.class)
-                .execute().unique();
-        TestCase.assertEquals(su.getRegion().getName(), user.getRegion().getName());
+                .joinFetch(ShardRoom.class).joinFetch(ShardCar.class).execute()
+                .unique();
+        TestCase.assertEquals(su.getRegion().getName(), user.getRegion()
+                .getName());
         TestCase.assertEquals(su.getRooms().size(), 1);
         TestCase.assertEquals(su.getRooms().get(0).getRoomNo(), sr1.getRoomNo());
         TestCase.assertEquals(su.getCars().size(), 1);
@@ -321,16 +320,15 @@ public class ShardingTableTest {
 
     private void reCreateTable(String tableName) {
         dropShardingTable(tableName, sus.getFactory());
-        DDLHelper.createTable(sus.getFactory(), tableName,
-                ShardingUser.class);
+        DDLHelper.createTable(sus.getFactory(), tableName, ShardingUser.class);
     }
-    
+
     /**
-     * <b>Description  异常测试</b>
+     * <b>Description 异常测试</b>
      */
     @Test
-    public void exceptionTest(){
-        //准备数据
+    public void exceptionTest() {
+        // 准备数据
         reCreateTable("T_SHARD_USER0");
         ShardingUser u500 = addUser(500, "u500");
         ShardDept sd = new ShardDept(1L, u500);
@@ -340,19 +338,11 @@ public class ShardingTableTest {
         sd.setUsers(users);
         sds.addJoinRecords(sd);
         TestCase.assertNotNull(sds.getByID(sd.getId()));
-        
-        //test
+
+        // test
         try {
             sds.createQuery().addFilter("id", sd.getId())
-                .fetch(ShardingUser.class).execute();
-            throw new RuntimeException();
-        } catch (Exception e) {
-            TestCase.assertEquals(e.getClass(), FetchShardEntityException.class);
-        }
-        
-        try {
-            sds.createQuery().addFilter("id", sd.getId())
-                .joinFetch(ShardingUser.class).execute();
+                    .fetch(ShardingUser.class).execute();
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertEquals(e.getClass(), FetchShardEntityException.class);
@@ -360,21 +350,29 @@ public class ShardingTableTest {
 
         try {
             sds.createQuery().addFilter("id", sd.getId())
-                .buildFetch().fetch(ShardingUser.class).joinFetch(ShardingUser.class).build().execute();
+                    .joinFetch(ShardingUser.class).execute();
+            throw new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertEquals(e.getClass(), FetchShardEntityException.class);
+        }
+
+        try {
+            sds.createQuery().addFilter("id", sd.getId()).buildFetch()
+                    .fetch(ShardingUser.class).joinFetch(ShardingUser.class)
+                    .build().execute();
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertEquals(e.getClass(), FetchShardEntityException.class);
         }
         try {
-            sds.createQuery().addFilter("id", sd.getId())
-                .buildFetch().joinFetch(ShardingUser.class).build().execute();
+            sds.createQuery().addFilter("id", sd.getId()).buildFetch()
+                    .joinFetch(ShardingUser.class).build().execute();
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertEquals(e.getClass(), FetchShardEntityException.class);
         }
     }
-    
-    
+
     /**
      * <b>Description 删除分片表</b>
      * 

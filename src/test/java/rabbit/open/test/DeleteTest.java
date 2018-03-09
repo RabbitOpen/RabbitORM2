@@ -16,77 +16,83 @@ import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.UserService;
 
 /**
- * <b>Description: 	delete测试</b><br>
- * <b>@author</b>	肖乾斌
+ * <b>Description: delete测试</b><br>
+ * <b>@author</b> 肖乾斌
  * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations={"classpath:applicationContext.xml"})
+@ContextConfiguration(locations = { "classpath:applicationContext.xml" })
 public class DeleteTest {
 
-	@Autowired
-	UserService us;
-	
-	@Autowired
-	OrganizationService os;
-	
-	public User addInitUser(){
-	    User user = new User();
-		user.setName("wangwu");
-		user.setBirth(new Date());
-		us.add(user);
-		return user;
-	}
-	
-	/**
-	 * 
-	 * <b>Description:	清除表中所有数据</b><br>	
-	 * 
-	 */
-	@Test
-	public void clear(){
-	    addInitUser();
-	    TestCase.assertEquals(1, us.createQuery().count());
-	    us.clearAll();
-	    TestCase.assertEquals(0, us.createQuery().count());
-	}
-	
-	@Test
-	public void deleteByID(){
-	    User user = addInitUser();
-	    TestCase.assertEquals(1, us.createQuery().addFilter("id", user.getId()).count());
-	    us.deleteByID(user.getId());
-	    TestCase.assertEquals(0, us.createQuery().addFilter("id", user.getId()).count());
-	}
+    @Autowired
+    UserService us;
 
-	@Test
-	public void delete(){
-	    User user = addInitUser();
-	    TestCase.assertNotNull(us.createQuery(user).execute().unique());
-		us.delete(user);
-		TestCase.assertNull(us.createQuery(user).execute().unique());
-	}
+    @Autowired
+    OrganizationService os;
 
-	@Test
-	public void deleteFilterTest(){
-	    User user = addInitUser();
-	    TestCase.assertEquals(1, us.createQuery().addFilter("id", user.getId()).count());
-	    us.createDelete().addFilter("id", user.getId()).execute();
-	    TestCase.assertEquals(0, us.createQuery().addFilter("id", user.getId()).count());
-	}
+    public User addInitUser() {
+        User user = new User();
+        user.setName("wangwu");
+        user.setBirth(new Date());
+        us.add(user);
+        return user;
+    }
 
-	@Test
-	public void joinDelete(){
-	    Organization o = new Organization("deleteOrg", "deleteOrg");
-	    os.add(o);
-	    User user = new User();
+    /**
+     * 
+     * <b>Description: 清除表中所有数据</b><br>
+     * 
+     */
+    @Test
+    public void clear() {
+        addInitUser();
+        TestCase.assertEquals(1, us.createQuery().count());
+        us.clearAll();
+        TestCase.assertEquals(0, us.createQuery().count());
+    }
+
+    @Test
+    public void deleteByID() {
+        User user = addInitUser();
+        TestCase.assertEquals(1, us.createQuery().addFilter("id", user.getId())
+                .count());
+        us.deleteByID(user.getId());
+        TestCase.assertEquals(0, us.createQuery().addFilter("id", user.getId())
+                .count());
+    }
+
+    @Test
+    public void delete() {
+        User user = addInitUser();
+        TestCase.assertNotNull(us.createQuery(user).execute().unique());
+        us.delete(user);
+        TestCase.assertNull(us.createQuery(user).execute().unique());
+    }
+
+    @Test
+    public void deleteFilterTest() {
+        User user = addInitUser();
+        TestCase.assertEquals(1, us.createQuery().addFilter("id", user.getId())
+                .count());
+        us.createDelete().addFilter("id", user.getId()).execute();
+        TestCase.assertEquals(0, us.createQuery().addFilter("id", user.getId())
+                .count());
+    }
+
+    @Test
+    public void joinDelete() {
+        Organization o = new Organization("deleteOrg", "deleteOrg");
+        os.add(o);
+        User user = new User();
         user.setName("wangwu");
         user.setOrg(o);
         us.add(user);
-	    long result = us.createDelete().addNullFilter("birth")
-	            .addFilter("orgCode", o.getOrgCode(), Organization.class, User.class).execute();
-	    TestCase.assertEquals(1, result);
-	}
-	
-	
+        long result = us
+                .createDelete()
+                .addNullFilter("birth")
+                .addFilter("orgCode", o.getOrgCode(), Organization.class,
+                        User.class).execute();
+        TestCase.assertEquals(1, result);
+    }
+
 }

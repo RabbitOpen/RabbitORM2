@@ -30,23 +30,23 @@ import com.zaxxer.hikari.HikariDataSource;
  * 
  */
 public class TestSingleDB {
- 
+
     private static final int MAX = 10;
     static String url = "jdbc:mysql://localhost:3306/cas?useUnicode=true&characterEncoding=UTF-8&useServerPrepStmts=true";
     static String username = "root";
     static String password = "123";
     static String sql = "SELECT A.*, B.* FROM T_USER A LEFT JOIN T_ORG B ON A.ORG_ID = B.ID WHERE A.ID = 1";
-    
+
     public static void main(String[] args) {
         DataSource ds = getHikariDatasource();
         Semaphore s = new Semaphore(0);
         int threadCount = 100;
         long start = System.currentTimeMillis();
-        for(int i = 0; i < threadCount; i++){
+        for (int i = 0; i < threadCount; i++) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    for(int i = 0; i < 500; i++){
+                    for (int i = 0; i < 500; i++) {
                         Connection connection = null;
                         PreparedStatement stmt = null;
                         try {
@@ -70,16 +70,19 @@ public class TestSingleDB {
         }
         try {
             s.acquire(threadCount);
-            System.out.println("cost:\t " + (System.currentTimeMillis() - start));
+            System.out.println("cost:\t "
+                    + (System.currentTimeMillis() - start));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
-   
+
     /**
      * 
-     * <b>Description:  dbcp数据源</b><br>.
-     * @return	
+     * <b>Description: dbcp数据源</b><br>
+     * .
+     * 
+     * @return
      * 
      */
     public static DataSource getDbcpDatasource() {
@@ -100,8 +103,10 @@ public class TestSingleDB {
 
     /**
      * 
-     * <b>Description:  获取c3p0数据源</b><br>.
-     * @return	
+     * <b>Description: 获取c3p0数据源</b><br>
+     * .
+     * 
+     * @return
      * 
      */
     public static DataSource getC3p0Datasource() {
@@ -120,8 +125,10 @@ public class TestSingleDB {
 
     /**
      * 
-     * <b>Description:  获取hikari数据源</b><br>.
-     * @return	
+     * <b>Description: 获取hikari数据源</b><br>
+     * .
+     * 
+     * @return
      * 
      */
     public static DataSource getHikariDatasource() {
@@ -135,11 +142,13 @@ public class TestSingleDB {
         ds.setMaximumPoolSize(MAX);
         return ds;
     }
-    
+
     /**
      * 
-     * <b>Description:  获取rabbit数据源</b><br>.
-     * @return	
+     * <b>Description: 获取rabbit数据源</b><br>
+     * .
+     * 
+     * @return
      * 
      */
     public static DataSource getRabbitDatasource() {
@@ -155,8 +164,10 @@ public class TestSingleDB {
 
     /**
      * 
-     * <b>Description:  获取rabbit数据源</b><br>.
-     * @return	
+     * <b>Description: 获取rabbit数据源</b><br>
+     * .
+     * 
+     * @return
      * 
      */
     public static DataSource getDruidDataSource() {

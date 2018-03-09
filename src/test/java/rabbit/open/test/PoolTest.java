@@ -30,7 +30,8 @@ public class PoolTest {
     UserService us;
 
     /**
-     * <b>Description  测试SQLException导致连接被回收</b>
+     * <b>Description 测试SQLException导致连接被回收</b>
+     * 
      * @throws IOException
      */
     @Test
@@ -48,9 +49,10 @@ public class PoolTest {
             us.add(data);
             throw new RuntimeException();
         } catch (Exception e) {
-            TestCase.assertTrue(SQLException.class.isAssignableFrom(SessionFactory.getRootCause(e).getClass()));
+            TestCase.assertTrue(SQLException.class
+                    .isAssignableFrom(SessionFactory.getRootCause(e).getClass()));
             TestCase.assertEquals(rds.getCounter(), counter - 1);
         }
-        
+
     }
 }

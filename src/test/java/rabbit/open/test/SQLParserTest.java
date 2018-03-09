@@ -13,10 +13,10 @@ import rabbit.open.orm.exception.WrongMappingFilePathException;
 public class SQLParserTest {
 
     @Test
-    public void wrongPathTest(){
-        try{
+    public void wrongPathTest() {
+        try {
             new SQLParser("user").doXmlParsing();
-        }catch(Exception e){
+        } catch (Exception e) {
             TestCase.assertSame(e.getClass(), WrongMappingFilePathException.class);
         }
     }

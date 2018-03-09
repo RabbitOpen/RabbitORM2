@@ -17,15 +17,17 @@ import rabbit.open.orm.ddl.PackageScanner;
 public class PackageScannerTest {
 
     @Test
-    public void scanInterfaceTest(){
-        Set<String> clzes = PackageScanner.filterByInterface(new String[]{"rabbit"}, DataSource.class);
+    public void scanInterfaceTest() {
+        Set<String> clzes = PackageScanner.filterByInterface(
+                new String[] { "rabbit" }, DataSource.class);
         System.out.println(clzes);
         TestCase.assertTrue(clzes.size() > 1);
     }
 
     @Test
-    public void scanAnnotationsTest(){
-        Set<String> clzes = PackageScanner.filterByAnnotation(new String[]{"rabbit"}, Entity.class);
+    public void scanAnnotationsTest() {
+        Set<String> clzes = PackageScanner.filterByAnnotation(
+                new String[] { "rabbit" }, Entity.class);
         System.out.println(clzes);
         TestCase.assertTrue(clzes.size() > 1);
     }
