@@ -259,7 +259,7 @@ public class OracleDDLHelper extends DDLHelper{
     @Override
     public String getColumnName(Column column) {
         if (!column.keyWord()) {
-            return column.value();
+            return column.value().toUpperCase();
         }
         return "\"" + column.value().toUpperCase() + "\"";
     }
