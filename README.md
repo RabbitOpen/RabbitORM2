@@ -44,6 +44,8 @@
     
     2、重构ddl代码，去掉部分重复代码
     
+    3、将SpringDaoAdapter中的createNameMappedQuery更名为createFieldsMappingQuery
+    
     
     
     

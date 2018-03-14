@@ -59,7 +59,7 @@ public class SpringDaoAdapterTest {
     @Test
     public void createNameMappedQuery() {
         NameMappedBean nmb = new NameMappedBean(1L, "zhangsan", 10);
-        List<UUIDPolicyEntity> users = uues.createNameMappedQuery(nmb)
+        List<UUIDPolicyEntity> users = uues.createFieldsMappingQuery(nmb)
                 .execute().list();
         users.forEach(u -> System.out.println(u));
     }
@@ -68,7 +68,7 @@ public class SpringDaoAdapterTest {
     public void createNameMappedQueryTest() {
         NameMappedBean nmb = new NameMappedBean(1L, "zhangsan", 10,
                 new Organization("ORG", "X"));
-        List<User> users = us.createNameMappedQuery(nmb).execute().list();
+        List<User> users = us.createFieldsMappingQuery(nmb).execute().list();
         users.forEach(u -> System.out.println(u));
     }
 

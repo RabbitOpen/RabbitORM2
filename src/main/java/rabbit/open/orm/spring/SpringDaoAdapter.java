@@ -276,7 +276,7 @@ public abstract class SpringDaoAdapter<T> {
      * @return	
      * 
      */
-    public Query<T> createNameMappedQuery(Object filterData) {
+    public Query<T> createFieldsMappingQuery(Object filterData) {
         if(null == filterData){
             return createQuery();
         }
