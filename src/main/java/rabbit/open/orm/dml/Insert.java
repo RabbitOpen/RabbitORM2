@@ -183,12 +183,8 @@ public class Insert<T> extends NonQueryAdapter<T>{
 		for(FieldMetaData fmd : metaData.getFieldMetas()){
 			fmd.getField().setAccessible(true);
 			Object value = getValue(fmd.getField(), obj);
-			if(null == value){
-			    //非主键，或者自增长类型的主键
-			    if(!fmd.isPrimaryKey() || fmd.getPrimaryKey().policy().equals(Policy.AUTOINCREMENT)
-                        || fmd.getPrimaryKey().policy().equals(Policy.NONE)){
-			        continue;
-			    }
+			if(null == value && isIgnoreField(fmd)){
+		        continue;
 			}
 			nonEmptyFields++;
 			fields.append(sessionFactory.getColumnName(fmd.getColumn()) + ",");
@@ -200,5 +196,19 @@ public class Insert<T> extends NonQueryAdapter<T>{
 		fields.append(")");
 		return fields;
 	}
+
+	//非主键，或者自增长类型的主键
+    private boolean isIgnoreField(FieldMetaData fmd) {
+        if (!fmd.isPrimaryKey()) {
+            return true;
+        }
+        if (fmd.getPrimaryKey().policy().equals(Policy.NONE)) {
+            return true;
+        }
+        if (fmd.getPrimaryKey().policy().equals(Policy.AUTOINCREMENT)) {
+            return true;
+        }
+        return false;
+    }
 
 }

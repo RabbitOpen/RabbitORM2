@@ -154,7 +154,6 @@ public class MySQLDDLHelper extends DDLHelper{
         typeStringCache.put(Integer.class, BIGINT);
         typeStringCache.put(Short.class, BIGINT);
         typeStringCache.put(Long.class, BIGINT);
-        
     }
 
 	@Override
