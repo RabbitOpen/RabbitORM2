@@ -19,6 +19,7 @@ import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.FilterDescriptor;
 import rabbit.open.orm.dml.meta.MetaData;
+import rabbit.open.orm.dml.meta.MultiDropFilter;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.shard.ShardFactor;
@@ -31,7 +32,7 @@ import rabbit.open.orm.shard.ShardFactor;
  */
 public class Update<T> extends NonQueryAdapter<T>{
 
-	private T value2Update = null;
+    private T value2Update = null;
 	
 	//动态添加的字段
 	private Map<String, Object> settedValue = new HashMap<>();
@@ -97,6 +98,15 @@ public class Update<T> extends NonQueryAdapter<T>{
 		super.addFilter(fieldReg, value, ft, depsPath);
 		return this;
 	}
+	
+	/**
+     * <b>Description  添加Or类型的过滤条件</b>
+     * @param multiDropFilter
+     */
+    public Update<T> setMultiDropFilter(MultiDropFilter multiDropFilter) {
+        cacheMultiDropFilter(multiDropFilter);
+        return this;
+    }
 
 	/**
 	 * 
@@ -206,7 +216,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 			throw new RabbitDMLException("primary key can't be empty!");
 		}
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(pkValue, new FieldMetaData(pk, pk.getAnnotation(Column.class))), pk));
-		sql.append(" WHERE " + TARGET_TABLE_NAME + "." + sessionFactory.getColumnName(metaData.getPrimaryKey()) + " = " + PLACE_HOLDER);
+		sql.append(WHERE + TARGET_TABLE_NAME + "." + getColumnName(metaData.getPrimaryKey()) + " = " + PLACE_HOLDER);
 		sqlOperation = new SQLOperation() {
 			@Override
 			public long executeSQL(Connection conn) throws SQLException {
@@ -236,7 +246,12 @@ public class Update<T> extends NonQueryAdapter<T>{
 	private StringBuilder createFilterSql() {
 		StringBuilder sql = new StringBuilder();
 		if(filterDescriptors.isEmpty()){
-			return sql;
+		    StringBuilder mds = createMultiDropSql();
+            if (0 != mds.length()) {
+                mds.insert(0, WHERE);
+                sql.append(mds);
+            }
+            return sql;
 		}
 		boolean isJoin = false;
 		for(FilterDescriptor fd : filterDescriptors){
@@ -247,9 +262,9 @@ public class Update<T> extends NonQueryAdapter<T>{
 		}
 		if(isJoin){
 			//联合更新
-			sql.append(" WHERE " + metaData.getTableName() + "." + sessionFactory.getColumnName(metaData.getPrimaryKey()) + " IN "
+			sql.append(WHERE + metaData.getTableName() + "." + getColumnName(metaData.getPrimaryKey()) + " IN "
 					+ "(SELECT * FROM (");
-			sql.append("SELECT " + metaData.getTableName() + "." + sessionFactory.getColumnName(metaData.getPrimaryKey()) 
+			sql.append("SELECT " + metaData.getTableName() + "." + getColumnName(metaData.getPrimaryKey()) 
 					+ " FROM " + metaData.getTableName());
 			sql.append(generateInnerJoinsql());
 			sql.append(generateFilterSql());
@@ -287,7 +302,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 				preparedValues.add(new PreparedValue(null));
 				fields2Update++;
 				sql.append(" " + metaData.getTableName() + "." 
-				        + sessionFactory.getColumnName(fmd.getColumn()) 
+				        + getColumnName(fmd.getColumn()) 
 				        + " = " + PLACE_HOLDER + ", ");
 				continue;
 			}
@@ -314,7 +329,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 */
 	private void appendCommonFieldsValue(StringBuilder sql, FieldMetaData fmd) {
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fmd.getFieldValue(), fmd), fmd.getField()));
-		sql.append(" " + TARGET_TABLE_NAME + "." + sessionFactory.getColumnName(fmd.getColumn()) + "=");
+		sql.append(" " + TARGET_TABLE_NAME + "." + getColumnName(fmd.getColumn()) + "=");
 		sql.append(PLACE_HOLDER);
 		sql.append(",");
 	}
@@ -334,7 +349,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 			if(null != fkValue){
 				preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fkValue, new FieldMetaData(foreignField, 
                         foreignField.getAnnotation(Column.class))), foreignField));
-				sql.append(" " + TARGET_TABLE_NAME + "." + sessionFactory.getColumnName(fmd.getColumn()) + "=");
+				sql.append(" " + TARGET_TABLE_NAME + "." + getColumnName(fmd.getColumn()) + "=");
 				sql.append(PLACE_HOLDER);
 				sql.append(",");
 			}

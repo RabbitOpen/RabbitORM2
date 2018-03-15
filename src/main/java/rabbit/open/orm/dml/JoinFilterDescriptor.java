@@ -92,7 +92,7 @@ public class JoinFilterDescriptor {
      */
     public JoinFilterDescriptor on(String fieldReg, Object value, FilterType ft){
         String field = query.getFieldByReg(fieldReg);
-        query.checkField(clz, field);
+        DMLAdapter.checkField(clz, field);
         if(!joinFilters.containsKey(clz)){
             joinFilters.put(clz, new HashMap<String, List<DynamicFilterDescriptor>>());
         }

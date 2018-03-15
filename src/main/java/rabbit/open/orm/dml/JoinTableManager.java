@@ -136,7 +136,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T>{
 				continue;
 			}
 			ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
-			sql.append("DELETE FROM " + mtm.joinTable() + " WHERE ");
+			sql.append("DELETE FROM " + mtm.joinTable() + WHERE);
 			sql.append(mtm.joinColumn() + " = ");
 			sql.append(PLACE_HOLDER);
 			FieldMetaData fmd = getPrimayKeyFieldMeta(getEntityClz());

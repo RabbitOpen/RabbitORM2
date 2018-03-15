@@ -138,4 +138,5 @@ public class Query<T> extends AbstractQuery<T> {
 	public AbstractQuery<T> addNullFilter(String reg, Class<?>... depsPath) {
 		return addNullFilter(reg, true, depsPath);
 	}
+
 }

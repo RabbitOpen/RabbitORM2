@@ -388,7 +388,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 			PreparedSqlDescriptor psd = new PreparedSqlDescriptor(1);
 			ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 			StringBuilder rsql = new StringBuilder();
-			rsql.append("DELETE FROM " + mtm.joinTable() + " WHERE ");
+			rsql.append("DELETE FROM " + mtm.joinTable() + WHERE);
 			FieldMetaData pkfmd = getPrimayKeyFieldMeta(getEntityClz());
             Object pv = RabbitValueConverter.convert(value, pkfmd);
 			List<Object> values = new ArrayList<>();

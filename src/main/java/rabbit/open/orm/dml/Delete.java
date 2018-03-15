@@ -10,6 +10,7 @@ import rabbit.open.orm.dialect.dml.DeleteDialectAdapter;
 import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
+import rabbit.open.orm.dml.meta.MultiDropFilter;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.shard.ShardFactor;
@@ -62,6 +63,11 @@ public class Delete<T> extends NonQueryAdapter<T> {
 	private void createDeleteSql() {
 		if(filterDescriptors.isEmpty()){
 			sql = new StringBuilder("DELETE FROM " + metaData.getTableName());
+			StringBuilder mds = createMultiDropSql();
+            if (0 != mds.length()) {
+                mds.insert(0, WHERE);
+                sql.append(mds);
+            }
 			return;
 		}
 		DeleteDialectAdapter generator = DeleteDialectAdapter.getDialectGenerator(sessionFactory.getDialectType());
@@ -79,14 +85,14 @@ public class Delete<T> extends NonQueryAdapter<T> {
 		if(null == id){
 			throw new RabbitDMLException("id can't be null");
 		}
-		sql = new StringBuilder("DELETE FROM " + TARGET_TABLE_NAME + " WHERE ");
+		sql = new StringBuilder("DELETE FROM " + TARGET_TABLE_NAME + WHERE);
 		for(FieldMetaData fmd : metaData.getFieldMetas()){
 			if(!fmd.isPrimaryKey()){
 				continue;
 			}
 			factors.add(new ShardFactor(fmd.getField(), FilterType.EQUAL.value(), id));
 			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(id, fmd), fmd.getField()));
-			sql.append(sessionFactory.getColumnName(fmd.getColumn()) + " = " + PLACE_HOLDER);
+			sql.append(getColumnName(fmd.getColumn()) + " = " + PLACE_HOLDER);
 		}
 		sqlOperation = new SQLOperation(){
 			@Override
@@ -123,6 +129,15 @@ public class Delete<T> extends NonQueryAdapter<T> {
 		return this;
 	}
 
+	/**
+     * <b>Description  添加Or类型的过滤条件</b>
+     * @param multiDropFilter
+     */
+    public Delete<T> setMultiDropFilter(MultiDropFilter multiDropFilter) {
+        cacheMultiDropFilter(multiDropFilter);
+        return this;
+    }
+    
 	/**
 	 * 
 	 * <b>Description:	动态新增一个过滤条件</b><br>

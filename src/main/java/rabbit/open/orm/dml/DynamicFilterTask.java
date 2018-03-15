@@ -55,7 +55,7 @@ public class DynamicFilterTask<T> implements CallBackTask{
 			return;
 		}
 		String field = dmlAdapter.getFieldByReg(reg);
-		this.dmlAdapter.checkField(depsPath[0], field);
+		DMLAdapter.checkField(depsPath[0], field);
 		this.dmlAdapter.checkQueryPath(depsPath);
 		if (!dmlAdapter.addedFilters.containsKey(depsPath[0])) {
 			dmlAdapter.addedFilters.put(depsPath[0], new HashMap<String, List<DynamicFilterDescriptor>>());

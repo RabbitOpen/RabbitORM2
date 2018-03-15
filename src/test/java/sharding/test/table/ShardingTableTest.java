@@ -16,6 +16,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.orm.dialect.ddl.DDLHelper;
 import rabbit.open.orm.dml.DMLAdapter;
+import rabbit.open.orm.dml.meta.MultiDropFilter;
 import rabbit.open.orm.exception.FetchShardEntityException;
 import rabbit.open.orm.pool.SessionFactory;
 import sharding.test.table.entity.Region;
@@ -158,7 +159,10 @@ public class ShardingTableTest {
         String g2 = "female";
         long age2 = 12;
         sus.createUpdate().set("age", age2).set("gender", g2)
-                .addFilter("id", 15L).addFilter("name", "zhangsan").execute();
+                .addFilter("id", 15L)
+                .setMultiDropFilter(new MultiDropFilter(ShardingUser.class)
+                        .on("name", "zhangsan"))
+                .execute();
         u = sus.getByID(user.getId());
         TestCase.assertTrue(age2 == u.getAge());
         TestCase.assertEquals(u.getGender(), g2);

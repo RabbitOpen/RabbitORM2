@@ -194,6 +194,14 @@ public class User {
     public void setIndex(String index) {
         this.index = index;
     }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
     
     
 

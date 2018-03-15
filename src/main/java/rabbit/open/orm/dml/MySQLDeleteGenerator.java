@@ -27,7 +27,7 @@ public class MySQLDeleteGenerator extends DeleteDialectAdapter{
 				String key = fd.getKey();
 				if(FilterType.IS.value().equals(fd.getFilter().trim()) 
 						|| FilterType.IS_NOT.value().equals(fd.getFilter().trim())){
-					sql.append(key + " " + fd.getFilter() + " NULL ");
+					sql.append(key + " " + fd.getFilter() + DMLAdapter.NULL);
 				}else{
 					delete.cachePreparedValues(fd.getValue(), fd.getField());
 					sql.append(key + fd.getFilter() + delete.createPlaceHolder(fd.getFilter(), fd.getValue()));
@@ -36,6 +36,12 @@ public class MySQLDeleteGenerator extends DeleteDialectAdapter{
 				sql.append(" AND " + fd.getKey() + " = " + fd.getValue());
 			}
 		}
+		if (null == delete.multiDropFilter || 0 == delete.multiDropFilter.getFilters().size()) {
+            return sql;
+        }
+		sql.append(" AND (");
+		sql.append(delete.createMultiDropSql());
+		sql.append(")");
 		return sql;
 	}
 

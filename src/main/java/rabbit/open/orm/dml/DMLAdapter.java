@@ -31,9 +31,11 @@ import rabbit.open.orm.dml.meta.FilterDescriptor;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFilter;
 import rabbit.open.orm.dml.meta.MetaData;
+import rabbit.open.orm.dml.meta.MultiDropFilter;
 import rabbit.open.orm.dml.util.SQLFormater;
 import rabbit.open.orm.exception.AmbiguousDependencyException;
 import rabbit.open.orm.exception.CycleDependencyException;
+import rabbit.open.orm.exception.IllegalMultiDropFilterTypeException;
 import rabbit.open.orm.exception.InvalidFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.InvalidQueryPathException;
@@ -50,6 +52,10 @@ import rabbit.open.orm.shard.ShardingPolicy;
  * 
  */
 public abstract class DMLAdapter<T> {
+
+    protected static final String NULL = " NULL ";
+    
+    protected static final String WHERE = " WHERE ";
 
     //换行
 	private static final String NEW_LINE = "\n";
@@ -86,6 +92,8 @@ public abstract class DMLAdapter<T> {
 	protected Map<Class<?>, List<FilterDescriptor>> clzesEnabled2Join;
 	
 	protected Pattern pattern;
+	
+	protected MultiDropFilter multiDropFilter;
 	
 	//动态添加的过滤器
 	protected Map<Class<?>, Map<String, List<DynamicFilterDescriptor>>> addedFilters;
@@ -303,11 +311,11 @@ public abstract class DMLAdapter<T> {
 		for(FieldMetaData fmd : fieldMetas){
 			if(fmd.isForeignKey()){
 				Column column = MetaData.getPrimaryKeyField(fmd.getFieldValue().getClass()).getAnnotation(Column.class);
-                String fkName = sessionFactory.getColumnName(column);
+                String fkName = getColumnName(column);
 				String fkTable = getTableNameByClass(fmd.getField().getType());
 				MetaData.updateTableMapping(fkTable, fmd.getField().getType());
 				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName()) + "." 
-				        + sessionFactory.getColumnName(fmd.getColumn()), 
+				        + getColumnName(fmd.getColumn()), 
 						getAliasByTableName(fkTable) + "." + fkName);
 				desc.setField(fmd.getField());
 				desc.setJoinOn(true);
@@ -316,7 +324,7 @@ public abstract class DMLAdapter<T> {
 				generateFilters(getNonEmptyFieldMetas(fmd.getFieldValue(), fmd.getField().getType()));
 			}else{
 				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName()) + "." 
-				        + sessionFactory.getColumnName(fmd.getColumn()), 
+				        + getColumnName(fmd.getColumn()), 
 						RabbitValueConverter.convert(fmd.getFieldValue(), fmd), 
 						FilterType.EQUAL.value());
 				desc.setField(fmd.getField());
@@ -344,7 +352,7 @@ public abstract class DMLAdapter<T> {
 				for(DynamicFilterDescriptor dfd : dfds){
 					FilterDescriptor desc = new FilterDescriptor(
 							getAliasByTableName(getTableNameByClass(entry.getKey())) + "." 
-							        + sessionFactory.getColumnName(fmd.getColumn()), 
+							        + getColumnName(fmd.getColumn()), 
 							RabbitValueConverter.convert(dfd.getValue(), fmd), 
 							dfd.getFilter().value());
 					desc.setField(fmd.getField());
@@ -537,14 +545,14 @@ public abstract class DMLAdapter<T> {
             }
             Column column = MetaData.getPrimaryKeyField(fmd.getField().getType())
                     .getAnnotation(Column.class);
-            String fkName = sessionFactory.getColumnName(column);
+            String fkName = getColumnName(column);
             String fkTable = getTableNameByClass(fmd.getField().getType());
             String tableAlias = getAliasByTableName(fkTable);
             if(fmd.isMutiFetchField()){
                 tableAlias = tableAlias + UNDERLINE + fmd.getIndex();
             }
             FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(getTableNameByClass(clz))
-                            + "." + sessionFactory.getColumnName(fmd.getColumn()), tableAlias + "." + fkName);
+                            + "." + getColumnName(fmd.getColumn()), tableAlias + "." + fkName);
             desc.setField(fmd.getField());
             desc.setMultiFetchField(fmd.isMutiFetchField());
             desc.setIndex(fmd.getIndex());
@@ -677,18 +685,14 @@ public abstract class DMLAdapter<T> {
 	 * @param field	
 	 * 
 	 */
-	protected void checkField(Class<?> target, String field) {
-		boolean isValidField = false;
+	public static Field checkField(Class<?> target, String field) {
 		List<FieldMetaData> cachedFieldsMetas = MetaData.getCachedFieldsMetas(target);
 		for(FieldMetaData fmd : cachedFieldsMetas){
 		    if(fmd.getField().getName().equals(field)){
-		        isValidField = true;
-		        break;
+		        return fmd.getField();
 		    }
 		}
-		if(!isValidField){
-			throw new UnKnownFieldException("field[" + field + "] does not belong to " + target);
-		}
+		throw new UnKnownFieldException("field[" + field + "] does not belong to " + target);
 	}
 	
 	/**
@@ -728,23 +732,39 @@ public abstract class DMLAdapter<T> {
 			}
 			sb.append(" INNER JOIN " + fd.getFilterTable() + " " + getAliasByTableName(fd.getFilterTable()));
 			sb.append(" ON " + fd.getKey() + fd.getFilter() + fd.getValue());
-			for(FilterDescriptor fdi : filterDescriptors){
-				if(fdi.isJoinOn() || !fdi.getFilterTable().equals(fd.getFilterTable())){
-					continue;
-				}
-				String key = fdi.getKey();
-				if(FilterType.IS.value().equals(fdi.getFilter().trim()) 
-						|| FilterType.IS_NOT.value().equals(fdi.getFilter().trim())){
-					sb.append(" AND " + key + " " + fdi.getFilter() + " NULL ");
-				}else{
-					cachePreparedValues(fdi.getValue(), fdi.getField());
-					sb.append(" AND " + key + fdi.getFilter() + createPlaceHolder(fdi.getFilter(), fdi.getValue()));
-				}
-			}
+			sb.append(createInnerJoinFiltersSqlByDescriptor(fd));
 		}
 		return sb;
 	}
+
+    protected String getColumnName(Column c) {
+        return sessionFactory.getColumnName(c);
+    }
+
 	
+    /**
+     * <b>Description  根据FilterDescriptor生成内链接过滤条件sql片段</b>
+     * @param fd
+     * @return
+     */
+    private StringBuilder createInnerJoinFiltersSqlByDescriptor(FilterDescriptor fd) {
+        StringBuilder sb = new StringBuilder();
+        for(FilterDescriptor fdi : filterDescriptors){
+        	if(fdi.isJoinOn() || !fdi.getFilterTable().equals(fd.getFilterTable())){
+        		continue;
+        	}
+        	String key = fdi.getKey();
+        	if(FilterType.IS.value().equals(fdi.getFilter().trim()) 
+        			|| FilterType.IS_NOT.value().equals(fdi.getFilter().trim())){
+        		sb.append(" AND " + key + " " + fdi.getFilter() + NULL);
+        	}else{
+        		cachePreparedValues(fdi.getValue(), fdi.getField());
+        		sb.append(" AND " + key + fdi.getFilter() + createPlaceHolder(fdi.getFilter(), fdi.getValue()));
+        	}
+        }
+        return sb;
+    }
+
 	/**
 	 * 
 	 * <b>Description:	创建过滤条件的sql</b><br>
@@ -752,36 +772,70 @@ public abstract class DMLAdapter<T> {
 	 * 
 	 */
 	protected StringBuilder generateFilterSql() {
-		StringBuilder filterSql = new StringBuilder();
-		if(filterDescriptors.isEmpty()){
-			return filterSql;
-		}
-		List<FilterDescriptor> fds = getFilterDescriptors();
-		if(fds.isEmpty()){
-		    return filterSql;
-		}
-		appendFilters(filterSql, fds);
-		return filterSql;
+        StringBuilder fsql = new StringBuilder();
+        if (filterDescriptors.isEmpty() || getFilterDescriptors().isEmpty()) {
+            StringBuilder multiDropSql = createMultiDropSql();
+            if (0 != multiDropSql.length()) {
+                multiDropSql.insert(0, WHERE);
+                fsql.append(multiDropSql);
+            }
+            return fsql;
+        }
+        fsql.append(createFilters());
+        return fsql;
 	}
 
-    private void appendFilters(StringBuilder filterSql,
-            List<FilterDescriptor> fds) {
-        filterSql.append(" WHERE ");
+
+    private StringBuilder createFilters() {
+        List<FilterDescriptor> fds = getFilterDescriptors();
+        StringBuilder fsql = new StringBuilder();
+        fsql.append(WHERE);
         for(int i = 0; i < fds.size(); i++){
             FilterDescriptor fd = fds.get(i);
             String key = fd.getKey();
             String filter = fd.getFilter();
             if(FilterType.IS.value().equals(filter.trim()) 
                     || FilterType.IS_NOT.value().equals(filter.trim())){
-                filterSql.append(key + " " + filter + " NULL ");
+                fsql.append(key + " " + filter + NULL);
             }else{
                 cachePreparedValues(fd.getValue(), fd.getField());
-                filterSql.append(key + filter + createPlaceHolder(filter, fd.getValue()));
+                fsql.append(key + filter + createPlaceHolder(filter, fd.getValue()));
             }
             if(i != fds.size() - 1){
-                filterSql.append(fd.getConnector());
+                fsql.append(fd.getConnector());
             }
         }
+        if (null == multiDropFilter || 0 == multiDropFilter.getFilters().size()) {
+            return fsql;
+        }
+        fsql.append(" AND (");
+        fsql.append(createMultiDropSql());
+        fsql.append(")");
+        return fsql;
+    }
+
+    protected StringBuilder createMultiDropSql() {
+        StringBuilder fsql = new StringBuilder();
+        if (null == multiDropFilter || 0 == multiDropFilter.getFilters().size()) {
+            return fsql;
+        }
+        int i = 0;
+        for (Entry<String, FilterDescriptor> entry : multiDropFilter.getFilters().entrySet()) {
+            FilterDescriptor fdi = entry.getValue();
+            Column col = fdi.getField().getAnnotation(Column.class);
+            String key = getAliasByTableName(getCurrentTableName()) + "." + getColumnName(col);
+            Object value = RabbitValueConverter.convert(fdi.getValue(), 
+                    MetaData.getCachedFieldsMeta(getEntityClz(), entry.getKey()));
+            if(FilterType.IS.value().equals(fdi.getFilter().trim()) 
+                    || FilterType.IS_NOT.value().equals(fdi.getFilter().trim())){
+                fsql.append((i == 0 ? " " : " OR ") + key + fdi.getFilter() + NULL);
+            }else{
+                cachePreparedValues(value, fdi.getField());
+                fsql.append((i == 0 ? " " : " OR ") + key + fdi.getFilter() + createPlaceHolder(fdi.getFilter(), value));
+            }
+            i++;
+        }
+        return fsql;
     }
 
     private List<FilterDescriptor> getFilterDescriptors() {
@@ -882,4 +936,10 @@ public abstract class DMLAdapter<T> {
         }
     }
 
+    protected void cacheMultiDropFilter(MultiDropFilter multiDropFilter) {
+        if (!metaData.getEntityClz().equals(multiDropFilter.getTargetClz())) {
+            throw new IllegalMultiDropFilterTypeException(multiDropFilter.getTargetClz());
+        }
+        this.multiDropFilter = multiDropFilter;
+    }
 }

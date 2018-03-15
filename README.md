@@ -46,6 +46,8 @@
     
     3、将SpringDaoAdapter中的createNameMappedQuery更名为createFieldsMappingQuery
     
+    4、新增支持【主表对象】简单OR类型过滤条件的API ----> setMultiDropFilter。MultiDropFilter不参与分表计算因子
+    
     
     
     
