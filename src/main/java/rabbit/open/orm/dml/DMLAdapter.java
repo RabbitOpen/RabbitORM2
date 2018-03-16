@@ -293,14 +293,14 @@ public abstract class DMLAdapter<T> {
 	/**
      * 
      * <b>Description:  反射取值</b><br>
-     * @param pk
+     * @param field
      * @param target
      * @return  
      * 
      */
-    protected Object getValue(Field pk, Object target){
+    protected Object getValue(Field field, Object target){
         try {
-            return pk.get(target);
+            return field.get(target);
         } catch (Exception e) {
             throw new RabbitDMLException(e.getMessage());
         }

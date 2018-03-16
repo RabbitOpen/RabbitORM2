@@ -43,7 +43,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
         Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         pk.setAccessible(true);
         Object value;
-        value = getFieldValue(data, pk);
+        value = getValue(pk, data);
         assertEmptyPKValue(value);
         this.sqlOperation = new SQLOperation() {
 
@@ -88,7 +88,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
     public long removeJoinRecords(T data) {
         Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         pk.setAccessible(true);
-        Object value = getFieldValue(data, pk);
+        Object value = getValue(pk, data);
         assertEmptyPKValue(value);
         this.sqlOperation = new SQLOperation() {
             @Override
@@ -106,14 +106,6 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
         return execute();
     }
 
-    private Object getFieldValue(T data, Field field) {
-        try {
-            return field.get(data);
-        } catch (IllegalAccessException e) {
-            throw new RabbitDMLException(e.getMessage(), e);
-        }
-    }
-
     /**
      * 
      * <b>Description: 清除多对多记录</b><br>
@@ -125,7 +117,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
         Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         pk.setAccessible(true);
         Object value;
-        value = getFieldValue(data, pk);
+        value = getValue(pk, data);
         assertEmptyPKValue(value);
         sql = new StringBuilder();
         for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
@@ -171,7 +163,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
     public void replaceJoinRecords(T data) {
         Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         pk.setAccessible(true);
-        Object value = getFieldValue(data, pk);
+        Object value = getValue(pk, data);
         assertEmptyPKValue(value);
         this.sqlOperation = new SQLOperation() {
             @Override

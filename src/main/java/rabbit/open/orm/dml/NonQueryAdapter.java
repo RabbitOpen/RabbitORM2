@@ -211,12 +211,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 				continue;
 			}
 			jfm.getField().setAccessible(true);
-			List<?> jrs;
-			try {
-				jrs = (List<?>) jfm.getField().get(data);
-			} catch (IllegalAccessException e) {
-				throw new RabbitDMLException(e);
-			}
+			List<?> jrs = (List<?>)getValue(jfm.getField(), data);
 			if(null == jrs || jrs.isEmpty()){
 				continue;
 			}
@@ -311,35 +306,37 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	 */
 	@SuppressWarnings("unchecked")
     protected int executeBatch(Connection conn, List<PreparedSqlDescriptor> psds, int counter) throws SQLException {
-		for(PreparedSqlDescriptor psd : psds){
-			PreparedStatement stmt = null;
-			try{
-			    stmt = conn.prepareStatement(psd.getSql().toString());
-	            stmt.clearBatch();
-	            sql = new StringBuilder("\n" + (sessionFactory.isFormatSql() ? SQLFormater.format(psd.getSql().toString()) : psd.getSql().toString()));
-	            for(int i = 0; i < psd.getExecuteTimes(); i++){
-	                List<PreparedValue> values = (List<PreparedValue>) preparedValues.get(counter);
-	                counter++;
-	                sql.append("\n");
-	                sql.append("prepareStatement values(");
-	                for(int j = 1; j <= values.size(); j++){
-	                    setStmtValue(j, values.get(j - 1), stmt);
-	                    sql.append(values.get(j - 1).getValue() + ", ");
-	                }
-	                sql.deleteCharAt(sql.lastIndexOf(","));
-	                sql.deleteCharAt(sql.lastIndexOf(" "));
-	                sql.append(")");
-	                stmt.addBatch();
-	            }
-	            if(sessionFactory.isShowSql()){
-	                logger.info(sql);
-	            }
-	            stmt.executeBatch();
-			} finally {
-			    clearBatch(stmt);
-			    closeStmt(stmt);
-			}
-		}
+        for (PreparedSqlDescriptor psd : psds) {
+            PreparedStatement stmt = null;
+            try {
+                stmt = conn.prepareStatement(psd.getSql().toString());
+                stmt.clearBatch();
+                sql = new StringBuilder("\n" + (sessionFactory.isFormatSql() ? 
+                        SQLFormater.format(psd.getSql().toString()) : psd.getSql().toString()));
+                for (int i = 0; i < psd.getExecuteTimes(); i++) {
+                    List<PreparedValue> values = (List<PreparedValue>) preparedValues
+                            .get(counter);
+                    counter++;
+                    sql.append("\n");
+                    sql.append("prepareStatement values(");
+                    for (int j = 1; j <= values.size(); j++) {
+                        setStmtValue(j, values.get(j - 1), stmt);
+                        sql.append(values.get(j - 1).getValue() + ", ");
+                    }
+                    sql.deleteCharAt(sql.lastIndexOf(","));
+                    sql.deleteCharAt(sql.lastIndexOf(" "));
+                    sql.append(")");
+                    stmt.addBatch();
+                }
+                if (sessionFactory.isShowSql()) {
+                    logger.info(sql);
+                }
+                stmt.executeBatch();
+            } finally {
+                clearBatch(stmt);
+                closeStmt(stmt);
+            }
+        }
 		return counter;
 	}
 
@@ -371,45 +368,41 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	 */
 	protected List<PreparedSqlDescriptor> createRemoveJoinRecordsSql(T data, Object value){
 		List<PreparedSqlDescriptor> des = new ArrayList<>();
-		for(JoinFieldMetaData<?> jfm : metaData.getJoinMetas()){
-			if(!(jfm.getAnnotation() instanceof ManyToMany)){
-				continue;
-			}
-			jfm.getField().setAccessible(true);
-			List<?> jrs;
-			try {
-				jrs = (List<?>) jfm.getField().get(data);
-			} catch (IllegalAccessException e) {
-				throw new RabbitDMLException(e);
-			}
-			if(null == jrs || jrs.isEmpty()){
-				continue;
-			}
-			PreparedSqlDescriptor psd = new PreparedSqlDescriptor(1);
-			ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
-			StringBuilder rsql = new StringBuilder();
-			rsql.append("DELETE FROM " + mtm.joinTable() + WHERE);
-			FieldMetaData pkfmd = getPrimayKeyFieldMeta(getEntityClz());
+        for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
+            if (!(jfm.getAnnotation() instanceof ManyToMany)) {
+                continue;
+            }
+            jfm.getField().setAccessible(true);
+            List<?> jrs = (List<?>) getValue(jfm.getField(), data);
+            if (null == jrs || jrs.isEmpty()) {
+                continue;
+            }
+            PreparedSqlDescriptor psd = new PreparedSqlDescriptor(1);
+            ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
+            StringBuilder rsql = new StringBuilder();
+            rsql.append("DELETE FROM " + mtm.joinTable() + WHERE);
+            FieldMetaData pkfmd = getPrimayKeyFieldMeta(getEntityClz());
             Object pv = RabbitValueConverter.convert(value, pkfmd);
-			List<Object> values = new ArrayList<>();
-			values.add(new PreparedValue(pv, pkfmd.getField()));
-			rsql.append(mtm.joinColumn() + " = " + PLACE_HOLDER);
-			rsql.append(" AND " + mtm.reverseJoinColumn() + " IN (");
-			for(Object o : jrs){
-				Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
-				jpk.setAccessible(true);
-				//子表的主键值
-				Object jpkv = getValue(o, jpk);
-				FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
-                values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
-				rsql.append("?,");
-			}
-			rsql.deleteCharAt(rsql.lastIndexOf(","));
-			rsql.append(")");
-			preparedValues.add(values);
-			psd.setSql(rsql);
-			des.add(psd);
-		}
+            List<Object> values = new ArrayList<>();
+            values.add(new PreparedValue(pv, pkfmd.getField()));
+            rsql.append(mtm.joinColumn() + " = " + PLACE_HOLDER);
+            rsql.append(" AND " + mtm.reverseJoinColumn() + " IN (");
+            for (Object o : jrs) {
+                Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
+                jpk.setAccessible(true);
+                // 子表的主键值
+                Object jpkv = getValue(o, jpk);
+                FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
+                values.add(new PreparedValue(RabbitValueConverter.convert(jpkv,
+                        fmd), fmd.getField()));
+                rsql.append("?,");
+            }
+            rsql.deleteCharAt(rsql.lastIndexOf(","));
+            rsql.append(")");
+            preparedValues.add(values);
+            psd.setSql(rsql);
+            des.add(psd);
+        }
 		return des;
 	}
 }

@@ -14,6 +14,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.orm.exception.EmptyPrimaryKeyValueException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.Role;
 import rabbit.open.test.entity.User;
@@ -58,11 +59,11 @@ public class JoinTableManagerTest {
      */
     @Test
     public void removeJoinRecordsTest() {
-        User user = addRecords(2);
-        user = query(user);
+        User u = addRecords(2);
+        User user = query(u);
         TestCase.assertEquals(user.getRoles().size(), 2);
         us.removeJoinRecords(user);
-        user = query(user);
+        user = query(u);
         TestCase.assertNull(user.getRoles());
     }
 
@@ -73,11 +74,11 @@ public class JoinTableManagerTest {
      */
     @Test
     public void clearJoinRecordsTest() {
-        User user = addRecords(3);
-        user = query(user);
+        User u = addRecords(3);
+        User user = query(u);
         TestCase.assertEquals(user.getRoles().size(), 3);
-        us.clearJoinRecords(user, Role.class);
-        user = query(user);
+        us.clearJoinRecords(u, Role.class);
+        user = query(u);
         TestCase.assertNull(user.getRoles());
     }
 
@@ -127,6 +128,11 @@ public class JoinTableManagerTest {
             roles.add(r);
         }
         user.setRoles(roles);
+        List<Car> cars = new ArrayList<>();
+        Car c = new Car();
+        c.setId(1);
+        cars.add(c);
+        user.setCars(cars);
         us.addJoinRecords(user);
         return user;
     }
