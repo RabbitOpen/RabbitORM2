@@ -90,6 +90,7 @@ public class DeleteTest {
         long result = us
                 .createDelete()
                 .addNullFilter("birth")
+                .addNullFilter("birth", true)
                 .addFilter("orgCode", o.getOrgCode(), Organization.class,
                         User.class).execute();
         TestCase.assertEquals(1, result);
