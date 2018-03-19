@@ -53,6 +53,10 @@
     
     1、新增对SQLite3的支持
     
+    2、AbstractQuery 新增list和unique方法。
+    
+    3、扩展查询对象功能， 允许同一个查询对象重复执行execute、count、list以及unique方法
+    
     
     
     

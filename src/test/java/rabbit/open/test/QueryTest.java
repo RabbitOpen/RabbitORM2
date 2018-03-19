@@ -336,20 +336,28 @@ public class QueryTest {
      */
     @Test
     public void countTest() {
-        addInitData(130);
+        User u = addInitData(130);
         Query<User> query = us.createQuery();
-        long count = query
-                .joinFetch(Role.class)
-                .fetch(Organization.class)
-                .joinFetch(Car.class)
-                .addInnerJoinFilter(
-                        JoinFilterBuilder.prepare(query).join(Role.class)
-                                .on("id", 1).on("roleName", "R120")
-                                .join(Resources.class).on("${id}", 2L).build())
-                .addInnerJoinFilter(
-                        JoinFilterBuilder.prepare(query).join(Car.class)
-                                .on("${id}", 1).build()).count();
-        System.out.println(count);
+        query.joinFetch(Role.class).fetch(Organization.class)
+            .joinFetch(Car.class)
+            .addInnerJoinFilter(
+                JoinFilterBuilder.prepare(query).join(Role.class)
+                        .on("id", u.getRoles().get(0).getId()).on("roleName", u.getRoles().get(0).getRoleName())
+                        .join(Resources.class).on("${id}", 
+                                u.getRoles().get(0).getResources().get(0).getId()).build())
+            .addInnerJoinFilter(
+                JoinFilterBuilder.prepare(query).join(Car.class)
+                        .on("${id}", u.getCars().get(1).getId()).build());
+        long count = query.count();
+        TestCase.assertEquals(1, count);
+
+        TestCase.assertEquals(1, query.list().size());
+        
+        User user = query.unique();
+        TestCase.assertEquals(user.getRoles().size(), 1);
+        TestCase.assertEquals(user.getCars().size(), 1);
+        TestCase.assertEquals(user.getCars().get(0).getCarNo(), u.getCars().get(1).getCarNo());
+        TestCase.assertEquals(user.getRoles().get(0).getRoleName(), u.getRoles().get(0).getRoleName());
     }
 
     /**

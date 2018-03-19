@@ -172,7 +172,7 @@ public class SQLiteQueryTest {
     public void queryOrderTest() {
         addInitData(220);
         List<SQLiteUser> list = us.createQuery().page(0, 10)
-                .fetch(SQLiteOrganization.class).desc("id").asc("name").execute()
+                .fetch(SQLiteOrganization.class).desc("id").asc("name")
                 .list();
         TestCase.assertTrue(list.size() >= 1);
         TestCase.assertTrue(list.size() <= 10);
@@ -336,20 +336,28 @@ public class SQLiteQueryTest {
      */
     @Test
     public void countTest() {
-        addInitData(130);
+        SQLiteUser u = addInitData(130);
         Query<SQLiteUser> query = us.createQuery();
-        long count = query
-                .joinFetch(SQLiteRole.class)
-                .fetch(SQLiteOrganization.class)
-                .joinFetch(SQLiteCar.class)
-                .addInnerJoinFilter(
-                        JoinFilterBuilder.prepare(query).join(SQLiteRole.class)
-                                .on("id", 1).on("roleName", "R120")
-                                .join(SQLiteResources.class).on("${id}", 2L).build())
-                .addInnerJoinFilter(
-                        JoinFilterBuilder.prepare(query).join(SQLiteCar.class)
-                                .on("${id}", 1).build()).count();
-        System.out.println(count);
+        query.joinFetch(SQLiteRole.class).fetch(SQLiteOrganization.class)
+            .joinFetch(SQLiteCar.class)
+            .addInnerJoinFilter(
+                JoinFilterBuilder.prepare(query).join(SQLiteRole.class)
+                        .on("id", u.getRoles().get(0).getId()).on("roleName", u.getRoles().get(0).getRoleName())
+                        .join(SQLiteResources.class).on("${id}", 
+                                u.getRoles().get(0).getResources().get(0).getId()).build())
+            .addInnerJoinFilter(
+                JoinFilterBuilder.prepare(query).join(SQLiteCar.class)
+                        .on("${id}", u.getCars().get(1).getId()).build());
+        long count = query.count();
+        TestCase.assertEquals(1, count);
+        
+        TestCase.assertEquals(1, query.list().size());
+        
+        SQLiteUser user = query.unique();
+        TestCase.assertEquals(user.getRoles().size(), 1);
+        TestCase.assertEquals(user.getCars().size(), 1);
+        TestCase.assertEquals(user.getCars().get(0).getCarNo(), u.getCars().get(1).getCarNo());
+        TestCase.assertEquals(user.getRoles().get(0).getRoleName(), u.getRoles().get(0).getRoleName());
     }
 
     /**
@@ -399,7 +407,7 @@ public class SQLiteQueryTest {
         try {
             us.createQuery().page(0, 10)
                     .addJoinFilter("name", "name", SQLiteOrganization.class)
-                    .execute().list();
+                    .list();
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertSame(e.getClass(),

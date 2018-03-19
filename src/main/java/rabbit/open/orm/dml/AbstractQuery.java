@@ -47,8 +47,11 @@ import rabbit.open.orm.shard.ShardingPolicy;
  * @param <T>
  * 
  */
-public abstract class AbstractQuery<T> extends DMLAdapter<T>{
+public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 
+    //标记当前查询对象是否已经执行过了
+    private boolean runned = false;
+    
 	private static final String AND = " AND ";
 
     private static final String INNER_JOIN = " INNER JOIN ";
@@ -123,8 +126,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		    DMLAdapter.closeStmt(stmt);
 		    closeConnection(conn);
 		    sessionFactory.clearSQLException();
+		    setRunned();
 		}
 	}
+
+    private void setRunned() {
+        runned = true;
+    }
 
 	private AbstractQuery<T> setPageIndex(int pageIndex){
 		this.pageIndex = pageIndex;
@@ -467,23 +475,38 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	 * 
 	 */
 	protected void createQuerySql(){
-		runCallBackTask();
-		//分析并准备查询条件
-		prepareFilterMetas();
-		combineFilters();
-		convertJoinFilter2Metas();
-		prepareMany2oneFilters();
-		doShardingCheck();
-		doOrderCheck();
-		//创建被查询的表字段sql片段
-		createFieldsSql();
-		transformFieldsSql();
-		createFromSql();
-		createJoinSql();
-		createFilterSql();
-		createOrderSql();
-		createPageSql();
+        reset2PreparedStatus();
+        runCallBackTask();
+        // 分析并准备查询条件
+        prepareFilterMetas();
+        combineFilters();
+        convertJoinFilter2Metas();
+        prepareMany2oneFilters();
+        doShardingCheck();
+        doOrderCheck();
+        // 创建被查询的表字段sql片段
+        createFieldsSql();
+        transformFieldsSql();
+        createFromSql();
+        createJoinSql();
+        createFilterSql();
+        createOrderSql();
+        createPageSql();
 	}
+
+    /**
+     * <b>Description  重置到执行sql之前的状态 </b>
+     */
+    private void reset2PreparedStatus() {
+        if (runned) {
+            sql = new StringBuilder();
+            filterDescriptors.clear();
+            many2oneFilterDescripters.clear();
+            restClzesEnabled2Join();
+            preparedValues.clear();
+            factors.clear();
+        }
+    }
 
     /**
      * <b>Description  分区表检查</b>
@@ -1323,9 +1346,18 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		    closeStmt(stmt);
 			closeConnection(conn);
 			sessionFactory.clearSQLException();
+			setRunned();
 		}
 	}
 
+	public List<T> list() {
+	    return execute().list();
+	}
+
+	public T unique() {
+	    return execute().unique();
+	}
+	
     private void closeResultSet(ResultSet rs){
         if(null != rs){
             try {
@@ -1336,17 +1368,18 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
         }
     }
 	
-	protected void createCountSql() {
-		runCallBackTask();
-		prepareFilterMetas();
-		combineFilters();
-		prepareMany2oneFilters();
-		doShardingCheck();
-		generateCountSql();
-		createFromSql();
-		createJoinSql();
-		createFilterSql();
-	}
+    protected void createCountSql() {
+        reset2PreparedStatus();
+        runCallBackTask();
+        prepareFilterMetas();
+        combineFilters();
+        prepareMany2oneFilters();
+        doShardingCheck();
+        generateCountSql();
+        createFromSql();
+        createJoinSql();
+        createFilterSql();
+    }
 	
 	protected void generateCountSql() {
 		sql.append("SELECT COUNT(1) ");
