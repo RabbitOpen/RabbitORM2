@@ -1,5 +1,7 @@
 package rabbit.open.orm.dml;
 
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -11,6 +13,7 @@ import rabbit.open.orm.dialect.dml.impl.DB2Transformer;
 import rabbit.open.orm.dialect.dml.impl.MySQLTransformer;
 import rabbit.open.orm.dialect.dml.impl.OracleTransformer;
 import rabbit.open.orm.dialect.dml.impl.SQLServerTransformer;
+import rabbit.open.orm.dialect.dml.impl.SQLite3Transformer;
 import rabbit.open.orm.exception.RabbitDMLException;
 
 /**
@@ -104,11 +107,32 @@ public abstract class DialectTransformer {
 		return cache.get(dialect);
 	}
 	
+	/**
+     * <b>Description  给指定对象的字段设值</b>
+     * @param target
+     * @param field
+     * @param value
+     */
+    public void setValue2Field(Object target, Field field, Object value) {
+        try {
+            if (value instanceof Number) {
+                field.set(target, RabbitValueConverter.cast(
+                                new BigDecimal(value.toString()),
+                                field.getType()));
+            } else {
+                field.set(target, value);
+            }
+        } catch (Exception e) {
+            throw new RabbitDMLException(e.getMessage(), e);
+        }
+    }
+	
 	public static void init() {
 		registTransformer(DialectType.MYSQL, new MySQLTransformer());
 		registTransformer(DialectType.ORACLE, new OracleTransformer());
 		registTransformer(DialectType.DB2, new DB2Transformer());
 		registTransformer(DialectType.SQLSERVER, new SQLServerTransformer());
+		registTransformer(DialectType.SQLITE3, new SQLite3Transformer());
 	}
 	
 	public StringBuilder getSql(AbstractQuery<?> query){

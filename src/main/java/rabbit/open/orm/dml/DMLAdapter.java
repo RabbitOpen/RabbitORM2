@@ -53,6 +53,8 @@ import rabbit.open.orm.shard.ShardingPolicy;
  */
 public abstract class DMLAdapter<T> {
 
+    public static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
+
     protected static final String NULL = " NULL ";
     
     protected static final String WHERE = " WHERE ";
@@ -196,7 +198,7 @@ public abstract class DMLAdapter<T> {
     		return "'" + v.getValue().toString() + "'";
     	}
     	if(v.getValue() instanceof Date){
-    		String ds = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(v.getValue());
+    		String ds = new SimpleDateFormat(DEFAULT_DATE_PATTERN).format(v.getValue());
     		if(sessionFactory.getDialectType().isOracle()){
     			return "to_date('" + ds + "','YYYY-MM-DD HH24:MI:SS')";
     		}else{
@@ -226,7 +228,7 @@ public abstract class DMLAdapter<T> {
             PreparedValue pv = (PreparedValue) preparedValues.get(i - 1);
             Object value = sessionFactory.onValueSetted(pv, dmlType);
             if (value instanceof Date) {
-                stmt.setTimestamp(i, new Timestamp(((Date) value).getTime()));
+                setDate(stmt, i, (Date) value);
             } else if (value instanceof Double){ 
                 stmt.setDouble(i, (double) value);
             } else if (value instanceof Float){ 
@@ -236,6 +238,15 @@ public abstract class DMLAdapter<T> {
             }
         }
 	}
+
+    private void setDate(PreparedStatement stmt, int i, Date date)
+            throws SQLException {
+        if (sessionFactory.getDialectType().isSQLITE3()) {
+            stmt.setString(i, new SimpleDateFormat(DEFAULT_DATE_PATTERN).format(date));
+        } else {
+            stmt.setTimestamp(i, new Timestamp(date.getTime()));
+        }
+    }
 	
 	/**
 	 * 

@@ -6,5 +6,5 @@ package rabbit.open.orm.pool.jpa;
  * 
  */
 public enum DBType{
-	ORACLE, MYSQL, SQLSERVER, DB2
+	ORACLE, MYSQL, SQLSERVER, DB2, SQLITE
 }

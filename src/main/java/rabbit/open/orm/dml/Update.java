@@ -301,9 +301,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 			if(null == fmd.getFieldValue()){
 				preparedValues.add(new PreparedValue(null));
 				fields2Update++;
-				sql.append(" " + metaData.getTableName() + "." 
-				        + getColumnName(fmd.getColumn()) 
-				        + " = " + PLACE_HOLDER + ", ");
+				sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
 				continue;
 			}
 			if(fmd.isForeignKey()){
@@ -329,10 +327,25 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 */
 	private void appendCommonFieldsValue(StringBuilder sql, FieldMetaData fmd) {
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fmd.getFieldValue(), fmd), fmd.getField()));
-		sql.append(" " + TARGET_TABLE_NAME + "." + getColumnName(fmd.getColumn()) + "=");
+		sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
+	}
+
+    /**
+     * <b>Description  创建更新字段sql片段</b>
+     * @param columnName
+     * @return
+     */
+    private StringBuilder createFieldSqlPiece(String columnName) {
+        StringBuilder sql = new StringBuilder();
+        if (sessionFactory.getDialectType().isSQLITE3()) {
+            sql.append(" " + columnName + " = ");
+        } else {
+            sql.append(" " + TARGET_TABLE_NAME + "." + columnName + " = ");
+        }
 		sql.append(PLACE_HOLDER);
 		sql.append(",");
-	}
+		return sql;
+    }
 
 	/**
 	 * 
@@ -349,9 +362,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 			if(null != fkValue){
 				preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fkValue, new FieldMetaData(foreignField, 
                         foreignField.getAnnotation(Column.class))), foreignField));
-				sql.append(" " + TARGET_TABLE_NAME + "." + getColumnName(fmd.getColumn()) + "=");
-				sql.append(PLACE_HOLDER);
-				sql.append(",");
+				sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
 			}
 		}catch (Exception e) {
 			logger.error(e.getMessage(), e);

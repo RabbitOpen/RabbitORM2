@@ -1,4 +1,4 @@
-package rabbit.open.test;
+package sqlite.test;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -23,26 +23,26 @@ import rabbit.open.orm.exception.InvalidJoinFilterException;
 import rabbit.open.orm.exception.InvalidQueryPathException;
 import rabbit.open.orm.exception.OrderAssociationException;
 import rabbit.open.orm.exception.RepeatedFetchOperationException;
-import rabbit.open.test.entity.Car;
-import rabbit.open.test.entity.Leader;
-import rabbit.open.test.entity.Organization;
-import rabbit.open.test.entity.Property;
-import rabbit.open.test.entity.Resources;
-import rabbit.open.test.entity.Role;
-import rabbit.open.test.entity.Team;
-import rabbit.open.test.entity.UUIDPolicyEntity;
-import rabbit.open.test.entity.User;
-import rabbit.open.test.entity.ZProperty;
-import rabbit.open.test.entity.Zone;
-import rabbit.open.test.service.CarService;
-import rabbit.open.test.service.LeaderService;
-import rabbit.open.test.service.OrganizationService;
-import rabbit.open.test.service.PropertyService;
-import rabbit.open.test.service.ResourcesService;
-import rabbit.open.test.service.RoleService;
-import rabbit.open.test.service.UserService;
-import rabbit.open.test.service.ZPropertyService;
-import rabbit.open.test.service.ZoneService;
+import sqlite.test.entity.SQLiteCar;
+import sqlite.test.entity.SQLiteLeader;
+import sqlite.test.entity.SQLiteOrganization;
+import sqlite.test.entity.SQLiteProperty;
+import sqlite.test.entity.SQLiteResources;
+import sqlite.test.entity.SQLiteRole;
+import sqlite.test.entity.SQLiteTeam;
+import sqlite.test.entity.SQLiteUUIDPolicyEntity;
+import sqlite.test.entity.SQLiteUser;
+import sqlite.test.entity.SQLiteZProperty;
+import sqlite.test.entity.SQLiteZone;
+import sqlite.test.service.SQLiteCarService;
+import sqlite.test.service.SQLiteLeaderService;
+import sqlite.test.service.SQLiteOrganizationService;
+import sqlite.test.service.SQLitePropertyService;
+import sqlite.test.service.SQLiteResourcesService;
+import sqlite.test.service.SQLiteRoleService;
+import sqlite.test.service.SQLiteUserService;
+import sqlite.test.service.SQLiteZPropertyService;
+import sqlite.test.service.SQLiteZoneService;
 
 /**
  * <b>Description: 查询测试</b><br>
@@ -50,35 +50,35 @@ import rabbit.open.test.service.ZoneService;
  * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:applicationContext.xml" })
-public class QueryTest {
+@ContextConfiguration(locations = { "classpath:applicationContext-sqlite.xml" })
+public class SQLiteQueryTest {
 
     @Autowired
-    UserService us;
+    SQLiteUserService us;
 
     @Autowired
-    RoleService rs;
+    SQLiteRoleService rs;
 
     @Autowired
-    OrganizationService os;
+    SQLiteOrganizationService os;
 
     @Autowired
-    ResourcesService resService;
+    SQLiteResourcesService resService;
 
     @Autowired
-    CarService cs;
+    SQLiteCarService cs;
 
     @Autowired
-    PropertyService ps;
+    SQLitePropertyService ps;
 
     @Autowired
-    ZPropertyService zps;
+    SQLiteZPropertyService zps;
 
     @Autowired
-    ZoneService zs;
+    SQLiteZoneService zs;
 
     @Autowired
-    LeaderService ls;
+    SQLiteLeaderService ls;
 
     /**
      * 
@@ -88,9 +88,9 @@ public class QueryTest {
      */
     @Test
     public void simpleQueryTest() {
-        User user = addInitData(100);
-        List<User> list = us.createQuery(user).joinFetch(Role.class)
-                .fetch(Organization.class).distinct().execute().list();
+        SQLiteUser user = addInitData(100);
+        List<SQLiteUser> list = us.createQuery(user).joinFetch(SQLiteRole.class)
+                .fetch(SQLiteOrganization.class).distinct().execute().list();
         TestCase.assertTrue(list.size() > 0);
         TestCase.assertEquals(user.getBigField(), list.get(0).getBigField());
         TestCase.assertEquals(user.getDoubleField(), list.get(0).getDoubleField());
@@ -99,10 +99,10 @@ public class QueryTest {
 
     @Test
     public void invalidFetchOperationExceptionTest() {
-        User u = new User();
+        SQLiteUser u = new SQLiteUser();
         u.setId(10L);
         try {
-            us.createQuery(u).fetch(Role.class).execute().list();
+            us.createQuery(u).fetch(SQLiteRole.class).execute().list();
         } catch (Exception e) {
             TestCase.assertSame(e.getClass(),
                     InvalidFetchOperationException.class);
@@ -111,29 +111,29 @@ public class QueryTest {
 
     @Test
     public void queryByID() {
-        User user = addInitData(100);
-        User u = us.getByID(user.getId());
+        SQLiteUser user = addInitData(100);
+        SQLiteUser u = us.getByID(user.getId());
         TestCase.assertEquals(user.getId(), u.getId());
         TestCase.assertEquals(user.getName(), u.getName());
     }
 
     @Test
     public void addFilterQueryTest() {
-        User user = addInitData(110);
-        User u = us
+        SQLiteUser user = addInitData(110);
+        SQLiteUser u = us
                 .createQuery()
-                .joinFetch(Role.class)
-                .fetch(Organization.class)
-                .addFilter("id", user.getOrg().getId(), Organization.class,
-                        User.class)
+                .joinFetch(SQLiteRole.class)
+                .fetch(SQLiteOrganization.class)
+                .addFilter("id", user.getOrg().getId(), SQLiteOrganization.class,
+                        SQLiteUser.class)
                 .addFilter("${id}", new Long[] { user.getId() }, FilterType.IN)
                 .addFilter("birth", user.getBirth(), FilterType.LTE)
                 .addFilter("name", new String[] { user.getName() },
                         FilterType.IN)
                 .addFilter("orgCode", user.getOrg().getOrgCode(),
-                        Organization.class, User.class)
+                        SQLiteOrganization.class, SQLiteUser.class)
                 .addFilter("org", new Long[] { user.getOrg().getId() },
-                        FilterType.IN).alias(User.class, "U").execute()
+                        FilterType.IN).alias(SQLiteUser.class, "U").execute()
                 .unique();
         TestCase.assertEquals(user.getName(), u.getName());
         TestCase.assertEquals(user.getOrg().getName(), u.getOrg().getName());
@@ -145,12 +145,12 @@ public class QueryTest {
     public void invalidQueryPathTest() {
         try {
             us.createQuery()
-                    .joinFetch(Role.class)
-                    .fetch(Organization.class)
-                    .addFilter("id", 1, Organization.class, User.class)
-                    .addFilter("id", 1, Organization.class, User.class)
-                    .addFilter("id", 1L, Organization.class, Team.class,
-                            Organization.class, User.class).execute().unique();
+                    .joinFetch(SQLiteRole.class)
+                    .fetch(SQLiteOrganization.class)
+                    .addFilter("id", 1, SQLiteOrganization.class, SQLiteUser.class)
+                    .addFilter("id", 1, SQLiteOrganization.class, SQLiteUser.class)
+                    .addFilter("id", 1L, SQLiteOrganization.class, SQLiteTeam.class,
+                            SQLiteOrganization.class, SQLiteUser.class).execute().unique();
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertEquals(e.getClass(), InvalidQueryPathException.class);
@@ -158,10 +158,10 @@ public class QueryTest {
 
         try {
             us.createQuery()
-                    .joinFetch(Role.class)
-                    .fetch(Organization.class)
-                    .addFilter("id", 1L, Organization.class, Team.class,
-                            Organization.class, User.class).execute().unique();
+                    .joinFetch(SQLiteRole.class)
+                    .fetch(SQLiteOrganization.class)
+                    .addFilter("id", 1L, SQLiteOrganization.class, SQLiteTeam.class,
+                            SQLiteOrganization.class, SQLiteUser.class).execute().unique();
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertEquals(e.getClass(), CycleDependencyException.class);
@@ -171,8 +171,8 @@ public class QueryTest {
     @Test
     public void queryOrderTest() {
         addInitData(220);
-        List<User> list = us.createQuery().page(0, 10)
-                .fetch(Organization.class).desc("id").asc("name").execute()
+        List<SQLiteUser> list = us.createQuery().page(0, 10)
+                .fetch(SQLiteOrganization.class).desc("id").asc("name").execute()
                 .list();
         TestCase.assertTrue(list.size() >= 1);
         TestCase.assertTrue(list.size() <= 10);
@@ -186,19 +186,19 @@ public class QueryTest {
      */
     @Test
     public void innerJoinQueryTest() {
-        User user = addInitData(120);
-        User u = us
+        SQLiteUser user = addInitData(120);
+        SQLiteUser u = us
                 .createQuery()
-                .joinFetch(Role.class)
-                .fetch(Organization.class)
+                .joinFetch(SQLiteRole.class)
+                .fetch(SQLiteOrganization.class)
                 .addFilter("id", user.getId())
                 .addInnerJoinFilter(
                         "id",
                         FilterType.IN,
                         new Integer[] { user.getRoles().get(0).getId(),
-                                user.getRoles().get(1).getId() }, Role.class)
+                                user.getRoles().get(1).getId() }, SQLiteRole.class)
                 .addInnerJoinFilter("roleName",
-                        user.getRoles().get(0).getRoleName(), Role.class)
+                        user.getRoles().get(0).getRoleName(), SQLiteRole.class)
                 .execute().unique();
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
                 .getOrgCode());
@@ -216,20 +216,20 @@ public class QueryTest {
      */
     @Test
     public void joinFilterBuilderTest() {
-        User user = addInitData(120);
-        Query<User> query = us.createQuery();
-        User u = query
-                .joinFetch(Role.class)
-                .fetch(Organization.class)
+        SQLiteUser user = addInitData(120);
+        Query<SQLiteUser> query = us.createQuery();
+        SQLiteUser u = query
+                .joinFetch(SQLiteRole.class)
+                .fetch(SQLiteOrganization.class)
                 .addFilter("id", user.getId())
                 .addInnerJoinFilter(
                         JoinFilterBuilder
                                 .prepare(query)
-                                .join(Role.class)
+                                .join(SQLiteRole.class)
                                 .on("id", user.getRoles().get(0).getId())
                                 .on("roleName",
                                         user.getRoles().get(0).getRoleName())
-                                .join(Resources.class)
+                                .join(SQLiteResources.class)
                                 .on("${id}",
                                         user.getRoles().get(0).getResources()
                                                 .get(0).getId()).build())
@@ -247,12 +247,12 @@ public class QueryTest {
      */
     @Test
     public void invalidJoinFilterExceptionTest() {
-        Query<User> query = us.createQuery();
+        Query<SQLiteUser> query = us.createQuery();
         try {
-            query.joinFetch(Role.class)
+            query.joinFetch(SQLiteRole.class)
                     .addInnerJoinFilter(
                             JoinFilterBuilder.prepare(query)
-                                    .join(Organization.class).on("id", 1)
+                                    .join(SQLiteOrganization.class).on("id", 1)
                                     .build()).execute().unique();
         } catch (Exception e) {
             TestCase.assertEquals(e.getClass(),
@@ -268,28 +268,28 @@ public class QueryTest {
      */
     @Test
     public void joinFilterBuilderTest2() {
-        User user = addInitData(125);
-        Query<User> query = us.createQuery();
-        User u = query
-                .joinFetch(Role.class)
+        SQLiteUser user = addInitData(125);
+        Query<SQLiteUser> query = us.createQuery();
+        SQLiteUser u = query
+                .joinFetch(SQLiteRole.class)
                 .distinct()
                 .addFilter("id", user.getId())
-                .alias(Resources.class, "RESOURCES")
-                .fetch(Organization.class)
-                .joinFetch(Car.class)
+                .alias(SQLiteResources.class, "RESOURCES")
+                .fetch(SQLiteOrganization.class)
+                .joinFetch(SQLiteCar.class)
                 .addInnerJoinFilter(
                         JoinFilterBuilder
                                 .prepare(query)
-                                .join(Role.class)
+                                .join(SQLiteRole.class)
                                 .on("id", user.getRoles().get(0).getId())
                                 .on("roleName",
                                         user.getRoles().get(0).getRoleName())
-                                .join(Resources.class)
+                                .join(SQLiteResources.class)
                                 .on("${id}",
                                         user.getRoles().get(0).getResources()
                                                 .get(0).getId()).build())
                 .addInnerJoinFilter(
-                        JoinFilterBuilder.prepare(query).join(Car.class)
+                        JoinFilterBuilder.prepare(query).join(SQLiteCar.class)
                                 .on("${id}", user.getCars().get(0).getId())
                                 .build()).execute().unique();
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
@@ -312,19 +312,19 @@ public class QueryTest {
     @Test
     public void wrongOrderTest() {
         try {
-            us.createQuery().joinFetch(Role.class).fetch(Organization.class)
-                    .asc("id", Organization.class).desc("id")
-                    .asc("id", Role.class).desc("id", UUIDPolicyEntity.class)
+            us.createQuery().joinFetch(SQLiteRole.class).fetch(SQLiteOrganization.class)
+                    .asc("id", SQLiteOrganization.class).desc("id")
+                    .asc("id", SQLiteRole.class).desc("id", SQLiteUUIDPolicyEntity.class)
                     .execute();
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertSame(e.getClass(), OrderAssociationException.class);
         }
-        Query<User> query = us.createQuery();
+        Query<SQLiteUser> query = us.createQuery();
         query.addInnerJoinFilter(
-                JoinFilterBuilder.prepare(query).join(Role.class).on("id", 1)
-                        .build()).fetch(Organization.class)
-                .asc("id", Organization.class).desc("id").asc("id", Role.class)
+                JoinFilterBuilder.prepare(query).join(SQLiteRole.class).on("id", 1)
+                        .build()).fetch(SQLiteOrganization.class)
+                .asc("id", SQLiteOrganization.class).desc("id").asc("id", SQLiteRole.class)
                 .execute();
     }
 
@@ -337,17 +337,17 @@ public class QueryTest {
     @Test
     public void countTest() {
         addInitData(130);
-        Query<User> query = us.createQuery();
+        Query<SQLiteUser> query = us.createQuery();
         long count = query
-                .joinFetch(Role.class)
-                .fetch(Organization.class)
-                .joinFetch(Car.class)
+                .joinFetch(SQLiteRole.class)
+                .fetch(SQLiteOrganization.class)
+                .joinFetch(SQLiteCar.class)
                 .addInnerJoinFilter(
-                        JoinFilterBuilder.prepare(query).join(Role.class)
+                        JoinFilterBuilder.prepare(query).join(SQLiteRole.class)
                                 .on("id", 1).on("roleName", "R120")
-                                .join(Resources.class).on("${id}", 2L).build())
+                                .join(SQLiteResources.class).on("${id}", 2L).build())
                 .addInnerJoinFilter(
-                        JoinFilterBuilder.prepare(query).join(Car.class)
+                        JoinFilterBuilder.prepare(query).join(SQLiteCar.class)
                                 .on("${id}", 1).build()).count();
         System.out.println(count);
     }
@@ -360,19 +360,19 @@ public class QueryTest {
      */
     @Test
     public void addJoinFilterTest() {
-        User user = addInitData(150);
-        Car c = new Car();
+        SQLiteUser user = addInitData(150);
+        SQLiteCar c = new SQLiteCar();
         String carNo = "川A110";
         c.setCarNo(carNo);
         String roleName = "R150";
-        User u = us
+        SQLiteUser u = us
                 .createQuery()
                 .addFilter("id", user.getId())
-                .joinFetch(Role.class, user.getRoles().get(0))
-                .joinFetch(Car.class, c)
-                .addJoinFilter("id", user.getRoles().get(0).getId(), Role.class)
-                .addJoinFilter("roleName", roleName, Role.class)
-                .addJoinFilter("carNo", carNo, Car.class).execute().unique();
+                .joinFetch(SQLiteRole.class, user.getRoles().get(0))
+                .joinFetch(SQLiteCar.class, c)
+                .addJoinFilter("id", user.getRoles().get(0).getId(), SQLiteRole.class)
+                .addJoinFilter("roleName", roleName, SQLiteRole.class)
+                .addJoinFilter("carNo", carNo, SQLiteCar.class).execute().unique();
         TestCase.assertEquals(u.getCars().size(), 1);
         TestCase.assertEquals(u.getCars().get(0).getCarNo(), carNo);
         TestCase.assertEquals(u.getRoles().size(), 1);
@@ -389,7 +389,7 @@ public class QueryTest {
     public void invalidJoinFilterTest() {
         addInitData(150);
         try {
-            us.createQuery().page(0, 10).joinFetch(Organization.class)
+            us.createQuery().page(0, 10).joinFetch(SQLiteOrganization.class)
                     .execute().list();
             throw new RuntimeException();
         } catch (Exception e) {
@@ -398,7 +398,7 @@ public class QueryTest {
         }
         try {
             us.createQuery().page(0, 10)
-                    .addJoinFilter("name", "name", Organization.class)
+                    .addJoinFilter("name", "name", SQLiteOrganization.class)
                     .execute().list();
             throw new RuntimeException();
         } catch (Exception e) {
@@ -416,38 +416,38 @@ public class QueryTest {
     @Test
     public void addNullFilterTest() {
         addInitData(150);
-        List<User> list = us.createQuery().addNullFilter("id", false)
-                .joinFetch(Role.class).joinFetch(Car.class)
-                .addJoinFilter("id", 1, Role.class)
-                .addJoinFilter("roleName", "R150", Role.class)
-                .addJoinFilter("id", 2, Car.class).execute().list();
+        List<SQLiteUser> list = us.createQuery().addNullFilter("id", false)
+                .joinFetch(SQLiteRole.class).joinFetch(SQLiteCar.class)
+                .addJoinFilter("id", 1, SQLiteRole.class)
+                .addJoinFilter("roleName", "R150", SQLiteRole.class)
+                .addJoinFilter("id", 2, SQLiteCar.class).execute().list();
         TestCase.assertTrue(list.size() > 0);
 
-        User u = us.createQuery().addNullFilter("id").joinFetch(Role.class)
-                .joinFetch(Car.class).addJoinFilter("id", 1, Role.class)
-                .addJoinFilter("roleName", "R150", Role.class)
-                .addJoinFilter("id", 2, Car.class).execute().unique();
+        SQLiteUser u = us.createQuery().addNullFilter("id").joinFetch(SQLiteRole.class)
+                .joinFetch(SQLiteCar.class).addJoinFilter("id", 1, SQLiteRole.class)
+                .addJoinFilter("roleName", "R150", SQLiteRole.class)
+                .addJoinFilter("id", 2, SQLiteCar.class).execute().unique();
         TestCase.assertNull(u);
     }
 
-    public User addInitData2() {
-        Zone z = new Zone("华北");
+    public SQLiteUser addInitData2() {
+        SQLiteZone z = new SQLiteZone("华北");
         zs.add(z);
-        User user = new User();
+        SQLiteUser user = new SQLiteUser();
         // 添加组织
-        Organization org = new Organization("FBI", "联邦调查局", z);
+        SQLiteOrganization org = new SQLiteOrganization("FBI", "联邦调查局", z);
         os.add(org);
 
         // 添加角色
-        List<Role> roles = new ArrayList<Role>();
+        List<SQLiteRole> roles = new ArrayList<>();
         for (int i = 1000; i < 1002; i++) {
-            Role r = new Role("R" + i);
+            SQLiteRole r = new SQLiteRole("R" + i);
             rs.add(r);
             roles.add(r);
             // 构建资源
-            List<Resources> resources = new ArrayList<Resources>();
+            List<SQLiteResources> resources = new ArrayList<>();
             for (int j = 0; j < 2; j++) {
-                Resources rr = new Resources("baidu_" + j + i + ".com");
+                SQLiteResources rr = new SQLiteResources("baidu_" + j + i + ".com");
                 resService.add(rr);
                 resources.add(rr);
             }
@@ -472,25 +472,25 @@ public class QueryTest {
         us.addJoinRecords(user);
 
         // 添加车辆
-        cs.add(new Car("川A110", user));
-        cs.add(new Car("川A120", user));
-        cs.add(new Car("川A130", user));
+        cs.add(new SQLiteCar("川A110", user));
+        cs.add(new SQLiteCar("川A120", user));
+        cs.add(new SQLiteCar("川A130", user));
         return user;
     }
 
     @Test
     public void buildFetchTest() {
-        User user = addInitData2();
+        SQLiteUser user = addInitData2();
         user.getOrg();
-        ps.add(new Property(user.getOrg().getId(), "P1"));
-        ps.add(new Property(user.getOrg().getId(), "P2"));
+        ps.add(new SQLiteProperty(user.getOrg().getId(), "P1"));
+        ps.add(new SQLiteProperty(user.getOrg().getId(), "P2"));
 
-        zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP4"));
-        zps.add(new ZProperty(user.getOrg().getZone().getId(), "zP3"));
+        zps.add(new SQLiteZProperty(user.getOrg().getZone().getId(), "zP4"));
+        zps.add(new SQLiteZProperty(user.getOrg().getZone().getId(), "zP3"));
 
         try {
             // 验证非法的joinFetch操作
-            us.createQuery().buildFetch().joinFetch(Property.class).build()
+            us.createQuery().buildFetch().joinFetch(SQLiteProperty.class).build()
                     .execute().list();
             throw new RuntimeException();
         } catch (Exception e) {
@@ -499,8 +499,8 @@ public class QueryTest {
         }
 
         // 主表joinFetch
-        User u = us.createQuery().addFilter("id", user.getId()).buildFetch()
-                .joinFetch(Role.class).on("id", user.getRoles().get(0).getId())
+        SQLiteUser u = us.createQuery().addFilter("id", user.getId()).buildFetch()
+                .joinFetch(SQLiteRole.class).on("id", user.getRoles().get(0).getId())
                 .build().execute().unique();
         TestCase.assertNotNull(u.getRoles());
         TestCase.assertEquals(u.getRoles().size(), 1);
@@ -509,11 +509,11 @@ public class QueryTest {
         u = us.createQuery()
                 .addFilter("id", user.getId())
                 .buildFetch()
-                .joinFetch(Role.class)
-                .fetch(Organization.class)
-                .joinFetch(Property.class)
+                .joinFetch(SQLiteRole.class)
+                .fetch(SQLiteOrganization.class)
+                .joinFetch(SQLiteProperty.class)
                 .build()
-                .addJoinFilter("id", user.getRoles().get(0).getId(), Role.class)
+                .addJoinFilter("id", user.getRoles().get(0).getId(), SQLiteRole.class)
                 .execute().unique();
         TestCase.assertEquals(u.getRoles().size(), 1);
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
@@ -523,9 +523,9 @@ public class QueryTest {
 
         // 从表joinFetch
         u = us.createQuery().addFilter("id", user.getId()).buildFetch()
-                .joinFetch(Role.class).fetch(Organization.class)
-                .joinFetch(Property.class).fetch(Zone.class)
-                .joinFetch(ZProperty.class).build().execute().unique();
+                .joinFetch(SQLiteRole.class).fetch(SQLiteOrganization.class)
+                .joinFetch(SQLiteProperty.class).fetch(SQLiteZone.class)
+                .joinFetch(SQLiteZProperty.class).build().execute().unique();
         TestCase.assertEquals(u.getRoles().size(), 2);
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
                 .getOrgCode());
@@ -539,20 +539,20 @@ public class QueryTest {
     public void deepFetchTest() {
 
         String zoneName = "华中地区";
-        Zone z = new Zone(zoneName);
+        SQLiteZone z = new SQLiteZone(zoneName);
         zs.add(z);
         // 添加组织
-        Organization org = new Organization("FBI", "联邦调查局", z);
+        SQLiteOrganization org = new SQLiteOrganization("FBI", "联邦调查局", z);
         os.add(org);
-        User user = new User();
+        SQLiteUser user = new SQLiteUser();
         user.setAge(10);
         user.setName("wangwu");
         user.setOrg(org);
         us.add(user);
 
-        User u = us.createQuery().addFilter("id", user.getId())
-                .fetch(Zone.class, Organization.class)
-                .fetch(Organization.class).execute().unique();
+        SQLiteUser u = us.createQuery().addFilter("id", user.getId())
+                .fetch(SQLiteZone.class, SQLiteOrganization.class)
+                .fetch(SQLiteOrganization.class).execute().unique();
 
         TestCase.assertEquals(u.getName(), user.getName());
         TestCase.assertEquals(u.getOrg().getOrgCode(), "FBI");
@@ -562,19 +562,19 @@ public class QueryTest {
 
     @Test
     public void buildFetchTest2() {
-        Zone z = new Zone("华强北");
+        SQLiteZone z = new SQLiteZone("华强北");
         zs.add(z);
-        Leader l = new Leader("LEADER");
+        SQLiteLeader l = new SQLiteLeader("LEADER");
         ls.add(l);
-        User user = new User();
+        SQLiteUser user = new SQLiteUser();
         // 添加组织
-        Organization org = new Organization("FBI", "联邦调查局", z, l);
+        SQLiteOrganization org = new SQLiteOrganization("FBI", "联邦调查局", z, l);
         os.add(org);
         user.setOrg(org);
         us.add(user);
-        User u = us.createQuery().addFilter("id", user.getId()).buildFetch()
-                .fetch(Organization.class).fetch(Zone.class).build()
-                .fetch(Leader.class, Organization.class).execute().unique();
+        SQLiteUser u = us.createQuery().addFilter("id", user.getId()).buildFetch()
+                .fetch(SQLiteOrganization.class).fetch(SQLiteZone.class).build()
+                .fetch(SQLiteLeader.class, SQLiteOrganization.class).execute().unique();
 
         TestCase.assertEquals(u.getOrg().getOrgCode(), "FBI");
         TestCase.assertEquals(u.getOrg().getZone().getName(), "华强北");
@@ -588,8 +588,8 @@ public class QueryTest {
     @Test
     public void fetchExceptionTest() {
         try {
-            us.createQuery().buildFetch().fetch(Organization.class)
-                    .fetch(Zone.class).build().fetch(Zone.class).execute()
+            us.createQuery().buildFetch().fetch(SQLiteOrganization.class)
+                    .fetch(SQLiteZone.class).build().fetch(SQLiteZone.class).execute()
                     .list();
             throw new RuntimeException();
         } catch (Exception e) {
@@ -597,8 +597,8 @@ public class QueryTest {
                     RepeatedFetchOperationException.class);
         }
         try {
-            us.createQuery().fetch(Zone.class).buildFetch()
-                    .fetch(Organization.class).fetch(Zone.class).build()
+            us.createQuery().fetch(SQLiteZone.class).buildFetch()
+                    .fetch(SQLiteOrganization.class).fetch(SQLiteZone.class).build()
                     .execute().list();
             throw new RuntimeException();
         } catch (Exception e) {
@@ -613,22 +613,22 @@ public class QueryTest {
      * @param start
      * 
      */
-    public User addInitData(int start) {
-        User user = new User();
+    public SQLiteUser addInitData(int start) {
+        SQLiteUser user = new SQLiteUser();
         // 添加组织
-        Organization org = new Organization("FBI", "联邦调查局");
+        SQLiteOrganization org = new SQLiteOrganization("FBI", "联邦调查局");
         os.add(org);
 
         // 添加角色
-        List<Role> roles = new ArrayList<Role>();
+        List<SQLiteRole> roles = new ArrayList<>();
         for (int i = start; i < start + 2; i++) {
-            Role r = new Role("R" + i);
+            SQLiteRole r = new SQLiteRole("R" + i);
             rs.add(r);
             roles.add(r);
             // 构建资源
-            List<Resources> resources = new ArrayList<Resources>();
+            List<SQLiteResources> resources = new ArrayList<>();
             for (int j = 0; j < 2; j++) {
-                Resources rr = new Resources("baidu_" + j + i + ".com");
+                SQLiteResources rr = new SQLiteResources("baidu_" + j + i + ".com");
                 resService.add(rr);
                 resources.add(rr);
             }
@@ -651,10 +651,10 @@ public class QueryTest {
         // 添加用户角色之间的映射关系
         user.setRoles(roles);
         us.addJoinRecords(user);
-        List<Car> cars = new ArrayList<>();
+        List<SQLiteCar> cars = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             // 添加车辆
-            Car car = new Car("川A11" + i, user);
+            SQLiteCar car = new SQLiteCar("川A11" + i, user);
             cs.add(car);
             cars.add(car);
         }

@@ -58,6 +58,7 @@ public abstract class DeleteDialectAdapter {
 		registDialectGenerator(DialectType.MYSQL, new MySQLDeleteGenerator());
 		registDialectGenerator(DialectType.ORACLE, new OracleDeleteGenerator());
 		registDialectGenerator(DialectType.DB2, new DB2DeleteGenerator());
+		registDialectGenerator(DialectType.SQLITE3, new DB2DeleteGenerator());
 		registDialectGenerator(DialectType.SQLSERVER, new SqlServerDeleteGenerator());
 	}
 	

@@ -9,7 +9,7 @@ import rabbit.open.orm.exception.RabbitDMLException;
  */
 public enum DialectType {
 
-	MYSQL, ORACLE, SQLSERVER, DB2;
+	MYSQL, ORACLE, SQLSERVER, DB2, SQLITE3;
 	
 	public static DialectType format(String name){
 		for(DialectType dt : DialectType.values()){
@@ -34,5 +34,9 @@ public enum DialectType {
 
 	public boolean isDB2(){
 		return name().equals(DB2.name());
+	}
+
+	public boolean isSQLITE3(){
+	    return name().equals(SQLITE3.name());
 	}
 }

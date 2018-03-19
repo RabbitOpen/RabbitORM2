@@ -171,17 +171,20 @@ public class RabbitDataSource extends AbstractDataSource{
 	 * 
 	 */
 	public DBType getDBType(){
-		if(driverClass.toLowerCase().contains("oracle")){
-			return DBType.ORACLE;
-		}
-		if(driverClass.toLowerCase().contains("sqlserver")){
-			return DBType.SQLSERVER;
-		}
-		if(driverClass.toLowerCase().contains("db2")){
-			return DBType.DB2;
-		}
-		if(driverClass.toLowerCase().contains("mysql")){
+        if (driverClass.toLowerCase().contains("oracle")) {
+            return DBType.ORACLE;
+        }
+        if (driverClass.toLowerCase().contains("sqlserver")) {
+            return DBType.SQLSERVER;
+        }
+        if (driverClass.toLowerCase().contains("db2")) {
+            return DBType.DB2;
+        }
+        if (driverClass.toLowerCase().contains("mysql")) {
             return DBType.MYSQL;
+        }
+        if (driverClass.toLowerCase().contains("sqlite")) {
+            return DBType.SQLITE;
         }
 		throw new RabbitDMLException("unkown driver type[" + driverClass + "]");
 	}

@@ -6,8 +6,6 @@ import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
 
-import rabbit.open.orm.exception.RabbitORMException;
-
 /**
  * <b>Description: 	数据源监控线程</b><br>
  * <b>@author</b>	肖乾斌
@@ -165,21 +163,16 @@ public class DataSourceMonitor extends Thread{
         }
     }
 
-	private String createPingSql() throws RabbitORMException {
-		String pingSql;
-		if(DBType.MYSQL.equals(dataSource.getDBType())){
-			pingSql = " select 1 ";
-		}else if(DBType.ORACLE.equals(dataSource.getDBType())){
-			pingSql = " select 1 from dual ";
-		}else if(DBType.SQLSERVER.equals(dataSource.getDBType())){
-			pingSql = " select 1 ";
-		}else if(DBType.DB2.equals(dataSource.getDBType())){
-			pingSql = " values 1 ";
-		}else{
-			throw new RabbitORMException("unknown data base is found!");
-		}
-		return pingSql;
-	}
+    private String createPingSql() {
+        String pingSql = " select 1 ";
+        if (DBType.ORACLE.equals(dataSource.getDBType())) {
+            pingSql = " select 1 from dual ";
+        } 
+        if (DBType.DB2.equals(dataSource.getDBType())) {
+            pingSql = " values 1 ";
+        }
+        return pingSql;
+    }
 	
 
 	/**

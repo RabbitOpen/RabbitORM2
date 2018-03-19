@@ -16,136 +16,17 @@ import rabbit.open.orm.dml.util.SQLFormater;
 import rabbit.open.orm.exception.RabbitDDLException;
 
 /**
- * <b>Description: 	mysql ddl助手</b><br>
- * <b>@author</b>	肖乾斌
+ * <b>Description: mysql ddl助手</b><br>
+ * <b>@author</b> 肖乾斌
  * 
  */
-public class MySQLDDLHelper extends DDLHelper{
+public class MySQLDDLHelper extends DDLHelper {
 
-	private static final String SET_FOREIGN_KEY_CHECKS_1 = "SET FOREIGN_KEY_CHECKS = 1";
-	
+    private static final String SET_FOREIGN_KEY_CHECKS_1 = "SET FOREIGN_KEY_CHECKS = 1";
+
     private static final String SET_FOREIGN_KEY_CHECKS_0 = "SET FOREIGN_KEY_CHECKS = 0";
 
-    /**
-	 * 
-	 * <b>Description:	删除指定表</b><br>
-	 * @param entities	实体class的集合
-	 * 
-	 */
-	@Override
-	protected void dropTables(HashSet<String> entities) {
-		if(entities.isEmpty()){
-			return;
-		}
-		dropEntityTables(entities);
-		dropJoinTables(entities);
-	}
-
-	private void dropJoinTables(HashSet<String> entities) {
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			stmt.addBatch(SET_FOREIGN_KEY_CHECKS_0);
-			HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
-			for(String table : joinTables.keySet()){
-				if(!isTableExists(getExistedTables(), table)){
-					continue;
-				}
-				String drop = "drop table " + table ;
-				logger.info(SQLFormater.format(drop).toUpperCase());
-				stmt.addBatch(drop);
-			}
-			stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
-			stmt.executeBatch();
-		} catch (Exception e) {
-			throw new RabbitDDLException(e);
-		} finally {
-			closeStmt(stmt);
-		}
-	}
-
-	/**
-	 * 
-	 * <b>Description:	删除实体类对应的表</b><br>
-	 * @param entities	
-	 * 
-	 */
-	private void dropEntityTables(HashSet<String> entities) {
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			stmt.addBatch(SET_FOREIGN_KEY_CHECKS_0);
-			for(String name : entities){
-				String drop = createDropSqlByClass(name);
-				if(null == drop){
-					continue;
-				}
-				logger.info(SQLFormater.format(drop).toUpperCase());
-				stmt.addBatch(drop);
-			}
-			stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
-			stmt.executeBatch();
-		} catch (SQLException e) {
-			throw new RabbitDDLException(e);
-		} finally {
-			closeStmt(stmt);
-		}
-	}
-	
-	protected void createJoinTables(HashSet<String> entities) {
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			stmt.addBatch(SET_FOREIGN_KEY_CHECKS_0);
-			HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
-			for(Entry<String, List<JoinTableDescriptor>> entry : joinTables.entrySet()){
-				if(isTableExists(getExistedTables(), entry.getKey())){
-					continue;
-				}
-				StringBuilder sql = createJoinTableSql(entry.getKey(), entry.getValue());
-				logger.info(SQLFormater.format(sql.toString()).toUpperCase());
-				stmt.addBatch(sql.toString());
-			}
-			stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
-			stmt.executeBatch();
-		} catch (Exception e) {
-			throw new RabbitDDLException(e);
-		} finally {
-			closeStmt(stmt);
-		}
-	}
-
-	
-	/**
-	 * 
-	 * <b>Description:	实体表</b><br>
-	 * @param entities	
-	 * 
-	 */
-	@Override
-	protected void createEntityTables(HashSet<String> entities) {
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			stmt.addBatch(SET_FOREIGN_KEY_CHECKS_0);
-			for(String name : entities){
-				StringBuilder sql = createSqlByClass(name);
-				if(null == sql){
-					continue;
-				}
-				logger.info(SQLFormater.format(sql.toString()).toUpperCase());
-				stmt.addBatch(sql.toString());
-			}
-			stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
-			stmt.executeBatch();
-		} catch (SQLException e) {
-			throw new RabbitDDLException(e);
-		} finally {
-			closeStmt(stmt);
-		}
-	}
-
-	public MySQLDDLHelper() {
+    public MySQLDDLHelper() {
         typeStringCache.put(Date.class, DATETIME);
         typeStringCache.put(String.class, VARCHAR);
         typeStringCache.put(BigDecimal.class, BIGINT);
@@ -155,16 +36,136 @@ public class MySQLDDLHelper extends DDLHelper{
         typeStringCache.put(Short.class, BIGINT);
         typeStringCache.put(Long.class, BIGINT);
     }
+    
+    /**
+     * 
+     * <b>Description: 删除指定表</b><br>
+     * @param entities 实体class的集合
+     * 
+     */
+    @Override
+    protected void dropTables(HashSet<String> entities) {
+        if (entities.isEmpty()) {
+            return;
+        }
+        dropEntityTables(entities);
+        dropJoinTables(entities);
+    }
 
-	@Override
-	protected String getAutoIncrement() {
-		return " AUTO_INCREMENT";
-	}
-	
-	@Override
-	protected String getAddColumnKeywords() {
-		return " ADD COLUMN ";
-	}
+    private void dropJoinTables(HashSet<String> entities) {
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+            stmt.addBatch(SET_FOREIGN_KEY_CHECKS_0);
+            HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
+            for (String table : joinTables.keySet()) {
+                if (!isTableExists(getExistedTables(), table)) {
+                    continue;
+                }
+                String drop = "drop table " + table;
+                logger.info(SQLFormater.format(drop).toUpperCase());
+                stmt.addBatch(drop);
+            }
+            stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
+            stmt.executeBatch();
+        } catch (Exception e) {
+            throw new RabbitDDLException(e);
+        } finally {
+            closeStmt(stmt);
+        }
+    }
+
+    /**
+     * 
+     * <b>Description: 删除实体类对应的表</b><br>
+     * @param entities
+     * 
+     */
+    private void dropEntityTables(HashSet<String> entities) {
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+            stmt.addBatch(SET_FOREIGN_KEY_CHECKS_0);
+            for (String name : entities) {
+                String drop = createDropSqlByClass(name);
+                if (null == drop) {
+                    continue;
+                }
+                logger.info(SQLFormater.format(drop).toUpperCase());
+                stmt.addBatch(drop);
+            }
+            stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
+            stmt.executeBatch();
+        } catch (SQLException e) {
+            throw new RabbitDDLException(e);
+        } finally {
+            closeStmt(stmt);
+        }
+    }
+
+    protected void createJoinTables(HashSet<String> entities) {
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+            stmt.addBatch(SET_FOREIGN_KEY_CHECKS_0);
+            HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
+            for (Entry<String, List<JoinTableDescriptor>> entry : joinTables
+                    .entrySet()) {
+                if (isTableExists(getExistedTables(), entry.getKey())) {
+                    continue;
+                }
+                StringBuilder sql = createJoinTableSql(entry.getKey(),
+                        entry.getValue());
+                logger.info(SQLFormater.format(sql.toString()).toUpperCase());
+                stmt.addBatch(sql.toString());
+            }
+            stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
+            stmt.executeBatch();
+        } catch (Exception e) {
+            throw new RabbitDDLException(e);
+        } finally {
+            closeStmt(stmt);
+        }
+    }
+
+    /**
+     * 
+     * <b>Description: 实体表</b><br>
+     * @param entities
+     * 
+     */
+    @Override
+    protected void createEntityTables(HashSet<String> entities) {
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+            stmt.addBatch(SET_FOREIGN_KEY_CHECKS_0);
+            for (String name : entities) {
+                StringBuilder sql = createSqlByClass(name);
+                if (null == sql) {
+                    continue;
+                }
+                logger.info(SQLFormater.format(sql.toString()).toUpperCase());
+                stmt.addBatch(sql.toString());
+            }
+            stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
+            stmt.executeBatch();
+        } catch (SQLException e) {
+            throw new RabbitDDLException(e);
+        } finally {
+            closeStmt(stmt);
+        }
+    }
+
+    @Override
+    protected String getAutoIncrement() {
+        return " AUTO_INCREMENT";
+    }
+
+    @Override
+    protected String getAddColumnKeywords() {
+        return " ADD COLUMN ";
+    }
 
     @Override
     public String getColumnName(Column column) {
@@ -173,5 +174,5 @@ public class MySQLDDLHelper extends DDLHelper{
         }
         return "`" + column.value() + "`";
     }
-	
+
 }

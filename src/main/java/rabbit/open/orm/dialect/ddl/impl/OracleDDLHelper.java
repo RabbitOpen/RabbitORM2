@@ -53,6 +53,10 @@ public class OracleDDLHelper extends DDLHelper{
 		dropJoinTables(entities);
 	}
 
+	protected HashSet<String> getDDLHelperExistedTables() {
+	    return super.getExistedTables();
+	}
+	
 	@Override
 	protected HashSet<String> getExistedTables() {
 	    Statement stmt = null;
@@ -160,7 +164,7 @@ public class OracleDDLHelper extends DDLHelper{
         return GET_FOREIGN_KEY_TABLE_SQL;
     }
 
-	private void dropJoinTables(HashSet<String> entities) {
+	protected void dropJoinTables(HashSet<String> entities) {
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
@@ -186,7 +190,7 @@ public class OracleDDLHelper extends DDLHelper{
 	 * @param entities	
 	 * 
 	 */
-	private void dropEntityTables(HashSet<String> entities) {
+	protected void dropEntityTables(HashSet<String> entities) {
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();

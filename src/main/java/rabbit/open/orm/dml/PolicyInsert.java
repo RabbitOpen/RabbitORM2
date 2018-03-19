@@ -7,8 +7,6 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
-
 import rabbit.open.orm.dialect.dml.impl.AutoIncrementPolicy;
 import rabbit.open.orm.dialect.dml.impl.SequencePolicy;
 import rabbit.open.orm.dml.filter.DMLType;
@@ -23,8 +21,6 @@ import rabbit.open.orm.exception.RabbitDMLException;
 public class PolicyInsert {
 
     private static Map<Policy, PolicyInsert> policies = new ConcurrentHashMap<>();
-    
-    protected Logger logger = Logger.getLogger(getClass());
     
     public static void init() {
         policies.put(Policy.NONE, new PolicyInsert());

@@ -2,7 +2,6 @@ package rabbit.open.orm.dml;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -50,7 +49,6 @@ import rabbit.open.orm.shard.ShardingPolicy;
  */
 public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 
-	
 	private static final String AND = " AND ";
 
     private static final String INNER_JOIN = " INNER JOIN ";
@@ -340,36 +338,38 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	}
 
 	private void readMany2ManyEntity(Map<String, Object> joinFetcEntity, Object colValue, String colName) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException{
-		String tableAlias = null;
-		String tableName = null;
-		String fieldNameAlias = null;
-		String fieldName = null;
-		//joinFetch出来的数据
-		tableAlias = colName.split("\\" + SEPARATOR)[1];
-		tableName = getTableNameByAlias(tableAlias);
-		fieldNameAlias = colName.split("\\" + SEPARATOR)[2];
-		fieldName = MetaData.getFieldsAliasMapping(MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
-		if(null == joinFetcEntity.get(tableName)){
-			Object entity = MetaData.getClassByTableName(tableName).getConstructor().newInstance();
-			joinFetcEntity.put(tableName, entity);
-		}
-		try {
-			Field field = getFieldByName(tableName, fieldName);
-			Entity entiyAnno = field.getType().getAnnotation(Entity.class);
-			if(null != entiyAnno){
-				Object newInstance = field.getType().getConstructor().newInstance();
-				Field pkField = MetaData.getPrimaryKeyField(field.getType());
-				pkField.setAccessible(true);
-				setValue2Field(colValue, newInstance, pkField);
-				field.setAccessible(true);
-				field.set(joinFetcEntity.get(tableName), newInstance);
-			}else{
-				field.setAccessible(true);
-				setValue2Field(colValue, joinFetcEntity.get(tableName), field);
-			}
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
+        String tableAlias = null;
+        String tableName = null;
+        String fieldNameAlias = null;
+        String fieldName = null;
+        // joinFetch出来的数据
+        tableAlias = colName.split("\\" + SEPARATOR)[1];
+        tableName = getTableNameByAlias(tableAlias);
+        fieldNameAlias = colName.split("\\" + SEPARATOR)[2];
+        fieldName = MetaData.getFieldsAliasMapping(
+                MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
+        if (null == joinFetcEntity.get(tableName)) {
+            Object entity = MetaData.getClassByTableName(tableName)
+                    .getConstructor().newInstance();
+            joinFetcEntity.put(tableName, entity);
+        }
+        try {
+            Field field = getFieldByName(tableName, fieldName);
+            Entity entiyAnno = field.getType().getAnnotation(Entity.class);
+            if (null != entiyAnno) {
+                Object newInstance = field.getType().getConstructor().newInstance();
+                Field pkField = MetaData.getPrimaryKeyField(field.getType());
+                pkField.setAccessible(true);
+                setValue2Field(newInstance, pkField, colValue);
+                field.setAccessible(true);
+                field.set(joinFetcEntity.get(tableName), newInstance);
+            } else {
+                field.setAccessible(true);
+                setValue2Field(joinFetcEntity.get(tableName), field, colValue);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
 	}
 	/**
 	 * 
@@ -379,32 +379,36 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	 * 
 	 */
 	protected String getTableNameByAlias(String alias) {
-		Iterator<String> it = aliasMapping.keySet().iterator();
-		while(it.hasNext()){
-			String tableName = it.next();
-			if(alias.equals(aliasMapping.get(tableName))){
-				return tableName;
-			}
-		}
-		return "";
+        Iterator<String> it = aliasMapping.keySet().iterator();
+        while (it.hasNext()) {
+            String tableName = it.next();
+            if (alias.equals(aliasMapping.get(tableName))) {
+                return tableName;
+            }
+        }
+        return "";
 	}
 	
-	private void readFetchEntity(Map<String, Object> fetchEntityMap, Object colValue, String colName) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException{
+	private void readFetchEntity(Map<String, Object> fetchEntityMap, Object colValue, String colName) 
+	        throws InstantiationException, IllegalAccessException, 
+	        InvocationTargetException, NoSuchMethodException{
         String tableAlias = null;
         String tableName = null;
         String fieldNameAlias = null;
         String fieldName = null;
-        tableAlias = colName.split("\\" + SEPARATOR)[0];            //带后缀的表别名
-        String realTableAlias = tableAlias;                         //真实表别名
+        tableAlias = colName.split("\\" + SEPARATOR)[0]; // 带后缀的表别名
+        String realTableAlias = tableAlias; // 真实表别名
         boolean isMutiFetch = tableAlias.contains(UNDERLINE);
-        if(isMutiFetch){
+        if (isMutiFetch) {
             realTableAlias = realTableAlias.split(UNDERLINE)[0];
         }
         tableName = getTableNameByAlias(realTableAlias);
         fieldNameAlias = colName.split("\\" + SEPARATOR)[1];
-        fieldName = MetaData.getFieldsAliasMapping(MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
+        fieldName = MetaData.getFieldsAliasMapping(
+                MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
         if (null == fetchEntityMap.get(tableAlias)) {
-            Object entity = MetaData.getClassByTableName(tableName).getConstructor().newInstance();
+            Object entity = MetaData.getClassByTableName(tableName)
+                    .getConstructor().newInstance();
             fetchEntityMap.put(tableAlias, entity);
         }
         Field field;
@@ -418,12 +422,12 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
             Object newInstance = field.getType().getConstructor().newInstance();
             Field pkField = MetaData.getPrimaryKeyField(field.getType());
             pkField.setAccessible(true);
-            setValue2Field(colValue, newInstance, pkField);
+            setValue2Field(newInstance, pkField, colValue);
             field.setAccessible(true);
             field.set(fetchEntityMap.get(tableAlias), newInstance);
         } else {
             field.setAccessible(true);
-            setValue2Field(colValue, fetchEntityMap.get(tableAlias), field);
+            setValue2Field(fetchEntityMap.get(tableAlias), field, colValue);
         }
 	}
 
@@ -438,17 +442,14 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		throw new RabbitDMLException("new field [" + fieldName + "] was found in " + tableName);
 	}
 	
-	private void setValue2Field(Object value, Object instance, Field field) {
-		try{
-		    if(value instanceof Number){
-		        field.set(instance, RabbitValueConverter.cast(new BigDecimal(value.toString()), field.getType()));
-		    }else{
-                field.set(instance, value);
-            }
-		}catch(Exception e){
-			throw new RabbitDMLException(e.getMessage(), e);
-		}
-		
+	/**
+	 * <b>Description  给指定对象的字段设值</b>
+	 * @param target
+	 * @param field
+	 * @param value
+	 */
+	private void setValue2Field(Object target, Field field, Object value) {
+        getTransformer().setValue2Field(target, field, value);
 	}
 	
 	/**
@@ -584,17 +585,22 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 		if(!page){
 			return;
 		}
-		DialectTransformer transformer = DialectTransformer.getTransformer(sessionFactory.getDialectType());
+		DialectTransformer transformer = getTransformer();
 		sql = transformer.createPageSql(this);
 		
 	}
-	/**
+
+    protected DialectTransformer getTransformer() {
+        return DialectTransformer.getTransformer(sessionFactory.getDialectType());
+    }
+
+    /**
 	 * 
 	 * <b>Description:	创建排序sql</b><br>	
 	 * 
 	 */
 	protected void createOrderSql() {
-		DialectTransformer transformer = DialectTransformer.getTransformer(sessionFactory.getDialectType());
+		DialectTransformer transformer = getTransformer();
 		sql.append(transformer.createOrderSql(this));
 	}
 	
@@ -844,7 +850,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T>{
 	 * 
 	 */
 	protected void transformFieldsSql() {
-		DialectTransformer transformer = DialectTransformer.getTransformer(sessionFactory.getDialectType());
+		DialectTransformer transformer = getTransformer();
 		sql = transformer.completeFieldsSql(this);
 	}
 	
