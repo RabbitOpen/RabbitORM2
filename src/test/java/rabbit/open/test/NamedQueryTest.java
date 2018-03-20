@@ -86,7 +86,7 @@ public class NamedQueryTest {
         User user = createTestData();
         User u = us.createNamedQuery("getUserByName")
                 .set("username", "%leifeng%").set("userId", user.getId())
-                .execute().unique();
+                .unique();
         System.out.println(u);
         TestCase.assertEquals(user.getName(), u.getName());
         TestCase.assertEquals(u.getCars().size(), 3);
@@ -113,8 +113,7 @@ public class NamedQueryTest {
         TestCase.assertEquals(dept.getTeam().getName(), t.getName());
         TestCase.assertEquals(dept.getTeam().getId(), t.getId());
 
-        List<Department> list = ds.createNamedQuery("multiFetchAll").execute()
-                .list();
+        List<Department> list = ds.createNamedQuery("multiFetchAll").list();
         TestCase.assertTrue(list.size() > 0);
     }
 

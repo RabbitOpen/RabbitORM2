@@ -152,6 +152,14 @@ public class NamedQuery<T> {
 	    return query.execute();
 	}
 	
+	public List<T> list() {
+	    return execute().list();
+	}
+
+	public T unique() {
+	    return execute().unique();
+	}
+	
 	public long count(){
 	    return query.count();
 	}
