@@ -20,33 +20,35 @@ import rabbit.open.orm.exception.RabbitDDLException;
 
 @SuppressWarnings("serial")
 public class PackageScanner implements Serializable{
-	static Logger logger = Logger.getLogger(PackageScanner.class);
-	/**
+	
+    static Logger logger = Logger.getLogger(PackageScanner.class);
+	
+    /**
 	 * 
 	 * 过滤包含特定注解的类
 	 * @param annotation
 	 * @return
 	 * 
 	 */
-	public static Set<String> filterByAnnotation(String[] roots, 
-			Class<? extends Annotation> annotation){
-		HashSet<String> targets = new HashSet<>();
-		for(String root : roots){
-			List<String> list = scanPackage(root);
-			for(String name : list){
-				try{
-					Class<?> clz = Class.forName(name);
-					if(null != clz.getAnnotation(annotation)){
-						targets.add(name);
-					}
-				}catch(Exception e){
-				    logger.error(e.getMessage());
-				}
-			}
-		}
-		targets.addAll(scanJarFileByAnnotation(roots, annotation));
-		return targets;
-	}
+    public static Set<String> filterByAnnotation(String[] roots,
+            Class<? extends Annotation> annotation) {
+        HashSet<String> targets = new HashSet<>();
+        for (String root : roots) {
+            List<String> list = scanPackage(root);
+            for (String name : list) {
+                try {
+                    Class<?> clz = Class.forName(name);
+                    if (null != clz.getAnnotation(annotation)) {
+                        targets.add(name);
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage());
+                }
+            }
+        }
+        targets.addAll(scanJarFileByAnnotation(roots, annotation));
+        return targets;
+    }
 
 	/**
 	 * 
@@ -55,24 +57,25 @@ public class PackageScanner implements Serializable{
 	 * @return
 	 * 
 	 */
-	public static Set<String> filterByInterface(String[] roots, Class<?> interfaceClz){
-		HashSet<String> targets = new HashSet<>();
-		for(String root : roots){
-			List<String> list = scanPackage(root);
-			for(String name : list){
-				try{
-					Class<?> clz = Class.forName(name);
-					if(interfaceClz.isAssignableFrom(clz)){
-						targets.add(name);
-					}
-				}catch(Exception e){
-					logger.error(e.getMessage(), e);
-				}
-			}
-		}
-		targets.addAll(scanJarFileByInterface(roots, interfaceClz));
-		return targets;
-	}
+    public static Set<String> filterByInterface(String[] roots,
+            Class<?> interfaceClz) {
+        HashSet<String> targets = new HashSet<>();
+        for (String root : roots) {
+            List<String> list = scanPackage(root);
+            for (String name : list) {
+                try {
+                    Class<?> clz = Class.forName(name);
+                    if (interfaceClz.isAssignableFrom(clz)) {
+                        targets.add(name);
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        }
+        targets.addAll(scanJarFileByInterface(roots, interfaceClz));
+        return targets;
+    }
 
 	/**
 	 * 
@@ -80,54 +83,56 @@ public class PackageScanner implements Serializable{
 	 * @return
 	 * 
 	 */
-	private static List<String> scanPackage(String rootPath){
-		List<String> files = new ArrayList<>();
-		URL base = PackageScanner.class.getClassLoader().getResource("");
-		files.addAll(scanURI(rootPath.trim(), base));
-		if(base.getPath().contains("test-classes")){
-		    try {
-                files.addAll(scanURI(rootPath.trim(), 
-                        new URL("file:" + base.getPath().replace("test-classes", "classes"))));
+    private static List<String> scanPackage(String rootPath) {
+        List<String> files = new ArrayList<>();
+        URL base = PackageScanner.class.getClassLoader().getResource("");
+        files.addAll(scanURI(rootPath.trim(), base));
+        if (base.getPath().contains("test-classes")) {
+            try {
+                files.addAll(scanURI(rootPath.trim(), new URL("file:"
+                        + base.getPath().replace("test-classes", "classes"))));
             } catch (MalformedURLException e) {
                 logger.error(e.getMessage(), e);
             }
-		}
-		return files;
-	}
+        }
+        return files;
+    }
 
     private static List<String> scanURI(String rootPath, URL base) {
         List<String> files = new ArrayList<>();
         try {
             URL url = new URL(base, rootPath.replaceAll("\\.", "/"));
-			File root = new File(url.toURI());
-			if(root.exists() && root.isDirectory()){
-				logger.info("scan path: " + root.getPath().replaceAll("\\\\", "/"));
-				for(File f : root.listFiles()){
-					files.addAll(scanFile(rootPath + "." + f.getName(), f));
-				}
-			}
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
+            File root = new File(url.toURI());
+            if (root.exists() && root.isDirectory()) {
+                logger.info("scan path: "
+                        + root.getPath().replaceAll("\\\\", "/"));
+                for (File f : root.listFiles()) {
+                    files.addAll(scanFile(rootPath + "." + f.getName(), f));
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
         return files;
     }
 	
-	private static List<String> scanFile(String parent, File file) throws Exception {
-		while(parent.startsWith(".")){
-			parent = parent.substring(1, parent.length());
-		}
-		List<String> files = new ArrayList<>();
-		if(file.isFile()){
-			if(parent.endsWith(".class")){
-				files.add(parent.substring(0, parent.length() - 6));
-			}
-		}else if(file.isDirectory()){
-			for(File f : file.listFiles()){
-				files.addAll(scanFile(parent + "." + f.getName(), f));
-			}
-		}
-		return files;
-	}
+    private static List<String> scanFile(String parent, File file)
+            throws Exception {
+        while (parent.startsWith(".")) {
+            parent = parent.substring(1, parent.length());
+        }
+        List<String> files = new ArrayList<>();
+        if (file.isFile()) {
+            if (parent.endsWith(".class")) {
+                files.add(parent.substring(0, parent.length() - 6));
+            }
+        } else if (file.isDirectory()) {
+            for (File f : file.listFiles()) {
+                files.addAll(scanFile(parent + "." + f.getName(), f));
+            }
+        }
+        return files;
+    }
 
 	/**
 	 * 
@@ -155,7 +160,7 @@ public class PackageScanner implements Serializable{
 	}
 
     private static HashSet<String> scanJarFile4Interfaces(String[] roots,
-            Class<?> interfaceClz, String jarFileName){
+            Class<?> interfaceClz, String jarFileName) throws IOException{
         JarFile jf = null;
         try {
             jf = new JarFile(jarFileName);
@@ -170,12 +175,11 @@ public class PackageScanner implements Serializable{
                     if(!isTargetInterfaceClass(root, interfaceClz, entry.getName())){
                         continue;
                     }
-                    files.add(entry.getName());
+                    files.add(entry.getName().substring(0, entry.getName().length() - 6)
+                            .replaceAll("/", "."));
                 }
             }
             return files;
-        } catch (Exception e) {
-            throw new RabbitDDLException(e);
         } finally {
             closeJarFile(jf);
         }
@@ -191,14 +195,15 @@ public class PackageScanner implements Serializable{
      * 
      */
     private static boolean isTargetInterfaceClass(String root, Class<?> interfaceClz, String fileName) {
-        String className = fileName.substring(0, fileName.length() - 6).replaceAll("/", ".");
-        if(className.startsWith(root.trim())){
-            try{
+        String className = fileName.substring(0, fileName.length() - 6)
+                .replaceAll("/", ".");
+        if (className.startsWith(root.trim())) {
+            try {
                 Class<?> clz = Class.forName(className);
-                if(interfaceClz.isAssignableFrom(clz)){
+                if (interfaceClz.isAssignableFrom(clz)) {
                     return true;
                 }
-            }catch(Exception t){
+            } catch (NoClassDefFoundError | ClassNotFoundException e) {
                 return false;
             }
         }
@@ -206,7 +211,7 @@ public class PackageScanner implements Serializable{
     }
 
     private static void closeJarFile(JarFile jf) {
-        if(null == jf){
+        if (null == jf) {
             return;
         }
         try {
@@ -234,29 +239,28 @@ public class PackageScanner implements Serializable{
 	}
 
     private static HashSet<String> scanJars4Annotation(String[] roots,
-            Class<? extends Annotation> anno, String jarFileName) {
+            Class<? extends Annotation> anno, String jarFileName) throws IOException {
         JarFile jf = null;
-        try{
+        try {
             jf = new JarFile(jarFileName);
             HashSet<String> files = new HashSet<>();
             Enumeration<JarEntry> entries = jf.entries();
-            while(entries.hasMoreElements()){
+            while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
                 String name = entry.getName();
-                if(!name.endsWith("class")){
+                if (!name.endsWith("class")) {
                     continue;
                 }
-                name = name.substring(0, name.length() - 6).replaceAll("/", ".");
-                for(String rootPath : roots){
-                    if(!isTargetAnnoInterface(rootPath, anno, name)){
+                name = name.substring(0, name.length() - 6)
+                        .replaceAll("/", ".");
+                for (String rootPath : roots) {
+                    if (!isTargetAnnoInterface(rootPath, anno, name)) {
                         continue;
                     }
                     files.add(name);
                 }
             }
             return files;
-        } catch (Exception e){
-            throw new RabbitDDLException(e);
         } finally {
             closeJarFile(jf);
         }
@@ -272,30 +276,30 @@ public class PackageScanner implements Serializable{
      */
     private static boolean isTargetAnnoInterface(String rootPath,
             Class<? extends Annotation> anno, String fileName) {
-        if(fileName.startsWith(rootPath.trim())){
-            try{
+        if (fileName.startsWith(rootPath.trim())) {
+            try {
                 Class<?> clz = Class.forName(fileName);
-                if(null != clz.getAnnotation(anno)){
+                if (null != clz.getAnnotation(anno)) {
                     return true;
                 }
-            }catch(Exception t){
+            } catch (NoClassDefFoundError | ClassNotFoundException t) {
                 return false;
             }
         }
         return false;
     }
 
-	private static List<String> getClassPathJars() {
-		String jars = System.getProperty("java.class.path");
-		ArrayList<String> list = new ArrayList<>();
-		if(null == jars || "".equals(jars.trim())){
-			return list;
-		}
-		for(String f : jars.split(";")){
-			list.add(f);
-		}
-		return list;
-	}
+    private static List<String> getClassPathJars() {
+        String jars = System.getProperty("java.class.path");
+        ArrayList<String> list = new ArrayList<>();
+        if (null == jars || "".equals(jars.trim())) {
+            return list;
+        }
+        for (String f : jars.split(";")) {
+            list.add(f);
+        }
+        return list;
+    }
 
 	/**
 	 * 
@@ -303,26 +307,22 @@ public class PackageScanner implements Serializable{
 	 * @return
 	 * 
 	 */
-	private static List<String> getLibJarFiles() {
-		try{
-			String path = PackageScanner.class.getResource("/").getPath();
-			File f = new File(path);
-			f = f.getParentFile();
-			for(File file : f.listFiles()){
-				if("lib".equals(file.getName())){
-					ArrayList<String> list = new ArrayList<>();
-					String[] files = file.list();
-					for(String fn : files){
-						list.add(file.getAbsolutePath() + File.separator + fn);
-					}
-					return list;
-				}
-			}
-		}catch(Exception e){
-			
-		}
-		return new ArrayList<>();
-	}
+    private static List<String> getLibJarFiles() {
+        String path = PackageScanner.class.getResource("/").getPath();
+        File f = new File(path);
+        f = f.getParentFile();
+        for (File file : f.listFiles()) {
+            if ("lib".equals(file.getName())) {
+                ArrayList<String> list = new ArrayList<>();
+                String[] files = file.list();
+                for (String fn : files) {
+                    list.add(file.getAbsolutePath() + File.separator + fn);
+                }
+                return list;
+            }
+        }
+        return new ArrayList<>();
+    }
 	
 }
  

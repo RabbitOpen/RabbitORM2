@@ -10,27 +10,27 @@ import org.springframework.cglib.proxy.MethodProxy;
 import rabbit.open.orm.pool.SessionFactory;
 
 /**
- * <b>Description:   代理session，代理close方法，调用SessionFactory的releaseConnection方法</b>.
- * <b>@author</b>    肖乾斌
+ * <b>Description: 代理session，代理close方法，调用SessionFactory的releaseConnection方法</b>.
+ * <b>@author</b> 肖乾斌
  * 
  */
-public class SessionProxy implements MethodInterceptor{
+public class SessionProxy implements MethodInterceptor {
 
-    //真实session
+    // 真实session
     private Connection realSession;
-    
+
     public void setRealSession(Connection realSession) {
         this.realSession = realSession;
     }
-    
+
     /**
      * 
-     * <b>Description:  代理所有连接</b><br>.
+     * <b>Description: 代理所有连接</b><br>
      * @param realSession
-     * @return	
+     * @return
      * 
      */
-    public static Connection getProxy(Connection realSession){
+    public static Connection getProxy(Connection realSession) {
         SessionProxy proxy = new SessionProxy();
         proxy.setRealSession(realSession);
         Enhancer eh = new Enhancer();
@@ -45,7 +45,7 @@ public class SessionProxy implements MethodInterceptor{
     @Override
     public final Object intercept(Object obj, Method method, Object[] args,
             MethodProxy methodproxy) throws Throwable {
-        if("close".equals(method.getName())){
+        if ("close".equals(method.getName())) {
             SessionFactory.releaseConnection(realSession);
             return null;
         }

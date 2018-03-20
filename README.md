@@ -57,6 +57,8 @@
     
     3、扩展查询对象功能， 允许同一个查询对象重复执行execute、count、list以及unique方法
     
+    4、优化PackageScanner功能。使之在扫描jar文件时不会因为依赖包的缺失（NoClassDefFoundError）而终止扫描
+    
     
     
     
