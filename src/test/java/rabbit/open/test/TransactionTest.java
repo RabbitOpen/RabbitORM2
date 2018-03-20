@@ -18,7 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import rabbit.open.test.service.UserService;
 
 /**
- * <b>Description: 事务方法测试</b>. <b>@author</b> 肖乾斌
+ * <b>Description: 事务方法测试</b>
+ * <b>@author</b> 肖乾斌
  * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -35,7 +36,6 @@ public class TransactionTest {
     /**
      * 
      * <b>Description: 回滚测试 </b><br>
-     * .
      * 
      */
     @Test

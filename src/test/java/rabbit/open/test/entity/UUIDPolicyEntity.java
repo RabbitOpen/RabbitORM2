@@ -19,17 +19,19 @@ public class UUIDPolicyEntity {
     
     @Column("NAME")
     private String name;
+    
+    
+    @Column(value="ORG_ID")
+    private Organization org;
+    
+    @Column("ZONE_ID")
+    private Zone zone;
 
     public UUIDPolicyEntity(String name) {
         this.name = name;
     }
 
     public UUIDPolicyEntity() {
-    }
-
-    @Override
-    public String toString() {
-        return "UUIDPolicyEntity [id=" + id + ", name=" + name + "]";
     }
 
     public String getId() {
@@ -47,4 +49,22 @@ public class UUIDPolicyEntity {
     public void setName(String name) {
         this.name = name;
     }
+
+    public Organization getOrg() {
+        return org;
+    }
+
+    public void setOrg(Organization org) {
+        this.org = org;
+    }
+
+    public Zone getZone() {
+        return zone;
+    }
+
+    public void setZone(Zone zone) {
+        this.zone = zone;
+    }
+    
+    
 }

@@ -21,11 +21,9 @@ public class Zone {
     @OneToMany(joinColumn="Z_ID")
     List<ZProperty> props;
 
-    /**
-     * @param name
-     */
+    public Zone() { }
+    
     public Zone(String name) {
-        super();
         this.name = name;
     }
 
@@ -53,14 +51,4 @@ public class Zone {
         this.props = props;
     }
 
-    @Override
-    public String toString() {
-        return "Zone [id=" + id + ", name=" + name + ", props=" + props + "]";
-    }
-
-    public Zone() {
-        super();
-    }
-    
-    
 }

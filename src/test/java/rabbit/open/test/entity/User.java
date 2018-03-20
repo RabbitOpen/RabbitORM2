@@ -22,20 +22,15 @@ public class User {
         this.desc = desc;
     }
 
-    public User() {
-        super();
-    }
+    public User() { }
 
     public User(String name, Integer age, Date birth) {
-        super();
         this.name = name;
         this.age = age;
         this.birth = birth;
     }
 
-    public User(String name, Integer age, Date birth,
-            Organization org) {
-        super();
+    public User(String name, Integer age, Date birth, Organization org) {
         this.name = name;
         this.age = age;
         this.birth = birth;
@@ -181,4 +176,8 @@ public class User {
         this.org = org;
     }
 
+    public void setZone(Zone zone) {
+        this.zone = zone;
+    }
+    
 }

@@ -38,14 +38,14 @@ public abstract class SpringDaoAdapter<T> {
     }
 
 	@SuppressWarnings("unchecked")
-	public SpringDaoAdapter() {
-		try{
-			this.clz = (Class<T>) ((ParameterizedType) (getClass().getGenericSuperclass()))
-					.getActualTypeArguments()[0];
-		}catch(Exception e){
-			
-		}
-	}
+    public SpringDaoAdapter() {
+        try {
+            this.clz = (Class<T>) ((ParameterizedType) (getClass()
+                    .getGenericSuperclass())).getActualTypeArguments()[0];
+        } catch (Exception e) {
+
+        }
+    }
 
 	/**
 	 * 
@@ -277,14 +277,19 @@ public abstract class SpringDaoAdapter<T> {
      * 
      */
     public Query<T> createFieldsMappingQuery(Object filterData) {
-        if(null == filterData){
+        if (null == filterData) {
             return createQuery();
         }
-        try{
-            T tf = clz.getDeclaredConstructor().newInstance();
-            cloneValueByFieldName(filterData, tf);
-            return createQuery(tf);
-        } catch (Exception e){
+        T tf = newInstance(clz);
+        cloneValueByFieldName(filterData, tf);
+        return createQuery(tf);
+    }
+
+    @SuppressWarnings("unchecked")
+    private T newInstance(Class<?> clz) {
+        try {
+            return (T) clz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
             throw new RabbitDMLException(e);
         }
     }
@@ -307,39 +312,43 @@ public abstract class SpringDaoAdapter<T> {
 		}
 	}
 
-    private void cloneFieldValue(Object dest, Field f, Object fv) {
-        try{
-        	Field df = dest.getClass().getDeclaredField(f.getName());
-        	df.setAccessible(true);
-        	if(df.getType().equals(f.getType())){
-        		df.set(dest, fv);
-        		return;
-        	}
-        	//类型不匹配
-        	if(df.getType().getName().startsWith("java") || 
-        			f.getType().getName().startsWith("java")){
-        		return;
-        	}
-        	cloneBeanField(dest, fv, df);
-        }catch(Exception e){
-        	
+    private void cloneFieldValue(Object dest, Field field, Object fieldValue) {
+        try {
+            Field df = dest.getClass().getDeclaredField(field.getName());
+            df.setAccessible(true);
+            if (df.getType().equals(field.getType())) {
+                df.set(dest, fieldValue);
+                return;
+            }
+            // 类型不匹配
+            if (df.getType().getName().startsWith("java")
+                    || field.getType().getName().startsWith("java")) {
+                return;
+            }
+            cloneBeanField(dest, fieldValue, df);
+        } catch (Exception e) {
+
         }
     }
 
-    private void cloneBeanField(Object dest, Object fv, Field df) {
-        try{
-        	Object dfv = df.getType().getConstructor().newInstance();
-        	cloneValueByFieldName(fv, dfv);
-        	df.set(dest, dfv);
-        }catch(Exception e){
-        	logger.error(e.getMessage(), e);
+    private void cloneBeanField(Object dest, Object value, Field field) {
+        Object clone = newInstance(field.getType());
+        cloneValueByFieldName(value, clone);
+        setValue(dest, field, clone);
+    }
+
+    private void setValue(Object obj, Field field, Object value) {
+        try {
+            field.set(obj, value);
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            throw new RabbitDMLException(e);
         }
     }
 
     private Object getValue(Object src, Field f) {
         try {
             return f.get(src);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException | IllegalAccessException e) {
             throw new RabbitDMLException(e);
         }
     }
