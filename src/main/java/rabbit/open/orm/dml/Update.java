@@ -166,6 +166,25 @@ public class Update<T> extends NonQueryAdapter<T>{
 	}
 	
 	/**
+	 * <b>Description  获取对象更新器</b>
+	 * @return
+	 */
+	public T getUpdater() {
+	    if (null == this.value2Update) {
+	        this.value2Update = newInstance();
+	    }
+	    return this.value2Update;
+	}
+
+    private T newInstance() {
+        try {
+            return (T) getEntityClz().newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RabbitDMLException(e);
+        }
+    }
+	
+	/**
 	 * 
 	 * <b>Description:	对单个字段设值</b><br>
 	 * @param field
@@ -173,15 +192,15 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * @return	
 	 * 
 	 */
-	public Update<T> set(String field, Object value){
-		if(null == value){
-			return setNull(field);
-		}else{
-			settedValue.put(field, value);
-		}
-		return this;
-	}
-	
+    public Update<T> set(String field, Object value) {
+        if (null == value) {
+            return setNull(field);
+        } else {
+            settedValue.put(field, value);
+        }
+        return this;
+    }
+
 	/**
 	 * 
 	 * <b>Description:	将该字段的值更新成null</b><br>
@@ -189,12 +208,12 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * @return	
 	 * 
 	 */
-	public Update<T> setNull(String... fields){
-		for(String f : fields){
-			nullfields.add(f);
-		}
-		return this;
-	}
+    public Update<T> setNull(String... fields) {
+        for (String f : fields) {
+            nullfields.add(f);
+        }
+        return this;
+    }
 	
 	/**
 	 * 
@@ -204,36 +223,36 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	public long updateByID(T data){
-		sql = createUpdateSql(data);
-		if(valueMetas.isEmpty()){
-			throw new RabbitDMLException("no fields 2 update!");
-		}
-		Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-		pk.setAccessible(true);
-		Object pkValue;
-		pkValue = getValue(pk, data);
-		if(null == pkValue){
-			throw new RabbitDMLException("primary key can't be empty!");
-		}
+        sql = createUpdateSql(data);
+        if (valueMetas.isEmpty()) {
+            throw new RabbitDMLException("no fields 2 update!");
+        }
+        Field pk = MetaData.getPrimaryKeyField(getEntityClz());
+        pk.setAccessible(true);
+        Object pkValue;
+        pkValue = getValue(pk, data);
+        if (null == pkValue) {
+            throw new RabbitDMLException("primary key can't be empty!");
+        }
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(pkValue, new FieldMetaData(pk, pk.getAnnotation(Column.class))), pk));
 		sql.append(WHERE + TARGET_TABLE_NAME + "." + getColumnName(metaData.getPrimaryKey()) + " = " + PLACE_HOLDER);
-		sqlOperation = new SQLOperation() {
-			@Override
-			public long executeSQL(Connection conn) throws SQLException {
-			    PreparedStatement stmt = null;
-				try {
-				    showSql();
-	                stmt = conn.prepareStatement(sql.toString());
-	                setPreparedStatementValue(stmt, DMLType.UPDATE);
-	                return stmt.executeUpdate();
-				} finally {
-				    closeStmt(stmt);
-				}
-			}
-		};
-		factors.add(new ShardFactor(pk, FilterType.EQUAL.value(), pkValue));
-		updateTargetTableName();
-		return super.execute();
+        sqlOperation = new SQLOperation() {
+            @Override
+            public long executeSQL(Connection conn) throws SQLException {
+                PreparedStatement stmt = null;
+                try {
+                    showSql();
+                    stmt = conn.prepareStatement(sql.toString());
+                    setPreparedStatementValue(stmt, DMLType.UPDATE);
+                    return stmt.executeUpdate();
+                } finally {
+                    closeStmt(stmt);
+                }
+            }
+        };
+        factors.add(new ShardFactor(pk, FilterType.EQUAL.value(), pkValue));
+        updateTargetTableName();
+        return super.execute();
 	}
 	
 
@@ -244,35 +263,37 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private StringBuilder createFilterSql() {
-		StringBuilder sql = new StringBuilder();
-		if(filterDescriptors.isEmpty()){
-		    StringBuilder mds = createMultiDropSql();
+        StringBuilder sql = new StringBuilder();
+        if (filterDescriptors.isEmpty()) {
+            StringBuilder mds = createMultiDropSql();
             if (0 != mds.length()) {
                 mds.insert(0, WHERE);
                 sql.append(mds);
             }
             return sql;
-		}
-		boolean isJoin = false;
-		for(FilterDescriptor fd : filterDescriptors){
-			if(fd.isJoinOn()){
-				isJoin = true;
-				break;
-			}
-		}
-		if(isJoin){
-			//联合更新
-			sql.append(WHERE + metaData.getTableName() + "." + getColumnName(metaData.getPrimaryKey()) + " IN "
-					+ "(SELECT * FROM (");
-			sql.append("SELECT " + metaData.getTableName() + "." + getColumnName(metaData.getPrimaryKey()) 
-					+ " FROM " + metaData.getTableName());
-			sql.append(generateInnerJoinsql());
-			sql.append(generateFilterSql());
-			sql.append(")t)");
-		}else{
-			sql.append(generateFilterSql());
-		}
-		return sql;
+        }
+        boolean isJoin = false;
+        for (FilterDescriptor fd : filterDescriptors) {
+            if (fd.isJoinOn()) {
+                isJoin = true;
+                break;
+            }
+        }
+        if (isJoin) {
+            // 联合更新
+            sql.append(WHERE + metaData.getTableName() + "."
+                    + getColumnName(metaData.getPrimaryKey()) + " IN "
+                    + "(SELECT * FROM (");
+            sql.append("SELECT " + metaData.getTableName() + "."
+                    + getColumnName(metaData.getPrimaryKey()) + " FROM "
+                    + metaData.getTableName());
+            sql.append(generateInnerJoinsql());
+            sql.append(generateFilterSql());
+            sql.append(")t)");
+        } else {
+            sql.append(generateFilterSql());
+        }
+        return sql;
 	}
 	
 	/**
@@ -283,39 +304,39 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private StringBuilder createUpdateSql(T valueData) {
-		StringBuilder sql = new StringBuilder();
-		valueMetas = getNonEmptyColumnFieldMetas(valueData);
-		if(valueMetas.isEmpty()){
-			throw new RabbitDMLException("no field is expected to update!");
-		}
-		sql.append("UPDATE " + TARGET_TABLE_NAME + " SET");
-		int fields2Update = 0;
-		for(int i = 0; i < valueMetas.size(); i++){
-			FieldMetaData fmd = valueMetas.get(i);
-			if(fmd.isPrimaryKey() && (sessionFactory.getDialectType().isSQLServer() 
-			        || sessionFactory.getDialectType().isDB2())){
-				//sqlserver的主键是不能被更新的
-			    //DB2不更新主键
-				continue;
-			}
-			if(null == fmd.getFieldValue()){
-				preparedValues.add(new PreparedValue(null));
-				fields2Update++;
-				sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
-				continue;
-			}
-			if(fmd.isForeignKey()){
-				appendForeignKeyValue(sql, fmd);
-			}else{
-				appendCommonFieldsValue(sql, fmd);
-			}
-			fields2Update++;
-		}
-		if(0 == fields2Update){
-		    throw new RabbitDMLException("no fields 2 update");
-		}
-		sql.deleteCharAt(sql.lastIndexOf(","));
-		return sql;
+        StringBuilder sql = new StringBuilder();
+        valueMetas = getNonEmptyColumnFieldMetas(valueData);
+        if (valueMetas.isEmpty()) {
+            throw new RabbitDMLException("no field is expected to update!");
+        }
+        sql.append("UPDATE " + TARGET_TABLE_NAME + " SET");
+        int fields2Update = 0;
+        for (int i = 0; i < valueMetas.size(); i++) {
+            FieldMetaData fmd = valueMetas.get(i);
+            if (fmd.isPrimaryKey() && (sessionFactory.getDialectType().isSQLServer() 
+                    || sessionFactory.getDialectType().isDB2())) {
+                // sqlserver的主键是不能被更新的
+                // DB2不更新主键
+                continue;
+            }
+            if (null == fmd.getFieldValue()) {
+                preparedValues.add(new PreparedValue(null));
+                fields2Update++;
+                sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
+                continue;
+            }
+            if (fmd.isForeignKey()) {
+                appendForeignKeyValue(sql, fmd);
+            } else {
+                appendCommonFieldsValue(sql, fmd);
+            }
+            fields2Update++;
+        }
+        if (0 == fields2Update) {
+            throw new RabbitDMLException("no fields 2 update");
+        }
+        sql.deleteCharAt(sql.lastIndexOf(","));
+        return sql;
 	}
 
 	/**
@@ -377,39 +398,39 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private List<FieldMetaData> getNonEmptyColumnFieldMetas(Object data){
-		data = combineValues(data);
-		if(null == data){
-			return new ArrayList<>();
-		}
-		String tableName = getTableNameByClass(data.getClass());
-		Class<?> clz = data.getClass();
-		List<FieldMetaData> fields = new ArrayList<>();
-		while(!clz.equals(Object.class)){
-			for(Field f : clz.getDeclaredFields()){
-				Column col = f.getAnnotation(Column.class);
-				if(null == col){
-					continue;
-				}
-				if(nullfields.contains(f.getName())){
-					fields.add(new FieldMetaData(f, col, null, tableName));
-					continue;
-				}
-				Object fieldValue = null;
-				f.setAccessible(true);
-				try {
-					fieldValue = f.get(data);
-				} catch (Exception e) {
-					continue;
-				}
-				if(null == fieldValue){
-					continue;
-				}
-				fields.add(new FieldMetaData(f, col, fieldValue, tableName));
-			}
-			clz = clz.getSuperclass();
-		}
-		return fields;
-	}
+        data = combineValues(data);
+        if (null == data) {
+            return new ArrayList<>();
+        }
+        String tableName = getTableNameByClass(data.getClass());
+        Class<?> clz = data.getClass();
+        List<FieldMetaData> fields = new ArrayList<>();
+        while (!clz.equals(Object.class)) {
+            for (Field f : clz.getDeclaredFields()) {
+                Column col = f.getAnnotation(Column.class);
+                if (null == col) {
+                    continue;
+                }
+                if (nullfields.contains(f.getName())) {
+                    fields.add(new FieldMetaData(f, col, null, tableName));
+                    continue;
+                }
+                Object fieldValue = null;
+                f.setAccessible(true);
+                try {
+                    fieldValue = f.get(data);
+                } catch (Exception e) {
+                    continue;
+                }
+                if (null == fieldValue) {
+                    continue;
+                }
+                fields.add(new FieldMetaData(f, col, fieldValue, tableName));
+            }
+            clz = clz.getSuperclass();
+        }
+        return fields;
+    }
 	
 	/**
 	 * 
@@ -419,25 +440,26 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private Object combineValues(Object data) {
-		if(nullfields.isEmpty() && settedValue.isEmpty()){
-			return data;
-		}
-		if(data == null){
-			data = constructData();
-		}
-		Iterator<String> it = settedValue.keySet().iterator();
-		while(it.hasNext()){
-			String key = it.next();
-			FieldMetaData fmd = MetaData.getCachedFieldsMeta(getEntityClz(), key);
-			fmd.getField().setAccessible(true);
-			Object value = settedValue.get(key);
-            try{
-				fmd.getField().set(data, value);
-			}catch(Exception e){
-				setEntityFiled(data, key, fmd, value);
-			}
-		}
-		return data;
+        if (nullfields.isEmpty() && settedValue.isEmpty()) {
+            return data;
+        }
+        if (data == null) {
+            data = constructData();
+        }
+        Iterator<String> it = settedValue.keySet().iterator();
+        while (it.hasNext()) {
+            String key = it.next();
+            FieldMetaData fmd = MetaData.getCachedFieldsMeta(getEntityClz(),
+                    key);
+            fmd.getField().setAccessible(true);
+            Object value = settedValue.get(key);
+            try {
+                fmd.getField().set(data, value);
+            } catch (Exception e) {
+                setEntityFiled(data, key, fmd, value);
+            }
+        }
+        return data;
 	}
 
     /**

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import rabbit.open.orm.dml.Update;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.User;
@@ -46,8 +47,22 @@ public class UpdateTest {
                 .setValue(user).setNull("birth").set("name", "lisi").execute();
         user = us.createQuery().addFilter("id", user.getId())
                 .fetch(Organization.class).execute().unique();
-        TestCase.assertEquals(user.getName(), "lisi");
+        TestCase.assertEquals(user.getName(), user.getName());
 
+    }
+    
+    @Test
+    public void updaterTest() {
+        User user = new User("lilixs", 510, new Date(), null);
+        us.add(user);
+        Update<User> update = us.createUpdate().addFilter("id", user.getId());
+        update.getUpdater().setName("newName");
+        update.getUpdater().setAge(100);
+        update.execute();
+        User u = us.createQuery().addFilter("id", user.getId()).unique();
+        TestCase.assertEquals(u.getName(), update.getUpdater().getName());
+        TestCase.assertEquals(u.getAge(), update.getUpdater().getAge());
+        
     }
 
     /**
@@ -99,8 +114,7 @@ public class UpdateTest {
         User user = new User("lili", 10, null, null);
         us.add(user);
         us.createUpdate().addNullFilter("birth").set("name", "lisi").execute();
-        User u = us.createQuery().addFilter("id", user.getId()).execute()
-                .unique();
+        User u = us.createQuery().addFilter("id", user.getId()).unique();
         TestCase.assertEquals(u.getName(), "lisi");
 
     }
