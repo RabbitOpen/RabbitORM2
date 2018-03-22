@@ -299,7 +299,6 @@ public class Update<T> extends NonQueryAdapter<T>{
             throw new RabbitDMLException("no field is expected to update!");
         }
         sql.append("UPDATE " + TARGET_TABLE_NAME + " SET");
-        int fields2Update = 0;
         for (int i = 0; i < valueMetas.size(); i++) {
             FieldMetaData fmd = valueMetas.get(i);
             if (fmd.isPrimaryKey() && (sessionFactory.getDialectType().isSQLServer() 
@@ -310,7 +309,6 @@ public class Update<T> extends NonQueryAdapter<T>{
             }
             if (null == fmd.getFieldValue()) {
                 preparedValues.add(new PreparedValue(null));
-                fields2Update++;
                 sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
                 continue;
             }
@@ -319,10 +317,6 @@ public class Update<T> extends NonQueryAdapter<T>{
             } else {
                 appendCommonFieldsValue(sql, fmd);
             }
-            fields2Update++;
-        }
-        if (0 == fields2Update) {
-            throw new RabbitDMLException("no fields 2 update");
         }
         sql.deleteCharAt(sql.lastIndexOf(","));
         return sql;
