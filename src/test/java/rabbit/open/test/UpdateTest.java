@@ -11,6 +11,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.orm.dml.Update;
+import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.User;
@@ -84,14 +85,30 @@ public class UpdateTest {
     }
 
     /**
-     * <b>Description 测试添加非法属性作为过滤条件.</b>
+     * <b>Description 异常测试</b>
      */
     @Test
-    public void invalidFilterTest() {
+    public void exceptionTest() {
         try {
             us.createUpdate().set("id", 10).addFilter("idx", 1).execute();
+            throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertSame(UnKnownFieldException.class, e.getClass());
+        }
+        try {
+            us.createUpdate().execute();
+            throw new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertSame(RabbitDMLException.class, e.getClass());
+        }
+
+        try {
+            User u = new User();
+            u.setName("xxx");
+            us.createUpdate().updateByID(u);
+            throw new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertSame(RabbitDMLException.class, e.getClass());
         }
     }
 

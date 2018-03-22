@@ -159,23 +159,23 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		return this;
 	}
 
-	private List<T> readDataFromResultSets(ResultSet rs) throws ReflectiveOperationException, SQLException {
-		List<T> resultList = new ArrayList<>();
-		while(rs.next()){
-			T rowData = readRowData(rs);
-			Object pkv = getPrimaryKeyValue(rowData);
-			boolean exist = false;
-			for(int i = 0; i < resultList.size(); i++){
-				if(pkv.equals(getPrimaryKeyValue(resultList.get(i)))){
-					exist = true;
-					combineRow(resultList.get(i), rowData);
-					break;
-				}
-			}
-			if(!exist){
-				resultList.add(rowData);
-			}
-		}
+	private List<T> readDataFromResultSets(ResultSet rs) throws SQLException {
+        List<T> resultList = new ArrayList<>();
+        while (rs.next()) {
+            T rowData = readRowData(rs);
+            Object pkv = getPrimaryKeyValue(rowData);
+            boolean exist = false;
+            for (int i = 0; i < resultList.size(); i++) {
+                if (pkv.equals(getPrimaryKeyValue(resultList.get(i)))) {
+                    exist = true;
+                    combineRow(resultList.get(i), rowData);
+                    break;
+                }
+            }
+            if (!exist) {
+                resultList.add(rowData);
+            }
+        }
 		return resultList;
 	}
 	
