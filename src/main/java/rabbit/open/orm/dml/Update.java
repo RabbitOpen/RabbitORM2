@@ -216,9 +216,6 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 */
 	public long updateByID(T data){
         sql = createUpdateSql(data);
-        if (valueMetas.isEmpty()) {
-            throw new RabbitDMLException("no fields 2 update!");
-        }
         Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         pk.setAccessible(true);
         Object pkValue;
