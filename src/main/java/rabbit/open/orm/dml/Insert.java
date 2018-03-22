@@ -148,32 +148,23 @@ public class Insert<T> extends NonQueryAdapter<T>{
 			FieldMetaData fmd, Object value) {
 		FieldMetaData foreignKey = new FieldMetaData(fmd.getForeignField(), fmd.getForeignField().getAnnotation(Column.class));
 		foreignKey.getField().setAccessible(true);
-		Object vv = null;
-		try {
-			vv = foreignKey.getField().get(value);
-		} catch (Exception e) {
-			throw new RabbitDMLException(e);
-		} 
+		Object vv = getValue(foreignKey.getField(), value);
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(vv, foreignKey), foreignKey.getField()));
 		values.append(PLACE_HOLDER);
 	}
 
 	private Object getPrimaryKeyValueByPolicy(FieldMetaData fmd){
-	    Object value = null;
-		if(fmd.getPrimaryKey().policy().equals(Policy.UUID)){
-			value = UUIDPolicy.getID();
-			fmd.getField().setAccessible(true);
-			try {
-				fmd.getField().set(data, value);
-			} catch (Exception e) {
-				throw new RabbitDMLException(e);
-			}
-		}else if(fmd.getPrimaryKey().policy().equals(Policy.SEQUENCE)){
-			value = fmd.getPrimaryKey().sequence() + ".NEXTVAL";
-		}else if(fmd.getPrimaryKey().policy().equals(Policy.AUTOINCREMENT)){
-			return null;
-		}
-		return value;
+        Object value = null;
+        if (fmd.getPrimaryKey().policy().equals(Policy.UUID)) {
+            value = UUIDPolicy.getID();
+            fmd.getField().setAccessible(true);
+            setValue2Field(data, fmd.getField(), value);
+        } else if (fmd.getPrimaryKey().policy().equals(Policy.SEQUENCE)) {
+            value = fmd.getPrimaryKey().sequence() + ".NEXTVAL";
+        } else if (fmd.getPrimaryKey().policy().equals(Policy.AUTOINCREMENT)) {
+            return null;
+        }
+        return value;
 	}
 	
 	//创建需要插入的字段sql片段

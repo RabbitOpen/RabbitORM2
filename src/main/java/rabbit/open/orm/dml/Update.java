@@ -171,19 +171,11 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 */
 	public T getUpdater() {
 	    if (null == this.value2Update) {
-	        this.value2Update = newInstance();
+	        this.value2Update = DMLAdapter.newInstance(getEntityClz());
 	    }
 	    return this.value2Update;
 	}
 
-    private T newInstance() {
-        try {
-            return (T) getEntityClz().newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RabbitDMLException(e);
-        }
-    }
-	
 	/**
 	 * 
 	 * <b>Description:	对单个字段设值</b><br>
@@ -444,7 +436,7 @@ public class Update<T> extends NonQueryAdapter<T>{
             return data;
         }
         if (data == null) {
-            data = constructData();
+            data = DMLAdapter.newInstance(getEntityClz());
         }
         Iterator<String> it = settedValue.keySet().iterator();
         while (it.hasNext()) {
@@ -454,7 +446,7 @@ public class Update<T> extends NonQueryAdapter<T>{
             fmd.getField().setAccessible(true);
             Object value = settedValue.get(key);
             try {
-                fmd.getField().set(data, value);
+                setValue2Field(data, fmd.getField(), value);
             } catch (Exception e) {
                 setEntityFiled(data, key, fmd, value);
             }
@@ -477,29 +469,12 @@ public class Update<T> extends NonQueryAdapter<T>{
         		+ key + "(" + fmd.getField().getType().getName() + ")] of " 
         		+ data.getClass().getName());
         pk.setAccessible(true);
-        try{
-        	Object bean = fmd.getField().getType().getDeclaredConstructor().newInstance();
-        	if(value instanceof Number){
-        	    value = RabbitValueConverter.cast(new BigDecimal(value.toString()), pk.getType());
-        	}
-        	pk.set(bean, value);
-        	fmd.getField().set(data, bean);
-        }catch(Exception ee){
-        	throw new RabbitDMLException(ee.getMessage(), ee);
+        Object bean = DMLAdapter.newInstance(fmd.getField().getType());
+        if(value instanceof Number){
+            value = RabbitValueConverter.cast(new BigDecimal(value.toString()), pk.getType());
         }
+        setValue2Field(bean, pk, value);
+        setValue2Field(data, fmd.getField(), bean);
     }
 
-	/**
-	 * 
-	 * <b>Description:	反射构造一个data</b><br>
-	 * @return	
-	 * 
-	 */
-	private Object constructData() {
-		try {
-			return getEntityClz().getDeclaredConstructor().newInstance();
-		} catch (Exception e) {
-			throw new RabbitDMLException(e.getMessage(), e);
-		}
-	}
 }

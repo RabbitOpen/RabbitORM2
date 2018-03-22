@@ -14,6 +14,7 @@ import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.annotation.ManyToMany;
 import rabbit.open.orm.annotation.OneToMany;
 import rabbit.open.orm.annotation.PrimaryKey;
+import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
@@ -126,7 +127,7 @@ public class MetaData<T> {
             return policyMapping.get(entity.policy());
         }
         try {
-            policyMapping.put(entity.policy(), entity.policy().newInstance());
+            policyMapping.put(entity.policy(), DMLAdapter.newInstance(entity.policy()));
         } catch (Exception e) {
             throw new RabbitDMLException(e);
         }
@@ -344,16 +345,16 @@ public class MetaData<T> {
 	private List<JoinFieldMetaData<?>> getJoinMetas(Class<?> clz){
 		Class<?> c = clz;
 		List<JoinFieldMetaData<?>> jm = new ArrayList<>();
-		while(!Object.class.equals(c)){
-			for(Field f : c.getDeclaredFields()){
+        while (!Object.class.equals(c)) {
+            for (Field f : c.getDeclaredFields()) {
 				Annotation ann = f.getAnnotation(ManyToMany.class);
-				if(null != ann){
+                if (null != ann) {
 					ParameterizedType pt = (ParameterizedType) f.getGenericType();
 					jm.add(new JoinFieldMetaData(f, (Class<?>) pt.getActualTypeArguments()[0], clz, ann));
 					continue;
 				}
 				ann = f.getAnnotation(OneToMany.class);
-				if(null != ann){
+                if (null != ann) {
 					ParameterizedType pt = (ParameterizedType) f.getGenericType();
 					jm.add(new JoinFieldMetaData(f, (Class<?>) pt.getActualTypeArguments()[0], clz, ann));
 					continue;

@@ -27,7 +27,7 @@ public class SQLite3Transformer extends DialectTransformer {
     }
 
     @Override
-    public void setValue2Field(Object target, Field field, Object value) {
+    public void setValue2EntityField(Object target, Field field, Object value) {
         if (Date.class.equals(field.getType())) {
             try {
                 field.set(target, new SimpleDateFormat(DMLAdapter.DEFAULT_DATE_PATTERN).parse((String) value));
@@ -35,7 +35,7 @@ public class SQLite3Transformer extends DialectTransformer {
                 throw new RabbitDMLException(e.getMessage(), e);
             }
         } else {
-            super.setValue2Field(target, field, value);
+            super.setValue2EntityField(target, field, value);
         }
         
     }

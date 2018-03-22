@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.Delete;
 import rabbit.open.orm.dml.Insert;
 import rabbit.open.orm.dml.JoinTableManager;
@@ -280,20 +281,11 @@ public abstract class SpringDaoAdapter<T> {
         if (null == filterData) {
             return createQuery();
         }
-        T tf = newInstance(clz);
+        T tf = DMLAdapter.newInstance(clz);
         cloneValueByFieldName(filterData, tf);
         return createQuery(tf);
     }
 
-    @SuppressWarnings("unchecked")
-    private T newInstance(Class<?> clz) {
-        try {
-            return (T) clz.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RabbitDMLException(e);
-        }
-    }
-	
 	/**
 	 * 
 	 * <b>Description:	根据名字复制字段的值, 从src复制到dest</b><br>
@@ -332,7 +324,7 @@ public abstract class SpringDaoAdapter<T> {
     }
 
     private void cloneBeanField(Object dest, Object value, Field field) {
-        Object clone = newInstance(field.getType());
+        Object clone = DMLAdapter.newInstance(field.getType());
         cloneValueByFieldName(value, clone);
         setValue(dest, field, clone);
     }

@@ -953,4 +953,20 @@ public abstract class DMLAdapter<T> {
         }
         this.multiDropFilter = multiDropFilter;
     }
+    
+    protected void setValue2Field(Object target, Field field, Object value) {
+        try {
+            field.set(target, value);
+        } catch (Exception e) {
+            throw new RabbitDMLException(e.getMessage(), e);
+        }
+    }
+    
+    public static <T> T newInstance(Class<T> clz) {
+        try {
+            return clz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RabbitDMLException(e);
+        }
+    }
 }

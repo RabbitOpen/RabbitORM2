@@ -11,7 +11,6 @@ import rabbit.open.orm.dml.NonQueryAdapter;
 import rabbit.open.orm.dml.PolicyInsert;
 import rabbit.open.orm.dml.RabbitValueConverter;
 import rabbit.open.orm.dml.meta.MetaData;
-import rabbit.open.orm.exception.RabbitDMLException;
 
 import com.mysql.jdbc.Statement;
 
@@ -26,19 +25,19 @@ public class AutoIncrementPolicy extends PolicyInsert{
     public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        try{
+        try {
             Field pk = MetaData.getPrimaryKeyField(getEntityClass(adapter));
-            stmt = conn.prepareStatement(getSql(adapter).toString(), Statement.RETURN_GENERATED_KEYS);
+            stmt = conn.prepareStatement(getSql(adapter).toString(),
+                    Statement.RETURN_GENERATED_KEYS);
             setPreparedStatementValue(adapter, stmt);
             stmt.executeUpdate();
             rs = stmt.getGeneratedKeys();
-            if(rs.next()){
+            if (rs.next()) {
                 pk.setAccessible(true);
-                pk.set(data, RabbitValueConverter.cast(rs.getBigDecimal(1), pk.getType()));
+                setValue2Field(data, pk, RabbitValueConverter.cast(rs.getBigDecimal(1),
+                                pk.getType()), adapter);
             }
             return data;
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-            throw new RabbitDMLException(e);
         } finally {
             closeResultSet(rs);
             DMLAdapter.closeStmt(stmt);

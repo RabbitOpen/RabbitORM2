@@ -1,5 +1,6 @@
 package rabbit.open.orm.dml;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -90,12 +91,16 @@ public class PolicyInsert {
      * 
      */
     protected void closeResultSet(ResultSet rs) {
-        if(null != rs){
+        if (null != rs) {
             try {
                 rs.close();
             } catch (SQLException e) {
                 throw new RabbitDMLException(e);
             }
         }
+    }
+    
+    protected void setValue2Field(Object target, Field field, Object value, DMLAdapter<?> adapter) {
+        adapter.setValue2Field(target, field, value);
     }
 }

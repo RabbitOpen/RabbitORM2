@@ -113,7 +113,7 @@ public abstract class DialectTransformer {
      * @param field
      * @param value
      */
-    public void setValue2Field(Object target, Field field, Object value) {
+    public void setValue2EntityField(Object target, Field field, Object value) {
         try {
             if (value instanceof Number) {
                 field.set(target, RabbitValueConverter.cast(
