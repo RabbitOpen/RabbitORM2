@@ -295,7 +295,6 @@ public abstract class SpringDaoAdapter<T> {
 	 */
 	private final void cloneValueByFieldName(Object src, Object dest){
 		for(Field f : src.getClass().getDeclaredFields()) {
-			f.setAccessible(true);
 			Object fv = getValue(src, f);
 			if(null == fv){
 				continue;
@@ -339,6 +338,7 @@ public abstract class SpringDaoAdapter<T> {
 
     private Object getValue(Object src, Field f) {
         try {
+            f.setAccessible(true);
             return f.get(src);
         } catch (IllegalArgumentException | IllegalAccessException e) {
             throw new RabbitDMLException(e);

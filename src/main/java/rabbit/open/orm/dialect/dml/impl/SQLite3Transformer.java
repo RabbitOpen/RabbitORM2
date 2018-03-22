@@ -28,6 +28,7 @@ public class SQLite3Transformer extends DialectTransformer {
 
     @Override
     public void setValue2EntityField(Object target, Field field, Object value) {
+        field.setAccessible(true);
         if (Date.class.equals(field.getType())) {
             try {
                 field.set(target, new SimpleDateFormat(DMLAdapter.DEFAULT_DATE_PATTERN).parse((String) value));

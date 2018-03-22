@@ -289,7 +289,6 @@ public abstract class DMLAdapter<T> {
 		while(!clzSuper.equals(Object.class)){
 			for(Field f : clzSuper.getDeclaredFields()){
 				Column col = f.getAnnotation(Column.class);
-				f.setAccessible(true);
 				Object fieldValue = getValue(f, data);
 				if(null == col || null == fieldValue){
 					continue;
@@ -311,6 +310,7 @@ public abstract class DMLAdapter<T> {
      */
     protected Object getValue(Field field, Object target){
         try {
+            field.setAccessible(true);
             return field.get(target);
         } catch (Exception e) {
             throw new RabbitDMLException(e.getMessage());
@@ -956,6 +956,7 @@ public abstract class DMLAdapter<T> {
     
     protected void setValue2Field(Object target, Field field, Object value) {
         try {
+            field.setAccessible(true);
             field.set(target, value);
         } catch (Exception e) {
             throw new RabbitDMLException(e.getMessage(), e);

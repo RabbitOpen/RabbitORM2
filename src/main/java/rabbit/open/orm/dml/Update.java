@@ -217,7 +217,6 @@ public class Update<T> extends NonQueryAdapter<T>{
 	public long updateByID(T data){
         sql = createUpdateSql(data);
         Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-        pk.setAccessible(true);
         Object pkValue;
         pkValue = getValue(pk, data);
         if (null == pkValue) {
@@ -364,7 +363,6 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 */
 	private void appendForeignKeyValue(StringBuilder sql, FieldMetaData fmd) {
         Field foreignField = fmd.getForeignField();
-        foreignField.setAccessible(true);
         Object fkValue = getValue(foreignField, fmd.getFieldValue());
         if (null != fkValue) {
             preparedValues.add(new PreparedValue(RabbitValueConverter.convert(
@@ -399,13 +397,7 @@ public class Update<T> extends NonQueryAdapter<T>{
                     fields.add(new FieldMetaData(f, col, null, tableName));
                     continue;
                 }
-                Object fieldValue = null;
-                f.setAccessible(true);
-                try {
-                    fieldValue = f.get(data);
-                } catch (Exception e) {
-                    continue;
-                }
+                Object fieldValue = getValue(f, data);
                 if (null == fieldValue) {
                     continue;
                 }
@@ -435,7 +427,6 @@ public class Update<T> extends NonQueryAdapter<T>{
             String key = it.next();
             FieldMetaData fmd = MetaData.getCachedFieldsMeta(getEntityClz(),
                     key);
-            fmd.getField().setAccessible(true);
             Object value = settedValue.get(key);
             try {
                 setValue2Field(data, fmd.getField(), value);
@@ -460,7 +451,6 @@ public class Update<T> extends NonQueryAdapter<T>{
         logger.warn("value[" + value + "] is not compatible with field[" 
         		+ key + "(" + fmd.getField().getType().getName() + ")] of " 
         		+ data.getClass().getName());
-        pk.setAccessible(true);
         Object bean = DMLAdapter.newInstance(fmd.getField().getType());
         if(value instanceof Number){
             value = RabbitValueConverter.cast(new BigDecimal(value.toString()), pk.getType());

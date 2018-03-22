@@ -41,7 +41,6 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      */
     public long addJoinRecords(T data) {
         Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-        pk.setAccessible(true);
         Object value;
         value = getValue(pk, data);
         assertEmptyPKValue(value);
@@ -87,7 +86,6 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      */
     public long removeJoinRecords(T data) {
         Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-        pk.setAccessible(true);
         Object value = getValue(pk, data);
         assertEmptyPKValue(value);
         this.sqlOperation = new SQLOperation() {
@@ -115,7 +113,6 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      */
     public void clearJoinRecords(T data, Class<?> join) {
         Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-        pk.setAccessible(true);
         Object value;
         value = getValue(pk, data);
         assertEmptyPKValue(value);
@@ -162,7 +159,6 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      */
     public void replaceJoinRecords(T data) {
         Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-        pk.setAccessible(true);
         Object value = getValue(pk, data);
         assertEmptyPKValue(value);
         this.sqlOperation = new SQLOperation() {

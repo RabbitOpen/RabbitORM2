@@ -115,6 +115,7 @@ public abstract class DialectTransformer {
      */
     public void setValue2EntityField(Object target, Field field, Object value) {
         try {
+            field.setAccessible(true);
             if (value instanceof Number) {
                 field.set(target, RabbitValueConverter.cast(
                                 new BigDecimal(value.toString()),

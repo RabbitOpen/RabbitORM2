@@ -210,7 +210,6 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 			if(!(jfm.getAnnotation() instanceof ManyToMany)){
 				continue;
 			}
-			jfm.getField().setAccessible(true);
 			List<?> jrs = (List<?>)getValue(jfm.getField(), data);
 			if(null == jrs || jrs.isEmpty()){
 				continue;
@@ -228,7 +227,6 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 			StringBuilder rsql = new StringBuilder();
 			List<PreparedValue> values = new ArrayList<>();
 			Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
-			jpk.setAccessible(true);
 			//子表的主键值
 			Object jpkv = getValue(o, jpk);
 			ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
@@ -372,7 +370,6 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
             if (!(jfm.getAnnotation() instanceof ManyToMany)) {
                 continue;
             }
-            jfm.getField().setAccessible(true);
             List<?> jrs = (List<?>) getValue(jfm.getField(), data);
             if (null == jrs || jrs.isEmpty()) {
                 continue;
@@ -389,7 +386,6 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
             rsql.append(" AND " + mtm.reverseJoinColumn() + " IN (");
             for (Object o : jrs) {
                 Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
-                jpk.setAccessible(true);
                 // 子表的主键值
                 Object jpkv = getValue(o, jpk);
                 FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());

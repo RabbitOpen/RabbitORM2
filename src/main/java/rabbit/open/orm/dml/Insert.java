@@ -103,7 +103,6 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	private StringBuilder createValuesSql(T obj){
         StringBuilder values = new StringBuilder("(");
         for (FieldMetaData fmd : metaData.getFieldMetas()) {
-            fmd.getField().setAccessible(true);
             Object value = getValue(fmd.getField(), obj);
             if (null == value) {
                 if (!fmd.isPrimaryKey()) {
@@ -135,7 +134,6 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	private void createForeignKeySqlPart(StringBuilder values,
 			FieldMetaData fmd, Object value) {
 		FieldMetaData foreignKey = new FieldMetaData(fmd.getForeignField(), fmd.getForeignField().getAnnotation(Column.class));
-		foreignKey.getField().setAccessible(true);
 		Object vv = getValue(foreignKey.getField(), value);
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(vv, foreignKey), foreignKey.getField()));
 		values.append(PLACE_HOLDER);
@@ -145,7 +143,6 @@ public class Insert<T> extends NonQueryAdapter<T>{
         Object value = null;
         if (fmd.getPrimaryKey().policy().equals(Policy.UUID)) {
             value = UUIDPolicy.getID();
-            fmd.getField().setAccessible(true);
             setValue2Field(data, fmd.getField(), value);
         } else if (fmd.getPrimaryKey().policy().equals(Policy.SEQUENCE)) {
             value = fmd.getPrimaryKey().sequence() + ".NEXTVAL";
@@ -160,7 +157,6 @@ public class Insert<T> extends NonQueryAdapter<T>{
 		StringBuilder fields = new StringBuilder("(");
 		long nonEmptyFields = 0;
 		for(FieldMetaData fmd : metaData.getFieldMetas()){
-			fmd.getField().setAccessible(true);
 			Object value = getValue(fmd.getField(), obj);
 			if(null == value && isIgnoreField(fmd)){
 		        continue;

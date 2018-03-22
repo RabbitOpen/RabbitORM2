@@ -192,7 +192,6 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
             Object realTarget = getRealTarget(target, jfm);
             Object realRowData = getRealTarget(rowData, jfm);
             Field field = jfm.getField();
-            field.setAccessible(true);
             if (null == realRowData || null == getValue(field, realRowData)) {
                 continue;
             }
@@ -210,7 +209,6 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         Object realTarget = target;
         if(!jfm.getTargetClass().equals(target.getClass())){
            for(Field f: jfm.getDependencyFields()){
-               f.setAccessible(true);
                realTarget = getValue(f, realTarget);
                if(null == realTarget){
                    return null;
@@ -243,7 +241,6 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	
 	private Object getPrimaryKeyValue(Object readRowData) {
 		Field primaryKey = MetaData.getPrimaryKeyField(readRowData.getClass());
-		primaryKey.setAccessible(true);
 		return getValue(primaryKey, readRowData);
 	}
 	
@@ -282,7 +279,6 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
             if (!entity.getClass().equals(jfd.getJoinClass())) {
                 continue;
             }
-            jfd.getField().setAccessible(true);
             ArrayList<Object> list = new ArrayList<>();
             list.add(entity);
             Object target = fetchEntity.get(getAliasByTableName(getTableNameByClass(jfd
@@ -303,18 +299,11 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		List<FilterDescriptor> deps = clzesEnabled2Join.get(entity.getClass());
 		for(FilterDescriptor fd : deps){
 			Object depObj = fetchEntity.get(getAliasByTableName(getTableNameByClass(fd.getJoinDependency())));
-			if(null == depObj){
-				continue;
-			}
-			//从缓存map中找出entity的依赖对象
-			fd.getJoinField().setAccessible(true);
-			//依赖对象中该类型的值
-			Object value = getValue(fd.getJoinField(), depObj);
-			if(null == value){
+			Object value = null;
+			if(null == depObj || null == (value = getValue(fd.getJoinField(), depObj))){
 				continue;
 			}
 			Field pk = MetaData.getPrimaryKeyField(entity.getClass());
-			pk.setAccessible(true);
 			if(getValue(pk, value).equals(getValue(pk, entity))){
 				setValue2Field(depObj, fd.getJoinField(), entity);
 				break;
@@ -357,12 +346,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         if (null != entiyAnno) {
             Object newInstance = DMLAdapter.newInstance(field.getType());
             Field pkField = MetaData.getPrimaryKeyField(field.getType());
-            pkField.setAccessible(true);
             setValue2EntityField(newInstance, pkField, colValue);
-            field.setAccessible(true);
             setValue2Field(joinFetcEntity.get(tableName), field, newInstance);
         } else {
-            field.setAccessible(true);
             setValue2EntityField(joinFetcEntity.get(tableName), field, colValue);
         }
 	}
@@ -413,12 +399,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         if (null != entiyAnno) {
             Object newInstance = DMLAdapter.newInstance(field.getType());
             Field pkField = MetaData.getPrimaryKeyField(field.getType());
-            pkField.setAccessible(true);
             setValue2EntityField(newInstance, pkField, colValue);
-            field.setAccessible(true);
             setValue2Field(fetchEntityMap.get(tableAlias), field,  newInstance);
         } else {
-            field.setAccessible(true);
             setValue2EntityField(fetchEntityMap.get(tableAlias), field, colValue);
         }
 	}
@@ -820,7 +803,6 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 					continue;
 				}
 				Field pk = MetaData.getPrimaryKeyField(fmd.getFieldValue().getClass());
-				pk.setAccessible(true);
 				Object pkv = getValue(pk, fmd.getFieldValue());
 				if(null == pkv){
 					continue;
