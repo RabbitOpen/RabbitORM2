@@ -14,6 +14,7 @@ import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.policy.Policy;
 import rabbit.open.orm.dml.policy.UUIDPolicy;
+import rabbit.open.orm.exception.NoField2InsertException;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.shard.ShardFactor;
@@ -30,21 +31,21 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	protected T data;
 	
 	public Insert(SessionFactory sessionFactory, Class<T> clz, T data) {
-		super(sessionFactory, clz);
-		this.data = data;
-		if(null == data){
-			throw new RabbitDMLException("empty data[" + data + "] can't be inserted!");
-		}
-		setDmlType(DMLType.INSERT);
-		createInsertSql(data);
-		sqlOperation = new SQLOperation() {
-			@Override
-			public long executeSQL(Connection conn) throws SQLException {
-			    updateTargetTableName();
-				return doExecute(conn);
-			}
-
-		};
+        super(sessionFactory, clz);
+        this.data = data;
+        if (null == data) {
+            throw new RabbitDMLException("empty data[" + data
+                    + "] can't be inserted!");
+        }
+        setDmlType(DMLType.INSERT);
+        createInsertSql(data);
+        sqlOperation = new SQLOperation() {
+            @Override
+            public long executeSQL(Connection conn) throws SQLException {
+                updateTargetTableName();
+                return doExecute(conn);
+            }
+        };
 	}
 
 	@Override
@@ -100,46 +101,36 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private StringBuilder createValuesSql(T obj){
-		StringBuilder values = new StringBuilder("(");
-		for(FieldMetaData fmd : metaData.getFieldMetas()){
-			fmd.getField().setAccessible(true);
-			Object value = readValue(obj, fmd);
-			if(null == value){
-				if(!fmd.isPrimaryKey()){
-					continue;
-				}
-				value = getPrimaryKeyValueByPolicy(fmd);
-				if(null == value){
-					continue;
-				}
-			}
-			if(fmd.isForeignKey()){
-				createForeignKeySqlPart(values, fmd, value);
-			}else{
-				if(fmd.isPrimaryKey() && fmd.getPrimaryKey().policy().equals(Policy.SEQUENCE)){
-					values.append(value);
-				}else{
-					preparedValues.add(new PreparedValue(RabbitValueConverter.convert(value, fmd), fmd.getField()));
-					values.append(PLACE_HOLDER);
-				}
-			}
-			values.append(",");
-		}
-		if(values.length() > 1){
-			values.deleteCharAt(values.length() - 1);
-			values.append(")");
-			return values;
-		}
-		return null;
-	}
-
-    private Object readValue(T obj, FieldMetaData fmd) {
-        try {
-        	return fmd.getField().get(obj);
-        } catch (Exception e) {
-        	throw new RabbitDMLException(e);
+        StringBuilder values = new StringBuilder("(");
+        for (FieldMetaData fmd : metaData.getFieldMetas()) {
+            fmd.getField().setAccessible(true);
+            Object value = getValue(fmd.getField(), obj);
+            if (null == value) {
+                if (!fmd.isPrimaryKey()) {
+                    continue;
+                }
+                value = getPrimaryKeyValueByPolicy(fmd);
+                if (null == value) {
+                    continue;
+                }
+            }
+            if (fmd.isForeignKey()) {
+                createForeignKeySqlPart(values, fmd, value);
+            } else {
+                if (fmd.isPrimaryKey() && fmd.getPrimaryKey().policy().equals(Policy.SEQUENCE)) {
+                    values.append(value);
+                } else {
+                    preparedValues.add(new PreparedValue(RabbitValueConverter
+                            .convert(value, fmd), fmd.getField()));
+                    values.append(PLACE_HOLDER);
+                }
+            }
+            values.append(",");
         }
-    }
+        values.deleteCharAt(values.length() - 1);
+        values.append(")");
+        return values;
+	}
 
 	private void createForeignKeySqlPart(StringBuilder values,
 			FieldMetaData fmd, Object value) {
@@ -178,7 +169,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 			fields.append(getColumnName(fmd.getColumn()) + ",");
 		}
 		if(0 == nonEmptyFields){
-		    throw new RabbitDMLException("no fields to insert!");
+		    throw new NoField2InsertException();
 		}
 		fields.deleteCharAt(fields.length() - 1);
 		fields.append(")");

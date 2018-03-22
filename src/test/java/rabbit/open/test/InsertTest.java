@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import rabbit.open.orm.exception.NoField2InsertException;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.UUIDPolicyEntity;
@@ -55,11 +56,19 @@ public class InsertTest {
     
     @Test
     public void exceptionTest() {
+        uus.add(new UUIDPolicyEntity());
         try {
             us.add(null);
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertSame(RabbitDMLException.class, e.getClass());
         }
+        try {
+            us.add(new User());
+            throw new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertSame(NoField2InsertException.class, e.getClass());
+        }
+        
     }
 }
