@@ -90,8 +90,9 @@ public class SQLiteQueryTest {
     public void simpleQueryTest() {
         SQLiteUser user = addInitData(100);
         List<SQLiteUser> list = us.createQuery(user).joinFetch(SQLiteRole.class)
-                .fetch(SQLiteOrganization.class).distinct().execute().list();
+                .fetch(SQLiteOrganization.class).distinct().list();
         TestCase.assertTrue(list.size() > 0);
+        TestCase.assertNotNull(list.get(0).getBirth());
         TestCase.assertEquals(user.getBigField(), list.get(0).getBigField());
         TestCase.assertEquals(user.getDoubleField(), list.get(0).getDoubleField());
         TestCase.assertEquals(user.getFloatField(), list.get(0).getFloatField());

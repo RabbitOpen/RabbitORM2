@@ -1,11 +1,14 @@
 package rabbit.open.test;
 
+import junit.framework.TestCase;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.UUIDPolicyEntity;
 import rabbit.open.test.entity.User;
@@ -48,5 +51,15 @@ public class InsertTest {
         UUIDPolicyEntity data = new UUIDPolicyEntity("lisi");
         uus.add(data);
         System.out.println(data);
+    }
+    
+    @Test
+    public void exceptionTest() {
+        try {
+            us.add(null);
+            throw new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertSame(RabbitDMLException.class, e.getClass());
+        }
     }
 }

@@ -83,9 +83,6 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private Insert<T> createInsertSql(T data){
-		if(null == data){
-			return this;
-		}
 		StringBuilder fields = createFieldsSql(data);
 		sql = new StringBuilder();
 		sql.append("INSERT INTO " +  TARGET_TABLE_NAME + "" );

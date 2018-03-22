@@ -90,22 +90,29 @@ public class UpdateTest {
     @Test
     public void exceptionTest() {
         try {
-            us.createUpdate().set("id", 10).addFilter("idx", 1).execute();
-            throw new RuntimeException();
-        } catch (Exception e) {
-            TestCase.assertSame(UnKnownFieldException.class, e.getClass());
-        }
-        try {
             us.createUpdate().execute();
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertSame(RabbitDMLException.class, e.getClass());
+        }
+        try {
+            us.createUpdate().set("id", 10).addFilter("idx", 1).execute();
+            throw new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertSame(UnKnownFieldException.class, e.getClass());
         }
 
         try {
             User u = new User();
             u.setName("xxx");
             us.createUpdate().updateByID(u);
+            throw new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertSame(RabbitDMLException.class, e.getClass());
+        }
+
+        try {
+            us.createUpdate().updateByID(new User());
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertSame(RabbitDMLException.class, e.getClass());
