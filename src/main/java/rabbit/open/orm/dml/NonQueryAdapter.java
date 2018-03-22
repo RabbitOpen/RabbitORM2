@@ -228,7 +228,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 			List<PreparedValue> values = new ArrayList<>();
 			Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
 			//子表的主键值
-			Object jpkv = getValue(o, jpk);
+			Object jpkv = getValue(jpk, o);
 			ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 			rsql.append("INSERT INTO " + mtm.joinTable() + "(");
 			rsql.append(mtm.joinColumn() + "," + mtm.reverseJoinColumn());
@@ -268,14 +268,6 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 		}
 	}
 
-    private Object getValue(Object o, Field jpk) {
-        try {
-        	return jpk.get(o);
-        } catch (IllegalAccessException e) {
-        	throw new RabbitDMLException(e);
-        }
-    }
-	
 	/**
 	 * 
 	 * <b>Description:	获取主键字段的描述符信息</b><br>
@@ -387,7 +379,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
             for (Object o : jrs) {
                 Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
                 // 子表的主键值
-                Object jpkv = getValue(o, jpk);
+                Object jpkv = getValue(jpk, o);
                 FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
                 values.add(new PreparedValue(RabbitValueConverter.convert(jpkv,
                         fmd), fmd.getField()));

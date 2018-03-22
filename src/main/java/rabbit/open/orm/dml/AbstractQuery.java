@@ -293,22 +293,25 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @param entity
 	 */
 	private void injectFetchDependency(Map<String, Object> fetchEntity, Object entity) {
-		if(null == clzesEnabled2Join){
-			return;
-		}
-		List<FilterDescriptor> deps = clzesEnabled2Join.get(entity.getClass());
-		for(FilterDescriptor fd : deps){
-			Object depObj = fetchEntity.get(getAliasByTableName(getTableNameByClass(fd.getJoinDependency())));
-			Object value = null;
-			if(null == depObj || null == (value = getValue(fd.getJoinField(), depObj))){
-				continue;
-			}
-			Field pk = MetaData.getPrimaryKeyField(entity.getClass());
-			if(getValue(pk, value).equals(getValue(pk, entity))){
-				setValue2Field(depObj, fd.getJoinField(), entity);
-				break;
-			}
-		}
+        if (null == clzesEnabled2Join) {
+            return;
+        }
+        List<FilterDescriptor> deps = clzesEnabled2Join.get(entity.getClass());
+        for (FilterDescriptor fd : deps) {
+            Object depObj = fetchEntity
+                    .get(getAliasByTableName(getTableNameByClass(fd
+                            .getJoinDependency())));
+            Object value = null;
+            if (null == depObj
+                    || null == (value = getValue(fd.getJoinField(), depObj))) {
+                continue;
+            }
+            Field pk = MetaData.getPrimaryKeyField(entity.getClass());
+            if (getValue(pk, value).equals(getValue(pk, entity))) {
+                setValue2Field(depObj, fd.getJoinField(), entity);
+                return;
+            }
+        }
 	}
 	
 	private void readEntity(ResultSet rs, Map<String, Object> fetchEntity, Map<String, Object> joinFetcEntity) throws SQLException {
@@ -849,20 +852,24 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	private void convertJoinFilter2Metas(){
-		Iterator<Class<?>> it = addedJoinFilters.keySet().iterator();
-		while(it.hasNext()){
-			Class<?> enc = it.next();
-			for(JoinFieldMetaData<?> jfm : metaData.getJoinMetas()){
-				if(!enc.equals(jfm.getJoinClass())){
-					continue;
-				}
-				if(!isExistsJoinFieldMeta(enc)){
-					joinFieldMetas.add(jfm);
-				}
-				break;
-			}
-		}
+        Iterator<Class<?>> it = addedJoinFilters.keySet().iterator();
+        while (it.hasNext()) {
+            Class<?> clz = it.next();
+            convertByClass(clz);
+        }
 	}
+
+    private void convertByClass(Class<?> enc) {
+        for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
+            if (!enc.equals(jfm.getJoinClass())) {
+                continue;
+            }
+            if (!isExistsJoinFieldMeta(enc)) {
+                joinFieldMetas.add(jfm);
+                return;
+            }
+        }
+    }
 
     private boolean isExistsJoinFieldMeta(Class<?> enc) {
         for(JoinFieldMetaData<?> jfme : joinFieldMetas){
@@ -1457,28 +1464,36 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public <E> AbstractQuery<T> joinFetch(Class<E> entityClz, E filter){
 	    checkShardedFetch(entityClz);
-	    boolean validFetch = false;
-		for(JoinFieldMetaData jfmo : metaData.getJoinMetas()){
-			if(!entityClz.equals(jfmo.getJoinClass())){
-				continue;
-			}
-			JoinFieldMetaData jfm = jfmo.clone();
-			validFetch = true;
-			jfm.setFilter(filter);
-			for(JoinFieldMetaData jfme : joinFieldMetas){
-				if(jfme.getJoinClass().equals(entityClz)){
-					joinFieldMetas.remove(jfme);
-					break;
-				}
-			}
-			joinFieldMetas.add(jfm);
-			break;
-		}
-		if(!validFetch){
-		    throw new InvalidJoinFetchOperationException(entityClz, getEntityClz());
-		}
+        if (!isValidFetch(entityClz)) {
+            throw new InvalidJoinFetchOperationException(entityClz,
+                    getEntityClz());
+        }
+        for (JoinFieldMetaData jfmo : metaData.getJoinMetas()) {
+            if (entityClz.equals(jfmo.getJoinClass())) {
+                JoinFieldMetaData jfm = jfmo.clone();
+                jfm.setFilter(filter);
+                for (JoinFieldMetaData jfme : joinFieldMetas) {
+                    if (jfme.getJoinClass().equals(entityClz)) {
+                        joinFieldMetas.remove(jfme);
+                        break;
+                    }
+                }
+                joinFieldMetas.add(jfm);
+                return this;
+            }
+        }
 		return this;
 	}
+
+    private <E> boolean isValidFetch(Class<E> entityClz) {
+        for (@SuppressWarnings("rawtypes") JoinFieldMetaData jfmo : metaData.getJoinMetas()) {
+            if (!entityClz.equals(jfmo.getJoinClass())) {
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
 	
 	/**
 	 * <b>Description  设置查询时的别名</b>

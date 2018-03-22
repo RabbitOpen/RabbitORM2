@@ -108,8 +108,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
                 if (!fmd.isPrimaryKey()) {
                     continue;
                 }
-                value = getPrimaryKeyValueByPolicy(fmd);
-                if (null == value) {
+                if (null == (value = getPrimaryKeyValueByPolicy(fmd))) {
                     continue;
                 }
             }
