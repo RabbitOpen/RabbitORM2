@@ -295,14 +295,13 @@ public class Update<T> extends NonQueryAdapter<T>{
 	private StringBuilder createUpdateSql(T valueData) {
         StringBuilder sql = new StringBuilder();
         valueMetas = getNonEmptyColumnFieldMetas(valueData);
-        if (valueMetas.isEmpty()) {
+        if (noFields2Update()) {
             throw new RabbitDMLException("no field is expected to update!");
         }
         sql.append("UPDATE " + TARGET_TABLE_NAME + " SET");
         for (int i = 0; i < valueMetas.size(); i++) {
             FieldMetaData fmd = valueMetas.get(i);
-            if (fmd.isPrimaryKey() && (sessionFactory.getDialectType().isSQLServer() 
-                    || sessionFactory.getDialectType().isDB2())) {
+            if (fmd.isPrimaryKey()) {
                 // sqlserver的主键是不能被更新的
                 // DB2不更新主键
                 continue;
@@ -322,6 +321,10 @@ public class Update<T> extends NonQueryAdapter<T>{
         return sql;
 	}
 
+    private boolean noFields2Update() {
+        return valueMetas.isEmpty() || (1 == valueMetas.size() && valueMetas.get(0).isPrimaryKey());
+    }
+
 	/**
 	 * 
 	 * <b>Description:	提取普通字段的值并添加到sql中</b><br>
@@ -330,7 +333,8 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private void appendCommonFieldsValue(StringBuilder sql, FieldMetaData fmd) {
-		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fmd.getFieldValue(), fmd), fmd.getField()));
+		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fmd.getFieldValue(), fmd), 
+		        fmd.getField()));
 		sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
 	}
 
@@ -359,18 +363,15 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private void appendForeignKeyValue(StringBuilder sql, FieldMetaData fmd) {
-		try {
-			Field foreignField = fmd.getForeignField();
-			foreignField.setAccessible(true);
-			Object fkValue = foreignField.get(fmd.getFieldValue());
-			if(null != fkValue){
-				preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fkValue, new FieldMetaData(foreignField, 
-                        foreignField.getAnnotation(Column.class))), foreignField));
-				sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
-			}
-		}catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
+        Field foreignField = fmd.getForeignField();
+        foreignField.setAccessible(true);
+        Object fkValue = getValue(foreignField, fmd.getFieldValue());
+        if (null != fkValue) {
+            preparedValues.add(new PreparedValue(RabbitValueConverter.convert(
+                    fkValue, new FieldMetaData(foreignField, foreignField
+                            .getAnnotation(Column.class))), foreignField));
+            sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
+        }
 	}
 	
 	/**

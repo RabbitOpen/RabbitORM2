@@ -49,6 +49,7 @@ public class UpdateTest {
         user = us.createQuery().addFilter("id", user.getId())
                 .fetch(Organization.class).execute().unique();
         TestCase.assertEquals(user.getName(), user.getName());
+        TestCase.assertNull(user.getBirth());
 
     }
     
@@ -90,6 +91,14 @@ public class UpdateTest {
     @Test
     public void exceptionTest() {
         try {
+            User u = new User();
+            u.setId(1L);
+            us.createUpdate().updateByID(u);
+            throw new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertSame(RabbitDMLException.class, e.getClass());
+        }
+        try {
             us.createUpdate().execute();
             throw new RuntimeException();
         } catch (Exception e) {
@@ -117,6 +126,8 @@ public class UpdateTest {
         } catch (Exception e) {
             TestCase.assertSame(RabbitDMLException.class, e.getClass());
         }
+
+        
     }
 
     @Test
