@@ -25,7 +25,7 @@ import sharding.test.db.service.WriteOnlyUserService;
  * <b>Description 读写分离测试</b>
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:read-write-splited-context.xml" })
+@ContextConfiguration(locations = { "classpath:read-write-seperated-context.xml" })
 public class ReadWriteSeperatedTest {
 
     @Autowired
