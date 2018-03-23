@@ -234,9 +234,12 @@
 							<classesDirectory>${basedir}/target/classes</classesDirectory>
 							<finalName>${project.artifactId}</finalName>
 							<excludes>
-								<exclude>*.xml</exclude>
-								<exclude>*.properties</exclude>
-							</excludes>
+                                <exclude>*.xml</exclude>
+                                <exclude>**/*.xml</exclude>
+                                <exclude>rabbit/oracle</exclude>
+                                <exclude>db/</exclude>
+                                <exclude>*.properties</exclude>
+                            </excludes>
 						</configuration>
 					</execution>
 				</executions>
@@ -259,6 +262,7 @@
 								<exclude>**/*.xml</exclude>
 								<exclude>rabbit/oracle</exclude>
 								<exclude>*.properties</exclude>
+								<exclude>db/*.s3db</exclude>
 							</excludes>
 						</configuration>
 					</execution>
