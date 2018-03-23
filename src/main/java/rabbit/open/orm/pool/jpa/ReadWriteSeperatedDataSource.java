@@ -7,7 +7,7 @@ import rabbit.open.orm.dml.filter.DMLType;
 /**
  * <b>Description  读写分离数据源</b>
  */
-public class ReadWriteSplitedDataSource implements CombinedDataSource {
+public class ReadWriteSeperatedDataSource implements CombinedDataSource {
 
     //写的源
     private DataSource readSource;

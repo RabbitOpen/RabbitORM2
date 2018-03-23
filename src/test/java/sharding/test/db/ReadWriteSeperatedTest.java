@@ -26,7 +26,7 @@ import sharding.test.db.service.WriteOnlyUserService;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:read-write-splited-context.xml" })
-public class ReadWriteSplitedTest {
+public class ReadWriteSeperatedTest {
 
     @Autowired
     RWUserService rwUserService;
