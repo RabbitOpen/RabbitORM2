@@ -43,22 +43,16 @@ public class FieldMetaData {
 	//标识是否是拥有同类型字段
 	private boolean mutiFetchField = false;
 	
-	public boolean isMutiFetchField() {
-        return mutiFetchField;
-    }
-
-    public void setMutiFetchField(boolean mutiFetchField) {
-        this.mutiFetchField = mutiFetchField;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
+	//简单数据类型
+    private String baseDataType = int.class.getName() + "|"
+                       + float.class.getName() + "|"
+                       + double.class.getName() + "|"
+                       + short.class.getName() + "|"
+                       + long.class.getName() + "|"
+                       + char.class.getName() + "|"
+                       + byte.class.getName() + "|"
+                       + boolean.class.getName();
+	
     public FieldMetaData(Field field, Column column) {
 		super();
 		this.field = field;
@@ -76,29 +70,35 @@ public class FieldMetaData {
 		foreignField = MetaData.getPrimaryKeyField(field.getType());
 	}
 	
-	public Field getField() {
-		return field;
-	}
-
-	public Column getColumn() {
-		return column;
-	}
-	
 	public FieldMetaData(Field field, Column column, Object value, String tableName){
 		this(field, column);
 		this.fieldValue = value;
 		this.fieldTableName = tableName;
 	}
 	
-	//简单数据类型
-	private String baseDataType = int.class.getName() + "|"
-				 	   + float.class.getName() + "|"
-				 	   + double.class.getName() + "|"
-				 	   + short.class.getName() + "|"
-				 	   + long.class.getName() + "|"
-				 	   + char.class.getName() + "|"
-				 	   + byte.class.getName() + "|"
-				 	   + boolean.class.getName();
+	public Field getField() {
+        return field;
+    }
+
+    public Column getColumn() {
+        return column;
+    }
+	
+	public boolean isMutiFetchField() {
+        return mutiFetchField;
+    }
+
+    public void setMutiFetchField(boolean mutiFetchField) {
+        this.mutiFetchField = mutiFetchField;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
 
 	//数字字段
 	public boolean isNumerical(){
@@ -117,9 +117,13 @@ public class FieldMetaData {
 	}
 
 	private void setPrimaryKey(PrimaryKey primaryKey) {
-		this.isPrimaryKey = (null != primaryKey);
+		this.isPrimaryKey = isPrimaryKey(primaryKey);
 		this.primaryKey = primaryKey;
 	}
+
+    private boolean isPrimaryKey(PrimaryKey primaryKey) {
+        return null != primaryKey;
+    }
 
 	public PrimaryKey getPrimaryKey() {
 		return primaryKey;

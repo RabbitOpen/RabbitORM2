@@ -129,7 +129,7 @@ public class SQLFormater {
 					values();
 				} else if ("on".equals(this.lcToken)) {
 					on();
-				} else if ((this.afterBetween) && (this.lcToken.equals("and"))) {
+				} else if ((this.afterBetween) && ("and".equals(this.lcToken))) {
 					misc();
 					this.afterBetween = false;
 				} else if (SQLFormater.LOGICAL.contains(this.lcToken)) {

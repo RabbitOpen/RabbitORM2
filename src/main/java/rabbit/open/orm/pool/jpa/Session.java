@@ -35,6 +35,10 @@ public class Session extends AbstractConnection {
 
     protected Logger logger = Logger.getLogger(getClass());
 
+    public Session() {
+        
+    }
+    
     public Session(Connection conn, RabbitDataSource dataSource) {
         super();
         cachedStmts = new LinkedHashMap<>();
@@ -189,10 +193,6 @@ public class Session extends AbstractConnection {
 
     private String createSqlKey(String sql) {
         return sql.replaceAll(" ", "");
-    }
-
-    public Session() {
-
     }
 
     @Override

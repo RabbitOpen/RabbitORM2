@@ -12,6 +12,17 @@ import java.util.Date;
  */
 public class DB2DDLHelper extends SQLServerDDLHelper{
 
+    public DB2DDLHelper() {
+        typeStringCache.put(Date.class, TIMESTAMP);
+        typeStringCache.put(String.class, VARCHAR);
+        typeStringCache.put(BigDecimal.class, BIGINT);
+        typeStringCache.put(Double.class, DOUBLE);
+        typeStringCache.put(Float.class, FLOAT);
+        typeStringCache.put(Integer.class, BIGINT);
+        typeStringCache.put(Short.class, BIGINT);
+        typeStringCache.put(Long.class, BIGINT);
+    }
+    
 	/**
      * 
      * <b>Description: 查询有外键的表信息 </b><br>.
@@ -27,17 +38,5 @@ public class DB2DDLHelper extends SQLServerDDLHelper{
 	protected String getAutoIncrement() {
 		return " GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1 )";
 	}
-	
-	public DB2DDLHelper() {
-        typeStringCache.put(Date.class, TIMESTAMP);
-        typeStringCache.put(String.class, VARCHAR);
-        typeStringCache.put(BigDecimal.class, BIGINT);
-        typeStringCache.put(Double.class, DOUBLE);
-        typeStringCache.put(Float.class, FLOAT);
-        typeStringCache.put(Integer.class, BIGINT);
-        typeStringCache.put(Short.class, BIGINT);
-        typeStringCache.put(Long.class, BIGINT);
-    }
-    
 	
 }

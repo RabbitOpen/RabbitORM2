@@ -13,14 +13,6 @@ public class PreparedSqlDescriptor {
 	//执行次数
 	private int executeTimes = 1;
 
-	public StringBuilder getSql() {
-		return sql;
-	}
-
-	public int getExecuteTimes() {
-		return executeTimes;
-	}
-
 	public PreparedSqlDescriptor(int executeTimes) {
 		super();
 		this.executeTimes = executeTimes;
@@ -30,5 +22,13 @@ public class PreparedSqlDescriptor {
 		this.sql = sql;
 	}
 	
+	public StringBuilder getSql() {
+        return sql;
+    }
+
+    public int getExecuteTimes() {
+        return executeTimes;
+    }
+
 	
 }

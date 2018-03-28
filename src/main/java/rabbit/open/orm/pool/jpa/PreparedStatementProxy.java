@@ -15,14 +15,6 @@ public class PreparedStatementProxy implements MethodInterceptor {
     //真实的jdbc存储过程
     private PreparedStatement stmt;
     
-    public void setStmt(PreparedStatement stmt) {
-        this.stmt = stmt;
-    }
-    
-    public PreparedStatement getStmt() {
-        return stmt;
-    }
-    
     static Class<?> oraclePreparedStatementClz = null;
     
     static {
@@ -31,6 +23,10 @@ public class PreparedStatementProxy implements MethodInterceptor {
         } catch (ClassNotFoundException e) {
             
         }
+    }
+    
+    public void setStmt(PreparedStatement stmt) {
+        this.stmt = stmt;
     }
     
     public static PreparedStatement getProxy(PreparedStatement stmt){

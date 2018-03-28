@@ -8,14 +8,6 @@ public class PreparedValue {
     
     private Field field;
 
-    public Object getValue() {
-        return value;
-    }
-
-    public Field getField() {
-        return field;
-    }
-
     public PreparedValue(Object value, Field field) {
         super();
         this.value = value;
@@ -25,6 +17,14 @@ public class PreparedValue {
     public PreparedValue(Object value) {
         super();
         this.value = value;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public Field getField() {
+        return field;
     }
     
 }

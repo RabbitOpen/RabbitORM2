@@ -14,15 +14,6 @@ import rabbit.open.orm.exception.RabbitDMLException;
  */
 public class JoinFieldMetaData<T> implements Cloneable{
     
-    @SuppressWarnings("unchecked")
-    public JoinFieldMetaData<T> clone(){
-        try {
-            return (JoinFieldMetaData<T>) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RabbitDMLException(e);
-        }
-    }
-
 	//在实体中对应的字段信息
 	private Field field;
 	
@@ -46,6 +37,26 @@ public class JoinFieldMetaData<T> implements Cloneable{
 	
 	//主键名
 	private Column primaryKey;
+	
+	public JoinFieldMetaData(Field field, Class<T> joinClass, Class<?> targetClass, Annotation annotation){
+        super();
+        this.field = field;
+        this.targetClass = targetClass;
+        this.joinClass = joinClass;
+        this.annotation = annotation;
+        this.tableName = MetaData.getTableNameByClass(joinClass);
+        this.primaryKey = MetaData.getPrimaryKeyField(joinClass).getAnnotation(Column.class);
+    }
+	
+	@Override
+    @SuppressWarnings("unchecked")
+    public JoinFieldMetaData<T> clone(){
+        try {
+            return (JoinFieldMetaData<T>) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RabbitDMLException(e);
+        }
+    }
 	
 	public Column getPrimaryKey() {
 		return primaryKey;
@@ -75,16 +86,6 @@ public class JoinFieldMetaData<T> implements Cloneable{
 		return tableName;
 	}
 
-	public JoinFieldMetaData(Field field, Class<T> joinClass, Class<?> targetClass, Annotation annotation){
-		super();
-		this.field = field;
-		this.targetClass = targetClass;
-		this.joinClass = joinClass;
-		this.annotation = annotation;
-		this.tableName = MetaData.getTableNameByClass(joinClass);
-		this.primaryKey = MetaData.getPrimaryKeyField(joinClass).getAnnotation(Column.class);
-	}
-	
 	public Class<?> getTargetClass() {
         return targetClass;
     }

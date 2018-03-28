@@ -18,6 +18,16 @@ public class FetcherDescriptor {
     
     private String alias;
 
+    public FetcherDescriptor(String entityClass,
+            String alias) {
+        try {
+            this.entityClass = Class.forName(entityClass);
+        } catch (ClassNotFoundException e) {
+            throw new RabbitDMLException(e);
+        }
+        this.alias = alias;
+    }
+    
     public List<FetcherDescriptor> getFetchDescriptors() {
         return fetchDescriptors;
     }
@@ -32,16 +42,6 @@ public class FetcherDescriptor {
 
     public String getAlias() {
         return alias;
-    }
-
-    public FetcherDescriptor(String entityClass,
-            String alias) {
-        try {
-            this.entityClass = Class.forName(entityClass);
-        } catch (ClassNotFoundException e) {
-            throw new RabbitDMLException(e);
-        }
-        this.alias = alias;
     }
 
     public void setFetchDescriptors(List<FetcherDescriptor> fetchers) {

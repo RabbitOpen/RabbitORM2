@@ -103,6 +103,7 @@ public class MySQLDDLHelper extends DDLHelper {
         }
     }
 
+    @Override
     protected void createJoinTables(HashSet<String> entities) {
         Statement stmt = null;
         try {

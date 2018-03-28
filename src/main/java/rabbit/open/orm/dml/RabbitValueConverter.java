@@ -22,6 +22,9 @@ import rabbit.open.orm.exception.RabbitDMLException;
  */
 public class RabbitValueConverter {
 
+    private RabbitValueConverter(){
+        
+    }
 	
 	/**
 	 * 
@@ -129,7 +132,4 @@ public class RabbitValueConverter {
 		throw new RabbitDMLException("not supported data type[" + type + "]");
 	}
 	
-	private RabbitValueConverter(){
-	    
-	}
 }

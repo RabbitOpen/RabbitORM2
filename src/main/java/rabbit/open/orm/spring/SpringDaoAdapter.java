@@ -34,10 +34,6 @@ public abstract class SpringDaoAdapter<T> {
 	
 	protected SessionFactory sessionFactory;
 	
-	public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
-
 	@SuppressWarnings("unchecked")
     public SpringDaoAdapter() {
         try {
@@ -48,6 +44,10 @@ public abstract class SpringDaoAdapter<T> {
         }
     }
 
+	public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+	
 	/**
 	 * 
 	 * <b>Description:	创建一个查询对象</b><br>

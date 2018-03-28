@@ -40,6 +40,17 @@ public class FilterDescriptor {
 
     // 标识是否是拥有同类型字段
     private boolean multiFetchField = false;
+    
+    public FilterDescriptor(String key, Object value, String filter) {
+        super();
+        this.key = key;
+        this.value = value;
+        this.filter = filter;
+    }
+
+    public FilterDescriptor(String key, Object value) {
+        this(key, value, FilterType.EQUAL.value());
+    }
 
     public int getIndex() {
         return index;
@@ -94,17 +105,6 @@ public class FilterDescriptor {
             && ((null == filter && null == fd.getFilter()) || (null != filter && null != fd.getFilter() && filter.equals(fd.getFilter())))
             && ((null == value && null == fd.getValue()) || (null != value && null != fd.getValue() && value.equals(fd.getValue())))
             && joinField.equals(fd.getJoinField());
-    }
-
-    public FilterDescriptor(String key, Object value, String filter) {
-        super();
-        this.key = key;
-        this.value = value;
-        this.filter = filter;
-    }
-
-    public FilterDescriptor(String key, Object value) {
-        this(key, value, FilterType.EQUAL.value());
     }
 
     public String getFilterTable() {

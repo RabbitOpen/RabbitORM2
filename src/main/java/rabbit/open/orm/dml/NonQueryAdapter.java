@@ -97,6 +97,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
         combineFilters();
     }
     
+    @Override
     protected List<ShardFactor> getFactors() {
         return factors;
     }

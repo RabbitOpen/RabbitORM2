@@ -19,6 +19,15 @@ public class DynamicFilterDescriptor {
 	
 	private boolean isReg = false;
 	
+    public DynamicFilterDescriptor(String keyReg, FilterType filter,
+            Object value, boolean isReg) {
+        super();
+        this.keyReg = keyReg;
+        this.filter = filter;
+        this.value = value;
+        this.isReg = isReg;
+    }
+	
 	public String getKeyReg() {
 		return keyReg;
 	}
@@ -33,15 +42,6 @@ public class DynamicFilterDescriptor {
 
 	public boolean isReg() {
 		return isReg;
-	}
-
-	public DynamicFilterDescriptor(String keyReg, FilterType filter,
-			Object value, boolean isReg) {
-		super();
-		this.keyReg = keyReg;
-		this.filter = filter;
-		this.value = value;
-		this.isReg = isReg;
 	}
 
 }

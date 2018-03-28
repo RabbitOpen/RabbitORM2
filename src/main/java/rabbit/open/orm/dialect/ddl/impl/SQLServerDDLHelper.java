@@ -16,6 +16,17 @@ import rabbit.open.orm.exception.RabbitDDLException;
  */
 public class SQLServerDDLHelper extends OracleDDLHelper{
 
+    public SQLServerDDLHelper() {
+        typeStringCache.put(Date.class, DATETIME);
+        typeStringCache.put(String.class, VARCHAR);
+        typeStringCache.put(BigDecimal.class, BIGINT);
+        typeStringCache.put(Double.class, FLOAT);
+        typeStringCache.put(Float.class, FLOAT);
+        typeStringCache.put(Integer.class, BIGINT);
+        typeStringCache.put(Short.class, BIGINT);
+        typeStringCache.put(Long.class, BIGINT);
+    }
+    
     @Override
 	protected HashSet<String> getExistedTables() {
 	    try {
@@ -39,17 +50,6 @@ public class SQLServerDDLHelper extends OracleDDLHelper{
     @Override
     protected StringBuilder createJoinTableSql(String tb, List<JoinTableDescriptor> list) {
         return callSuperCreateJoinTableSql(tb, list);
-    }
-    
-    public SQLServerDDLHelper() {
-        typeStringCache.put(Date.class, DATETIME);
-        typeStringCache.put(String.class, VARCHAR);
-        typeStringCache.put(BigDecimal.class, BIGINT);
-        typeStringCache.put(Double.class, FLOAT);
-        typeStringCache.put(Float.class, FLOAT);
-        typeStringCache.put(Integer.class, BIGINT);
-        typeStringCache.put(Short.class, BIGINT);
-        typeStringCache.put(Long.class, BIGINT);
     }
     
 	@Override

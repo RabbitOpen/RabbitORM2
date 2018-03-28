@@ -17,6 +17,21 @@ public class JoinTableDescriptor {
 	private Policy policy;
 	
 	private int columnLength = 0;
+	
+	public JoinTableDescriptor(Class<?> type, String columnName, Policy policy, int columnLength) {
+        super();
+        this.type = type;
+        this.columnName = columnName;
+        this.policy = policy;
+        this.columnLength = columnLength;
+    }
+
+    public JoinTableDescriptor(Class<?> type, String columnName, int columnLength) {
+        super();
+        this.type = type;
+        this.columnName = columnName;
+        this.columnLength = columnLength;
+    }
 
 	public String getColumnName() {
 		return columnName;
@@ -33,21 +48,5 @@ public class JoinTableDescriptor {
 	public int getColumnLength() {
 		return columnLength;
 	}
-
-	public JoinTableDescriptor(Class<?> type, String columnName, Policy policy, int columnLength) {
-		super();
-		this.type = type;
-		this.columnName = columnName;
-		this.policy = policy;
-		this.columnLength = columnLength;
-	}
-
-	public JoinTableDescriptor(Class<?> type, String columnName, int columnLength) {
-		super();
-		this.type = type;
-		this.columnName = columnName;
-		this.columnLength = columnLength;
-	}
-	
 	
 }

@@ -330,15 +330,11 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	}
 
 	private void readMany2ManyEntity(Map<String, Object> joinFetcEntity, Object colValue, String colName) {
-        String tableAlias = null;
-        String tableName = null;
-        String fieldNameAlias = null;
-        String fieldName = null;
         // joinFetch出来的数据
-        tableAlias = colName.split("\\" + SEPARATOR)[1];
-        tableName = getTableNameByAlias(tableAlias);
-        fieldNameAlias = colName.split("\\" + SEPARATOR)[2];
-        fieldName = MetaData.getFieldsAliasMapping(
+        String tableAlias = colName.split("\\" + SEPARATOR)[1];
+        String tableName = getTableNameByAlias(tableAlias);
+        String fieldNameAlias = colName.split("\\" + SEPARATOR)[2];
+        String fieldName = MetaData.getFieldsAliasMapping(
                 MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
         if (null == joinFetcEntity.get(tableName)) {
             Object entity = DMLAdapter.newInstance(MetaData.getClassByTableName(tableName));
@@ -374,19 +370,15 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	}
 	
 	private void readFetchEntity(Map<String, Object> fetchEntityMap, Object colValue, String colName) {
-        String tableAlias = null;
-        String tableName = null;
-        String fieldNameAlias = null;
-        String fieldName = null;
-        tableAlias = colName.split("\\" + SEPARATOR)[0]; // 带后缀的表别名
+        String tableAlias = colName.split("\\" + SEPARATOR)[0]; // 带后缀的表别名
         String realTableAlias = tableAlias; // 真实表别名
         boolean isMutiFetch = tableAlias.contains(UNDERLINE);
         if (isMutiFetch) {
             realTableAlias = realTableAlias.split(UNDERLINE)[0];
         }
-        tableName = getTableNameByAlias(realTableAlias);
-        fieldNameAlias = colName.split("\\" + SEPARATOR)[1];
-        fieldName = MetaData.getFieldsAliasMapping(
+        String tableName = getTableNameByAlias(realTableAlias);
+        String fieldNameAlias = colName.split("\\" + SEPARATOR)[1];
+        String fieldName = MetaData.getFieldsAliasMapping(
                 MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
         if (null == fetchEntityMap.get(tableAlias)) {
             Object entity = DMLAdapter.newInstance(MetaData.getClassByTableName(tableName));
@@ -505,13 +497,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
      * <b>Description  重置依赖路径中表的别名</b>
      */
     private void resetDependencyPath() {
-        for(Entry<Class<?>, List<FilterDescriptor>> entry : dependencyPath.entrySet()){
-            if(!clzesEnabled2Join.containsKey(entry.getKey())){
+        for (Entry<Class<?>, List<FilterDescriptor>> entry : dependencyPath.entrySet()) {
+            if (!clzesEnabled2Join.containsKey(entry.getKey())) {
                 continue;
             }
-            for(FilterDescriptor fdc : clzesEnabled2Join.get(entry.getKey())){
-                for(FilterDescriptor fd : entry.getValue()){
-                    if(fd.getField().equals(fdc.getField())){
+            for (FilterDescriptor fdc : clzesEnabled2Join.get(entry.getKey())) {
+                for (FilterDescriptor fd : entry.getValue()) {
+                    if (fd.getField().equals(fdc.getField())) {
                         fd.setKey(fdc.getKey());
                     }
                 }
@@ -1094,6 +1086,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return
 	 * 
 	 */
+	@Override
 	public String getAliasByTableName(String tableName){
 		if(SessionFactory.isEmpty(aliasMapping.get(tableName))){
 			Collection<String> alias = aliasMapping.values();

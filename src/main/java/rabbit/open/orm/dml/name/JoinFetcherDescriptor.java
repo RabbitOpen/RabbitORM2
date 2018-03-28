@@ -11,14 +11,6 @@ public class JoinFetcherDescriptor {
     
     private String alias;
     
-    public Class<?> getEntityClass() {
-        return entityClass;
-    }
-
-    public String getAlias() {
-        return alias;
-    }
-
     public JoinFetcherDescriptor(String entityClass, String alias) {
         try {
             this.entityClass = Class.forName(entityClass);
@@ -26,6 +18,14 @@ public class JoinFetcherDescriptor {
             throw new RabbitDMLException(e);
         }
         this.alias = alias;
+    }
+    
+    public Class<?> getEntityClass() {
+        return entityClass;
+    }
+
+    public String getAlias() {
+        return alias;
     }
 
 }

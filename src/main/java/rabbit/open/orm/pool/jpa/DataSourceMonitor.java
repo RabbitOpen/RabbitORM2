@@ -19,6 +19,11 @@ public class DataSourceMonitor extends Thread{
 	
 	protected RabbitDataSource dataSource;
 	
+	public DataSourceMonitor(RabbitDataSource dataSource) {
+        super();
+        this.dataSource = dataSource;
+    }
+	
 	@Override
 	public void run() {
 		while(run){
@@ -200,9 +205,4 @@ public class DataSourceMonitor extends Thread{
 		logger.info("datasource monitor is stopped!");
 	}
 
-	public DataSourceMonitor(RabbitDataSource dataSource) {
-		super();
-		this.dataSource = dataSource;
-	}
-	
 }
