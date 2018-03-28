@@ -17,7 +17,7 @@ public class OracleTransformer extends DialectTransformer{
      */
     @Override
     public StringBuilder completeFieldsSql(AbstractQuery<?> query) {
-        if(doPage(query) && !doOrder(query)){
+        if (doPage(query) && !doOrder(query)) {
             getSql(query).append(", ROWNUM AS RN");
         }
         return super.completeFieldsSql(query);

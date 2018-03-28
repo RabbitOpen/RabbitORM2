@@ -17,9 +17,9 @@ public class SQLServerTransformer extends DialectTransformer{
      */
     @Override
     public StringBuilder completeFieldsSql(AbstractQuery<?> query) {
-        if(doPage(query)){
+        if (doPage(query)) {
             int offset = getOffset(query);
-            getSql(query).insert(offset,  "TOP " + ((getPageIndex(query) + 1) * getPageSize(query)) + " ");
+            getSql(query).insert( offset, "TOP " + ((getPageIndex(query) + 1) * getPageSize(query)) + " ");
             getSql(query).append(", ROW_NUMBER() OVER(");
             getSql(query).append(generateOrderSql(query));
             getSql(query).append(") AS RN ");
@@ -28,9 +28,10 @@ public class SQLServerTransformer extends DialectTransformer{
     }
 
     private int getOffset(AbstractQuery<?> query) {
-        if(distinct(query)){
-            return getSql(query).toString().toUpperCase().indexOf("DISTINCT") + "DISTINCT".length() + 1;
-        }else{
+        if (distinct(query)) {
+            return getSql(query).toString().toUpperCase().indexOf("DISTINCT")
+                    + "DISTINCT".length() + 1;
+        } else {
             return 0;
         }
     }
@@ -44,14 +45,14 @@ public class SQLServerTransformer extends DialectTransformer{
      */
     @Override
     public StringBuilder createOrderSql(AbstractQuery<?> query) {
-        if(doPage(query)){
+        if (doPage(query)) {
             return new StringBuilder();
         }
         return super.createOrderSql(query);
     }
 
     private StringBuilder generateOrderSql(AbstractQuery<?> query) {
-        if(!doOrder(query)){
+        if (!doOrder(query)) {
             return new StringBuilder("ORDER BY " + getAliasByTableName(query, query.getMetaData().getTableName()) 
                     + "." + query.getSessionFactory().getColumnName(query.getMetaData().getPrimaryKey()));
         }

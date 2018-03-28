@@ -46,26 +46,26 @@ public abstract class DialectTransformer {
 	 * 
 	 */
 	public StringBuilder createOrderSql(AbstractQuery<?> query) {
-	    Map<Class<?>, HashSet<String>> asc = getAsc(query); 
+        Map<Class<?>, HashSet<String>> asc = getAsc(query);
         Map<Class<?>, HashSet<String>> desc = getDesc(query);
-	    StringBuilder sql = new StringBuilder();
-        if(asc.isEmpty() && desc.isEmpty()){
+        StringBuilder sql = new StringBuilder();
+        if (asc.isEmpty() && desc.isEmpty()) {
             return sql;
         }
         sql.append(" ORDER BY ");
         Iterator<Class<?>> it = asc.keySet().iterator();
-        while(it.hasNext()){
+        while (it.hasNext()) {
             Class<?> clz = it.next();
             HashSet<String> fields = asc.get(clz);
-            for(String f : fields){
+            for (String f : fields) {
                 sql.append(query.getAliasByTableName(query.getTableNameByClass(clz)) + "." + f + " ASC, ");
             }
         }
         it = desc.keySet().iterator();
-        while(it.hasNext()){
+        while (it.hasNext()) {
             Class<?> clz = it.next();
             HashSet<String> fields = desc.get(clz);
-            for(String f : fields){
+            for (String f : fields) {
                 sql.append(query.getAliasByTableName(query.getTableNameByClass(clz)) + "." + f + " DESC, ");
             }
         }
@@ -101,10 +101,10 @@ public abstract class DialectTransformer {
 	 * 
 	 */
 	public static DialectTransformer getTransformer(DialectType dialect){
-		if(!cache.containsKey(dialect)){
-			throw new RabbitDMLException("unkown dialect[" + dialect + "] is found!");
-		}
-		return cache.get(dialect);
+        if (!cache.containsKey(dialect)) {
+            throw new RabbitDMLException("unkown dialect[" + dialect + "] is found!");
+        }
+        return cache.get(dialect);
 	}
 	
 	/**

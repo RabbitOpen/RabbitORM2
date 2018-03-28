@@ -17,7 +17,7 @@ public class DB2Transformer extends DialectTransformer{
      */
     @Override
     public StringBuilder completeFieldsSql(AbstractQuery<?> query) {
-        if(doPage(query)){
+        if (doPage(query)) {
             getSql(query).append(", ROW_NUMBER() OVER(");
             getSql(query).append(generateOrderSql(query));
             getSql(query).append(") AS RN ");
@@ -34,7 +34,7 @@ public class DB2Transformer extends DialectTransformer{
      */
     @Override
     public StringBuilder createOrderSql(AbstractQuery<?> query) {
-        if(doPage(query)){
+        if (doPage(query)) {
             return new StringBuilder();
         }
         return super.createOrderSql(query);
