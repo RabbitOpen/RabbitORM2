@@ -70,12 +70,14 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
      * <b>Description  设置当前操作的目标表的名字</b>
      */
     protected void updateTargetTableName() {
-        if(isShardingOperation()){
+        if (isShardingOperation()) {
             String tableName = getCurrentShardedTableName(getFactors());
-            String replaceAll = sql.toString().replaceAll(TABLE_NAME_REG, tableName);
+            String replaceAll = sql.toString().replaceAll(TABLE_NAME_REG,
+                    tableName);
             sql = new StringBuilder(replaceAll);
-        }else{
-            sql = new StringBuilder(sql.toString().replaceAll(TABLE_NAME_REG, metaData.getTableName()));
+        } else {
+            sql = new StringBuilder(sql.toString().replaceAll(TABLE_NAME_REG,
+                    metaData.getTableName()));
         }
     }
     
@@ -83,13 +85,14 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
         this.dmlType = dmlType;
     }
     
-    protected void doShardingCheck(){
-        if(!isShardingOperation()){
+    protected void doShardingCheck() {
+        if (!isShardingOperation()) {
             return;
         }
         List<FilterDescriptor> mfds = getMainFilterDescriptors();
         for (FilterDescriptor fd : mfds) {
-            factors.add(new ShardFactor(fd.getField(), fd.getFilter(), fd.getValue()));
+            factors.add(new ShardFactor(fd.getField(), fd.getFilter(), fd
+                    .getValue()));
         }
         metaData.updateTableName(getCurrentShardedTableName(factors));
         filterDescriptors.clear();
@@ -109,19 +112,19 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	 * 
 	 */
 	public long execute(){
-		Connection conn = null;
-		try{
-			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), dmlType);
-			return sqlOperation.executeSQL(conn);
-		} catch (UnKnownFieldException e){
-			throw e;
-		} catch (Exception e){
-		    sessionFactory.flagSQLException(e);
-		    throw new RabbitDMLException(e.getMessage(), e);
-		} finally {
-			closeConnection(conn);
-			sessionFactory.clearSQLException();
-		}
+        Connection conn = null;
+        try {
+            conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), dmlType);
+            return sqlOperation.executeSQL(conn);
+        } catch (UnKnownFieldException e) {
+            throw e;
+        } catch (Exception e) {
+            sessionFactory.flagSQLException(e);
+            throw new RabbitDMLException(e.getMessage(), e);
+        } finally {
+            closeConnection(conn);
+            sessionFactory.clearSQLException();
+        }
 	}
 	
 	/**
@@ -134,24 +137,27 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	 * @return
 	 * 
 	 */
-	public NonQueryAdapter<T> addFilter(String fieldReg, Object value, FilterType ft, 
-			Class<?>... depsPath){
-		if(depsPath.length == 0){
-			return addFilter(fieldReg, value, ft, getEntityClz());
-		}
-		String field = getFieldByReg(fieldReg);
-		checkField(depsPath[0], field);
-		checkQueryPath(depsPath);
-		if(!addedFilters.containsKey(depsPath[0])){
-			addedFilters.put(depsPath[0], new HashMap<String, List<DynamicFilterDescriptor>>());
-		}
-		Map<String, List<DynamicFilterDescriptor>> fmps = addedFilters.get(depsPath[0]);
-		if(!fmps.containsKey(field)){
-			fmps.put(field, new ArrayList<DynamicFilterDescriptor>());
-		}
-		fmps.get(field).add(new DynamicFilterDescriptor(fieldReg, ft, value, !field.equals(fieldReg)));
-		return this;
-	}
+    public NonQueryAdapter<T> addFilter(String fieldReg, Object value,
+            FilterType ft, Class<?>... depsPath) {
+        if (depsPath.length == 0) {
+            return addFilter(fieldReg, value, ft, getEntityClz());
+        }
+        String field = getFieldByReg(fieldReg);
+        checkField(depsPath[0], field);
+        checkQueryPath(depsPath);
+        if (!addedFilters.containsKey(depsPath[0])) {
+            addedFilters.put(depsPath[0], new HashMap<String, List<DynamicFilterDescriptor>>());
+        }
+        Map<String, List<DynamicFilterDescriptor>> fmps = addedFilters
+                .get(depsPath[0]);
+        if (!fmps.containsKey(field)) {
+            fmps.put(field, new ArrayList<DynamicFilterDescriptor>());
+        }
+        fmps.get(field).add(
+                new DynamicFilterDescriptor(fieldReg, ft, value, !field
+                        .equals(fieldReg)));
+        return this;
+    }
 
 	/**
 	 * 
@@ -205,34 +211,39 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	 * @return
 	 * 
 	 */
-	protected List<PreparedSqlDescriptor> createAddJoinRecordsSql(T data, Object value){
-		List<PreparedSqlDescriptor> des = new ArrayList<>();
-		for(JoinFieldMetaData<?> jfm : metaData.getJoinMetas()){
-			if(!(jfm.getAnnotation() instanceof ManyToMany)){
-				continue;
-			}
-			List<?> jrs = (List<?>)getValue(jfm.getField(), data);
-			if(null == jrs || jrs.isEmpty()){
-				continue;
-			}
-			PreparedSqlDescriptor psd = new PreparedSqlDescriptor(jrs.size());
-			createAddJoinRecordsSql(value, jfm, jrs, psd);
-			des.add(psd);
-		}
-		return des;
-	}
+    protected List<PreparedSqlDescriptor> createAddJoinRecordsSql(T data,
+            Object value) {
+        List<PreparedSqlDescriptor> des = new ArrayList<>();
+        for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
+            List<?> jrs = getM2MJoinFieldValue(data, jfm);
+            if (null == jrs || jrs.isEmpty()) {
+                continue;
+            }
+            PreparedSqlDescriptor psd = new PreparedSqlDescriptor(jrs.size());
+            createAddJoinRecordsSql(value, jfm, jrs, psd);
+            des.add(psd);
+        }
+        return des;
+    }
+    
+    public List<?> getM2MJoinFieldValue(T data, JoinFieldMetaData<?> jfm) {
+        if (!(jfm.getAnnotation() instanceof ManyToMany)) {
+            return null;
+        }
+        return (List<?>) getValue(jfm.getField(), data);
+    }
 
 	private void createAddJoinRecordsSql(Object value, JoinFieldMetaData<?> jfm, List<?> jrs,
 			PreparedSqlDescriptor psd){
-		for(Object o : jrs){
-			StringBuilder rsql = new StringBuilder();
-			List<PreparedValue> values = new ArrayList<>();
-			Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
-			//子表的主键值
-			Object jpkv = getValue(jpk, o);
-			ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
-			rsql.append("INSERT INTO " + mtm.joinTable() + "(");
-			rsql.append(mtm.joinColumn() + "," + mtm.reverseJoinColumn());
+        for (Object o : jrs) {
+            StringBuilder rsql = new StringBuilder();
+            List<PreparedValue> values = new ArrayList<>();
+            Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
+            // 子表的主键值
+            Object jpkv = getValue(jpk, o);
+            ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
+            rsql.append("INSERT INTO " + mtm.joinTable() + "(");
+            rsql.append(mtm.joinColumn() + "," + mtm.reverseJoinColumn());
             if (!SessionFactory.isEmpty(mtm.id())) {
                 if (!mtm.policy().equals(Policy.AUTOINCREMENT)) {
                     rsql.append(", " + mtm.id());
@@ -276,14 +287,14 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	 * @return	
 	 * 
 	 */
-	protected FieldMetaData getPrimayKeyFieldMeta(Class<?> clz){
-		for(FieldMetaData fmd : MetaData.getCachedFieldsMetas(clz)){
-			if(fmd.isPrimaryKey()){
-				return fmd;
-			}
-		}
-		throw new RabbitDMLException("no primary key was found");
-	}
+    protected FieldMetaData getPrimayKeyFieldMeta(Class<?> clz) {
+        for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(clz)) {
+            if (fmd.isPrimaryKey()) {
+                return fmd;
+            }
+        }
+        throw new RabbitDMLException("no primary key was found");
+    }
 	
 	/**
 	 * 
@@ -331,8 +342,8 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 		return counter;
 	}
 
-    private void clearBatch(PreparedStatement stmt){
-        if(null != stmt){
+    private void clearBatch(PreparedStatement stmt) {
+        if (null != stmt) {
             try {
                 stmt.clearBatch();
             } catch (SQLException e) {
@@ -340,15 +351,16 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
             }
         }
     }
-	
-	private void setStmtValue(int index, PreparedValue value, PreparedStatement stmt) throws SQLException{
-		if(value.getValue() instanceof Date){
-			stmt.setTimestamp(index, new Timestamp(((Date) value.getValue()).getTime()));
-		}else{
-			stmt.setObject(index, value.getValue());
-		}
-	}
-	
+
+    private void setStmtValue(int index, PreparedValue value,
+            PreparedStatement stmt) throws SQLException {
+        if (value.getValue() instanceof Date) {
+            stmt.setTimestamp(index, new Timestamp(((Date) value.getValue()).getTime()));
+        } else {
+            stmt.setObject(index, value.getValue());
+        }
+    }
+
 	/**
 	 * 
 	 * <b>Description:	创建删除中间表记录的sql</b><br>
@@ -360,10 +372,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 	protected List<PreparedSqlDescriptor> createRemoveJoinRecordsSql(T data, Object value){
 		List<PreparedSqlDescriptor> des = new ArrayList<>();
         for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
-            if (!(jfm.getAnnotation() instanceof ManyToMany)) {
-                continue;
-            }
-            List<?> jrs = (List<?>) getValue(jfm.getField(), data);
+            List<?> jrs = getM2MJoinFieldValue(data, jfm);
             if (null == jrs || jrs.isEmpty()) {
                 continue;
             }
