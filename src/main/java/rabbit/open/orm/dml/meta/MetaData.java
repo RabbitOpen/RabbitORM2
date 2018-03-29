@@ -281,21 +281,21 @@ public class MetaData<T> {
 	 * 
 	 */
 	public static List<FieldMetaData> getCachedFieldsMetas(Class<?> clz){
-		List<FieldMetaData> mapping = fieldsMapping.get(clz);
-		if(null != mapping){
-			return mapping;
-		}else{
-			Class<?> c = clz;
-			while(!c.equals(Object.class)){
-				c = c.getSuperclass();
-				if(null != fieldsMapping.get(c)){
-					return fieldsMapping.get(c);
-				}
-			}
-			mapping = getMappingFieldMetas(clz);
-			fieldsMapping.put(clz, mapping);
-		}
-		return mapping;
+        List<FieldMetaData> mapping = fieldsMapping.get(clz);
+        if (null != mapping) {
+            return mapping;
+        } else {
+            Class<?> c = clz;
+            while (!c.equals(Object.class)) {
+                c = c.getSuperclass();
+                if (null != fieldsMapping.get(c)) {
+                    return fieldsMapping.get(c);
+                }
+            }
+            mapping = getMappingFieldMetas(clz);
+            fieldsMapping.put(clz, mapping);
+        }
+        return mapping;
 	}
 	
 	/**
@@ -305,13 +305,13 @@ public class MetaData<T> {
 	 * @return
 	 */
 	public static FieldMetaData getCachedFieldMetaByType(Class<?> clz, Class<?> type){
-	    List<FieldMetaData> cachedFieldsMetas = getCachedFieldsMetas(clz);
-	    for(FieldMetaData fmd : cachedFieldsMetas){
-	        if(fmd.getField().getType().equals(type)){
-	            return fmd;
-	        }
-	    }
-	    throw new RabbitDMLException(type + " doesn't belong to " + clz);
+        List<FieldMetaData> cachedFieldsMetas = getCachedFieldsMetas(clz);
+        for (FieldMetaData fmd : cachedFieldsMetas) {
+            if (fmd.getField().getType().equals(type)) {
+                return fmd;
+            }
+        }
+        throw new RabbitDMLException(type + " doesn't belong to " + clz);
 	}
 	
 	/**
@@ -323,11 +323,11 @@ public class MetaData<T> {
 	 * 
 	 */
 	public static FieldMetaData getCachedFieldsMeta(Class<?> clz, String fieldName){
-		for(FieldMetaData fmd : getCachedFieldsMetas(clz)){
-			if(fmd.getField().getName().equals(fieldName)){
-				return fmd;
-			}
-		}
+        for (FieldMetaData fmd : getCachedFieldsMetas(clz)) {
+            if (fmd.getField().getName().equals(fieldName)) {
+                return fmd;
+            }
+        }
 		throw new UnKnownFieldException("field[" + fieldName + "] does not belong to class[" 
                 + clz.getName() + "]");
 	}

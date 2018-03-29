@@ -304,18 +304,18 @@ public abstract class DDLHelper {
 
     private HashMap<String, List<JoinTableDescriptor>> getJoinTablesByClz(
             HashSet<String> entities, Class<?> clz) {
+        Class<?> c = clz;
         HashMap<String, List<JoinTableDescriptor>> joinTables = new HashMap<>();
-        while (!clz.equals(Object.class)) {
-            for (Field f : clz.getDeclaredFields()) {
-                ManyToMany m2m = f.getAnnotation(ManyToMany.class);
+        while (!c.equals(Object.class)) {
+            for (Field field : clz.getDeclaredFields()) {
+                ManyToMany m2m = field.getAnnotation(ManyToMany.class);
                 if (null == m2m || isEntity(entities, m2m)) {
                     continue;
                 }
-                List<JoinTableDescriptor> des = getJoinTableDescription(clz, f,
-                        m2m);
+                List<JoinTableDescriptor> des = getJoinTableDescription(clz, field, m2m);
                 joinTables.put(m2m.joinTable().toUpperCase(), des);
             }
-            clz = clz.getSuperclass();
+            c = c.getSuperclass();
         }
         return joinTables;
     }
