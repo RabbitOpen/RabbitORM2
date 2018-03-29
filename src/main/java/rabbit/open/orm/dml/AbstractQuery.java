@@ -1002,40 +1002,45 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	}
 
     private void prepareByClass(Class<?> clz2Fetch) {
-        //执行mutifetch的class不允许继续向下操作
-        List<FilterDescriptor> fds = getFilterDescriptorsByClzAndDep(clz2Fetch, fetchClzes.get(clz2Fetch));
+        // 执行mutifetch的class不允许继续向下操作
+        List<FilterDescriptor> fds = getFilterDescriptorsByClzAndDep(clz2Fetch,
+                fetchClzes.get(clz2Fetch));
         fetchTimesMappingTable.put(clz2Fetch, fds.size());
-        for(FilterDescriptor fd : fds){
+        for (FilterDescriptor fd : fds) {
             prepareByFilterDescriptor(clz2Fetch, fd);
         }
     }
 
-    private void prepareByFilterDescriptor(Class<?> clz, FilterDescriptor descriptor) {
+    private void prepareByFilterDescriptor(Class<?> clz, FilterDescriptor fd) {
+        FilterDescriptor descriptor = fd;
         putDescriptor2Head(descriptor);
         entity2Fetch.add(clz);
         Class<?> dep = descriptor.getJoinDependency();
-        while(!getEntityClz().equals(dep)){
-            if(fetchClzes.containsKey(dep)){
-                List<FilterDescriptor> deps = getFilterDescriptorsByClzAndDep(descriptor.getJoinDependency(), fetchClzes.get(dep));
-                if(deps.size() > 1){
-                    throw new AmbiguousDependencyException(descriptor.getJoinField().getType(), 
-                            descriptor.getJoinDependency());
-                }
+        while (!getEntityClz().equals(dep)) {
+            if (fetchClzes.containsKey(dep)) {
+                List<FilterDescriptor> deps = getFilterDescriptorsByClzAndDep(
+                        descriptor.getJoinDependency(), fetchClzes.get(dep));
+                assertAmbiguousDependency(descriptor, deps);
                 descriptor = deps.get(0);
                 putDescriptor2Head(descriptor);
                 entity2Fetch.add(dep);
-            }else{
+            } else {
                 List<FilterDescriptor> deps = getClzesEnabled2Join().get(dep);
-                if(deps.size() > 1){
-                    throw new AmbiguousDependencyException(descriptor.getJoinField().getType(), 
-                            descriptor.getJoinDependency());
-                }else{
-                    descriptor = deps.get(0);
-                    putDescriptor2Head(descriptor);
-                    entity2Fetch.add(dep);
-                }
+                assertAmbiguousDependency(descriptor, deps);
+                descriptor = deps.get(0);
+                putDescriptor2Head(descriptor);
+                entity2Fetch.add(dep);
             }
             dep = descriptor.getJoinDependency();
+        }
+    }
+
+    private void assertAmbiguousDependency(FilterDescriptor descriptor,
+            List<FilterDescriptor> deps) {
+        if (deps.size() > 1) {
+            throw new AmbiguousDependencyException(descriptor
+                    .getJoinField().getType(),
+                    descriptor.getJoinDependency());
         }
     }
 	
