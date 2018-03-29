@@ -170,7 +170,7 @@ public class NamedQuery<T> {
      * 
      */
     private void setPreparedValues() {
-        if(fieldsValues.isEmpty()){
+        if (fieldsValues.isEmpty()) {
             return;
         }
         Collection<PreparedValue> values = fieldsValues.values();

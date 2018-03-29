@@ -295,57 +295,53 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
         }
         throw new RabbitDMLException("no primary key was found");
     }
-	
-    protected int executeBatch(Connection conn, List<PreparedSqlDescriptor> psds)
-            throws SQLException {
-        return executeBatch(conn, psds, 0);
-    }
-	/**
+
+    /**
 	 * 
 	 * <b>Description:	批量执行sql</b><br>
 	 * @param conn
 	 * @param psds
-	 * @param start
 	 * @throws SQLException	
 	 * 
 	 */
-	@SuppressWarnings("unchecked")
-    protected int executeBatch(Connection conn, List<PreparedSqlDescriptor> psds, int start) 
+    protected void executeBatch(Connection conn, List<PreparedSqlDescriptor> psds) 
             throws SQLException {
-        int index = start;
 	    for (PreparedSqlDescriptor psd : psds) {
-            PreparedStatement stmt = null;
-            try {
-                stmt = conn.prepareStatement(psd.getSql().toString());
-                stmt.clearBatch();
-                sql = new StringBuilder("\n" + (sessionFactory.isFormatSql() ? 
-                        SQLFormater.format(psd.getSql().toString()) : psd.getSql().toString()));
-                for (int i = 0; i < psd.getExecuteTimes(); i++) {
-                    List<PreparedValue> values = (List<PreparedValue>) preparedValues
-                            .get(index);
-                    index++;
-                    sql.append("\n");
-                    sql.append("prepareStatement values(");
-                    for (int j = 1; j <= values.size(); j++) {
-                        setStmtValue(j, values.get(j - 1), stmt);
-                        sql.append(values.get(j - 1).getValue() + ", ");
-                    }
-                    sql.deleteCharAt(sql.lastIndexOf(","));
-                    sql.deleteCharAt(sql.lastIndexOf(" "));
-                    sql.append(")");
-                    stmt.addBatch();
-                }
-                if (sessionFactory.isShowSql()) {
-                    logger.info(sql);
-                }
-                stmt.executeBatch();
-            } finally {
-                clearBatch(stmt);
-                closeStmt(stmt);
-            }
+            executeOneByOne(conn, psd);
         }
-		return index;
 	}
+
+    @SuppressWarnings("unchecked")
+    private void executeOneByOne(Connection conn, PreparedSqlDescriptor psd)
+            throws SQLException {
+        PreparedStatement stmt = null;
+        try {
+            stmt = conn.prepareStatement(psd.getSql().toString());
+            stmt.clearBatch();
+            sql = new StringBuilder("\n" + (sessionFactory.isFormatSql() ? 
+                    SQLFormater.format(psd.getSql().toString()) : psd.getSql().toString()));
+            for (int i = 0; i < psd.getExecuteTimes(); i++) {
+                List<PreparedValue> values = (List<PreparedValue>) preparedValues.get();
+                sql.append("\n");
+                sql.append("prepareStatement values(");
+                for (int j = 1; j <= values.size(); j++) {
+                    setStmtValue(j, values.get(j - 1), stmt);
+                    sql.append(values.get(j - 1).getValue() + ", ");
+                }
+                sql.deleteCharAt(sql.lastIndexOf(","));
+                sql.deleteCharAt(sql.lastIndexOf(" "));
+                sql.append(")");
+                stmt.addBatch();
+            }
+            if (sessionFactory.isShowSql()) {
+                logger.info(sql);
+            }
+            stmt.executeBatch();
+        } finally {
+            clearBatch(stmt);
+            closeStmt(stmt);
+        }
+    }
 
     private void clearBatch(PreparedStatement stmt) {
         if (null != stmt) {

@@ -72,7 +72,7 @@ public abstract class DMLAdapter<T> {
 	
 	protected static final String SEPARATOR = "$";
 	
-	protected List<Object> preparedValues = new ArrayList<>();
+	protected PreparedValueList<Object> preparedValues = new PreparedValueList<>();
 	
 	protected static final String PLACE_HOLDER = "?";
 	
@@ -162,25 +162,27 @@ public abstract class DMLAdapter<T> {
      * <b>Description  显示带真实值的sql.</b>
      */
     private void showUnMaskedSql() {
-        try{
-			String valuesql = sql.toString();
-			StringBuilder vs = new StringBuilder("prepareStatement values(");
-			for(Object v : preparedValues){
-			    Object text = convert2Str((PreparedValue) v);
-				valuesql = replace(valuesql, text.toString());
-				vs.append(text + ", ");
-			}
-			if(-1 != vs.indexOf(",")){
-				int index = vs.lastIndexOf(",");
-				vs.deleteCharAt(index);
-				vs.deleteCharAt(index);
-			}
-			vs.append(")");
-			logger.info(NEW_LINE + (sessionFactory.isFormatSql() ? SQLFormater.format(valuesql) : valuesql)
-					+ (preparedValues.isEmpty() ? "" : (NEW_LINE + vs.toString())));
-		}catch(Exception e){
-			logger.error("show sql error for " + e.getMessage(), e);
-		}
+        try {
+            String valuesql = sql.toString();
+            StringBuilder vs = new StringBuilder("prepareStatement values(");
+            for (Object v : preparedValues) {
+                Object text = convert2Str((PreparedValue) v);
+                valuesql = replace(valuesql, text.toString());
+                vs.append(text + ", ");
+            }
+            if (-1 != vs.indexOf(",")) {
+                int index = vs.lastIndexOf(",");
+                vs.deleteCharAt(index);
+                vs.deleteCharAt(index);
+            }
+            vs.append(")");
+            logger.info(NEW_LINE + (sessionFactory.isFormatSql() ? SQLFormater
+                            .format(valuesql) : valuesql)
+                    + (preparedValues.isEmpty() ? "" : (NEW_LINE + vs
+                            .toString())));
+        } catch (Exception e) {
+            logger.error("show sql error for " + e.getMessage(), e);
+        }
     }
 
     /**

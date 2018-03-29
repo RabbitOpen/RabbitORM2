@@ -102,6 +102,7 @@ public class JoinTableManagerTest {
     @Test
     public void replaceJoinRecordsTest() {
         User user = addRecords(1);
+        Role role = user.getRoles().get(0);
         user = query(user);
         TestCase.assertEquals(user.getRoles().size(), 1);
         List<Role> roles = new ArrayList<Role>();
@@ -114,15 +115,28 @@ public class JoinTableManagerTest {
         us.replaceJoinRecords(user);
         user = query(user);
         TestCase.assertEquals(user.getRoles().size(), 3);
+        TestCase.assertEquals(getRoleByID(roles.get(0).getId(), user.getRoles()).getRoleName(), roles.get(0).getRoleName());
+        TestCase.assertEquals(getRoleByID(roles.get(1).getId(), user.getRoles()).getRoleName(), roles.get(1).getRoleName());
+        TestCase.assertEquals(getRoleByID(role.getId(), user.getRoles()).getRoleName(), role.getRoleName());
+        
+    }
+    
+    private Role getRoleByID(Integer id, List<Role> roles) {
+        for (Role r : roles) {
+            if (id.equals(r.getId())) {
+                return r;
+            }
+        }
+        return null;
     }
 
-    private User addRecords(int count) {
+    private User addRecords(int roleSize) {
         User user = new User();
         user.setName("zhangsan" + System.currentTimeMillis());
         user.setBirth(new Date());
         us.add(user);
         List<Role> roles = new ArrayList<Role>();
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < roleSize; i++) {
             Role r = new Role("R" + i);
             rs.add(r);
             roles.add(r);

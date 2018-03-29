@@ -164,12 +164,12 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
         this.sqlOperation = new SQLOperation() {
             @Override
             public long executeSQL(Connection conn) throws SQLException {
-                List<PreparedSqlDescriptor> psds2r = createRemoveJoinRecordsSql(
+                List<PreparedSqlDescriptor> del = createRemoveJoinRecordsSql(
                         data, value);
-                int counter = executeBatch(conn, psds2r);
-                List<PreparedSqlDescriptor> psds = createAddJoinRecordsSql(
+                executeBatch(conn, del);
+                List<PreparedSqlDescriptor> add = createAddJoinRecordsSql(
                         data, value);
-                executeBatch(conn, psds, counter);
+                executeBatch(conn, add);
                 return 0;
             }
         };
