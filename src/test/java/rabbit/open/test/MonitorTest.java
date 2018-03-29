@@ -1,5 +1,7 @@
 package rabbit.open.test;
 
+import junit.framework.TestCase;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +34,7 @@ public class MonitorTest {
                         try {
                             Thread.sleep(1000L);
                         } catch (InterruptedException e) {
-                            logger.info("database monitor is interrupted");
+                            logger.error("database monitor is interrupted");
                         }
                     }
 
@@ -61,5 +63,6 @@ public class MonitorTest {
             wait(5000);
         }
         rds.shutdown();
+        TestCase.assertEquals(0, rds.getConnectors().size());
     }
 }

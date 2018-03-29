@@ -490,23 +490,28 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         clzesEnabled2Join = null;
         //刷新clzesEnabled2Join对象的值
         getClzesEnabled2Join();
-        resetDependencyPath();
+        resetDependencyPathTableAlias();
     }
 
     /**
      * <b>Description  重置依赖路径中表的别名</b>
      */
-    private void resetDependencyPath() {
+    private void resetDependencyPathTableAlias() {
         for (Entry<Class<?>, List<FilterDescriptor>> entry : dependencyPath.entrySet()) {
             if (!clzesEnabled2Join.containsKey(entry.getKey())) {
                 continue;
             }
             for (FilterDescriptor fdc : clzesEnabled2Join.get(entry.getKey())) {
-                for (FilterDescriptor fd : entry.getValue()) {
-                    if (fd.getField().equals(fdc.getField())) {
-                        fd.setKey(fdc.getKey());
-                    }
-                }
+                resetDepPathTableAliasByDescriptor(entry, fdc);
+            }
+        }
+    }
+
+    private void resetDepPathTableAliasByDescriptor(
+            Entry<Class<?>, List<FilterDescriptor>> entry, FilterDescriptor fdc) {
+        for (FilterDescriptor fd : entry.getValue()) {
+            if (fd.getField().equals(fdc.getField())) {
+                fd.setKey(fdc.getKey());
             }
         }
     }
@@ -758,7 +763,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
 		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.reverseJoinColumn() + " = ");
 		sb.append(getAliasByTableName(jfm.getTableName()) + "." + getColumnName(jfm.getPrimaryKey()));
-		appendJoinFilterSqlSegment(jfm, sb);
+		sb.append(createJoinFilterSqlSegment(jfm));
 		sb.append(" ");
 		return sb;
 	}
@@ -779,7 +784,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "." 
 		        + MetaData.getPrimaryKey(jfm.getTargetClass(), sessionFactory) + " = ");
 		sb.append(getAliasByTableName(jfm.getTableName()) + "." + otm.joinColumn());
-		appendJoinFilterSqlSegment(jfm, sb);
+		sb.append(createJoinFilterSqlSegment(jfm));
 		sb.append(" ");
 		return sb;
 	}
@@ -789,34 +794,46 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
      * @param jfm
      * @param sb
      */
-    private void appendJoinFilterSqlSegment(JoinFieldMetaData<?> jfm,
-            StringBuilder sb) {
-        List<FieldMetaData> filterMetas = getNonEmptyFieldMetas(jfm.getFilter(), jfm.getJoinClass());
-		for(FieldMetaData fmd : filterMetas){
-			if(fmd.isForeignKey()){
-				if(fmd.getFieldValue().getClass().equals(getEntityClz())){
-					continue;
-				}
-				Field pk = MetaData.getPrimaryKeyField(fmd.getFieldValue().getClass());
-				Object pkv = getValue(pk, fmd.getFieldValue());
-				if(null == pkv){
-					continue;
-				}
-				String key = getAliasByTableName(jfm.getTableName()) + "." + getColumnName(fmd.getColumn());
-				String filter = FilterType.EQUAL.value();
-				sb.append(AND + key);
-				Object hv = RabbitValueConverter.convert(pkv, fmd);
-				cachePreparedValues(hv, fmd.getField());
-				sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
-			}else{
-				String key = getAliasByTableName(jfm.getTableName()) + "." + getColumnName(fmd.getColumn());
-				String filter = FilterType.EQUAL.value();
-				sb.append(AND + key);
-				Object hv = RabbitValueConverter.convert(fmd.getFieldValue(), fmd);
-				cachePreparedValues(hv, fmd.getField());
-				sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
-			}
-		}
+    private StringBuilder createJoinFilterSqlSegment(JoinFieldMetaData<?> jfm) {
+        StringBuilder sb = new StringBuilder();
+        List<FieldMetaData> filterMetas = getNonEmptyFieldMetas(
+                jfm.getFilter(), jfm.getJoinClass());
+        for (FieldMetaData fmd : filterMetas) {
+            sb.append(createJoinFilterSqlSegmentByMeta(jfm, fmd));
+        }
+        return sb;
+    }
+
+    private StringBuilder createJoinFilterSqlSegmentByMeta(JoinFieldMetaData<?> jfm, FieldMetaData fmd) {
+        StringBuilder sb = new StringBuilder();
+        if (fmd.isForeignKey()) {
+            if (fmd.getFieldValue().getClass().equals(getEntityClz())) {
+                return sb;
+            }
+            Field pk = MetaData.getPrimaryKeyField(fmd.getFieldValue()
+                    .getClass());
+            Object pkv = getValue(pk, fmd.getFieldValue());
+            if (null == pkv) {
+                return sb;
+            }
+            String key = getAliasByTableName(jfm.getTableName()) + "."
+                    + getColumnName(fmd.getColumn());
+            String filter = FilterType.EQUAL.value();
+            sb.append(AND + key);
+            Object hv = RabbitValueConverter.convert(pkv, fmd);
+            cachePreparedValues(hv, fmd.getField());
+            sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
+        } else {
+            String key = getAliasByTableName(jfm.getTableName()) + "."
+                    + getColumnName(fmd.getColumn());
+            String filter = FilterType.EQUAL.value();
+            sb.append(AND + key);
+            Object hv = RabbitValueConverter.convert(fmd.getFieldValue(),
+                    fmd);
+            cachePreparedValues(hv, fmd.getField());
+            sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
+        }
+        return sb;
     }
 
 	/**
@@ -1062,23 +1079,25 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 */
 	private void removeInvalidFetch() {
 		Iterator<Class<?>> it = fetchClzes.keySet().iterator();
-		while(it.hasNext()){
-			Class<?> key = it.next();
-			if(!getClzesEnabled2Join().containsKey(key)){
-				continue;
-			}
-			boolean enableFetch = false;
-			for(FilterDescriptor fd : getClzesEnabled2Join().get(key)){
-				if(fd.getJoinDependency().equals(fetchClzes.get(key))){
-					enableFetch = true;
-				}
-			}
-			if(enableFetch){
-				continue;
-			}
-			fetchClzes.remove(key);
-		}
+        while (it.hasNext()) {
+            Class<?> key = it.next();
+            if (!getClzesEnabled2Join().containsKey(key)) {
+                continue;
+            }
+            if (!enableFetch(key)) {
+                fetchClzes.remove(key);
+            }
+        }
 	}
+
+    private boolean enableFetch(Class<?> key) {
+        for (FilterDescriptor fd : getClzesEnabled2Join().get(key)) {
+            if (fd.getJoinDependency().equals(fetchClzes.get(key))) {
+                return true;
+            }
+        }
+        return false;
+    }
 	/**
 	 * 
 	 * 通过表名获取别名
@@ -1088,24 +1107,32 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 */
 	@Override
 	public String getAliasByTableName(String tableName){
-		if(SessionFactory.isEmpty(aliasMapping.get(tableName))){
-			Collection<String> alias = aliasMapping.values();
-			for(int i = 0; ; i++){
-				String suffix = "";
-				if(0 != i){
-					suffix = Integer.toString(i);
-				}
-				for(char c = 'A'; c <= 'Z'; c++){
-					if(alias.contains((c + suffix).toUpperCase())){
-						continue;
-					}
-					aliasMapping.put(tableName, c + suffix);
-					return aliasMapping.get(tableName);
-				}
-			}
-		}
+        if (SessionFactory.isEmpty(aliasMapping.get(tableName))) {
+            String alias = generateTableAlias();
+            aliasMapping.put(tableName, alias);
+        }
 		return aliasMapping.get(tableName);
 	}
+
+    /**
+     * <b>Description  生成别名</b>
+     * @return
+     */
+    private String generateTableAlias() {
+        Collection<String> alias = aliasMapping.values();
+        for (int i = 0;; i++) {
+            String suffix = "";
+            if (0 != i) {
+                suffix = Integer.toString(i);
+            }
+            for (char c = 'A'; c <= 'Z'; c++) {
+                if (alias.contains((c + suffix).toUpperCase())) {
+                    continue;
+                }
+                return c + suffix;
+            }
+        }
+    }
 	
 	/**
 	 * 

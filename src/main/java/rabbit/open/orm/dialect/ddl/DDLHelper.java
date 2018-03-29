@@ -288,7 +288,6 @@ public abstract class DDLHelper {
     /**
      * 
      * <b>Description: 获取中间表信息</b><br>
-     * 
      * @param entities
      * @return
      * 
@@ -298,18 +297,25 @@ public abstract class DDLHelper {
         HashMap<String, List<JoinTableDescriptor>> joinTables = new HashMap<>();
         for (String clzName : entities) {
             Class<?> clz = getClassByName(clzName);
-            while (!clz.equals(Object.class)) {
-                for (Field f : clz.getDeclaredFields()) {
-                    ManyToMany m2m = f.getAnnotation(ManyToMany.class);
-                    if (null == m2m || isEntity(entities, m2m)) {
-                        continue;
-                    }
-                    List<JoinTableDescriptor> des = getJoinTableDescription(
-                            clz, f, m2m);
-                    joinTables.put(m2m.joinTable().toUpperCase(), des);
+            joinTables.putAll(getJoinTablesByClz(entities, clz));
+        }
+        return joinTables;
+    }
+
+    private HashMap<String, List<JoinTableDescriptor>> getJoinTablesByClz(
+            HashSet<String> entities, Class<?> clz) {
+        HashMap<String, List<JoinTableDescriptor>> joinTables = new HashMap<>();
+        while (!clz.equals(Object.class)) {
+            for (Field f : clz.getDeclaredFields()) {
+                ManyToMany m2m = f.getAnnotation(ManyToMany.class);
+                if (null == m2m || isEntity(entities, m2m)) {
+                    continue;
                 }
-                clz = clz.getSuperclass();
+                List<JoinTableDescriptor> des = getJoinTableDescription(clz, f,
+                        m2m);
+                joinTables.put(m2m.joinTable().toUpperCase(), des);
             }
+            clz = clz.getSuperclass();
         }
         return joinTables;
     }

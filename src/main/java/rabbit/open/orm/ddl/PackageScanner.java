@@ -26,28 +26,36 @@ public class PackageScanner implements Serializable{
     /**
 	 * 
 	 * 过滤包含特定注解的类
-	 * @param annotation
+	 * @param anno
 	 * @return
 	 * 
 	 */
     public static Set<String> filterByAnnotation(String[] roots,
-            Class<? extends Annotation> annotation) {
+            Class<? extends Annotation> anno) {
         HashSet<String> targets = new HashSet<>();
         for (String root : roots) {
-            List<String> list = scanPackage(root);
+            List<String> list = scanPackageClasses(root);
             for (String name : list) {
-                try {
-                    Class<?> clz = Class.forName(name);
-                    if (null != clz.getAnnotation(annotation)) {
-                        targets.add(name);
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage());
+                if (hasAnnotation(anno, name)) {
+                    targets.add(name);
                 }
             }
         }
-        targets.addAll(scanJarFileByAnnotation(roots, annotation));
+        targets.addAll(scanJarFileByAnnotation(roots, anno));
         return targets;
+    }
+
+    private static boolean hasAnnotation(Class<? extends Annotation> annotation, 
+            String name) {
+        try {
+            Class<?> clz = Class.forName(name);
+            if (null != clz.getAnnotation(annotation)) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return false;
     }
 
 	/**
@@ -61,20 +69,27 @@ public class PackageScanner implements Serializable{
             Class<?> interfaceClz) {
         HashSet<String> targets = new HashSet<>();
         for (String root : roots) {
-            List<String> list = scanPackage(root);
+            List<String> list = scanPackageClasses(root);
             for (String name : list) {
-                try {
-                    Class<?> clz = Class.forName(name);
-                    if (interfaceClz.isAssignableFrom(clz)) {
-                        targets.add(name);
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
+                if (isTargetClass(interfaceClz, name)) {
+                    targets.add(name);
                 }
             }
         }
         targets.addAll(scanJarFileByInterface(roots, interfaceClz));
         return targets;
+    }
+
+    private static boolean isTargetClass(Class<?> interfaceClz, String name) {
+        try {
+            Class<?> clz = Class.forName(name);
+            if (interfaceClz.isAssignableFrom(clz)) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return false;
     }
 
 	/**
@@ -83,7 +98,7 @@ public class PackageScanner implements Serializable{
 	 * @return
 	 * 
 	 */
-    private static List<String> scanPackage(String rootPath) {
+    private static List<String> scanPackageClasses(String rootPath) {
         List<String> files = new ArrayList<>();
         URL base = PackageScanner.class.getClassLoader().getResource("");
         files.addAll(scanURI(rootPath.trim(), base));
@@ -166,23 +181,32 @@ public class PackageScanner implements Serializable{
             jf = new JarFile(jarFileName);
             HashSet<String> files = new HashSet<>();
             Enumeration<JarEntry> entries = jf.entries();
-            while(entries.hasMoreElements()){
+            while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
-                if(!entry.getName().endsWith("class")){
-                    continue;
-                }
-                for(String root : roots){
-                    if(!isTargetInterfaceClass(root, interfaceClz, entry.getName())){
-                        continue;
-                    }
-                    files.add(entry.getName().substring(0, entry.getName().length() - 6)
-                            .replaceAll("/", "."));
-                }
+                files.addAll(scanInterfacesByEntry(roots, interfaceClz, entry));
             }
             return files;
         } finally {
             closeJarFile(jf);
         }
+    }
+
+    private static HashSet<String> scanInterfacesByEntry(String[] roots,
+            Class<?> interfaceClz, JarEntry entry) {
+        HashSet<String> files = new HashSet<>();
+        if (!entry.getName().endsWith("class")) {
+            return files;
+        }
+        for (String root : roots) {
+            if (!isTargetInterfaceClass(root, interfaceClz,
+                    entry.getName())) {
+                continue;
+            }
+            files.add(entry.getName()
+                    .substring(0, entry.getName().length() - 6)
+                    .replaceAll("/", "."));
+        }
+        return files;
     }
 
     /**
@@ -222,19 +246,19 @@ public class PackageScanner implements Serializable{
     }
 
 	private static HashSet<String> scanJarFileByAnnotation(String[] roots, Class<? extends Annotation> anno){
-		HashSet<String> files = new HashSet<>();
-		try {
-			List<String> jars = getClassPathJars();
-			jars.addAll(getLibJarFiles());
-			for(String jar : jars){
-				if(!jar.endsWith("jar")){
-					continue;
-				}
-				files.addAll(scanJars4Annotation(roots, anno, jar));
-			}
-		} catch (Exception e) {
-		    logger.error(e.getMessage(), e);
-		}
+        HashSet<String> files = new HashSet<>();
+        try {
+            List<String> jars = getClassPathJars();
+            jars.addAll(getLibJarFiles());
+            for (String jar : jars) {
+                if (!jar.endsWith("jar")) {
+                    continue;
+                }
+                files.addAll(scanJars4Annotation(roots, anno, jar));
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
 		return files;
 	}
 
@@ -247,23 +271,30 @@ public class PackageScanner implements Serializable{
             Enumeration<JarEntry> entries = jf.entries();
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
-                String name = entry.getName();
-                if (!name.endsWith("class")) {
-                    continue;
-                }
-                name = name.substring(0, name.length() - 6)
-                        .replaceAll("/", ".");
-                for (String rootPath : roots) {
-                    if (!isTargetAnnoInterface(rootPath, anno, name)) {
-                        continue;
-                    }
-                    files.add(name);
-                }
+                files.addAll(scanAnnotationByEntry(roots, anno, entry));
             }
             return files;
         } finally {
             closeJarFile(jf);
         }
+    }
+
+    private static HashSet<String> scanAnnotationByEntry(String[] roots,
+            Class<? extends Annotation> anno, JarEntry entry) {
+        HashSet<String> files = new HashSet<>();
+        String name = entry.getName();
+        if (!name.endsWith("class")) {
+            return files;
+        }
+        name = name.substring(0, name.length() - 6)
+                .replaceAll("/", ".");
+        for (String rootPath : roots) {
+            if (!isTargetAnnoInterface(rootPath, anno, name)) {
+                continue;
+            }
+            files.add(name);
+        }
+        return files;
     }
 
     /**

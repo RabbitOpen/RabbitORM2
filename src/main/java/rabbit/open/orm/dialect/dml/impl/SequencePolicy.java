@@ -27,7 +27,7 @@ public class SequencePolicy extends PolicyInsert {
     public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        try{
+        try {
             Field pk = MetaData.getPrimaryKeyField(getEntityClass(adapter));
             String columnName = adapter.getSessionFactory().getColumnName(pk.getAnnotation(Column.class));
             String sql = getSql(adapter).toString() + " returning " + columnName
@@ -35,8 +35,8 @@ public class SequencePolicy extends PolicyInsert {
             stmt = conn.prepareStatement(sql);
             Method method = getMethod(stmt, "registerReturnParameter", new Class<?>[]{int.class, int.class});
             int index = 0;
-            for(int i = 0; i < sql.length(); i++){
-                if(sql.substring(i, i + 1).equals("?")){
+            for (int i = 0; i < sql.length(); i++) {
+                if ("?".equals(sql.substring(i, i + 1))) {
                     index++;
                 }
             }
@@ -44,10 +44,11 @@ public class SequencePolicy extends PolicyInsert {
             setPreparedStatementValue(adapter, stmt);
             stmt.executeUpdate();
             method = getMethod(stmt, "getReturnResultSet", null);
-            rs = (ResultSet) method.invoke(stmt);  
-            if(rs.next()){
+            rs = (ResultSet) method.invoke(stmt);
+            if (rs.next()) {
                 pk.setAccessible(true);
-                pk.set(data, RabbitValueConverter.cast(rs.getBigDecimal(1), pk.getType()));
+                pk.set(data, RabbitValueConverter.cast(rs.getBigDecimal(1),
+                                pk.getType()));
             }
             return data;
         } catch (IllegalArgumentException | ReflectiveOperationException e) {

@@ -65,16 +65,16 @@ public class MetaData<T> {
 	//实体对应的类的class信息
 	protected Class<T> entityClz;
 	
-	public MetaData(Class<T> entityClz) {
+    public MetaData(Class<T> entityClz) {
         this.entityClz = entityClz;
         if (metaMapping.containsKey(entityClz)) {
             return;
         }
         registClassTableMapping(entityClz);
     }
-    
-    public static <D> MetaData<?> getMetaByClass(Class<D> clz){
-        if(metaMapping.containsKey(clz)){
+
+    public static <D> MetaData<?> getMetaByClass(Class<D> clz) {
+        if (metaMapping.containsKey(clz)) {
             return metaMapping.get(clz);
         }
         metaMapping.put(clz, new MetaData<D>(clz));
@@ -139,37 +139,44 @@ public class MetaData<T> {
 	 * @param clzz
 	 * 
 	 */
-	private static List<FieldMetaData> getMappingFieldMetas(Class<?> clzz){
-	    Class<?> clz = clzz;
-		List<FieldMetaData> fields = new ArrayList<>();
-		Map<Class<?>, Integer> counter = new HashMap<>();
-		while(!clz.equals(Object.class)){
-			for(Field f : clz.getDeclaredFields()){
-				Column col = f.getAnnotation(Column.class);
-				if(null != col){
-				    if(counter.containsKey(f.getType())){
-				        counter.put(f.getType(), counter.get(f.getType()) + 1);
-				    }else{
-				        counter.put(f.getType(), 1);
-				    }
-					FieldMetaData fmd = new FieldMetaData(f, col);
-					fmd.setIndex(counter.get(f.getType()));
-					if(fmd.getIndex() > 1){
-					    fmd.setMutiFetchField(true);
-					    flagMutiFetchFieldByType(fields, f.getType());
-					}
-                    fields.add(fmd);
-				}
-			}
-			clz = clz.getSuperclass();
-		}
-		return fields;
-	}
+    private static List<FieldMetaData> getMappingFieldMetas(Class<?> clzz) {
+        Class<?> clz = clzz;
+        List<FieldMetaData> fields = new ArrayList<>();
+        Map<Class<?>, Integer> counter = new HashMap<>();
+        while (!clz.equals(Object.class)) {
+            lookupMappingFieldMetasByClass(clz, fields, counter);
+            clz = clz.getSuperclass();
+        }
+        return fields;
+    }
+
+    private static void lookupMappingFieldMetasByClass(Class<?> clz,
+            List<FieldMetaData> fields, Map<Class<?>, Integer> counter) {
+        for (Field f : clz.getDeclaredFields()) {
+            Column col = f.getAnnotation(Column.class);
+            if (null == col) {
+                continue;
+            }
+            if (counter.containsKey(f.getType())) {
+                counter.put(f.getType(), counter.get(f.getType()) + 1);
+            } else {
+                counter.put(f.getType(), 1);
+            }
+            FieldMetaData fmd = new FieldMetaData(f, col);
+            fmd.setIndex(counter.get(f.getType()));
+            if (fmd.getIndex() > 1) {
+                fmd.setMutiFetchField(true);
+                flagMutiFetchFieldByType(fields, f.getType());
+            }
+            fields.add(fmd);
+        }
+    }
 
 	//标识type对应的字段为mutiFetchField
-    private static void flagMutiFetchFieldByType(List<FieldMetaData> fields, Class<?> type) {
-        for(FieldMetaData fmd : fields){
-            if(fmd.getField().getType().equals(type)){
+    private static void flagMutiFetchFieldByType(List<FieldMetaData> fields,
+            Class<?> type) {
+        for (FieldMetaData fmd : fields) {
+            if (fmd.getField().getType().equals(type)) {
                 fmd.setMutiFetchField(true);
             }
         }
@@ -341,29 +348,35 @@ public class MetaData<T> {
 	 * @return	
 	 * 
 	 */
-	@SuppressWarnings({"unchecked", "rawtypes" })
-	private List<JoinFieldMetaData<?>> getJoinMetas(Class<?> clz){
-		Class<?> c = clz;
-		List<JoinFieldMetaData<?>> jm = new ArrayList<>();
+    private List<JoinFieldMetaData<?>> getJoinMetas(Class<?> clz) {
+        Class<?> c = clz;
+        List<JoinFieldMetaData<?>> list = new ArrayList<>();
         while (!Object.class.equals(c)) {
-            for (Field f : c.getDeclaredFields()) {
-				Annotation ann = f.getAnnotation(ManyToMany.class);
-                if (null != ann) {
-					ParameterizedType pt = (ParameterizedType) f.getGenericType();
-					jm.add(new JoinFieldMetaData(f, (Class<?>) pt.getActualTypeArguments()[0], clz, ann));
-					continue;
-				}
-				ann = f.getAnnotation(OneToMany.class);
-                if (null != ann) {
-					ParameterizedType pt = (ParameterizedType) f.getGenericType();
-					jm.add(new JoinFieldMetaData(f, (Class<?>) pt.getActualTypeArguments()[0], clz, ann));
-					continue;
-				}
-			}
-			c = c.getSuperclass();
-		}
-		return jm;
-	}
+            for (Field field : c.getDeclaredFields()) {
+                JoinFieldMetaData<?> meta = getJoinMetaByField(clz, field);
+                if (null != meta){
+                    list.add(meta);
+                }
+            }
+            c = c.getSuperclass();
+        }
+        return list;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes" })
+    private JoinFieldMetaData<?> getJoinMetaByField(Class<?> clz, Field field) {
+        Annotation ann = field.getAnnotation(ManyToMany.class);
+        if (null != ann) {
+            ParameterizedType pt = (ParameterizedType) field.getGenericType();
+            return new JoinFieldMetaData(field, (Class<?>) pt.getActualTypeArguments()[0], clz, ann);
+        }
+        ann = field.getAnnotation(OneToMany.class);
+        if (null != ann) {
+            ParameterizedType pt = (ParameterizedType) field.getGenericType();
+            return new JoinFieldMetaData(field, (Class<?>) pt.getActualTypeArguments()[0], clz, ann);
+        }
+        return null;
+    }
 	
 	//通过表名查类信息
 	public static Class<?> getClassByTableName(String tableName){

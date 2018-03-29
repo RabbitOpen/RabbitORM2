@@ -50,28 +50,27 @@ public class Update<T> extends NonQueryAdapter<T>{
 		super(sessionFactory, filterData, clz);
 		setDmlType(DMLType.UPDATE);
 		sqlOperation = new SQLOperation() {
-
-			@Override
-			public long executeSQL(Connection conn) throws SQLException {
-			    PreparedStatement stmt = null;
-				try {
-	                sql.append(createUpdateSql(value2Update));
-	                sql.append(createFilterSql());
-	                replaceTableName();
-	                showSql();
-	                stmt = conn.prepareStatement(sql.toString());
-	                setPreparedStatementValue(stmt, DMLType.UPDATE);
-	                return stmt.executeUpdate();
-				} finally {
-				    closeStmt(stmt);
-				}
-			}
-
-            private void replaceTableName() {
-                String replaceAll = sql.toString().replaceAll(TABLE_NAME_REG, metaData.getTableName());
-                sql = new StringBuilder(replaceAll);
+            @Override
+            public long executeSQL(Connection conn) throws SQLException {
+                PreparedStatement stmt = null;
+                try {
+                    sql.append(createUpdateSql(value2Update));
+                    sql.append(createFilterSql());
+                    replaceTableName();
+                    showSql();
+                    stmt = conn.prepareStatement(sql.toString());
+                    setPreparedStatementValue(stmt, DMLType.UPDATE);
+                    return stmt.executeUpdate();
+                } finally {
+                    closeStmt(stmt);
+                }
             }
 		};
+	}
+
+	private void replaceTableName() {
+	    String replaceAll = sql.toString().replaceAll(TABLE_NAME_REG, metaData.getTableName());
+	    sql = new StringBuilder(replaceAll);
 	}
 	
 	@Override
@@ -292,33 +291,36 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private StringBuilder createUpdateSql(T valueData) {
-        StringBuilder sql = new StringBuilder();
-        valueMetas = getNonEmptyColumnFieldMetas(valueData);
+        StringBuilder sb = new StringBuilder();
+        valueMetas = getNonEmptyFieldMetas(valueData);
         if (noFields2Update()) {
             throw new RabbitDMLException("no field is expected to update!");
         }
-        sql.append("UPDATE " + TARGET_TABLE_NAME + " SET");
+        sb.append("UPDATE " + TARGET_TABLE_NAME + " SET");
         for (int i = 0; i < valueMetas.size(); i++) {
-            FieldMetaData fmd = valueMetas.get(i);
-            if (fmd.isPrimaryKey()) {
-                // sqlserver的主键是不能被更新的
-                // DB2不更新主键
-                continue;
-            }
-            if (null == fmd.getFieldValue()) {
-                preparedValues.add(new PreparedValue(null));
-                sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
-                continue;
-            }
-            if (fmd.isForeignKey()) {
-                appendForeignKeyValue(sql, fmd);
-            } else {
-                appendCommonFieldsValue(sql, fmd);
-            }
+            sb.append(createSqlSegmentByMeta(valueMetas.get(i)));
         }
-        sql.deleteCharAt(sql.lastIndexOf(","));
-        return sql;
+        sb.deleteCharAt(sb.lastIndexOf(","));
+        return sb;
 	}
+
+    private StringBuilder createSqlSegmentByMeta(FieldMetaData fmd) {
+        StringBuilder sb = new StringBuilder();
+        if (fmd.isPrimaryKey()) {
+            return sb;
+        }
+        if (null == fmd.getFieldValue()) {
+            preparedValues.add(new PreparedValue(null));
+            sb.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
+            return sb;
+        }
+        if (fmd.isForeignKey()) {
+            sb.append(createForeignKeyValueSqlSegment(fmd));
+        } else {
+            sb.append(createCommonFieldsValueSegment(fmd));
+        }
+        return sb;
+    }
 
     private boolean noFields2Update() {
         return valueMetas.isEmpty() || (1 == valueMetas.size() && valueMetas.get(0).isPrimaryKey());
@@ -327,14 +329,15 @@ public class Update<T> extends NonQueryAdapter<T>{
 	/**
 	 * 
 	 * <b>Description:	提取普通字段的值并添加到sql中</b><br>
-	 * @param sql
 	 * @param fmd	
 	 * 
 	 */
-	private void appendCommonFieldsValue(StringBuilder sql, FieldMetaData fmd) {
+	private StringBuilder createCommonFieldsValueSegment(FieldMetaData fmd) {
+	    StringBuilder sb =  new StringBuilder();
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fmd.getFieldValue(), fmd), 
 		        fmd.getField()));
-		sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
+		sb.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
+		return sb;
 	}
 
     /**
@@ -343,25 +346,25 @@ public class Update<T> extends NonQueryAdapter<T>{
      * @return
      */
     private StringBuilder createFieldSqlPiece(String columnName) {
-        StringBuilder sql = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         if (sessionFactory.getDialectType().isSQLITE3()) {
-            sql.append(" " + columnName + " = ");
+            sb.append(" " + columnName + " = ");
         } else {
-            sql.append(" " + TARGET_TABLE_NAME + "." + columnName + " = ");
+            sb.append(" " + TARGET_TABLE_NAME + "." + columnName + " = ");
         }
-		sql.append(PLACE_HOLDER);
-		sql.append(",");
-		return sql;
+		sb.append(PLACE_HOLDER);
+		sb.append(",");
+		return sb;
     }
 
 	/**
 	 * 
 	 * <b>Description:	提取外键值并添加到sql中</b><br>
-	 * @param sql
 	 * @param fmd	
 	 * 
 	 */
-	private void appendForeignKeyValue(StringBuilder sql, FieldMetaData fmd) {
+	private StringBuilder createForeignKeyValueSqlSegment(FieldMetaData fmd) {
+	    StringBuilder sql = new StringBuilder();
         Field foreignField = fmd.getForeignField();
         Object fkValue = getValue(foreignField, fmd.getFieldValue());
         if (null != fkValue) {
@@ -370,6 +373,7 @@ public class Update<T> extends NonQueryAdapter<T>{
                             .getAnnotation(Column.class))), foreignField));
             sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
         }
+        return sql;
 	}
 	
 	/**
@@ -379,7 +383,7 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * @return
 	 * 
 	 */
-	private List<FieldMetaData> getNonEmptyColumnFieldMetas(Object data){
+    private List<FieldMetaData> getNonEmptyFieldMetas(Object data) {
         data = combineValues(data);
         if (null == data) {
             return new ArrayList<>();
@@ -388,23 +392,31 @@ public class Update<T> extends NonQueryAdapter<T>{
         Class<?> clz = data.getClass();
         List<FieldMetaData> fields = new ArrayList<>();
         while (!clz.equals(Object.class)) {
-            for (Field f : clz.getDeclaredFields()) {
-                Column col = f.getAnnotation(Column.class);
-                if (null == col) {
-                    continue;
-                }
-                if (nullfields.contains(f.getName())) {
-                    fields.add(new FieldMetaData(f, col, null, tableName));
-                    continue;
-                }
-                Object fieldValue = getValue(f, data);
-                if (null == fieldValue) {
-                    continue;
-                }
-                fields.add(new FieldMetaData(f, col, fieldValue, tableName));
+            for (Field field : clz.getDeclaredFields()) {
+                fields.addAll(getNonEmptyFieldMetasByField(data,
+                        tableName, field));
             }
             clz = clz.getSuperclass();
         }
+        return fields;
+    }
+
+    private List<FieldMetaData> getNonEmptyFieldMetasByField(Object data,
+            String tableName, Field field) {
+        List<FieldMetaData> fields = new ArrayList<>();
+        Column col = field.getAnnotation(Column.class);
+        if (null == col) {
+            return fields;
+        }
+        if (nullfields.contains(field.getName())) {
+            fields.add(new FieldMetaData(field, col, null, tableName));
+            return fields;
+        }
+        Object fieldValue = getValue(field, data);
+        if (null == fieldValue) {
+            return fields;
+        }
+        fields.add(new FieldMetaData(field, col, fieldValue, tableName));
         return fields;
     }
 	

@@ -25,49 +25,49 @@ public class DataSourceMonitor extends Thread{
     }
 	
 	@Override
-	public void run() {
-		while(run){
-			monitorDataSource();
-			sleep5s();
-		}
-	}
+    public void run() {
+        while (run) {
+            monitorDataSource();
+            sleep5s();
+        }
+    }
 
 	/**
 	 * 
 	 * <b>Description:	监控数据源</b><br>
 	 * 
 	 */
-	private void monitorDataSource() {
-		try{
-		    if(tooManyIdleSessions()){
-	            releaseIdleSession();
-	            checkNetWork();
-	        }else{
-	            doKeepAlive();
-	        }
-		}catch(Exception e){
-		    logger.error(e.getMessage(), e);
-		}
-	}
+    private void monitorDataSource() {
+        try {
+            if (tooManyIdleSessions()) {
+                releaseIdleSession();
+                checkNetWork();
+            } else {
+                doKeepAlive();
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
 
 	/**
 	 * 
 	 * <b>Description:	保持心跳</b><br>
 	 * 
 	 */
-	private void doKeepAlive() {
-		Session last = (Session) dataSource.getConnectors().pollLast();
-		if(null == last){
-		    dataSource.initSessions();
-			return;
-		}
-		if(ping(last)){
-			last.close();
-		}else{
-			last.destroy();
-			dataSource.restart();
-		}
-	}
+    private void doKeepAlive() {
+        Session last = (Session) dataSource.getConnectors().pollLast();
+        if (null == last) {
+            dataSource.initSessions();
+            return;
+        }
+        if (ping(last)) {
+            last.close();
+        } else {
+            last.destroy();
+            dataSource.restart();
+        }
+    }
 
 	/**
 	 * 
@@ -84,31 +84,34 @@ public class DataSourceMonitor extends Thread{
 	 * <b>Description: 释放空闲连接</b><br>
 	 * 
 	 */
-	private void releaseIdleSession() {
-		try{
-			Session tail = (Session) dataSource.getConnectors().peekLast();
-			if(null == tail){
-				return;
-			}
-			long idle = System.currentTimeMillis() - tail.getActiveTime();
-			if(idle < getMaxIdle()){
-				return;
-			}
-			tail = (Session) dataSource.getConnectors().pollLast();
-			if(null == tail){
-				return;
-			}
-			idle = System.currentTimeMillis() - tail.getActiveTime();
-			if(idle < getMaxIdle()){
-				dataSource.getConnectors().addLast(tail);
-			}else{
-				tail.destroy();
-				releaseIdleSession();
-			}
-		}catch(Exception e){
-			logger.error(e.getMessage(), e);
-		}
-	}
+    private void releaseIdleSession() {
+        if (!tooManyIdleSessions()) {
+            return;
+        }
+        try {
+            Session tail = (Session) dataSource.getConnectors().peekLast();
+            if (null == tail) {
+                return;
+            }
+            long idle = System.currentTimeMillis() - tail.getActiveTime();
+            if (idle < getMaxIdle()) {
+                return;
+            }
+            tail = (Session) dataSource.getConnectors().pollLast();
+            if (null == tail) {
+                return;
+            }
+            idle = System.currentTimeMillis() - tail.getActiveTime();
+            if (idle < getMaxIdle()) {
+                dataSource.getConnectors().addLast(tail);
+            } else {
+                tail.destroy();
+                releaseIdleSession();
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
 
     protected long getMaxIdle() {
         return 60L * 1000 * dataSource.getMaxIdle();
@@ -120,21 +123,18 @@ public class DataSourceMonitor extends Thread{
 	 * @return
 	 * 
 	 */
-	private void checkNetWork(){
-		while(true){
-			Session tail = (Session) dataSource.getConnectors().pollLast();
-			if(null == tail){
-				break;
-			}
-			if(ping(tail)){
-				dataSource.getConnectors().addLast(tail);
-				break;
-			}else{
-				tail.destroy();
-				dataSource.restart();
-			}
-		}
-	}
+    private void checkNetWork() {
+        Session tail = (Session) dataSource.getConnectors().pollLast();
+        if (null == tail) {
+            return;
+        }
+        if (ping(tail)) {
+            dataSource.getConnectors().addLast(tail);
+        } else {
+            tail.destroy();
+            dataSource.restart();
+        }
+    }
 
 	/**
 	 * 
@@ -188,8 +188,8 @@ public class DataSourceMonitor extends Thread{
 	protected void sleep5s() {
 		try {
 			Thread.sleep(5L * 1000);
-		} catch (Exception e1) {
-			logger.info("database monitor is interrupted");
+		} catch (Exception e) {
+			logger.error("database monitor is interrupted");
 		}
 	}
 	

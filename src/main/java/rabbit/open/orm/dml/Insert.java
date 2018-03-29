@@ -103,34 +103,40 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	private StringBuilder createValuesSql(T obj){
         StringBuilder values = new StringBuilder("(");
         for (FieldMetaData fmd : metaData.getFieldMetas()) {
-            Object value = getValue(fmd.getField(), obj);
-            if (null == value) {
-                if (!fmd.isPrimaryKey()) {
-                    continue;
-                }
-                if (null == (value = getPrimaryKeyValueByPolicy(fmd))) {
-                    continue;
-                }
-            }
-            if (fmd.isForeignKey()) {
-                createForeignKeySqlPart(values, fmd, value);
-            } else {
-                if (fmd.isPrimaryKey() && fmd.getPrimaryKey().policy().equals(Policy.SEQUENCE)) {
-                    values.append(value);
-                } else {
-                    preparedValues.add(new PreparedValue(RabbitValueConverter
-                            .convert(value, fmd), fmd.getField()));
-                    values.append(PLACE_HOLDER);
-                }
-            }
-            values.append(",");
+            values.append(createValueSqlByMeta(obj, fmd));
         }
         values.deleteCharAt(values.length() - 1);
         values.append(")");
         return values;
 	}
 
-	private void createForeignKeySqlPart(StringBuilder values,
+    private StringBuilder createValueSqlByMeta(T obj, FieldMetaData fmd) {
+        StringBuilder vsql = new StringBuilder();
+        Object fieldValue = getValue(fmd.getField(), obj);
+        if (null == fieldValue) {
+            if (!fmd.isPrimaryKey()) {
+                return vsql;
+            }
+            if (null == (fieldValue = getPrimaryKeyValueByPolicy(fmd))) {
+                return vsql;
+            }
+        }
+        if (fmd.isForeignKey()) {
+            createForeignKeySqlSegment(vsql, fmd, fieldValue);
+        } else {
+            if (fmd.isPrimaryKey() && fmd.getPrimaryKey().policy().equals(Policy.SEQUENCE)) {
+                vsql.append(fieldValue);
+            } else {
+                preparedValues.add(new PreparedValue(RabbitValueConverter
+                        .convert(fieldValue, fmd), fmd.getField()));
+                vsql.append(PLACE_HOLDER);
+            }
+        }
+        vsql.append(",");
+        return vsql;
+    }
+
+	private void createForeignKeySqlSegment(StringBuilder values,
 			FieldMetaData fmd, Object value) {
 		FieldMetaData foreignKey = new FieldMetaData(fmd.getForeignField(), fmd.getForeignField().getAnnotation(Column.class));
 		Object vv = getValue(foreignKey.getField(), value);

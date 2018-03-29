@@ -49,22 +49,22 @@ public class RabbitDataSource extends AbstractDataSource{
 	 * 获取一个可用的连接
 	 */
 	@Override
-	public Connection getConnection() throws SQLException {
-		if(closed){
-			throw new DataSourceClosedException("data source is closed!");
-		}
-		Connection first = connectors.pollFirst();
-		if(null != first){
-			return first;
-		}
-		try2CreateNewSession();
-		if(counter < maxSize){
-			return getConnection();
-		}else{
-			return pollConnection(15);
-			
-		}
-	}
+    public Connection getConnection() throws SQLException {
+        if (closed) {
+            throw new DataSourceClosedException("data source is closed!");
+        }
+        Connection first = connectors.pollFirst();
+        if (null != first) {
+            return first;
+        }
+        try2CreateNewSession();
+        if (counter < maxSize) {
+            return getConnection();
+        } else {
+            return pollConnection(15);
+
+        }
+    }
 
 	/**
 	 * 
@@ -74,18 +74,18 @@ public class RabbitDataSource extends AbstractDataSource{
 	 * @throws 	RabbitORMException
 	 * 
 	 */
-	private Connection pollConnection(int seconds) throws RabbitORMException{
-		try {
-			Connection first;
-			first = connectors.pollFirst(seconds, TimeUnit.SECONDS);
-			if(null == first){
-				throw new GetConnectionTimeOutException("get connection timeout[15s]!");
-			}
-			return first;
-		} catch (Exception e) {
-			throw new RabbitORMException(e);
-		}
-	}
+    private Connection pollConnection(int seconds) throws RabbitORMException {
+        try {
+            Connection first;
+            first = connectors.pollFirst(seconds, TimeUnit.SECONDS);
+            if (null == first) {
+                throw new GetConnectionTimeOutException("get connection timeout[15s]!");
+            }
+            return first;
+        } catch (Exception e) {
+            throw new RabbitORMException(e);
+        }
+    }
 
 	/**
 	 * 
@@ -93,24 +93,25 @@ public class RabbitDataSource extends AbstractDataSource{
 	 * 
 	 */
 	private void try2CreateNewSession(){
-		try{
-			sessionCreateLock.lock();
-			if(closed){
-				throw new DataSourceClosedException("data source is closed!");
-			}
-			if(counter >= maxSize){
-				return;
-			}
-			Session session = new Session(DriverManager.getConnection(url, username, password), this);
+        try {
+            sessionCreateLock.lock();
+            if (closed) {
+                throw new DataSourceClosedException("data source is closed!");
+            }
+            if (counter >= maxSize) {
+                return;
+            }
+            Session session = new Session(DriverManager.getConnection(url, username, password), this);
             counter++;
-			connectors.addFirst(session);
-			logger.info("new session[" + session + "] is created! [" + counter + "] session alive! "
-					+ "[" + connectors.size() + "] sessions is idle");
-		} catch (Exception e) {
-		    throw new RabbitDMLException(e);
-		} finally {
-			sessionCreateLock.unlock();
-		}
+            connectors.addFirst(session);
+            logger.info("new session[" + session + "] is created! [" + counter
+                    + "] session alive! " + "[" + connectors.size()
+                    + "] sessions is idle");
+        } catch (Exception e) {
+            throw new RabbitDMLException(e);
+        } finally {
+            sessionCreateLock.unlock();
+        }
 	}
 	
 	/**
@@ -197,31 +198,31 @@ public class RabbitDataSource extends AbstractDataSource{
 	 * 
 	 */
 	@PreDestroy
-	public void shutdown(){
-		logger.info("datasource is closing.....");
-		monitor.shutdown();
-		setDataSourceClosed(true);
-		closeAllSessions();
-		logger.info("datasource is successfully closed!");
-	}
+    public void shutdown() {
+        logger.info("datasource is closing.....");
+        monitor.shutdown();
+        setDataSourceClosed(true);
+        closeAllSessions();
+        logger.info("datasource is successfully closed!");
+    }
 	
 	/**
 	 * 
 	 * <b>Description:	重启数据源</b><br>
 	 * 
 	 */
-	public void restart(){
-		logger.info("datasource is restarting.....");
-		setDataSourceClosed(true);
-		closeAllSessions();
-		setDataSourceClosed(false);
-		try {
-	        initSessions();
-		} catch (Exception e) {
-		    logger.warn(e.getMessage());
-		} 
-		logger.info("datasource is successfully restarted!");
-	}
+    public void restart() {
+        logger.info("datasource is restarting.....");
+        setDataSourceClosed(true);
+        closeAllSessions();
+        setDataSourceClosed(false);
+        try {
+            initSessions();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        logger.info("datasource is successfully restarted!");
+    }
 
 	private void setDataSourceClosed(boolean closed) {
 		this.closed = closed;
@@ -233,33 +234,33 @@ public class RabbitDataSource extends AbstractDataSource{
 	 * @throws SQLException
 	 * 
 	 */
-	public void closeSession(Session session){
-		try{
-			sessionCreateLock.lock();
-			counter--;
-			session.getConnector().close();
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}finally{
-			sessionCreateLock.unlock();
-		}
-	}
+    public void closeSession(Session session) {
+        try {
+            sessionCreateLock.lock();
+            counter--;
+            session.getConnector().close();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            sessionCreateLock.unlock();
+        }
+    }
 	
 	/**
 	 * 
 	 * <b>Description: 关闭所有的连接</b><br>
 	 * 
 	 */
-	private void closeAllSessions() {
-		while(counter != 0){
-			try {
-				Session session = (Session) pollConnection(10);
-				session.destroy();
-			} catch (Exception e) {
-				logger.warn(e.getMessage(), e);
-			}
-		}
-	}
+    private void closeAllSessions() {
+        while (counter != 0) {
+            try {
+                Session session = (Session) pollConnection(10);
+                session.destroy();
+            } catch (Exception e) {
+                logger.warn(e.getMessage(), e);
+            }
+        }
+    }
 
 	public int getCounter() {
 		return counter;
