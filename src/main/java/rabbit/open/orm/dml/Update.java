@@ -384,16 +384,16 @@ public class Update<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
     private List<FieldMetaData> getNonEmptyFieldMetas(Object data) {
-        data = combineValues(data);
-        if (null == data) {
+        Object value = combineValues(data);
+        if (null == value) {
             return new ArrayList<>();
         }
-        String tableName = getTableNameByClass(data.getClass());
-        Class<?> clz = data.getClass();
+        String tableName = getTableNameByClass(value.getClass());
+        Class<?> clz = value.getClass();
         List<FieldMetaData> fields = new ArrayList<>();
         while (!clz.equals(Object.class)) {
             for (Field field : clz.getDeclaredFields()) {
-                fields.addAll(getNonEmptyFieldMetasByField(data,
+                fields.addAll(getNonEmptyFieldMetasByField(value,
                         tableName, field));
             }
             clz = clz.getSuperclass();
@@ -464,9 +464,11 @@ public class Update<T> extends NonQueryAdapter<T>{
         		+ data.getClass().getName());
         Object bean = DMLAdapter.newInstance(fmd.getField().getType());
         if(value instanceof Number){
-            value = RabbitValueConverter.cast(new BigDecimal(value.toString()), pk.getType());
+            setValue2Field(bean, pk, RabbitValueConverter.cast(
+                    new BigDecimal(value.toString()), pk.getType()));
+        } else {
+            setValue2Field(bean, pk, value);
         }
-        setValue2Field(bean, pk, value);
         setValue2Field(data, fmd.getField(), bean);
     }
 

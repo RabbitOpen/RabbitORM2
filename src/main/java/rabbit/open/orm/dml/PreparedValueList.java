@@ -19,8 +19,4 @@ public class PreparedValueList<T> extends ArrayList<T> {
         return t;
     }
     
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
-    }
 }

@@ -376,14 +376,24 @@ public abstract class DMLAdapter<T> {
                             RabbitValueConverter.convert(dfd.getValue(), fmd),
                             dfd.getFilter().value());
                     desc.setField(fmd.getField());
-                    if (dfd.isReg()) {
-                        desc.setKey(dfd.getKeyReg().replaceAll(REPLACE_WORD,
-                                desc.getKey()));
-                    }
+                    replaceKeyByReg(dfd, desc);
                     desc.setFilterTable(getTableNameByClass(entry.getKey()));
                     filterDescriptors.add(desc);
                 }
             }
+        }
+    }
+
+    /**
+     * <b>Description  如果dfd中的key是正则表达式，则替换key</b>
+     * @param dfd
+     * @param desc
+     */
+    private void replaceKeyByReg(DynamicFilterDescriptor dfd,
+            FilterDescriptor desc) {
+        if (dfd.isReg()) {
+            desc.setKey(dfd.getKeyReg().replaceAll(REPLACE_WORD,
+                    desc.getKey()));
         }
     }
 	
