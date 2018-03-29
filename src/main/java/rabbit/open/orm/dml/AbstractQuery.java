@@ -1481,29 +1481,34 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public <E> AbstractQuery<T> joinFetch(Class<E> entityClz, E filter){
 	    checkShardedFetch(entityClz);
         if (!isValidFetch(entityClz)) {
             throw new InvalidJoinFetchOperationException(entityClz,
                     getEntityClz());
         }
-        for (JoinFieldMetaData jfmo : metaData.getJoinMetas()) {
+        for (JoinFieldMetaData<?> jfmo : metaData.getJoinMetas()) {
             if (entityClz.equals(jfmo.getJoinClass())) {
-                JoinFieldMetaData jfm = jfmo.clone();
-                jfm.setFilter(filter);
-                for (JoinFieldMetaData jfme : joinFieldMetas) {
-                    if (jfme.getJoinClass().equals(entityClz)) {
-                        joinFieldMetas.remove(jfme);
-                        break;
-                    }
-                }
-                joinFieldMetas.add(jfm);
+                refreshJoinFieldMetas(entityClz, filter, jfmo);
                 return this;
             }
         }
 		return this;
 	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+    private <E> void refreshJoinFieldMetas(Class<E> entityClz, E filter,
+            JoinFieldMetaData jfmo) {
+        JoinFieldMetaData jfm = jfmo.clone();
+        jfm.setFilter(filter);
+        for (JoinFieldMetaData jfme : joinFieldMetas) {
+            if (jfme.getJoinClass().equals(entityClz)) {
+                joinFieldMetas.remove(jfme);
+                break;
+            }
+        }
+        joinFieldMetas.add(jfm);
+    }
 
     private <E> boolean isValidFetch(Class<E> entityClz) {
         for (@SuppressWarnings("rawtypes") JoinFieldMetaData jfmo : metaData.getJoinMetas()) {

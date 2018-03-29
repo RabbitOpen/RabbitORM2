@@ -50,7 +50,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
             public long executeSQL(Connection conn) throws SQLException {
                 List<PreparedSqlDescriptor> psds = createAddJoinRecordsSql(
                         data, value);
-                executeBatch(conn, psds, 0);
+                executeBatch(conn, psds);
                 return 0;
             }
         };
@@ -96,7 +96,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
                 if (psds.isEmpty()) {
                     throw new RabbitDMLException("no record to remove!");
                 }
-                executeBatch(conn, psds, 0);
+                executeBatch(conn, psds);
                 return 0;
             }
         };
@@ -166,7 +166,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
             public long executeSQL(Connection conn) throws SQLException {
                 List<PreparedSqlDescriptor> psds2r = createRemoveJoinRecordsSql(
                         data, value);
-                int counter = executeBatch(conn, psds2r, 0);
+                int counter = executeBatch(conn, psds2r);
                 List<PreparedSqlDescriptor> psds = createAddJoinRecordsSql(
                         data, value);
                 executeBatch(conn, psds, counter);

@@ -219,22 +219,21 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
             if (null == jrs || jrs.isEmpty()) {
                 continue;
             }
-            PreparedSqlDescriptor psd = new PreparedSqlDescriptor(jrs.size());
-            createAddJoinRecordsSql(value, jfm, jrs, psd);
-            des.add(psd);
+            des.add(createAddJoinRecordsSql(value, jfm, jrs));
         }
         return des;
     }
     
-    public List<?> getM2MJoinFieldValue(T data, JoinFieldMetaData<?> jfm) {
+    @SuppressWarnings("rawtypes")
+    private List getM2MJoinFieldValue(T data, JoinFieldMetaData<?> jfm) {
         if (!(jfm.getAnnotation() instanceof ManyToMany)) {
-            return null;
+            return new ArrayList<>();
         }
-        return (List<?>) getValue(jfm.getField(), data);
+        return (List) getValue(jfm.getField(), data);
     }
 
-	private void createAddJoinRecordsSql(Object value, JoinFieldMetaData<?> jfm, List<?> jrs,
-			PreparedSqlDescriptor psd){
+	private PreparedSqlDescriptor createAddJoinRecordsSql(Object value, JoinFieldMetaData<?> jfm, List<?> jrs){
+	    PreparedSqlDescriptor psd = new PreparedSqlDescriptor(jrs.size());
         for (Object o : jrs) {
             StringBuilder rsql = new StringBuilder();
             List<PreparedValue> values = new ArrayList<>();
@@ -278,6 +277,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
 			psd.setSql(rsql);
 			preparedValues.add(values);
 		}
+        return psd;
 	}
 
 	/**
@@ -296,19 +296,24 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
         throw new RabbitDMLException("no primary key was found");
     }
 	
+    protected int executeBatch(Connection conn, List<PreparedSqlDescriptor> psds)
+            throws SQLException {
+        return executeBatch(conn, psds, 0);
+    }
 	/**
 	 * 
 	 * <b>Description:	批量执行sql</b><br>
 	 * @param conn
 	 * @param psds
-	 * @param counter
-	 * @return
+	 * @param start
 	 * @throws SQLException	
 	 * 
 	 */
 	@SuppressWarnings("unchecked")
-    protected int executeBatch(Connection conn, List<PreparedSqlDescriptor> psds, int counter) throws SQLException {
-        for (PreparedSqlDescriptor psd : psds) {
+    protected int executeBatch(Connection conn, List<PreparedSqlDescriptor> psds, int start) 
+            throws SQLException {
+        int index = start;
+	    for (PreparedSqlDescriptor psd : psds) {
             PreparedStatement stmt = null;
             try {
                 stmt = conn.prepareStatement(psd.getSql().toString());
@@ -317,8 +322,8 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
                         SQLFormater.format(psd.getSql().toString()) : psd.getSql().toString()));
                 for (int i = 0; i < psd.getExecuteTimes(); i++) {
                     List<PreparedValue> values = (List<PreparedValue>) preparedValues
-                            .get(counter);
-                    counter++;
+                            .get(index);
+                    index++;
                     sql.append("\n");
                     sql.append("prepareStatement values(");
                     for (int j = 1; j <= values.size(); j++) {
@@ -339,7 +344,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
                 closeStmt(stmt);
             }
         }
-		return counter;
+		return index;
 	}
 
     private void clearBatch(PreparedStatement stmt) {

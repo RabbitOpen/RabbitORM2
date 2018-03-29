@@ -245,7 +245,7 @@ public abstract class DDLHelper {
             ddlHelper.setConnection(connection);
             ddlHelper.createTable(entityClz, tableName);
         } catch (Exception e) {
-            logger.warn(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         } finally {
             DMLAdapter.closeConnection(connection);
         }
@@ -577,7 +577,7 @@ public abstract class DDLHelper {
             logger.info(SQLFormater.format(sql.toString()).toUpperCase());
             stmt.execute(sql.toString());
         } catch (Exception e) {
-            logger.warn(e.getMessage());
+            logger.error(e.getMessage(), e);
         } finally {
             closeStmt(stmt);
         }

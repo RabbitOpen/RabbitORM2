@@ -280,23 +280,23 @@ public abstract class DMLAdapter<T> {
 	 * 
 	 */
 	protected final List<FieldMetaData> getNonEmptyFieldMetas(Object data, Class<?> clz) {
-		if(null == data){
-			return new ArrayList<>();
-		}
-		String tableName = getTableNameByClass(clz);
-		List<FieldMetaData> fields = new ArrayList<>();
-		Class<?> clzSuper = clz;
-		while(!clzSuper.equals(Object.class)){
-			for(Field f : clzSuper.getDeclaredFields()){
-				Column col = f.getAnnotation(Column.class);
-				Object fieldValue = getValue(f, data);
-				if(null == col || null == fieldValue){
-					continue;
-				}
-				fields.add(new FieldMetaData(f, col, fieldValue, tableName));
-			}
-			clzSuper = clzSuper.getSuperclass();
-		}
+        if (null == data) {
+            return new ArrayList<>();
+        }
+        String tableName = getTableNameByClass(clz);
+        List<FieldMetaData> fields = new ArrayList<>();
+        Class<?> clzSuper = clz;
+        while (!clzSuper.equals(Object.class)) {
+            for (Field f : clzSuper.getDeclaredFields()) {
+                Column col = f.getAnnotation(Column.class);
+                Object fieldValue = getValue(f, data);
+                if (null == col || null == fieldValue) {
+                    continue;
+                }
+                fields.add(new FieldMetaData(f, col, fieldValue, tableName));
+            }
+            clzSuper = clzSuper.getSuperclass();
+        }
 		return fields;
 	}
 	
@@ -319,30 +319,35 @@ public abstract class DMLAdapter<T> {
 	
 	//生成过滤条件
 	protected void generateFilters(List<FieldMetaData> fieldMetas) {
-		for(FieldMetaData fmd : fieldMetas){
-			if(fmd.isForeignKey()){
-				Column column = MetaData.getPrimaryKeyField(fmd.getFieldValue().getClass()).getAnnotation(Column.class);
+        for (FieldMetaData fmd : fieldMetas) {
+            if (fmd.isForeignKey()) {
+                Column column = MetaData.getPrimaryKeyField(
+                        fmd.getFieldValue().getClass()).getAnnotation(
+                        Column.class);
                 String fkName = getColumnName(column);
-				String fkTable = getTableNameByClass(fmd.getField().getType());
-				MetaData.updateTableMapping(fkTable, fmd.getField().getType());
-				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName()) + "." 
-				        + getColumnName(fmd.getColumn()), 
-						getAliasByTableName(fkTable) + "." + fkName);
-				desc.setField(fmd.getField());
-				desc.setJoinOn(true);
-				desc.setFilterTable(fkTable);
-				filterDescriptors.add(desc);
-				generateFilters(getNonEmptyFieldMetas(fmd.getFieldValue(), fmd.getField().getType()));
-			}else{
-				FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(fmd.getFieldTableName()) + "." 
-				        + getColumnName(fmd.getColumn()), 
-						RabbitValueConverter.convert(fmd.getFieldValue(), fmd), 
-						FilterType.EQUAL.value());
-				desc.setField(fmd.getField());
-				desc.setFilterTable(fmd.getFieldTableName());
-				filterDescriptors.add(desc);
-			}
-		}
+                String fkTable = getTableNameByClass(fmd.getField().getType());
+                MetaData.updateTableMapping(fkTable, fmd.getField().getType());
+                FilterDescriptor desc = new FilterDescriptor(
+                        getAliasByTableName(fmd.getFieldTableName()) + "."
+                                + getColumnName(fmd.getColumn()),
+                        getAliasByTableName(fkTable) + "." + fkName);
+                desc.setField(fmd.getField());
+                desc.setJoinOn(true);
+                desc.setFilterTable(fkTable);
+                filterDescriptors.add(desc);
+                generateFilters(getNonEmptyFieldMetas(fmd.getFieldValue(), fmd
+                        .getField().getType()));
+            } else {
+                FilterDescriptor desc = new FilterDescriptor(
+                        getAliasByTableName(fmd.getFieldTableName()) + "."
+                                + getColumnName(fmd.getColumn()),
+                        RabbitValueConverter.convert(fmd.getFieldValue(), fmd),
+                        FilterType.EQUAL.value());
+                desc.setField(fmd.getField());
+                desc.setFilterTable(fmd.getFieldTableName());
+                filterDescriptors.add(desc);
+            }
+        }
 	}
 	
 	/**
@@ -350,32 +355,35 @@ public abstract class DMLAdapter<T> {
 	 * <b>Description:	将动态添加的表间关联条件去重合并</b><br>	
 	 * 
 	 */
-	protected void combineFilters(){
-		//添加动态的过滤描述符
-		for(Entry<Class<?>, Map<String, List<DynamicFilterDescriptor>>> entry : addedFilters.entrySet()){
-			combineFiltersByClz(entry.getKey());
-			Map<String, List<DynamicFilterDescriptor>> map = entry.getValue();
-			Iterator<String> fields = map.keySet().iterator();
-			while(fields.hasNext()){
-				String fieldName = fields.next();
-				FieldMetaData fmd = getFieldMetaByFieldName(entry.getKey(), fieldName);
-				List<DynamicFilterDescriptor> dfds = map.get(fieldName);
-				for(DynamicFilterDescriptor dfd : dfds){
-					FilterDescriptor desc = new FilterDescriptor(
-							getAliasByTableName(getTableNameByClass(entry.getKey())) + "." 
-							        + getColumnName(fmd.getColumn()), 
-							RabbitValueConverter.convert(dfd.getValue(), fmd), 
-							dfd.getFilter().value());
-					desc.setField(fmd.getField());
-					if(dfd.isReg()){
-						desc.setKey(dfd.getKeyReg().replaceAll(REPLACE_WORD, desc.getKey()));
-					}
-					desc.setFilterTable(getTableNameByClass(entry.getKey()));
-					filterDescriptors.add(desc);
-				}
-			}
-		}
-	}
+    protected void combineFilters() {
+        // 添加动态的过滤描述符
+        for (Entry<Class<?>, Map<String, List<DynamicFilterDescriptor>>> entry : addedFilters
+                .entrySet()) {
+            combineFiltersByClz(entry.getKey());
+            Map<String, List<DynamicFilterDescriptor>> map = entry.getValue();
+            Iterator<String> fields = map.keySet().iterator();
+            while (fields.hasNext()) {
+                String fieldName = fields.next();
+                FieldMetaData fmd = getFieldMetaByFieldName(entry.getKey(),
+                        fieldName);
+                List<DynamicFilterDescriptor> dfds = map.get(fieldName);
+                for (DynamicFilterDescriptor dfd : dfds) {
+                    FilterDescriptor desc = new FilterDescriptor(
+                            getAliasByTableName(getTableNameByClass(entry.getKey()))
+                                    + "." + getColumnName(fmd.getColumn()),
+                            RabbitValueConverter.convert(dfd.getValue(), fmd),
+                            dfd.getFilter().value());
+                    desc.setField(fmd.getField());
+                    if (dfd.isReg()) {
+                        desc.setKey(dfd.getKeyReg().replaceAll(REPLACE_WORD,
+                                desc.getKey()));
+                    }
+                    desc.setFilterTable(getTableNameByClass(entry.getKey()));
+                    filterDescriptors.add(desc);
+                }
+            }
+        }
+    }
 	
 	public SessionFactory getSessionFactory() {
         return sessionFactory;
@@ -398,15 +406,17 @@ public abstract class DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	private FieldMetaData getFieldMetaByFieldName(Class<?> clz, String fieldName){
-		List<FieldMetaData> cachedFieldsMetas = MetaData.getCachedFieldsMetas(clz);
-		for(FieldMetaData fmd : cachedFieldsMetas){
-			if(fmd.getField().getName().equals(fieldName)){
-				return fmd;
-			}
-		}
-		throw new RabbitDMLException("no field meta info is found for[" + fieldName + "]");
-	}
+    private FieldMetaData getFieldMetaByFieldName(Class<?> clz, String fieldName) {
+        List<FieldMetaData> cachedFieldsMetas = MetaData
+                .getCachedFieldsMetas(clz);
+        for (FieldMetaData fmd : cachedFieldsMetas) {
+            if (fmd.getField().getName().equals(fieldName)) {
+                return fmd;
+            }
+        }
+        throw new RabbitDMLException("no field meta info is found for["
+                + fieldName + "]");
+    }
 	
 	/**
 	 * 
@@ -414,24 +424,24 @@ public abstract class DMLAdapter<T> {
 	 * @param clz	
 	 * 
 	 */
-	private void combineFiltersByClz(Class<?> clz) {
-		if(!dependencyPath.containsKey(clz)){
-			return;
-		}
-		for(int i = dependencyPath.get(clz).size() - 1; i >= 0; i--){
-			FilterDescriptor fd = dependencyPath.get(clz).get(i);
-			boolean exist = false;
-			for(FilterDescriptor fde : filterDescriptors){
-				if(fde.isEqual(fd)){
-					exist = true;
-					break;
-				}
-			}
-			if(!exist){
-				filterDescriptors.add(fd);
-			}
-		}
-	}
+    private void combineFiltersByClz(Class<?> clz) {
+        if (!dependencyPath.containsKey(clz)) {
+            return;
+        }
+        for (int i = dependencyPath.get(clz).size() - 1; i >= 0; i--) {
+            FilterDescriptor fd = dependencyPath.get(clz).get(i);
+            boolean exist = false;
+            for (FilterDescriptor fde : filterDescriptors) {
+                if (fde.isEqual(fd)) {
+                    exist = true;
+                    break;
+                }
+            }
+            if (!exist) {
+                filterDescriptors.add(fd);
+            }
+        }
+    }
 	
 	protected abstract String getAliasByTableName(String tableName);
 	
@@ -441,37 +451,37 @@ public abstract class DMLAdapter<T> {
 	 * @param deps	
 	 * 
 	 */
-	protected void checkQueryPath(Class<?>... deps) {
-		List<FilterDescriptor> jds = findJoinDepFilterDescriptors(deps);
-		if(!dependencyPath.containsKey(deps[0])){
-			dependencyPath.put(deps[0], jds);
-			checkCyclePath(deps);
-		}else{
-			List<FilterDescriptor> exists = dependencyPath.get(deps[0]);
-			if(exists.size() != jds.size()){
-				throw new InvalidQueryPathException(deps[0]);
-			}
-			for(int i = 0; i < jds.size(); i++){
-				if(exists.get(i).isEqual(jds.get(i))){
-					continue;
-				}
-				throw new InvalidQueryPathException(deps[0]);
-			}
-		}
-	}
+    protected void checkQueryPath(Class<?>... deps) {
+        List<FilterDescriptor> jds = findJoinDepFilterDescriptors(deps);
+        if (!dependencyPath.containsKey(deps[0])) {
+            dependencyPath.put(deps[0], jds);
+            checkCyclePath(deps);
+        } else {
+            List<FilterDescriptor> exists = dependencyPath.get(deps[0]);
+            if (exists.size() != jds.size()) {
+                throw new InvalidQueryPathException(deps[0]);
+            }
+            for (int i = 0; i < jds.size(); i++) {
+                if (exists.get(i).isEqual(jds.get(i))) {
+                    continue;
+                }
+                throw new InvalidQueryPathException(deps[0]);
+            }
+        }
+    }
 
     private void checkCyclePath(Class<?>... deps) {
         Map<Class<?>, Integer> counter = new HashMap<>();
-        for(Class<?> clz : deps){
+        for (Class<?> clz : deps) {
             counter.put(clz, 0);
-            for(Class<?> c : deps){
-                if(c.equals(clz)){
+            for (Class<?> c : deps) {
+                if (c.equals(clz)) {
                     counter.put(clz, counter.get(clz) + 1);
                 }
             }
         }
-        for(Entry<Class<?>, Integer> entry : counter.entrySet()){
-            if(entry.getValue() > 1){
+        for (Entry<Class<?>, Integer> entry : counter.entrySet()) {
+            if (entry.getValue() > 1) {
                 throw new CycleDependencyException(entry.getKey());
             }
         }
@@ -484,53 +494,58 @@ public abstract class DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	private List<FilterDescriptor> findJoinDepFilterDescriptors(Class<?>... deps) {
-	    List<FilterDescriptor> fds = getFilterDescriptorsByCache(deps);
-		Map<Class<?>, List<FilterDescriptor>> clz2j = getClzesEnabled2Join();
-		Class<?> last = deps[deps.length - 1];
-		if(last.equals(getEntityClz())){
-			return fds;
-		}
-		while(true){
-			if(!clz2j.containsKey(last)){
-				throw new InvalidFetchOperationException(last + " can't be joined by [" + getEntityClz().getName() + "]");
-			}
-			List<FilterDescriptor> list = clz2j.get(last);
-			if(list.size() != 1){
-				throw new AmbiguousDependencyException(last);
-			}
-			fds.add(list.get(0));
-			if(list.get(0).getJoinDependency().equals(getEntityClz())){
-				break;
-			}
-			last = list.get(0).getJoinDependency();
-		}
-		return fds;
-	}
+    private List<FilterDescriptor> findJoinDepFilterDescriptors(
+            Class<?>... deps) {
+        List<FilterDescriptor> fds = getFilterDescriptorsByCache(deps);
+        Map<Class<?>, List<FilterDescriptor>> clz2j = getClzesEnabled2Join();
+        Class<?> last = deps[deps.length - 1];
+        if (last.equals(getEntityClz())) {
+            return fds;
+        }
+        while (true) {
+            if (!clz2j.containsKey(last)) {
+                throw new InvalidFetchOperationException(last
+                        + " can't be joined by [" + getEntityClz().getName()
+                        + "]");
+            }
+            List<FilterDescriptor> list = clz2j.get(last);
+            if (list.size() != 1) {
+                throw new AmbiguousDependencyException(last);
+            }
+            fds.add(list.get(0));
+            if (list.get(0).getJoinDependency().equals(getEntityClz())) {
+                break;
+            }
+            last = list.get(0).getJoinDependency();
+        }
+        return fds;
+    }
 
     private List<FilterDescriptor> getFilterDescriptorsByCache(Class<?>... deps) {
         List<FilterDescriptor> fds = new ArrayList<>();
         Map<Class<?>, List<FilterDescriptor>> clz2j = getClzesEnabled2Join();
-		for(int i = 0; i < deps.length; i++){
-			if(i == deps.length - 1){
-				break;
-			}
-			if(!clz2j.containsKey(deps[i])){
-				throw new RabbitDMLException(deps[i] + " can't be fetched by [" + getEntityClz().getName() + "]");
-			}
-			List<FilterDescriptor> list = clz2j.get(deps[i]);
-			boolean right = false;
-			for(FilterDescriptor fd : list){
-				if(fd.getJoinDependency().equals(deps[i + 1])){
-					right = true;
-					fds.add(fd);
-					break;
-				}
-			}
-			if(!right){
-				throw new RabbitDMLException("wrong query dependency for " + deps[i]);
-			}
-		}
+        for (int i = 0; i < deps.length; i++) {
+            if (i == deps.length - 1) {
+                break;
+            }
+            if (!clz2j.containsKey(deps[i])) {
+                throw new RabbitDMLException(deps[i] + " can't be fetched by ["
+                        + getEntityClz().getName() + "]");
+            }
+            List<FilterDescriptor> list = clz2j.get(deps[i]);
+            boolean right = false;
+            for (FilterDescriptor fd : list) {
+                if (fd.getJoinDependency().equals(deps[i + 1])) {
+                    right = true;
+                    fds.add(fd);
+                    break;
+                }
+            }
+            if (!right) {
+                throw new RabbitDMLException("wrong query dependency for "
+                        + deps[i]);
+            }
+        }
         return fds;
     }
 	
@@ -540,13 +555,13 @@ public abstract class DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	protected Map<Class<?>, List<FilterDescriptor>> getClzesEnabled2Join(){
-		if(null == clzesEnabled2Join){
-			clzesEnabled2Join = new ConcurrentHashMap<>();
-			findOutEnable2JoinClzes(getEntityClz());
-		}
-		return clzesEnabled2Join;
-	}
+    protected Map<Class<?>, List<FilterDescriptor>> getClzesEnabled2Join() {
+        if (null == clzesEnabled2Join) {
+            clzesEnabled2Join = new ConcurrentHashMap<>();
+            findOutEnable2JoinClzes(getEntityClz());
+        }
+        return clzesEnabled2Join;
+    }
 	
 	//找出该实体下所有能够被关联查询的类
 	private void findOutEnable2JoinClzes(Class<?> clz){
@@ -587,7 +602,7 @@ public abstract class DMLAdapter<T> {
 	}
 
     private void recusiveFindOutEnable2JoinClzes(FieldMetaData fmd) {
-        if(fmd.isMutiFetchField() && fmd.getIndex() != 1){
+        if (fmd.isMutiFetchField() && fmd.getIndex() != 1) {
             return;
         }
         findOutEnable2JoinClzes(fmd.getField().getType());
@@ -603,10 +618,11 @@ public abstract class DMLAdapter<T> {
      */
     private boolean isDependencyExists(Class<?> clz, FieldMetaData fmd) {
         Class<?> type = fmd.getField().getType();
-        for(FilterDescriptor fd : clzesEnabled2Join.get(type)){
-        	if(fd.getJoinDependency().equals(clz) && fd.getJoinField().equals(fmd.getField())){
-        		return true;
-        	}
+        for (FilterDescriptor fd : clzesEnabled2Join.get(type)) {
+            if (fd.getJoinDependency().equals(clz)
+                    && fd.getJoinField().equals(fmd.getField())) {
+                return true;
+            }
         }
         return false;
     }
@@ -619,28 +635,28 @@ public abstract class DMLAdapter<T> {
 	 * @return
 	 * 
 	 */
-	protected String createPlaceHolder(String filterType, Object value){
-		if(FilterType.IN.name().trim().equalsIgnoreCase(filterType.trim())){
-			StringBuilder sb = new StringBuilder("(");
-			int size = 1;
-			if(value.getClass().isArray()){
-				Object[] v = (Object[]) value;
-				size = v.length;
-			}
-			if(value instanceof Collection){
-				size = ((Collection<?>)value).size();
-			}
-			for(int i = 0; i < size; i++){
-				sb.append("?,");
-			}
-			if(-1 != sb.lastIndexOf(",")){
-				sb.deleteCharAt(sb.lastIndexOf(","));
-			}
-			sb.append(")");
-			return sb.toString();
-		}
-		return PLACE_HOLDER;
-	}
+    protected String createPlaceHolder(String filterType, Object value) {
+        if (FilterType.IN.name().trim().equalsIgnoreCase(filterType.trim())) {
+            StringBuilder sb = new StringBuilder("(");
+            int size = 1;
+            if (value.getClass().isArray()) {
+                Object[] v = (Object[]) value;
+                size = v.length;
+            }
+            if (value instanceof Collection) {
+                size = ((Collection<?>) value).size();
+            }
+            for (int i = 0; i < size; i++) {
+                sb.append("?,");
+            }
+            if (-1 != sb.lastIndexOf(",")) {
+                sb.deleteCharAt(sb.lastIndexOf(","));
+            }
+            sb.append(")");
+            return sb.toString();
+        }
+        return PLACE_HOLDER;
+    }
 	
 	/**
 	 * 
@@ -649,27 +665,27 @@ public abstract class DMLAdapter<T> {
 	 * @param field	
 	 * 
 	 */
-	protected void cachePreparedValues(Object value, Field field){
-		if(null == value){
-			preparedValues.add(new PreparedValue(null, field));
-			return;
-		}
-		if(value.getClass().isArray()){
-		    Object[] vs = (Object[]) value;
-			for(Object v : vs){
-				preparedValues.add(new PreparedValue(v, field));
-			}
-			return;
-		}
-		if(value instanceof Collection){
-            Collection<?> c = (Collection<?>)value;
-			for(Object v : c){
-			    preparedValues.add(new PreparedValue(v, field));
-			}
-			return;
-		}
-		preparedValues.add(new PreparedValue(value, field));
-	}
+    protected void cachePreparedValues(Object value, Field field) {
+        if (null == value) {
+            preparedValues.add(new PreparedValue(null, field));
+            return;
+        }
+        if (value.getClass().isArray()) {
+            Object[] vs = (Object[]) value;
+            for (Object v : vs) {
+                preparedValues.add(new PreparedValue(v, field));
+            }
+            return;
+        }
+        if (value instanceof Collection) {
+            Collection<?> c = (Collection<?>) value;
+            for (Object v : c) {
+                preparedValues.add(new PreparedValue(v, field));
+            }
+            return;
+        }
+        preparedValues.add(new PreparedValue(value, field));
+    }
 	
 	/**
 	 * 
@@ -678,16 +694,16 @@ public abstract class DMLAdapter<T> {
 	 * @return
 	 * 
 	 */
-	protected String getFieldByReg(String reg) {
-		String field;
-		Matcher matcher = pattern.matcher(reg);
-		if(matcher.find()){
-			field = matcher.group(1);
-		}else{
-			field = reg;
-		}
-		return field;
-	}
+    protected String getFieldByReg(String reg) {
+        String field;
+        Matcher matcher = pattern.matcher(reg);
+        if (matcher.find()) {
+            field = matcher.group(1);
+        } else {
+            field = reg;
+        }
+        return field;
+    }
 	
 	/**
 	 * 
@@ -696,15 +712,17 @@ public abstract class DMLAdapter<T> {
 	 * @param field	
 	 * 
 	 */
-	public static Field checkField(Class<?> target, String field) {
-		List<FieldMetaData> cachedFieldsMetas = MetaData.getCachedFieldsMetas(target);
-		for(FieldMetaData fmd : cachedFieldsMetas){
-		    if(fmd.getField().getName().equals(field)){
-		        return fmd.getField();
-		    }
-		}
-		throw new UnKnownFieldException("field[" + field + "] does not belong to " + target);
-	}
+    public static Field checkField(Class<?> target, String field) {
+        List<FieldMetaData> cachedFieldsMetas = MetaData
+                .getCachedFieldsMetas(target);
+        for (FieldMetaData fmd : cachedFieldsMetas) {
+            if (fmd.getField().getName().equals(field)) {
+                return fmd.getField();
+            }
+        }
+        throw new UnKnownFieldException("field[" + field
+                + "] does not belong to " + target);
+    }
 	
 	/**
 	 * 
@@ -712,18 +730,18 @@ public abstract class DMLAdapter<T> {
 	 * @param target	
 	 * 
 	 */
-	protected void checkJoinFilterClass(Class<?> target) {
-		boolean validTarget = false;
-		for(JoinFieldMetaData<?> jfm : metaData.getJoinMetas()){
-			if(jfm.getJoinClass().equals(target)){
-				validTarget = true;
-				break;
-			}
-		}
-		if(!validTarget){
-			throw new InvalidJoinFetchOperationException(target, getEntityClz());
-		}
-	}
+    protected void checkJoinFilterClass(Class<?> target) {
+        boolean validTarget = false;
+        for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
+            if (jfm.getJoinClass().equals(target)) {
+                validTarget = true;
+                break;
+            }
+        }
+        if (!validTarget) {
+            throw new InvalidJoinFetchOperationException(target, getEntityClz());
+        }
+    }
 	
 	public MetaData<T> getMetaData() {
 		return metaData;
@@ -735,18 +753,19 @@ public abstract class DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	protected StringBuilder generateInnerJoinsql() {
-		StringBuilder sb = new StringBuilder();
-		for(FilterDescriptor fd : filterDescriptors){
-			if(!fd.isJoinOn()){
-				continue;
-			}
-			sb.append(" INNER JOIN " + fd.getFilterTable() + " " + getAliasByTableName(fd.getFilterTable()));
-			sb.append(" ON " + fd.getKey() + fd.getFilter() + fd.getValue());
-			sb.append(createInnerJoinFiltersSqlByDescriptor(fd));
-		}
-		return sb;
-	}
+    protected StringBuilder generateInnerJoinsql() {
+        StringBuilder sb = new StringBuilder();
+        for (FilterDescriptor fd : filterDescriptors) {
+            if (!fd.isJoinOn()) {
+                continue;
+            }
+            sb.append(" INNER JOIN " + fd.getFilterTable() + " "
+                    + getAliasByTableName(fd.getFilterTable()));
+            sb.append(" ON " + fd.getKey() + fd.getFilter() + fd.getValue());
+            sb.append(createInnerJoinFiltersSqlByDescriptor(fd));
+        }
+        return sb;
+    }
 
     protected String getColumnName(Column c) {
         return sessionFactory.getColumnName(c);
@@ -758,20 +777,23 @@ public abstract class DMLAdapter<T> {
      * @param fd
      * @return
      */
-    private StringBuilder createInnerJoinFiltersSqlByDescriptor(FilterDescriptor fd) {
+    private StringBuilder createInnerJoinFiltersSqlByDescriptor(
+            FilterDescriptor fd) {
         StringBuilder sb = new StringBuilder();
-        for(FilterDescriptor fdi : filterDescriptors){
-        	if(fdi.isJoinOn() || !fdi.getFilterTable().equals(fd.getFilterTable())){
-        		continue;
-        	}
-        	String key = fdi.getKey();
-        	if(FilterType.IS.value().equals(fdi.getFilter().trim()) 
-        			|| FilterType.IS_NOT.value().equals(fdi.getFilter().trim())){
-        		sb.append(" AND " + key + " " + fdi.getFilter() + NULL);
-        	}else{
-        		cachePreparedValues(fdi.getValue(), fdi.getField());
-        		sb.append(" AND " + key + fdi.getFilter() + createPlaceHolder(fdi.getFilter(), fdi.getValue()));
-        	}
+        for (FilterDescriptor fdi : filterDescriptors) {
+            if (fdi.isJoinOn()
+                    || !fdi.getFilterTable().equals(fd.getFilterTable())) {
+                continue;
+            }
+            String key = fdi.getKey();
+            if (FilterType.IS.value().equals(fdi.getFilter().trim())
+                    || FilterType.IS_NOT.value().equals(fdi.getFilter().trim())) {
+                sb.append(" AND " + key + " " + fdi.getFilter() + NULL);
+            } else {
+                cachePreparedValues(fdi.getValue(), fdi.getField());
+                sb.append(" AND " + key + fdi.getFilter()
+                        + createPlaceHolder(fdi.getFilter(), fdi.getValue()));
+            }
         }
         return sb;
     }
@@ -796,23 +818,23 @@ public abstract class DMLAdapter<T> {
         return fsql;
 	}
 
-
     private StringBuilder createFilters() {
         List<FilterDescriptor> fds = getFilterDescriptors();
         StringBuilder fsql = new StringBuilder();
         fsql.append(WHERE);
-        for(int i = 0; i < fds.size(); i++){
+        for (int i = 0; i < fds.size(); i++) {
             FilterDescriptor fd = fds.get(i);
             String key = fd.getKey();
             String filter = fd.getFilter();
-            if(FilterType.IS.value().equals(filter.trim()) 
-                    || FilterType.IS_NOT.value().equals(filter.trim())){
+            if (FilterType.IS.value().equals(filter.trim())
+                    || FilterType.IS_NOT.value().equals(filter.trim())) {
                 fsql.append(key + " " + filter + NULL);
-            }else{
+            } else {
                 cachePreparedValues(fd.getValue(), fd.getField());
-                fsql.append(key + filter + createPlaceHolder(filter, fd.getValue()));
+                fsql.append(key + filter
+                        + createPlaceHolder(filter, fd.getValue()));
             }
-            if(i != fds.size() - 1){
+            if (i != fds.size() - 1) {
                 fsql.append(fd.getConnector());
             }
         }
@@ -831,18 +853,22 @@ public abstract class DMLAdapter<T> {
             return fsql;
         }
         int i = 0;
-        for (Entry<String, FilterDescriptor> entry : multiDropFilter.getFilters().entrySet()) {
+        for (Entry<String, FilterDescriptor> entry : multiDropFilter
+                .getFilters().entrySet()) {
             FilterDescriptor fdi = entry.getValue();
             Column col = fdi.getField().getAnnotation(Column.class);
-            String key = getAliasByTableName(getCurrentTableName()) + "." + getColumnName(col);
-            Object value = RabbitValueConverter.convert(fdi.getValue(), 
-                    MetaData.getCachedFieldsMeta(getEntityClz(), entry.getKey()));
-            if(FilterType.IS.value().equals(fdi.getFilter().trim()) 
-                    || FilterType.IS_NOT.value().equals(fdi.getFilter().trim())){
+            String key = getAliasByTableName(getCurrentTableName()) + "."
+                    + getColumnName(col);
+            Object value = RabbitValueConverter.convert(fdi.getValue(),
+                            MetaData.getCachedFieldsMeta(getEntityClz(),
+                                    entry.getKey()));
+            if (FilterType.IS.value().equals(fdi.getFilter().trim())
+                    || FilterType.IS_NOT.value().equals(fdi.getFilter().trim())) {
                 fsql.append((i == 0 ? " " : " OR ") + key + fdi.getFilter() + NULL);
-            }else{
+            } else {
                 cachePreparedValues(value, fdi.getField());
-                fsql.append((i == 0 ? " " : " OR ") + key + fdi.getFilter() + createPlaceHolder(fdi.getFilter(), value));
+                fsql.append((i == 0 ? " " : " OR ") + key + fdi.getFilter()
+                        + createPlaceHolder(fdi.getFilter(), value));
             }
             i++;
         }
@@ -851,14 +877,14 @@ public abstract class DMLAdapter<T> {
 
     private List<FilterDescriptor> getFilterDescriptors() {
         List<FilterDescriptor> fds = new ArrayList<>();
-        for(FilterDescriptor fd : filterDescriptors){
-			if(fd.isJoinOn()){
-				continue;
-			}
-			if(fd.getFilterTable().equals(metaData.getTableName())){
-				fds.add(fd);
-			}
-		}
+        for (FilterDescriptor fd : filterDescriptors) {
+            if (fd.isJoinOn()) {
+                continue;
+            }
+            if (fd.getFilterTable().equals(metaData.getTableName())) {
+                fds.add(fd);
+            }
+        }
         return fds;
     }
 	
@@ -868,14 +894,14 @@ public abstract class DMLAdapter<T> {
      */
     protected List<FilterDescriptor> getMainFilterDescriptors() {
         List<FilterDescriptor> fds = new ArrayList<>();
-        for(FilterDescriptor fd : filterDescriptors){
-            if(fd.getFilterTable().equals(metaData.getTableName())){
+        for (FilterDescriptor fd : filterDescriptors) {
+            if (fd.getFilterTable().equals(metaData.getTableName())) {
                 fds.add(fd);
             }
         }
         return fds;
     }
-    
+
     /**
      * <b>Description  获取当前操作的分片表名</b>
      * @param factors
@@ -886,8 +912,8 @@ public abstract class DMLAdapter<T> {
         return getShardingPolicy().getShardingTable(getEntityClz(), tableName, factors);
     }
     
-    protected String getCurrentTableName(){
-        if(isShardingOperation()){
+    protected String getCurrentTableName() {
+        if (isShardingOperation()) {
             return getCurrentShardedTableName(getFactors());
         }
         return metaData.getTableName();
@@ -937,7 +963,7 @@ public abstract class DMLAdapter<T> {
      * 
      */
     public static void closeStmt(PreparedStatement stmt) {
-        if(null == stmt){
+        if (null == stmt) {
             return;
         }
         try {
