@@ -104,6 +104,7 @@ public class SQLiteQueryTest {
         u.setId(10L);
         try {
             us.createQuery(u).fetch(SQLiteRole.class).execute().list();
+            throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertSame(e.getClass(),
                     InvalidFetchOperationException.class);
@@ -255,6 +256,7 @@ public class SQLiteQueryTest {
                             JoinFilterBuilder.prepare(query)
                                     .join(SQLiteOrganization.class).on("id", 1)
                                     .build()).execute().unique();
+            throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertEquals(e.getClass(),
                     InvalidJoinFilterException.class);

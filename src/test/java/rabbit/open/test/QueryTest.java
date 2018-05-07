@@ -103,6 +103,7 @@ public class QueryTest {
         u.setId(10L);
         try {
             us.createQuery(u).fetch(Role.class).execute().list();
+            throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertSame(e.getClass(),
                     InvalidFetchOperationException.class);
@@ -254,6 +255,7 @@ public class QueryTest {
                             JoinFilterBuilder.prepare(query)
                                     .join(Organization.class).on("id", 1)
                                     .build()).execute().unique();
+            throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertEquals(e.getClass(),
                     InvalidJoinFilterException.class);
