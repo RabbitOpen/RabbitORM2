@@ -35,7 +35,7 @@ import rabbit.open.orm.shard.ShardFactor;
  * @param <T>
  * 
  */
-public abstract class NonQueryAdapter<T> extends DMLAdapter<T>{
+public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
 
 	protected SQLOperation sqlOperation;
 	

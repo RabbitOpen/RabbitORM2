@@ -30,7 +30,7 @@ import rabbit.open.orm.shard.ShardFactor;
  * @param <T>
  * 
  */
-public class Update<T> extends NonQueryAdapter<T>{
+public class Update<T> extends NonQueryAdapter<T> {
 
     private T value2Update = null;
 	
@@ -57,9 +57,9 @@ public class Update<T> extends NonQueryAdapter<T>{
                     sql.append(createUpdateSql(value2Update));
                     sql.append(createFilterSql());
                     replaceTableName();
-                    showSql();
                     stmt = conn.prepareStatement(sql.toString());
                     setPreparedStatementValue(stmt, DMLType.UPDATE);
+                    showSql();
                     return stmt.executeUpdate();
                 } finally {
                     closeStmt(stmt);
@@ -228,9 +228,9 @@ public class Update<T> extends NonQueryAdapter<T>{
             public long executeSQL(Connection conn) throws SQLException {
                 PreparedStatement stmt = null;
                 try {
-                    showSql();
                     stmt = conn.prepareStatement(sql.toString());
                     setPreparedStatementValue(stmt, DMLType.UPDATE);
+                    showSql();
                     return stmt.executeUpdate();
                 } finally {
                     closeStmt(stmt);

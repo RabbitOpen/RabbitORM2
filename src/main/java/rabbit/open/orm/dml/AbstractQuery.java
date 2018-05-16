@@ -88,6 +88,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	//映射clz的fetch次数
 	private Map<Class<?>, Integer> fetchTimesMappingTable = new HashMap<>();
 	
+	//默认允许查询时触发DMLFilter
+	private boolean enableGetFilter = true;
+	
 	public AbstractQuery(SessionFactory fatory, Class<T> clz) {
 		super(fatory, clz);
 	}
@@ -109,13 +112,12 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		ResultSet rs = null;
 		try{
 			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), DMLType.SELECT);
-			showSql();
 			stmt = conn.prepareStatement(sql.toString());
 			setPreparedStatementValue(stmt, DMLType.SELECT);
+			showSql();
 			rs = stmt.executeQuery();
 			List<T> resultList = readDataFromResultSets(rs);
 			rs.close();
-			resultList = sessionFactory.queryCompleted(resultList, getMetaData().getEntityClz());
 			return new Result<>(resultList);
 		} catch (Exception e){
 		    sessionFactory.flagSQLException(e);
@@ -138,7 +140,21 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		page = true;
 		return this;
 	}
+	
+    private boolean isEnableGetFilter() {
+        return enableGetFilter;
+    }
 
+    public AbstractQuery<T> enableGetFilter() {
+        enableGetFilter = true;
+        return this;
+    }
+
+    public AbstractQuery<T> disableGetFilter() {
+        enableGetFilter = false;
+        return this;
+    }
+	
 	/**
 	 * 
 	 * <b>Description:	分页</b><br>
@@ -253,25 +269,25 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	private T readRowData(ResultSet rs) throws SQLException{
-		//缓存【表别名】和实体对象
-		Map<String, Object> fetchEntity = new HashMap<>();
-		//缓存缓存【表名】和joinFetch的实体
-		Map<String, Object> joinFetcEntity = new HashMap<>();
-		readEntity(rs, fetchEntity, joinFetcEntity);
-		T target = (T) fetchEntity.get(getAliasByTableName(metaData.getTableName()));
-		for(Object entity : fetchEntity.values()){
-			if(entity == target){
-				continue;
-			}
-			injectFetchDependency(fetchEntity, entity);
-		}
-		for(Object entity : joinFetcEntity.values()){
-			if(entity == target){
-				continue;
-			}
-			injectJoinDependency(fetchEntity, entity);
-		}
-		return target;
+        // 缓存【表别名】和实体对象
+        Map<String, Object> fetchEntity = new HashMap<>();
+        // 缓存缓存【表名】和joinFetch的实体
+        Map<String, Object> joinFetcEntity = new HashMap<>();
+        readEntity(rs, fetchEntity, joinFetcEntity);
+        T target = (T) fetchEntity.get(getAliasByTableName(metaData.getTableName()));
+        for (Object entity : fetchEntity.values()) {
+            if (entity == target) {
+                continue;
+            }
+            injectFetchDependency(fetchEntity, entity);
+        }
+        for (Object entity : joinFetcEntity.values()) {
+            if (entity == target) {
+                continue;
+            }
+            injectJoinDependency(fetchEntity, entity);
+        }
+        return target;
 	}
 	
 	private void injectJoinDependency(Map<String, Object> fetchEntity, Object entity) {
@@ -314,20 +330,21 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         }
 	}
 	
-	private void readEntity(ResultSet rs, Map<String, Object> fetchEntity, Map<String, Object> joinFetcEntity) throws SQLException {
-		for(int i = 1; i <= rs.getMetaData().getColumnCount(); i++){
-			Object colValue = rs.getObject(i);
-			if(null == colValue){
-				continue;
-			}
-			String colName = rs.getMetaData().getColumnLabel(i);
-			if(colName.split("\\" + SEPARATOR).length == 2){
-				readFetchEntity(fetchEntity, colValue, colName);
-			}else if(colName.split("\\" + SEPARATOR).length == 3){
-				readMany2ManyEntity(joinFetcEntity, colValue, colName);
-			}
-		}
-	}
+    private void readEntity(ResultSet rs, Map<String, Object> fetchEntity,
+            Map<String, Object> joinFetcEntity) throws SQLException {
+        for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+            Object colValue = rs.getObject(i);
+            if (null == colValue) {
+                continue;
+            }
+            String colName = rs.getMetaData().getColumnLabel(i);
+            if (colName.split("\\" + SEPARATOR).length == 2) {
+                readFetchEntity(fetchEntity, colValue, colName);
+            } else if (colName.split("\\" + SEPARATOR).length == 3) {
+                readMany2ManyEntity(joinFetcEntity, colValue, colName);
+            }
+        }
+    }
 
 	private void readMany2ManyEntity(Map<String, Object> joinFetcEntity, Object colValue, String colName) {
         // joinFetch出来的数据
@@ -419,7 +436,11 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @param value
 	 */
 	protected void setValue2EntityField(Object target, Field field, Object value) {
-        getTransformer().setValue2EntityField(target, field, value);
+	    Object gettedValue = value;
+	    if (isEnableGetFilter()) {
+	        gettedValue = sessionFactory.onValueGetted(value, field);
+	    }
+        getTransformer().setValue2EntityField(target, field, gettedValue);
 	}
 	
 	/**
@@ -467,6 +488,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
             restClzesEnabled2Join();
             preparedValues.clear();
             factors.clear();
+            addedFilters.clear();
         }
     }
 
@@ -1328,9 +1350,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		ResultSet rs = null;
 		try{
 			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), DMLType.SELECT);
-			showSql();
 			stmt = conn.prepareStatement(sql.toString());
 			setPreparedStatementValue(stmt, null);
+			showSql();
 			rs = stmt.executeQuery();
 			if(rs.next()){
 				return Long.parseLong(rs.getObject(1).toString());

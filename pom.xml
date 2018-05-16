@@ -4,7 +4,7 @@
 
 	<groupId>rabbit.open</groupId>
 	<artifactId>orm</artifactId>
-	<version>2.4.3</version>
+	<version>2.4.4</version>
 	<packaging>jar</packaging>
 
 	<name>rabbit.open</name>
@@ -174,8 +174,10 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<sonar.host.url>http://localhost:9000/sonar</sonar.host.url>
-				<!-- <sonar.host.url>http://10.121.30.146/sonar</sonar.host.url> -->
+				<sonar.host.url>http://www.rabbit-open.top/sonar</sonar.host.url>
+				<sonar.login>sonar</sonar.login>
+				<sonar.password>sonar</sonar.password> 
+				<sonar.projectName>rabbit.open.orm</sonar.projectName>
 			</properties>
 		</profile>
 	</profiles>

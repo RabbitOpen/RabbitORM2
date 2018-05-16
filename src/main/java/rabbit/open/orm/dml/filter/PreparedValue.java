@@ -27,4 +27,8 @@ public class PreparedValue {
         return field;
     }
     
+    public void setValue(Object value) {
+        this.value = value;
+    }
+    
 }

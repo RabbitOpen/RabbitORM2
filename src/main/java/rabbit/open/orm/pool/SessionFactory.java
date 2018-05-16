@@ -1,9 +1,9 @@
 package rabbit.open.orm.pool;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -342,15 +342,13 @@ public class SessionFactory {
         }
         return pv.getValue();
     }
-    
-    @SuppressWarnings("unchecked")
-    public <T> List<T> queryCompleted(List<T> result, Class<?> clz) {
+
+    public Object onValueGetted(Object value, Field field) {
         if (null != filter) {
-            return (List<T>) filter.queryCompleted((List<Object>) result, clz);
+            return filter.onValueGetted(value, field);
         }
-        return result;
+        return value;
     }
-    
     /**
      * <b>Description  获取字段名</b>
      * @param col

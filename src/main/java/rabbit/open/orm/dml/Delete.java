@@ -36,9 +36,9 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			    PreparedStatement stmt = null;
 				try{
 	                createDeleteSql();
-	                showSql();
 	                stmt = conn.prepareStatement(sql.toString());
 	                setPreparedStatementValue(stmt, DMLType.DELETE);
+	                showSql();
 	                return stmt.executeUpdate();
 				} finally {
 				    closeStmt(stmt);
@@ -99,9 +99,9 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			public long executeSQL(Connection conn) throws SQLException {
 			    PreparedStatement stmt = null;
 				try{
-				    showSql();
 	                stmt = conn.prepareStatement(sql.toString());
 	                setPreparedStatementValue(stmt, DMLType.DELETE);
+	                showSql();
 	                return stmt.executeUpdate();
 				} finally {
 				    closeStmt(stmt);

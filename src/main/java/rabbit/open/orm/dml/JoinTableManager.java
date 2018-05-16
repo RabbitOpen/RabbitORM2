@@ -138,9 +138,9 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
             public long executeSQL(Connection conn) throws SQLException {
                 PreparedStatement stmt = null;
                 try {
-                    showSql();
                     stmt = conn.prepareStatement(sql.toString());
                     setPreparedStatementValue(stmt, null);
+                    showSql();
                     return stmt.executeUpdate();
                 } finally {
                     closeStmt(stmt);

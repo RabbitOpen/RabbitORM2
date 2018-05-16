@@ -229,6 +229,7 @@ public abstract class DMLAdapter<T> {
         for (int i = 1; i <= preparedValues.size(); i++) {
             PreparedValue pv = (PreparedValue) preparedValues.get(i - 1);
             Object value = sessionFactory.onValueSetted(pv, dmlType);
+            pv.setValue(value);
             if (value instanceof Date) {
                 setDate(stmt, i, (Date) value);
             } else if (value instanceof Double){ 
