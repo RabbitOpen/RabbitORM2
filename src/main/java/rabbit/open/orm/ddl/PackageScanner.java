@@ -94,7 +94,7 @@ public class PackageScanner implements Serializable{
 
 	/**
 	 * 
-	 * 扫描包下所有java文件
+	 * 扫描包下所有class文件
 	 * @return
 	 * 
 	 */
@@ -117,18 +117,51 @@ public class PackageScanner implements Serializable{
         List<String> files = new ArrayList<>();
         try {
             URL url = new URL(base, rootPath.replaceAll("\\.", "/"));
-            File root = new File(url.toURI());
-            if (root.exists() && root.isDirectory()) {
-                logger.info("scan path: "
-                        + root.getPath().replaceAll("\\\\", "/"));
-                for (File f : root.listFiles()) {
-                    files.addAll(scanFile(rootPath + "." + f.getName(), f));
+            if (url.getFile().contains(".war!") || url.getFile().contains(".jar!")) {
+                String feature = ".war";
+                if (url.getFile().contains(".jar!")) {
+                    feature = ".jar";
+                }
+                String warName = url.getFile().substring(0, url.getFile().indexOf(feature)) + feature;
+                if (warName.startsWith("file:")) {
+                    warName = warName.substring(6, warName.length());
+                }
+                files.addAll(getClassesFromWar(warName));
+            } else {
+                File root = new File(url.toURI());
+                if (root.exists() && root.isDirectory()) {
+                    logger.info("scan path: " + root.getPath().replaceAll("\\\\", "/"));
+                    for (File f : root.listFiles()) {
+                        files.addAll(scanFile(rootPath + "." + f.getName(), f));
+                    }
                 }
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
         return files;
+    }
+    
+    /**
+     * <b>Description  读取war中/WEB-INF/classes/目录下的class文件</b>
+     * @param war
+     * @throws IOException
+     */
+    private static List<String> getClassesFromWar(String war) throws IOException {
+        JarFile jar = new JarFile(war);
+        Enumeration<JarEntry> entries = jar.entries();
+        List<String> classes = new ArrayList<>();
+        //遍历条目。 
+        String prefix = "WEB-INF/classes/";
+        while (entries.hasMoreElements()) {
+            JarEntry ele = entries.nextElement();
+            if (ele.getName().startsWith(prefix) && ele.getName().endsWith(".class")) {
+                String clzName = ele.getName().substring(prefix.length(), ele.getName().length() - 6).replaceAll("/", ".");
+                classes.add(clzName);
+            }
+        }
+        jar.close();
+        return classes;
     }
 	
     private static List<String> scanFile(String parent, File file)
@@ -342,6 +375,9 @@ public class PackageScanner implements Serializable{
         String path = PackageScanner.class.getResource("/").getPath();
         File f = new File(path);
         f = f.getParentFile();
+        if (null == f.listFiles()) {
+            return new ArrayList<>();
+        }
         for (File file : f.listFiles()) {
             if ("lib".equals(file.getName())) {
                 ArrayList<String> list = new ArrayList<>();
