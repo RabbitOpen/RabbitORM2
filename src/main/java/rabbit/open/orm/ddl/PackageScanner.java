@@ -124,7 +124,11 @@ public class PackageScanner implements Serializable{
                 }
                 String warName = url.getFile().substring(0, url.getFile().indexOf(feature)) + feature;
                 if (warName.startsWith("file:")) {
-                    warName = warName.substring(6, warName.length());
+                    if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
+                        warName = warName.substring(6, warName.length());
+                    } else {
+                        warName = warName.substring(5, warName.length());
+                    }
                 }
                 files.addAll(getClassesFromWar(warName));
             } else {
