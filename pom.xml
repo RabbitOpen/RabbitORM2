@@ -174,9 +174,9 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<sonar.host.url>http://www.rabbit-open.top/sonar</sonar.host.url>
-				<sonar.login>sonar</sonar.login>
-				<sonar.password>sonar</sonar.password> 
+				<sonar.host.url>http://localhost:9000/sonar</sonar.host.url>
+				<!-- <sonar.login>sonar</sonar.login>
+				<sonar.password>sonar</sonar.password>  -->
 				<sonar.projectName>rabbit.open.orm</sonar.projectName>
 			</properties>
 		</profile>
