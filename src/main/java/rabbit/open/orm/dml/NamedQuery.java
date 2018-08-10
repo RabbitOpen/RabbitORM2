@@ -1,10 +1,13 @@
 package rabbit.open.orm.dml;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeMap;
+
+import org.apache.log4j.Logger;
 
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.name.FetcherDescriptor;
@@ -12,6 +15,7 @@ import rabbit.open.orm.dml.name.JoinFetcherDescriptor;
 import rabbit.open.orm.dml.name.NamedSQL;
 import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.exception.MisMatchedNamedQueryException;
+import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
 
@@ -22,6 +26,8 @@ import rabbit.open.orm.pool.SessionFactory;
  * 
  */
 public class NamedQuery<T> {
+    
+    Logger logger = Logger.getLogger(getClass());
 
 	private NamedSQL nameObject;
 	
@@ -177,7 +183,39 @@ public class NamedQuery<T> {
         for (PreparedValue v : values) {
             query.preparedValues.add(v);
         }
-        
+    }
+    
+    /**
+     * <b>Description  通过对象的属性字段设值</b>
+     * @param filterObject
+     * @return
+     */
+    public NamedQuery<T> set(Object filterObject) {
+        if (null == filterObject) {
+            return this;
+        }
+        Field[] fields = filterObject.getClass().getDeclaredFields();
+        for (Field f : fields) {
+            Object fv = getValue(f, filterObject);
+            if (null == fv) {
+                continue;
+            }
+            try {
+                set(f.getName(), fv);
+            } catch (UnKnownFieldException e) {
+                logger.debug("ignore unkown field");
+            }
+        }
+        return this;
+    }
+    
+    private Object getValue(Field field, Object target){
+        try {
+            field.setAccessible(true);
+            return field.get(target);
+        } catch (Exception e) {
+            throw new RabbitDMLException(e.getMessage());
+        }
     }
 
 	/**

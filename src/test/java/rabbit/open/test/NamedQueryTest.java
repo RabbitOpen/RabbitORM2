@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import rabbit.open.orm.dml.NamedQuery;
 import rabbit.open.orm.exception.EmptyAliasException;
 import rabbit.open.orm.exception.MisMatchedNamedQueryException;
 import rabbit.open.orm.exception.NoNamedSQLDefinedException;
@@ -87,6 +88,21 @@ public class NamedQueryTest {
         User u = us.createNamedQuery("getUserByName")
                 .set("username", "%leifeng%").set("userId", user.getId())
                 .unique();
+        System.out.println(u);
+        TestCase.assertEquals(user.getName(), u.getName());
+        TestCase.assertEquals(u.getCars().size(), 3);
+        TestCase.assertEquals(u.getRoles().size(), 2);
+        TestCase.assertEquals(u.getOrg().getZone().getName(), user.getOrg()
+                .getZone().getName());
+    }
+
+    @Test
+    public void setObjectTest() {
+        User user = createTestData();
+        NamedQuery<User> query = us.createNamedQuery("getUserByName");
+        query.set(null);
+        User u = query.set(new QueryFilter(user.getName(), 
+                user.getId(), 100)).unique();
         System.out.println(u);
         TestCase.assertEquals(user.getName(), u.getName());
         TestCase.assertEquals(u.getCars().size(), 3);
@@ -264,5 +280,18 @@ public class NamedQueryTest {
         ps.add(new Property(user.getOrg().getId(), "P2"));
 
         return user;
+    }
+    
+    public class QueryFilter {
+        public String username;
+        public Long userId;
+        public Integer year;
+        public String gender;
+        public QueryFilter(String username, Long id, Integer year) {
+            super();
+            this.username = username;
+            this.userId = id;
+            this.year = year;
+        }
     }
 }
