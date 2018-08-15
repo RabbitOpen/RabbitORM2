@@ -271,7 +271,7 @@ public class PackageScanner implements Serializable{
         return false;
     }
 
-    private static void closeJarFile(JarFile jf) {
+    public static void closeJarFile(JarFile jf) {
         if (null == jf) {
             return;
         }

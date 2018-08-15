@@ -1,12 +1,16 @@
 package rabbit.open.orm.dml.name;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
@@ -14,6 +18,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
+import rabbit.open.orm.ddl.PackageScanner;
 import rabbit.open.orm.exception.MappingFileParsingException;
 import rabbit.open.orm.exception.NoNamedSQLDefinedException;
 import rabbit.open.orm.exception.UnExistedNamedSQLException;
@@ -36,6 +41,9 @@ public class SQLParser {
 	public SQLParser(String path) {
 		super();
 		this.sqlPath = path;
+		if (sqlPath.startsWith("/")) {
+		    sqlPath = sqlPath.substring(1);
+		}
 	}
 	
 	/**
@@ -48,13 +56,13 @@ public class SQLParser {
 	 */
 	public static SQLObject getQueryByNameAndClass(String name, Class<?> clz){
 		Map<String, SQLObject> map = nameQueries.get(clz);
-		if(null == map){
-			throw new NoNamedSQLDefinedException(clz);
-		}
-		SQLObject namedSql = map.get(name);
-		if(null == namedSql){
-			throw new UnExistedNamedSQLException(name);
-		}
+        if (null == map) {
+            throw new NoNamedSQLDefinedException(clz);
+        }
+        SQLObject namedSql = map.get(name);
+        if (null == namedSql) {
+            throw new UnExistedNamedSQLException(name);
+        }
 		return namedSql;
 	}
 
@@ -68,11 +76,11 @@ public class SQLParser {
 	 */
 	public static SQLObject getNamedJdbcQuery(String name, Class<?> clz){
 		Map<String, SQLObject> map = nameQueries.get(clz);
-		if(null == map){
-		    throw new NoNamedSQLDefinedException(clz);
+        if (null == map) {
+            throw new NoNamedSQLDefinedException(clz);
 		}
 		SQLObject namedSql = map.get(name);
-		if(null == namedSql){
+        if (null == namedSql) {
 			throw new UnExistedNamedSQLException(name);
 		}
 		return namedSql;
@@ -100,16 +108,16 @@ public class SQLParser {
 
 	@SuppressWarnings("unchecked")
 	private void parseOneByOne(String xml) {
-		File file = new File(xml);
+		InputStream inputSteam = getClass().getResourceAsStream(xml);
 		SAXReader reader = new SAXReader();   
 		Document doc;
 		try {
-			doc = reader.read(file);
+			doc = reader.read(inputSteam);
 			Element root = doc.getRootElement(); 
 			String clzName = root.attributeValue("entity");
 			Class<?> clz = checkClassName(xml, clzName);
 			Iterator<Element> iterator = root.elementIterator(SELECT);
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 Element select = iterator.next();
                 String name = select.attributeValue("name");
                 String sql = select.getText();
@@ -117,7 +125,7 @@ public class SQLParser {
 		        nameQueries.get(clz).put(name.trim(), new NamedSQL(sql, name, select));
 			}
 			iterator = root.elementIterator(JDBC);
-			while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
 			    Element select = iterator.next();
 			    String name = select.attributeValue("name");
 			    String sql = select.getText();
@@ -126,23 +134,29 @@ public class SQLParser {
 			}
 		} catch (DocumentException e) {
 			throw new MappingFileParsingException(e.getMessage());
+		} finally {
+		    try {
+                inputSteam.close();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
 		}
 	}
 
 	private void checkNameQuery(Class<?> namespaceClz, String queryName, String sql) {
-		if(SessionFactory.isEmpty(queryName)){
+        if (SessionFactory.isEmpty(queryName)) {
 			throw new MappingFileParsingException("empty query name is found for[" + namespaceClz + "]");
 		}
-		if(nameQueries.get(namespaceClz).containsKey(queryName)){
+        if (nameQueries.get(namespaceClz).containsKey(queryName)) {
 			throw new MappingFileParsingException("repeated query name[" + queryName + "] is found!");
 		}
-		if(SessionFactory.isEmpty(sql)){
+        if (SessionFactory.isEmpty(sql)) {
 			throw new MappingFileParsingException("empty sql is found in [" + queryName + "]");
 		}
 	}
 
 	private Class<?> checkClassName(String xml, String className) {
-		if(SessionFactory.isEmpty(className)){
+        if (SessionFactory.isEmpty(className)) {
 			throw new MappingFileParsingException("invalid class name[" + className + "] for " + xml);
 		}
 		Class<?> clz = null;
@@ -151,9 +165,9 @@ public class SQLParser {
 		} catch (ClassNotFoundException e) {
 			throw new MappingFileParsingException("invalid class name[" + className + "] for " + xml);
 		}
-		if(nameQueries.containsKey(clz)){
+        if (nameQueries.containsKey(clz)) {
 			throw new MappingFileParsingException("repeated class name[" + className + "] is found!");
-		}else{
+        } else {
 			nameQueries.put(clz, new ConcurrentHashMap<String, SQLObject>());
 		}
 		return clz;
@@ -167,31 +181,73 @@ public class SQLParser {
 	 */
 	private List<String> readFiles(){
 		URL url = getClass().getClassLoader().getResource(sqlPath);
-		if(null == url){
+        if (null == url) {
 			throw new WrongMappingFilePathException("mapping file path[" + sqlPath + "] is not found!");
 		}
 		List<String> xmls = new ArrayList<>();
-		scanMappingPath(url.getPath(), xmls);
+		xmls.addAll(scanMappingPath(url.getPath()));
 		if (url.getPath().contains("/test-classes")) {
-		    scanMappingPath(url.getPath().replace("test-classes", "classes"), xmls);
+		    xmls.addAll(scanMappingPath(url.getPath().replace("test-classes", "classes")));
 		}
 		return xmls;
 	}
 
-	private void scanMappingPath(String url, List<String> xmls) {
+	private List<String> scanMappingPath(String url) {
+	    List<String> xmls = new ArrayList<>();
 		File path = new File(url);
-		if(!path.isDirectory()){
+        if (!path.isDirectory()) {
 			logger.warn("mapping file path[" + sqlPath + "] is not a directory!");
-			return; 
-		}
-		for(String f : path.list()){
-			String fileName = url + "/" + f;
-			if(!isXmlFile(fileName)){
-				continue;
+			if (url.contains(".war!") || url.contains(".jar!")) {
+                String jar = getJarFileName(url);
+                xmls.addAll(findXmls(jar));
 			}
-			xmls.add(fileName);
+			return xmls; 
 		}
+        for (String f : path.list()) {
+            String fileName = url + "/" + f;
+            if (!isXmlFile(fileName)) {
+                continue;
+            }
+            xmls.add(fileName.substring(fileName.indexOf("/" + sqlPath)));
+        }
+		return xmls;
 	}
+
+    private List<String> findXmls(String jar) {
+        List<String> xmls = new ArrayList<>();
+        JarFile jf = null;
+        try {
+            jf = new JarFile(jar);
+            Enumeration<JarEntry> entries = jf.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.getName().endsWith("xml") && entry.getName().contains("classes/" + sqlPath)){
+                    xmls.add(entry.getName().substring(entry.getName().indexOf("/" + sqlPath)));
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            PackageScanner.closeJarFile(jf);
+        }
+        return xmls;
+    }
+	
+    private String getJarFileName(String url) {
+        String feature = ".war";
+        if (url.contains(".jar!")) {
+            feature = ".jar";
+        }
+        String fileName = url.substring(0, url.indexOf(feature)) + feature;
+        if (fileName.startsWith("file:")) {
+            if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
+                fileName = fileName.substring(6, fileName.length());
+            } else {
+                fileName = fileName.substring(5, fileName.length());
+            }
+        }
+        return fileName;
+    }
 
 	/**
 	 * 
