@@ -17,6 +17,7 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.xml.sax.SAXException;
 
 import rabbit.open.orm.ddl.PackageScanner;
 import rabbit.open.orm.exception.MappingFileParsingException;
@@ -110,6 +111,10 @@ public class SQLParser {
 	private void parseOneByOne(String xml) {
 		InputStream inputSteam = getClass().getResourceAsStream(xml);
 		SAXReader reader = new SAXReader();   
+		try {
+            reader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        } catch (SAXException e) {
+        }
 		Document doc;
 		try {
 			doc = reader.read(inputSteam);
