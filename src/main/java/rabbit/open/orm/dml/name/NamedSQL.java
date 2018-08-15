@@ -95,7 +95,7 @@ public class NamedSQL extends SQLObject {
                 throw new RabbitDMLException(
                         "empty field is defined in NamedSQL[" + this.name + "]");
             }
-            fieldsMapping.put(matcher.group(1).trim(), index++);
+            fieldsMapping.put(index++, matcher.group(1).trim());
             this.sql = this.sql.replace(matcher.group(0), "?");
         }
     }

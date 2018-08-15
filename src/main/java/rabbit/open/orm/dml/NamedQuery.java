@@ -239,15 +239,17 @@ public class NamedQuery<T> {
 	 * @return
 	 */
 	public NamedQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz){
-	    int index = nameObject.getFieldIndex(fieldAlias);
-	    if (null != entityClz && !SessionFactory.isEmpty(fieldName)) {
-	        try {
-	            fieldsValues.put(index, new PreparedValue(value, entityClz.getDeclaredField(fieldName)));
-	        } catch (Exception e) {
-	            throw new UnKnownFieldException(e.getMessage());
+	    List<Integer> indexes = nameObject.getFieldIndexes(fieldAlias);
+	    for (int index : indexes) {
+	        if (null != entityClz && !SessionFactory.isEmpty(fieldName)) {
+	            try {
+	                fieldsValues.put(index, new PreparedValue(value, entityClz.getDeclaredField(fieldName)));
+	            } catch (Exception e) {
+	                throw new UnKnownFieldException(e.getMessage());
+	            }
+	        } else {
+	            fieldsValues.put(index, new PreparedValue(value));
 	        }
-	    } else {
-	        fieldsValues.put(index, new PreparedValue(value));
 	    }
 	    return this;
 	}

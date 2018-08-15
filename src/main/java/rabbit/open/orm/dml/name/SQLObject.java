@@ -1,7 +1,10 @@
 package rabbit.open.orm.dml.name;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import rabbit.open.orm.exception.UnKnownFieldException;
 
@@ -15,7 +18,7 @@ public class SQLObject {
 	
 	protected String name;
 	
-	protected Map<String, Integer> fieldsMapping = new HashMap<>();
+	protected Map<Integer, String> fieldsMapping = new HashMap<>();
 	
 	public SQLObject(String sql, String name) {
 		super();
@@ -34,10 +37,16 @@ public class SQLObject {
 	 * @return	
 	 * 
 	 */
-	public int getFieldIndex(String fieldName){
-	    if(!fieldsMapping.containsKey(fieldName)){
+	public List<Integer> getFieldIndexes(String fieldName) {
+	    List<Integer> indexes = new ArrayList<>();
+        if (!fieldsMapping.containsValue(fieldName)) {
 	        throw new UnKnownFieldException("field[" + fieldName + "] is not existed in query[" + name + "]!");
 	    }
-	    return fieldsMapping.get(fieldName);
+        for (Entry<Integer, String> entry : fieldsMapping.entrySet()) {
+            if (entry.getValue().equals(fieldName)) {
+                indexes.add(entry.getKey());
+            }
+        }
+	    return indexes;
 	}
 }
