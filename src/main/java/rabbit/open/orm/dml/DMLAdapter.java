@@ -152,16 +152,15 @@ public abstract class DMLAdapter<T> {
     /**
      * <b>Description  显示带问号的sql.</b>
      */
-    private void showMaskedPreparedSql() {
+    public void showMaskedPreparedSql() {
         logger.info(NEW_LINE + (sessionFactory.isFormatSql() ? 
                 SQLFormater.format(sql.toString()) : sql.toString()));
-        
     }
 
     /**
      * <b>Description  显示带真实值的sql.</b>
      */
-    private void showUnMaskedSql() {
+    public void showUnMaskedSql() {
         try {
             String valuesql = sql.toString();
             StringBuilder vs = new StringBuilder("prepareStatement values(");

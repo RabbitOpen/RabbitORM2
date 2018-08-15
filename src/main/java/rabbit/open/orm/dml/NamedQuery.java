@@ -252,4 +252,12 @@ public class NamedQuery<T> {
 	    return this;
 	}
 
+	public void showMaskedPreparedSql() {
+	    query.showMaskedPreparedSql();
+	}
+	
+	public void showUnMaskedSql() {
+	    query.showUnMaskedSql();
+	}
+	
 }
