@@ -1,6 +1,8 @@
 package rabbit.open.test;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -182,7 +184,6 @@ public class QueryTest {
     /**
      * 
      * <b>Description: 新增内链接条件测试</b><br>
-     * .
      * 
      */
     @Test
@@ -673,4 +674,23 @@ public class QueryTest {
 
     }
 
+    @Test
+    public void dateListTest() throws ParseException {
+        User u1 = new User();
+        Date d1 = new SimpleDateFormat("yyyy-MM-dd").parse("2018-08-10");
+        u1.setBirth(d1);
+        us.add(u1);
+        User u2 = new User();
+        Date d2 = new SimpleDateFormat("yyyy-MM-dd").parse("2018-08-11");
+        u2.setBirth(d2);
+        us.add(u2);
+        
+        List<User> list = us.createQuery().addFilter("birth", 
+                new Date[]{d1, d2}, FilterType.IN).desc("birth").list();
+        
+        TestCase.assertEquals(d2, list.get(0).getBirth());
+        TestCase.assertEquals(d1, list.get(1).getBirth());
+        
+        TestCase.assertEquals(2, list.size());
+    }
 }
