@@ -79,10 +79,24 @@ public class RabbitValueConverter {
         return list;
     }
 
+    @SuppressWarnings("unchecked")
     private static Object getDate(Object value, FieldMetaData field) {
         if (null == value) {
             return null;
         }
+        if (value instanceof Collection || value.getClass().isArray()) {
+            List<Object> list = new ArrayList<>();
+            list.addAll((Collection<Object>) convertArray(value));
+            List<Object> dates = new ArrayList<>();
+            for (Object v : list) {
+                dates.add(convertDate(v, field));
+            }
+            return dates;
+        }
+        return convertDate(value, field);
+    }
+
+    private static Object convertDate(Object value, FieldMetaData field) {
         SimpleDateFormat sdf = new SimpleDateFormat(field.getColumn().pattern());
         if (value instanceof Date) {
             String ds = sdf.format(value);
