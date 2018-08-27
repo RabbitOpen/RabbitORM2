@@ -25,6 +25,8 @@ public class MySQLDDLHelper extends DDLHelper {
     private static final String SET_FOREIGN_KEY_CHECKS_1 = "SET FOREIGN_KEY_CHECKS = 1";
 
     private static final String SET_FOREIGN_KEY_CHECKS_0 = "SET FOREIGN_KEY_CHECKS = 0";
+    
+    protected static final String TINYINT = "TINYINT(1)";
 
     public MySQLDDLHelper() {
         typeStringCache.put(Date.class, DATETIME);
@@ -35,6 +37,7 @@ public class MySQLDDLHelper extends DDLHelper {
         typeStringCache.put(Integer.class, BIGINT);
         typeStringCache.put(Short.class, BIGINT);
         typeStringCache.put(Long.class, BIGINT);
+        typeStringCache.put(Boolean.class, TINYINT);
     }
     
     /**
