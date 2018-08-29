@@ -15,6 +15,8 @@ import rabbit.open.orm.annotation.ManyToMany;
 import rabbit.open.orm.annotation.OneToMany;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.dml.DMLAdapter;
+import rabbit.open.orm.dml.meta.proxy.ManyToManyProxy;
+import rabbit.open.orm.dml.meta.proxy.OneToManyProxy;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
@@ -40,8 +42,8 @@ public class MetaData<T> {
 	//缓存实体类和字段的映射关系
 	private static ConcurrentHashMap<Class<?>, List<FieldMetaData>> fieldsMapping = new ConcurrentHashMap<>();
 	
-	//主键缓存
-	private static Map<Class<?>, Field> primaryKeyMapping = new ConcurrentHashMap<>();
+	//缓存主键和class的关系
+	private static ConcurrentHashMap<Class<?>, Field> primaryKeyMapping = new ConcurrentHashMap<>();
 	
 	//oracle数据库不区分大小写，所以结果集字段和实体类字段需要映射一下
 	private static Map<Class<?>, Map<String, String>> fieldsAlias = new ConcurrentHashMap<>();
@@ -98,7 +100,7 @@ public class MetaData<T> {
     }
 	
 	public static String getPrimaryKey(Class<?> clz, SessionFactory factory) {
-	    Column column = getPrimaryKeyField(clz).getAnnotation(Column.class);
+	    Column column = getPrimaryKeyFieldMeta(clz).getColumn();
         return factory.getColumnName(column);
 	}
 
@@ -114,7 +116,7 @@ public class MetaData<T> {
         }
         tableName = entityClz.getAnnotation(Entity.class).value();
         shardingPolicy = loadShardingPolicy(entityClz);
-        primaryKey = getPrimaryKeyField(entityClz).getAnnotation(Column.class);
+        primaryKey = getPrimaryKeyFieldMeta(entityClz).getColumn();
         tableMapping.put(tableName, entityClz);
         clzMapping.put(entityClz, tableName);
         joinMetas = getJoinMetas(entityClz);
@@ -189,10 +191,20 @@ public class MetaData<T> {
 	/**
 	 * 
 	 * 查找主键字段
-	 * @param clzz
+	 * @param clz
 	 * @return
 	 * 
 	 */
+	public static FieldMetaData getPrimaryKeyFieldMeta(Class<?> clz){
+	    List<FieldMetaData> fmds = getCachedFieldsMetas(clz);
+	    for (FieldMetaData fmd : fmds) {
+	        if (fmd.isPrimaryKey()) {
+	            return fmd;
+	        }
+	    }
+	    throw new RabbitDMLException("no primary key was found in [" + clz.getName() + "]");
+	}
+	
 	public static Field getPrimaryKeyField(Class<?> clzz){
 	    Class<?> clz = clzz;
 		if(null != primaryKeyMapping.get(clz)){
@@ -368,12 +380,14 @@ public class MetaData<T> {
         Annotation ann = field.getAnnotation(ManyToMany.class);
         if (null != ann) {
             ParameterizedType pt = (ParameterizedType) field.getGenericType();
-            return new JoinFieldMetaData(field, (Class<?>) pt.getActualTypeArguments()[0], clz, ann);
+            return new JoinFieldMetaData(field, (Class<?>) pt.getActualTypeArguments()[0], clz, 
+                    ManyToManyProxy.proxy((ManyToMany) ann));
         }
         ann = field.getAnnotation(OneToMany.class);
         if (null != ann) {
             ParameterizedType pt = (ParameterizedType) field.getGenericType();
-            return new JoinFieldMetaData(field, (Class<?>) pt.getActualTypeArguments()[0], clz, ann);
+            return new JoinFieldMetaData(field, (Class<?>) pt.getActualTypeArguments()[0], clz, 
+                    OneToManyProxy.proxy((OneToMany) ann));
         }
         return null;
     }

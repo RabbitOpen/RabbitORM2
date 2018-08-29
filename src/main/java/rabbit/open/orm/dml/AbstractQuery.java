@@ -256,7 +256,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
     }
 	
 	private Object getPrimaryKeyValue(Object readRowData) {
-		Field primaryKey = MetaData.getPrimaryKeyField(readRowData.getClass());
+		Field primaryKey = MetaData.getPrimaryKeyFieldMeta(readRowData.getClass()).getField();
 		return getValue(primaryKey, readRowData);
 	}
 	
@@ -322,7 +322,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
                     || null == (value = getValue(fd.getJoinField(), depObj))) {
                 continue;
             }
-            Field pk = MetaData.getPrimaryKeyField(entity.getClass());
+            Field pk = MetaData.getPrimaryKeyFieldMeta(entity.getClass()).getField();
             if (getValue(pk, value).equals(getValue(pk, entity))) {
                 setValue2Field(depObj, fd.getJoinField(), entity);
                 return;
@@ -361,7 +361,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         Entity entiyAnno = field.getType().getAnnotation(Entity.class);
         if (null != entiyAnno) {
             Object newInstance = DMLAdapter.newInstance(field.getType());
-            Field pkField = MetaData.getPrimaryKeyField(field.getType());
+            Field pkField = MetaData.getPrimaryKeyFieldMeta(field.getType()).getField();
             setValue2EntityField(newInstance, pkField, colValue);
             setValue2Field(joinFetcEntity.get(tableName), field, newInstance);
         } else {
@@ -410,7 +410,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         Entity entiyAnno = field.getType().getAnnotation(Entity.class);
         if (null != entiyAnno) {
             Object newInstance = DMLAdapter.newInstance(field.getType());
-            Field pkField = MetaData.getPrimaryKeyField(field.getType());
+            Field pkField = MetaData.getPrimaryKeyFieldMeta(field.getType()).getField();
             setValue2EntityField(newInstance, pkField, colValue);
             setValue2Field(fetchEntityMap.get(tableAlias), field,  newInstance);
         } else {
@@ -832,8 +832,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
             if (fmd.getFieldValue().getClass().equals(getEntityClz())) {
                 return sb;
             }
-            Field pk = MetaData.getPrimaryKeyField(fmd.getFieldValue()
-                    .getClass());
+            Field pk = MetaData.getPrimaryKeyFieldMeta(fmd.getFieldValue()
+                    .getClass()).getField();
             Object pkv = getValue(pk, fmd.getFieldValue());
             if (null == pkv) {
                 return sb;

@@ -8,11 +8,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.NonQueryAdapter;
 import rabbit.open.orm.dml.PolicyInsert;
 import rabbit.open.orm.dml.RabbitValueConverter;
+import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.exception.RabbitDMLException;
 
@@ -28,8 +28,9 @@ public class SequencePolicy extends PolicyInsert {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
-            Field pk = MetaData.getPrimaryKeyField(getEntityClass(adapter));
-            String columnName = adapter.getSessionFactory().getColumnName(pk.getAnnotation(Column.class));
+            FieldMetaData fmd = MetaData.getPrimaryKeyFieldMeta(getEntityClass(adapter));
+            Field pk = fmd.getField();
+            String columnName = adapter.getSessionFactory().getColumnName(fmd.getColumn());
             String sql = getSql(adapter).toString() + " returning " + columnName
                     + " into ?";
             stmt = conn.prepareStatement(sql);

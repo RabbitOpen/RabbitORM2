@@ -5,6 +5,8 @@ import java.util.Date;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.PrimaryKey;
+import rabbit.open.orm.dml.meta.proxy.ColumnProxy;
+import rabbit.open.orm.dml.meta.proxy.PrimaryKeyProxy;
 import rabbit.open.orm.exception.RabbitDMLException;
 
 /**
@@ -56,12 +58,12 @@ public class FieldMetaData {
     public FieldMetaData(Field field, Column column) {
 		super();
 		this.field = field;
-		this.column = column;
+		this.column = ColumnProxy.proxy(column);
 		if(baseDataType.contains(field.getType().getSimpleName())){
 			throw new RabbitDMLException("data type[" + field.getType().getSimpleName() 
 					+ "] is not supported by rabbit entity!");
 		}
-		setPrimaryKey(field.getAnnotation(PrimaryKey.class));
+		setPrimaryKey(PrimaryKeyProxy.proxy(field.getAnnotation(PrimaryKey.class)));
 		//判断是否是外键类型
 		if(!MetaData.isEntityClass(field.getType())){
 			return;

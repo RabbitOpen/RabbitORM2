@@ -45,7 +45,7 @@ public class JoinFieldMetaData<T> implements Cloneable{
         this.joinClass = joinClass;
         this.annotation = annotation;
         this.tableName = MetaData.getTableNameByClass(joinClass);
-        this.primaryKey = MetaData.getPrimaryKeyField(joinClass).getAnnotation(Column.class);
+        this.primaryKey = MetaData.getPrimaryKeyFieldMeta(joinClass).getColumn();
     }
 	
 	@Override

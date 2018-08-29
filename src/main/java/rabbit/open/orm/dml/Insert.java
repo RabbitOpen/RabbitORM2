@@ -1,13 +1,11 @@
 package rabbit.open.orm.dml;
 
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.FilterType;
-import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
@@ -68,8 +66,8 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	 * 
 	 */
 	private long doExecute(Connection conn) throws SQLException{
-		Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-        Policy policy = pk.getAnnotation(PrimaryKey.class).policy();
+		FieldMetaData fmd = MetaData.getPrimaryKeyFieldMeta(getEntityClz());
+        Policy policy = fmd.getPrimaryKey().policy();
         PolicyInsert insertPolicy = PolicyInsert.getInsertPolicy(policy);
         data = insertPolicy.insert(conn, this, data);
         showSql();

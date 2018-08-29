@@ -339,15 +339,14 @@ public abstract class DDLHelper {
                             : Long.class, m2m.id(), m2m.policy(), m2m.policy()
                             .equals(Policy.UUID) ? 36 : 0));
         }
-        des.add(new JoinTableDescriptor(MetaData.getPrimaryKeyField(clz)
-                .getType(), m2m.joinColumn(), MetaData.getPrimaryKeyField(clz)
-                .getAnnotation(Column.class).length()));
+        des.add(new JoinTableDescriptor(MetaData.getPrimaryKeyFieldMeta(clz)
+                .getField().getType(), m2m.joinColumn(), MetaData.getPrimaryKeyFieldMeta(clz).getColumn().length()));
         ParameterizedType pt = (ParameterizedType) f.getGenericType();
-        des.add(new JoinTableDescriptor(MetaData.getPrimaryKeyField(
-                (Class<?>) pt.getActualTypeArguments()[0]).getType(), m2m
+        des.add(new JoinTableDescriptor(MetaData.getPrimaryKeyFieldMeta(
+                (Class<?>) pt.getActualTypeArguments()[0]).getField().getType(), m2m
                 .reverseJoinColumn(), MetaData
-                .getPrimaryKeyField((Class<?>) pt.getActualTypeArguments()[0])
-                .getAnnotation(Column.class).length()));
+                .getPrimaryKeyFieldMeta((Class<?>) pt.getActualTypeArguments()[0])
+                .getColumn().length()));
         return des;
     }
 

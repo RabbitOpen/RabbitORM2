@@ -215,13 +215,15 @@ public class Update<T> extends NonQueryAdapter<T> {
 	 */
 	public long updateByID(T data){
         sql = createUpdateSql(data);
-        Field pk = MetaData.getPrimaryKeyField(getEntityClz());
+        FieldMetaData fmd = MetaData.getPrimaryKeyFieldMeta(getEntityClz());
+        Field pk = fmd.getField();
         Object pkValue;
         pkValue = getValue(pk, data);
         if (null == pkValue) {
             throw new RabbitDMLException("primary key can't be empty!");
         }
-		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(pkValue, new FieldMetaData(pk, pk.getAnnotation(Column.class))), pk));
+		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(pkValue, 
+		        new FieldMetaData(pk, fmd.getColumn())), pk));
 		sql.append(WHERE + TARGET_TABLE_NAME + "." + getColumnName(metaData.getPrimaryKey()) + " = " + PLACE_HOLDER);
         sqlOperation = new SQLOperation() {
             @Override
@@ -458,7 +460,7 @@ public class Update<T> extends NonQueryAdapter<T> {
      */
     private void setEntityFiled(Object data, String key, FieldMetaData fmd,
             Object value) {
-        Field pk = MetaData.getPrimaryKeyField(fmd.getField().getType());
+        Field pk = MetaData.getPrimaryKeyFieldMeta(fmd.getField().getType()).getField();
         logger.warn("value[" + value + "] is not compatible with field[" 
         		+ key + "(" + fmd.getField().getType().getName() + ")] of " 
         		+ data.getClass().getName());

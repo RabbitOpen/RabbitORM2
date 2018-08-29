@@ -237,7 +237,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
         for (Object o : jrs) {
             StringBuilder rsql = new StringBuilder();
             List<PreparedValue> values = new ArrayList<>();
-            Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
+            Field jpk = MetaData.getPrimaryKeyFieldMeta(jfm.getJoinClass()).getField();
             // 子表的主键值
             Object jpkv = getValue(jpk, o);
             ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
@@ -388,7 +388,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
             rsql.append(mtm.joinColumn() + " = " + PLACE_HOLDER);
             rsql.append(" AND " + mtm.reverseJoinColumn() + " IN (");
             for (Object o : jrs) {
-                Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
+                Field jpk = MetaData.getPrimaryKeyFieldMeta(jfm.getJoinClass()).getField();
                 // 子表的主键值
                 Object jpkv = getValue(jpk, o);
                 FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());

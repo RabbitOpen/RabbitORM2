@@ -185,7 +185,7 @@ public abstract class SpringDaoAdapter<T> {
 	 */
 	public T getByID(Serializable id){
 		Query<T> query = new Query<>(sessionFactory, clz);
-		return query.addFilter(MetaData.getPrimaryKeyField(clz).getName(), id).execute().unique();
+		return query.addFilter(MetaData.getPrimaryKeyFieldMeta(clz).getField().getName(), id).execute().unique();
 	}
 	
 	/**

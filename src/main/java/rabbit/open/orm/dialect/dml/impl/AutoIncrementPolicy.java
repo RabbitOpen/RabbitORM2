@@ -26,7 +26,7 @@ public class AutoIncrementPolicy extends PolicyInsert{
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
-            Field pk = MetaData.getPrimaryKeyField(getEntityClass(adapter));
+            Field pk = MetaData.getPrimaryKeyFieldMeta(getEntityClass(adapter)).getField();
             stmt = conn.prepareStatement(getSql(adapter).toString(),
                     Statement.RETURN_GENERATED_KEYS);
             setPreparedStatementValue(adapter, stmt);

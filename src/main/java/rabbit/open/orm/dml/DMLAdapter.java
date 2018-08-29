@@ -323,9 +323,8 @@ public abstract class DMLAdapter<T> {
 	protected void generateFilters(List<FieldMetaData> fieldMetas) {
         for (FieldMetaData fmd : fieldMetas) {
             if (fmd.isForeignKey()) {
-                Column column = MetaData.getPrimaryKeyField(
-                        fmd.getFieldValue().getClass()).getAnnotation(
-                        Column.class);
+                Column column = MetaData.getPrimaryKeyFieldMeta(
+                        fmd.getFieldValue().getClass()).getColumn();
                 String fkName = getColumnName(column);
                 String fkTable = getTableNameByClass(fmd.getField().getType());
                 MetaData.updateTableMapping(fkTable, fmd.getField().getType());
@@ -581,8 +580,8 @@ public abstract class DMLAdapter<T> {
             if (!fmd.isForeignKey()) {
                 continue;
             }
-            Column column = MetaData.getPrimaryKeyField(fmd.getField().getType())
-                    .getAnnotation(Column.class);
+            Column column = MetaData.getPrimaryKeyFieldMeta(fmd.getField().getType())
+                    .getColumn();
             String fkName = getColumnName(column);
             String fkTable = getTableNameByClass(fmd.getField().getType());
             String tableAlias = getAliasByTableName(fkTable);
