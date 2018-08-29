@@ -1,4 +1,4 @@
-package rabbit.open.orm.annotation;
+package rabbit.open.orm.dml.meta.proxy;
 
 import java.lang.reflect.Method;
 
@@ -6,17 +6,24 @@ import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
 
+import rabbit.open.orm.annotation.Column;
+
 /**
- * <b>Description  注解代理 </b>
+ * <b>Description  自定义的注解代理</b>
  */
 public class ColumnProxy implements MethodInterceptor {
-
+    
+    
+    // column 的名字
     private String value;
     
+    // column 的格式
     private String pattern;
     
+    // column 的长度
     private int length;
     
+    // column 是否为keyword
     private boolean keyWord;
     
     public void setRealObject(Column column) {
@@ -25,15 +32,18 @@ public class ColumnProxy implements MethodInterceptor {
         this.length = column.length();
         this.keyWord = column.keyWord();
     }
-
+    
     /**
      * 
-     * <b>Description: 代理所有连接</b><br>
-     * @param realSession
+     * <b>Description: 代理所有Column注解</b><br>
+     * @param column
      * @return
      * 
      */
-    public static Column getProxy(Column column) {
+    public static Column proxy(Column column) {
+        if (null == column) {
+            return null;
+        }
         ColumnProxy proxy = new ColumnProxy();
         proxy.setRealObject(column);
         Enhancer eh = new Enhancer();
@@ -41,7 +51,7 @@ public class ColumnProxy implements MethodInterceptor {
         eh.setCallback(proxy);
         return (Column) eh.create();
     }
-
+    
     /***
      * 代理session close方法，实现释放连接的功能
      */
@@ -62,5 +72,4 @@ public class ColumnProxy implements MethodInterceptor {
         }
         return null;
     }
-
 }

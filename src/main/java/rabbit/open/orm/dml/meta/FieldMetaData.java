@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.util.Date;
 
 import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.ColumnProxy;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.exception.RabbitDMLException;
 
@@ -57,7 +56,7 @@ public class FieldMetaData {
     public FieldMetaData(Field field, Column column) {
 		super();
 		this.field = field;
-		this.column = ColumnProxy.getProxy(column);
+		this.column = column;
 		if(baseDataType.contains(field.getType().getSimpleName())){
 			throw new RabbitDMLException("data type[" + field.getType().getSimpleName() 
 					+ "] is not supported by rabbit entity!");
