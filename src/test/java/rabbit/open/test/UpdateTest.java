@@ -15,6 +15,7 @@ import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.User;
+import rabbit.open.test.entity.Zone;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.UserService;
 
@@ -202,8 +203,13 @@ public class UpdateTest {
     public void updateByIDTest() {
         Organization org = new Organization("code", "name");
         os.add(org);
+        Zone z = new Zone();
+        z.setId(1993L);
         org.setName("newname");
+        org.setZone(z);
         os.updateByID(org);
-        TestCase.assertEquals(org.getName(), "newname");
+        Organization oq = os.createQuery().addFilter("id", org.getId()).fetch(Zone.class).unique();
+        TestCase.assertEquals(oq.getName(), "newname");
+        TestCase.assertEquals(oq.getZone().getId(), z.getId());
     }
 }
