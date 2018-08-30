@@ -156,12 +156,14 @@ public class PackageScanner implements Serializable{
         Enumeration<JarEntry> entries = jar.entries();
         List<String> classes = new ArrayList<>();
         //遍历条目。 
-        String prefix = "WEB-INF/classes/";
+        String[] prefixs = new String[]{"WEB-INF/classes/", "BOOT-INF/classes"};
         while (entries.hasMoreElements()) {
             JarEntry ele = entries.nextElement();
-            if (ele.getName().startsWith(prefix) && ele.getName().endsWith(".class")) {
-                String clzName = ele.getName().substring(prefix.length(), ele.getName().length() - 6).replaceAll("/", ".");
-                classes.add(clzName);
+            for (String prefix : prefixs) {
+                if (ele.getName().startsWith(prefix) && ele.getName().endsWith(".class")) {
+                    String clzName = ele.getName().substring(prefix.length(), ele.getName().length() - 6).replaceAll("/", ".");
+                    classes.add(clzName);
+                }
             }
         }
         jar.close();

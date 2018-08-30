@@ -5,10 +5,12 @@
 ================================== V 2.4.8 =========================================   
     
     1、新增注解Proxy类，代理所有自定义注解，优化注解访问，提升反射效率
+    
+    2、强化PackageScanner解决PackageScanner无法扫描springboot项目jar文件中的class文件的问题
 
 ================================== V 2.4.5 =========================================   
     
-    1、优化PackageScanner，解决PackageScanner无法扫描不jar文件中的class文件的问题
+    1、优化PackageScanner，解决PackageScanner无法扫描jar文件中的class文件的问题
 
     2、优化SQLParser，解决SQLParser无法扫描jar文件中的xml文件的问题
     
