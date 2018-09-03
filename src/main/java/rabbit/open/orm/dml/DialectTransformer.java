@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Logger;
+
 import rabbit.open.orm.dialect.dml.DialectType;
 import rabbit.open.orm.dialect.dml.impl.DB2Transformer;
 import rabbit.open.orm.dialect.dml.impl.MySQLTransformer;
@@ -25,6 +27,7 @@ public abstract class DialectTransformer {
 
 	private static Map<DialectType, DialectTransformer> cache = new ConcurrentHashMap<>();
 
+	private Logger logger = Logger.getLogger(getClass());
 	/**
 	 * 
 	 * <b>Description:  根据数据库的不同，将字段sql片段进行转换</b><br>.
@@ -124,6 +127,8 @@ public abstract class DialectTransformer {
                 field.set(target, value);
             }
         } catch (Exception e) {
+        	logger.error("[" + target.getClass() + " -> " + field.getName() 
+        			+ "] value type error! value[" + value + "]");
             throw new RabbitDMLException(e.getMessage(), e);
         }
     }
