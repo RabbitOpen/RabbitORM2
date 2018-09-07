@@ -693,4 +693,20 @@ public class QueryTest {
         
         TestCase.assertEquals(2, list.size());
     }
+    
+    @Test
+    public void booleanTest() {
+    	User u = new User();
+    	u.setMale(false);
+    	us.add(u);
+    	User user = us.getByID(u.getId());
+    	TestCase.assertFalse(user.getMale());
+    	
+    	u.setMale(true);
+    	us.updateByID(u);
+    	user = us.createQuery().addFilter("male", true).addFilter("id", u.getId()).unique();
+    	TestCase.assertTrue(user.getMale());
+    	
+    }
+    
 }

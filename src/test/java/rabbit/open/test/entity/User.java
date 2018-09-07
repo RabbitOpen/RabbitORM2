@@ -45,6 +45,17 @@ public class User {
 	@Column("NAME")
 	private String name;
 	
+	@Column("MALE")
+	private Boolean male;
+	
+	public Boolean getMale() {
+		return male;
+	}
+
+	public void setMale(Boolean male) {
+		this.male = male;
+	}
+
 	//年龄
 	@Column(value="AGE")
 	private Integer age;
