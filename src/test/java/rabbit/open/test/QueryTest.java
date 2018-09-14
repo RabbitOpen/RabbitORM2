@@ -309,7 +309,6 @@ public class QueryTest {
     /**
      * 
      * <b>Description: 非法排序测试 </b><br>
-     * .
      * 
      */
     @Test
@@ -334,7 +333,6 @@ public class QueryTest {
     /**
      * 
      * <b>Description: 条数统计测试</b><br>
-     * .
      * 
      */
     @Test
@@ -366,7 +364,6 @@ public class QueryTest {
     /**
      * 
      * <b>Description: addJoinFilterTest</b><br>
-     * .
      * 
      */
     @Test
@@ -393,7 +390,6 @@ public class QueryTest {
     /**
      * 
      * <b>Description: addJoinFilterTest</b><br>
-     * .
      * 
      */
     @Test
@@ -421,7 +417,6 @@ public class QueryTest {
     /**
      * 
      * <b>Description: addNullFilterTest</b><br>
-     * .
      * 
      */
     @Test
@@ -707,6 +702,43 @@ public class QueryTest {
     	user = us.createQuery().addFilter("male", true).addFilter("id", u.getId()).unique();
     	TestCase.assertTrue(user.getMale());
     	
+    }
+    
+    /**
+     * <b>Description 如果要取关联表一定要concern </b>
+     * @author 肖乾斌
+     */
+    @Test
+    public void concernFieldTest() {
+    	Organization org = new Organization("mmmOr", "mmx");
+    	Leader l = new Leader("myl");
+    	l.setAge(10);
+    	ls.add(l);
+    	org.setLeader(l);
+    	os.add(org);
+		Query<Organization> query = os.createQuery();
+		Organization o = query.filterFields("orgCode", "leader").filterFields(Leader.class, "name")
+				.fetch(Leader.class)
+				.addFilter("id", org.getId())
+				.unique();
+		query.showUnMaskedSql();
+		System.out.println(o);
+		TestCase.assertNull(o.getLeader().getAge());
+		TestCase.assertEquals(o.getLeader().getName(), org.getLeader().getName());
+		TestCase.assertNull(o.getName());
+		TestCase.assertEquals(o.getOrgCode(), org.getOrgCode());
+		
+		Query<Organization> q2 = os.createQuery();
+		Organization o1 = q2.addFilter("id", org.getId())
+						.fetch(Leader.class).unique();
+		q2.showMaskedPreparedSql();
+		TestCase.assertNotNull(o1.getLeader().getAge());
+		TestCase.assertEquals(o1.getLeader().getName(), org.getLeader().getName());
+		TestCase.assertNotNull(o1.getName());
+		TestCase.assertEquals(o1.getOrgCode(), org.getOrgCode());
+		System.out.println(o1);
+		
+		
     }
     
 }

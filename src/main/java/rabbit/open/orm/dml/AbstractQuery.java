@@ -88,6 +88,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	//映射clz的fetch次数
 	private Map<Class<?>, Integer> fetchTimesMappingTable = new HashMap<>();
 	
+	//缓存当前查询对象关心的字段名
+	private Map<Class<?>, HashSet<String>> concernFields = new HashMap<>();
+	
 	//默认允许查询时触发DMLFilter
 	private boolean enableGetFilter = true;
 	
@@ -155,6 +158,29 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         return this;
     }
 	
+    /**
+     * <b>Description 设置只想查询出来的字段（主键字段会默认带出） </b>
+     * @param field
+     * @author 肖乾斌
+     */
+    public final AbstractQuery<T> filterFields(Class<?> clz, String... fields) {
+    	for (String field : fields) {
+    		DMLAdapter.checkField(clz, field);
+    	}
+    	if (!concernFields.containsKey(clz)) {
+    		concernFields.put(clz, new HashSet<>());
+    		concernFields.get(clz).add(MetaData.getPrimaryKeyField(clz).getName());
+    	}
+    	for (String field : fields) {
+    		concernFields.get(clz).add(field);
+    	}
+    	return this;
+    }
+
+    public final AbstractQuery<T> filterFields(String... field) {
+    	return filterFields(getMetaData().getEntityClz(), field);
+    }
+    
 	/**
 	 * 
 	 * <b>Description:	分页</b><br>
@@ -959,6 +985,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		}
 		for(int i = 0; i < fieldsMetas.size(); i++){
 			FieldMetaData fmd = fieldsMetas.get(i);
+			if (!isConcernedField(jfm.getJoinClass(), fmd)) {
+				continue;
+			}
 			String fn = fmd.getField().getName();
 			String alias = Integer.toString(i);
 			aliasMappings.put(alias, fn);
@@ -987,6 +1016,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		}
 		for(int i = 0; i < fieldsMetas.size(); i++){
 			FieldMetaData fmd = fieldsMetas.get(i);
+			if (!isConcernedField(clz, fmd)) {
+				continue;
+			}
 			String fn = fmd.getField().getName();
 			String alias = Integer.toString(i);
 			aliasMappings.put(alias, fn);
@@ -1007,7 +1039,19 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		}
 		return sb;
 	}
-	
+
+	/**
+	 * <b>Description 是否是本次查询关心的字段 </b>
+	 * @param clz
+	 * @param fmd
+	 * @return
+	 * @author 肖乾斌
+	 */
+	private boolean isConcernedField(Class<?> clz, FieldMetaData fmd) {
+		return !concernFields.containsKey(clz)
+				|| concernFields.get(clz).contains(fmd.getField().getName());
+	}
+
 	/**
 	 * 
 	 * <b>Description:	将fetch的filterdescriptor信息准备好, 

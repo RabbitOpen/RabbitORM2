@@ -15,6 +15,9 @@ public class Leader {
     @Column("NAME")
     private String name;
     
+    @Column("AGE")
+    private Integer age;
+    
     /**
      * @param name
      */
@@ -40,13 +43,23 @@ public class Leader {
     }
 
     @Override
-    public String toString() {
-        return "Zone [id=" + id + ", name=" + name + "]";
-    }
+	public String toString() {
+		return "Leader [id=" + id + ", name=" + name + ", age=" + age + "]";
+	}
 
-    public Leader() {
+	public Leader() {
         super();
     }
+
+	public Integer getAge() {
+		return age;
+	}
+
+	public void setAge(Integer age) {
+		this.age = age;
+	}
+    
+    
     
     
 }

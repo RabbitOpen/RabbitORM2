@@ -117,4 +117,8 @@ public class Organization {
         return leader;
     }
     
+    public void setLeader(Leader leader) {
+		this.leader = leader;
+	}
+    
 }
