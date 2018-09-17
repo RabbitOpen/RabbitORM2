@@ -741,4 +741,26 @@ public class QueryTest {
 		
     }
     
+    @Test
+    public void concernFieldTest2() {
+    	Organization org = new Organization("mmmOr", "mmx");
+    	Leader l = new Leader("myl");
+    	l.setAge(10);
+    	ls.add(l);
+    	org.setLeader(l);
+    	os.add(org);
+    	Query<Organization> query = os.createQuery();
+    	Organization o = query.tagConcern()
+    			.fetch(Leader.class)
+    			.addFilter("id", org.getId())
+    			.unique();
+    	query.showUnMaskedSql();
+    	System.out.println(o);
+    	TestCase.assertEquals(o.getLeader().getName(), org.getLeader().getName());
+    	TestCase.assertNull(o.getName());
+    	TestCase.assertEquals(o.getOrgCode(), org.getOrgCode());
+    	
+    	
+    }
+    
 }

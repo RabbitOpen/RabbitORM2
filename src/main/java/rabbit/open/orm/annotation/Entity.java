@@ -25,4 +25,7 @@ public @interface Entity {
 	//分表策略实现
 	public Class<? extends ShardingPolicy> policy() default ShardingPolicy.class;
 	
+	//设置关心的字段，用于查询过滤
+	public String[] concern() default {};
+	
 }

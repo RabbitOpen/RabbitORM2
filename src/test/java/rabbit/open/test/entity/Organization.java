@@ -8,7 +8,7 @@ import rabbit.open.orm.annotation.OneToMany;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.dml.policy.Policy;
 
-@Entity("T_ORG")
+@Entity(value = "T_ORG", concern = {"orgCode", "leader"})
 public class Organization {
     
     public List<Property> getProps() {

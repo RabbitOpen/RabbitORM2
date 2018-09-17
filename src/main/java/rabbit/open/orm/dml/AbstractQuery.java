@@ -181,6 +181,27 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
     	return filterFields(getMetaData().getEntityClz(), field);
     }
     
+    /**
+     * <b>Description 标记只查询实体concern的字段 </b>
+     * @param clzs
+     * @return
+     * @author 肖乾斌
+     */
+    public final AbstractQuery<T> tagConcern(Class<?>... clzs) {
+    	for (Class<?> clz : clzs) {
+    		Entity entity = clz.getAnnotation(Entity.class);
+    		if (null == entity || 0 == entity.concern().length) {
+    			continue;
+    		}
+    		filterFields(entity.concern());
+    	}
+    	return this;
+    }
+    
+    public final AbstractQuery<T> tagConcern() {
+    	return tagConcern(getMetaData().getEntityClz());
+    }
+    
 	/**
 	 * 
 	 * <b>Description:	分页</b><br>
