@@ -3,6 +3,7 @@ package rabbit.open.orm.pool.jpa;
 import javax.sql.DataSource;
 
 import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.orm.pool.SessionFactory;
 
 /**
  * <b>Description  读写分离数据源</b>
@@ -17,6 +18,9 @@ public class ReadWriteSeperatedDataSource implements CombinedDataSource {
     
     @Override
     public DataSource getDataSource(Class<?> entityClz, String tableName, DMLType type) {
+    	if (SessionFactory.isTransactionOpen()) {
+    		return getWriteSource();
+    	}
         if(DMLType.SELECT.equals(type)){
             return getReadSource();
         }

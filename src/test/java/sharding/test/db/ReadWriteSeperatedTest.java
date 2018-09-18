@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.dml.filter.DMLType;
@@ -70,6 +71,21 @@ public class ReadWriteSeperatedTest {
         rwUserService.add(user);
         // 读写分离后，读库中是没有数据的
         TestCase.assertNull(rwUserService.getByID(user.getId()));
+
+        // 直接查询写库
+        RWUser u = wus.getByID(user.getId());
+        TestCase.assertEquals(u.getName(), user.getName());
+        TestCase.assertEquals(u.getId(), user.getId());
+        TestCase.assertEquals(u.getAge(), user.getAge());
+    }
+    
+    @Test
+    @Transactional
+    public void tranReadWriteSplitedTest() {
+    	RWUser user = new RWUser("zhangsan", 10);
+        rwUserService.add(user);
+        // 读写分离后，如果有事务，直接操作读库读库中是没有数据的
+        TestCase.assertNotNull(rwUserService.getByID(user.getId()));
 
         // 直接查询写库
         RWUser u = wus.getByID(user.getId());
