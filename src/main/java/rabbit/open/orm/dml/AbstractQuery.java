@@ -1395,7 +1395,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	public AbstractQuery<T> desc(String fieldName, Class<?> targetClz){
-		if(null ==  desc.get(targetClz)){
+		if (null == desc.get(targetClz)) {
 			desc.put(targetClz, new HashSet<>());
 		}
 		String columnName = getColumnNameByFieldAndClz(fieldName, targetClz);
@@ -1413,13 +1413,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		try{
+		try {
 			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), DMLType.SELECT);
 			stmt = conn.prepareStatement(sql.toString());
 			setPreparedStatementValue(stmt, null);
 			showSql();
 			rs = stmt.executeQuery();
-			if(rs.next()){
+			if (rs.next()) {
 				return Long.parseLong(rs.getObject(1).toString());
 			}
 			return 0L;
@@ -1444,7 +1444,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	}
 	
     private void closeResultSet(ResultSet rs){
-        if(null != rs){
+		if (null != rs) {
             try {
                 rs.close();
             } catch (SQLException e) {
@@ -1480,12 +1480,12 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 */
 	public AbstractQuery<T> fetch(Class<?> clz, Class<?>... dependency){
 	    doShardedFetchChecking(clz, dependency);
-		if(0 == dependency.length){
+		if (0 == dependency.length) {
 			fetchEntity(clz);
-		}else{
+		} else {
 			fetchEntity(clz, dependency[0]);
-			for(int i = 0; i < dependency.length; i++){
-				if(i + 1 == dependency.length){
+			for (int i = 0; i < dependency.length; i++) {
+				if (i + 1 == dependency.length) {
 					break;
 				}
 				fetchEntity(dependency[i], dependency[i + 1]);
@@ -1495,9 +1495,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	}
 
     private void doShardedFetchChecking(Class<?> clz, Class<?>... dependency) {
-        for(Class<?> c : dependency){
-	        checkShardedFetch(c);
-	    }
+		for (Class<?> c : dependency) {
+			checkShardedFetch(c);
+		}
 	    checkShardedFetch(clz);
     }
 
@@ -1507,9 +1507,10 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
      */
     protected void checkShardedFetch(Class<?> clz) {
         Entity entity = clz.getAnnotation(Entity.class);
-        if(null != entity && !getEntityClz().equals(clz) && !ShardingPolicy.class.equals(entity.policy())){
-            throw new FetchShardEntityException(clz);
-        }
+		if (null != entity && !getEntityClz().equals(clz)
+				&& !ShardingPolicy.class.equals(entity.policy())) {
+			throw new FetchShardEntityException(clz);
+		}
     }
 	
 	/**
@@ -1521,27 +1522,31 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	private AbstractQuery<T> fetchEntity(Class<?> clz, Class<?> dependency){
-		if(null == clz){
+		if (null == clz) {
 			return this;
 		}
-		//不能自己fetch自己
-		if(getEntityClz().equals(clz)){
+		// 不能自己fetch自己
+		if (getEntityClz().equals(clz)) {
 			throw new CycleFetchException(clz);
 		}
-		if(null != fetchClzes.get(clz) && !fetchClzes.get(clz).equals(dependency)){
-		    throw new RepeatedFetchOperationException(clz, fetchClzes.get(clz), dependency);
+		if (null != fetchClzes.get(clz)
+				&& !fetchClzes.get(clz).equals(dependency)) {
+			throw new RepeatedFetchOperationException(clz, fetchClzes.get(clz),
+					dependency);
 		}
 		fetchClzes.put(clz, dependency);
 		return this;
 	}
 	
-	private AbstractQuery<T> fetchEntity(Class<?> clz){
-		if(null == clz){
+	private AbstractQuery<T> fetchEntity(Class<?> clz) {
+		if (null == clz) {
 			return this;
 		}
-		if(null != fetchClzes.get(clz) && !fetchClzes.get(clz).equals(getEntityClz())){
-            throw new RepeatedFetchOperationException(clz, fetchClzes.get(clz), getEntityClz());
-        }
+		if (null != fetchClzes.get(clz)
+				&& !fetchClzes.get(clz).equals(getEntityClz())) {
+			throw new RepeatedFetchOperationException(clz, fetchClzes.get(clz),
+					getEntityClz());
+		}
 		fetchClzes.put(clz, getEntityClz());
 		return this;
 	}

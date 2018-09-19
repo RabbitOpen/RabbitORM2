@@ -178,10 +178,9 @@ public class Session extends AbstractConnection {
         }
         PreparedStatement stmt = null;
         if (DO_NOTHING == genKey) {
-            stmt = PreparedStatementProxy.getProxy(conn.prepareStatement(sql));
+            stmt = PreparedStatementProxy.getProxy(conn.prepareStatement(sql), sql);
         } else {
-            stmt = PreparedStatementProxy.getProxy(conn.prepareStatement(sql,
-                    genKey));
+            stmt = PreparedStatementProxy.getProxy(conn.prepareStatement(sql, genKey), sql);
         }
         cachedStmts.put(sqlKey, stmt);
         return stmt;

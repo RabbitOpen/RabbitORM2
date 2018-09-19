@@ -39,6 +39,12 @@ public class SessionFactory {
 
     // 是否格式化sql
     protected boolean formatSql = false;
+    
+    // 显示慢sql
+    protected boolean showSlowSql = false;
+    
+    // 慢sql的耗时阈值
+    protected long threshold = 0L;
 
     // 是否显示真是的预编译sql
     protected boolean maskPreparedSql = false;
@@ -61,6 +67,8 @@ public class SessionFactory {
     private static ThreadLocal<Object> tag = new ThreadLocal<>();
 
     private static ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
+    
+    private static SessionFactory self;
     
     //标记sql异常
     private static ThreadLocal<Object> sqlExceptionContext = new ThreadLocal<>();
@@ -93,6 +101,10 @@ public class SessionFactory {
             }
             return conn;
         }
+    }
+    
+    public static SessionFactory getSessionFactory() {
+    	return self;
     }
     
     public void flagSQLException(Exception e) {
@@ -254,6 +266,7 @@ public class SessionFactory {
      */
     @PostConstruct
     public void setUp() {
+    	self = this;
         DialectTransformer.init();
         DeleteDialectAdapter.init();
         PolicyInsert.init();
@@ -357,4 +370,21 @@ public class SessionFactory {
     public String getColumnName(Column col) {
         return DDLHelper.getCurrentDDLHelper(this).getColumnName(col);
     }
+
+	public boolean isShowSlowSql() {
+		return showSlowSql;
+	}
+
+	public void setShowSlowSql(boolean showSlowSql) {
+		this.showSlowSql = showSlowSql;
+	}
+
+	public long getThreshold() {
+		return threshold;
+	}
+
+	public void setThreshold(long threshold) {
+		this.threshold = threshold;
+	}
+    
 }

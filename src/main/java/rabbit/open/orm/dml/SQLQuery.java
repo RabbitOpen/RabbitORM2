@@ -57,8 +57,10 @@ public class SQLQuery<T> {
 	}
 	
 	public void showSQL(String sql){
-	    logger.info("\n" + (sessionFactory.isFormatSql() ? 
-                SQLFormater.format(sql) : sql));
+		if (sessionFactory.isShowSql()) {
+			logger.info("\n" + (sessionFactory.isFormatSql() ? 
+					SQLFormater.format(sql) : sql));
+		}
 	}
 
 }

@@ -125,6 +125,12 @@
 		<property name="formatSql">
 			<value>${jdbc.formatSql}</value>
 		</property>
+		<property name="showSlowSql">
+			<value>${jdbc.showSlowSql}</value>
+		</property>
+		<property name="threshold">
+			<value>${jdbc.threshold}</value>
+		</property>
 		<property name="ddl">
 			<value>${jdbc.ddl}</value>
 		</property>
