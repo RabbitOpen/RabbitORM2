@@ -113,7 +113,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		try{
+		try {
 			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), DMLType.SELECT);
 			stmt = conn.prepareStatement(sql.toString());
 			setPreparedStatementValue(stmt, DMLType.SELECT);
@@ -122,7 +122,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			List<T> resultList = readDataFromResultSets(rs);
 			rs.close();
 			return new Result<>(resultList);
-		} catch (Exception e){
+		} catch (Exception e) {
 		    sessionFactory.flagSQLException(e);
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
@@ -270,14 +270,14 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	
 	private Object getRealTarget(T target, JoinFieldMetaData<?> jfm) {
         Object realTarget = target;
-        if(!jfm.getTargetClass().equals(target.getClass())){
-           for(Field f: jfm.getDependencyFields()){
-               realTarget = getValue(f, realTarget);
-               if(null == realTarget){
-                   return null;
-               }
-           }
-        }
+		if (!jfm.getTargetClass().equals(target.getClass())) {
+			for (Field f : jfm.getDependencyFields()) {
+				realTarget = getValue(f, realTarget);
+				if (null == realTarget) {
+					return null;
+				}
+			}
+		}
         return realTarget;
     }
 
@@ -294,11 +294,11 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
     }
 
     private boolean contains(List<?> list, Object o) {
-        for(Object e : list){
-        	if(getPrimaryKeyValue(o).equals(getPrimaryKeyValue(e))){
-        		return true;
-        	}
-        }
+		for (Object e : list) {
+			if (getPrimaryKeyValue(o).equals(getPrimaryKeyValue(e))) {
+				return true;
+			}
+		}
         return false;
     }
 	
@@ -468,8 +468,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	protected Field getFieldByName(String tableName, String fieldName){
 		Class<?> clz = MetaData.getClassByTableName(tableName);
 		List<FieldMetaData> fmds = MetaData.getCachedFieldsMetas(clz);
-		for(FieldMetaData fmd : fmds){
-			if(fmd.getField().getName().equals(fieldName)){
+		for (FieldMetaData fmd : fmds) {
+			if (fmd.getField().getName().equals(fieldName)) {
 				return fmd.getField();
 			}
 		}

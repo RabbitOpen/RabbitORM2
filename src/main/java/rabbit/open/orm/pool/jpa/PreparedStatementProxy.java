@@ -25,7 +25,7 @@ public class PreparedStatementProxy implements MethodInterceptor {
     
     private List<Object> parameters = new ArrayList<>();
     
-    private String sql;
+    private StringBuilder preparedSql;
     
     private Logger logger = Logger.getLogger(getClass());
     
@@ -43,7 +43,7 @@ public class PreparedStatementProxy implements MethodInterceptor {
     
     public static PreparedStatement getProxy(PreparedStatement stmt, String sql){
         PreparedStatementProxy proxy = new PreparedStatementProxy();
-        proxy.sql = sql;
+        proxy.preparedSql = new StringBuilder(sql);
         proxy.setStmt(stmt);
         Enhancer eh = new Enhancer();
 		if (null != oraclePreparedStatementClz
@@ -78,8 +78,7 @@ public class PreparedStatementProxy implements MethodInterceptor {
 		if ("close".equals(method.getName())) {
 			return null;
 		}
-		SessionFactory factory = SessionFactory.getSessionFactory();
-		if (factory.isShowSlowSql()) {
+		if (showSlowSql()) {
 			if (method.getName().startsWith("set")) {
 				parameters.add((int)args[0] - 1, args[1]);
 			}
@@ -87,11 +86,8 @@ public class PreparedStatementProxy implements MethodInterceptor {
 				long start = System.currentTimeMillis();
 				Object ret = method.invoke(stmt, args);
 				long cost = System.currentTimeMillis() - start;
-				if (cost >= factory.getThreshold()) {
-					for (int i = 0; i < parameters.size(); i++) {
-						sql = sql.replaceFirst("\\?", getString(parameters.get(i)));
-					}
-					logger.debug("cost: " + cost + "ms, " + sql);
+				if (cost >= getSlowSqlThreshold()) {
+					logger.debug("cost: " + cost + "ms, " + getSqlText());
 				}
 				parameters.clear();
 				return ret;
@@ -99,6 +95,39 @@ public class PreparedStatementProxy implements MethodInterceptor {
 		}
         return method.invoke(stmt, args);
     }
+
+	/**
+	 * <b>Description 获取慢sql文本  </b>
+	 * @return
+	 * @author 肖乾斌
+	 */
+	private String getSqlText() {
+		String sql = preparedSql.toString(); 
+		if (!SessionFactory.getSessionFactory().isShowMaskedSlowSql()) {
+			for (int i = 0; i < parameters.size(); i++) {
+				sql = sql.replaceFirst("\\?", getString(parameters.get(i)));
+			}
+		}
+		return sql;
+	}
+
+	/**
+	 * <b>Description 获取慢sql阈值 </b>
+	 * @return
+	 * @author 肖乾斌
+	 */
+	private long getSlowSqlThreshold() {
+		return SessionFactory.getSessionFactory().getThreshold();
+	}
+
+	/**
+	 * <b>Description 判断是否显示慢sql </b>
+	 * @return
+	 * @author 肖乾斌
+	 */
+	private boolean showSlowSql() {
+		return SessionFactory.getSessionFactory().isShowSlowSql();
+	}
     
     private String getString(Object o) {
     	if (null == o) {

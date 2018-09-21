@@ -43,6 +43,9 @@ public class SessionFactory {
     // 显示慢sql
     protected boolean showSlowSql = false;
     
+    // 是否显示带参数的慢sql
+    protected boolean showMaskedSlowSql = false;
+    
     // 慢sql的耗时阈值
     protected long threshold = 0L;
 
@@ -385,6 +388,14 @@ public class SessionFactory {
 
 	public void setThreshold(long threshold) {
 		this.threshold = threshold;
+	}
+
+	public boolean isShowMaskedSlowSql() {
+		return showMaskedSlowSql;
+	}
+
+	public void setShowMaskedSlowSql(boolean showMaskedSlowSql) {
+		this.showMaskedSlowSql = showMaskedSlowSql;
 	}
     
 }

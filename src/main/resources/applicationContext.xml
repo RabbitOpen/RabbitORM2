@@ -131,6 +131,9 @@
 		<property name="threshold">
 			<value>${jdbc.threshold}</value>
 		</property>
+		<property name="showMaskedSlowSql">
+			<value>${jdbc.showMaskedSlowSql}</value>
+		</property>
 		<property name="ddl">
 			<value>${jdbc.ddl}</value>
 		</property>

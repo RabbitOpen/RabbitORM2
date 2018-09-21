@@ -119,16 +119,16 @@ public class JoinFilterDescriptor {
      */
     public StringBuilder getInnerJoinSQL(){
         StringBuilder sql;
-        if(joinFieldMetaData.getAnnotation() instanceof ManyToMany){
-            sql = query.createMTMJoinSql(joinFieldMetaData, false);
-            sql.append(query.addDynFilterSql(joinFieldMetaData, joinFilters));
-        }else{
-            sql = query.createOTMJoinSql(joinFieldMetaData, false);
-            sql.append(query.addDynFilterSql(joinFieldMetaData, joinFilters));
-        }
-        if(null != subFilterDescriptor){
-            sql.append(subFilterDescriptor.getInnerJoinSQL());
-        }
+		if (joinFieldMetaData.getAnnotation() instanceof ManyToMany) {
+			sql = query.createMTMJoinSql(joinFieldMetaData, false);
+			sql.append(query.addDynFilterSql(joinFieldMetaData, joinFilters));
+		} else {
+			sql = query.createOTMJoinSql(joinFieldMetaData, false);
+			sql.append(query.addDynFilterSql(joinFieldMetaData, joinFilters));
+		}
+		if (null != subFilterDescriptor) {
+			sql.append(subFilterDescriptor.getInnerJoinSQL());
+		}
         return sql;
     }
 
