@@ -19,6 +19,7 @@ import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dml.Query;
 import rabbit.open.orm.dml.meta.JoinFilterBuilder;
 import rabbit.open.orm.exception.CycleDependencyException;
+import rabbit.open.orm.exception.EmptyListFilterException;
 import rabbit.open.orm.exception.InvalidFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFilterException;
@@ -760,7 +761,28 @@ public class QueryTest {
     	TestCase.assertNull(o.getName());
     	TestCase.assertEquals(o.getOrgCode(), org.getOrgCode());
     	
-    	
+    }
+
+    @Test
+    public void emptyFilterTest() {
+    	try {
+    		us.createQuery().addFilter("id", null, FilterType.IN).list();
+    		throw new RuntimeException();
+    	} catch (Exception e) {
+    		TestCase.assertEquals(e.getClass(), EmptyListFilterException.class);
+    	}
+    	try {
+    		us.createQuery().addFilter("id", new String[]{}, FilterType.IN).list();
+    		throw new RuntimeException();
+    	} catch (Exception e) {
+    		TestCase.assertEquals(e.getClass(), EmptyListFilterException.class);
+    	}
+    	try {
+    		us.createQuery().addFilter("id", new ArrayList<>(), FilterType.IN).list();
+    		throw new RuntimeException();
+    	} catch (Exception e) {
+    		TestCase.assertEquals(e.getClass(), EmptyListFilterException.class);
+    	}
     }
     
 }
