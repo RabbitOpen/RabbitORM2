@@ -3,6 +3,8 @@ package rabbit.open.orm.pool.jpa;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -18,6 +20,8 @@ public class DataSourceMonitor extends Thread{
 	private Logger logger = Logger.getLogger(getClass());
 	
 	protected RabbitDataSource dataSource;
+	
+	private Semaphore semaphore = new Semaphore(0);
 	
 	public DataSourceMonitor(RabbitDataSource dataSource) {
         super();
@@ -187,7 +191,7 @@ public class DataSourceMonitor extends Thread{
 	 */
 	protected void sleep5s() {
 		try {
-			Thread.sleep(5L * 1000);
+			semaphore.tryAcquire(5, TimeUnit.SECONDS);
 		} catch (Exception e) {
 			logger.error("database monitor is interrupted");
 		}
@@ -197,7 +201,7 @@ public class DataSourceMonitor extends Thread{
 		logger.info("datasource monitor is stopping....");
 		run = false;
 		try {
-			interrupt();
+			semaphore.release();
 			join();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

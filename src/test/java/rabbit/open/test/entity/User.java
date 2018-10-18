@@ -73,7 +73,7 @@ public class User {
 	private BigDecimal bigField;
 	
 	//生日
-	@Column(value="BIRTH_DAY", pattern="yyyy-MM-dd HH:mm:ss")
+	@Column(value="BIRTH_DAY", pattern="yyyy-MM-dd")
 	private Date birth;
 
 	//描述，关键字
