@@ -177,8 +177,41 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
     	return this;
     }
 
+    /**
+     * <b>Description 设置只想查询出来的字段（主键字段会默认带出） </b>
+     * @param field
+     * @return
+     */
     public final AbstractQuery<T> filterFields(String... field) {
     	return filterFields(getMetaData().getEntityClz(), field);
+    }
+    
+    /**
+     * <b>@description只查询指定的id，主键字段不会被自动带出</b>
+     * @param fields
+     * @return
+     */
+    public final AbstractQuery<T> filterSpecifiedFields(String... fields) {
+    	return filterSpecifiedFields(getMetaData().getEntityClz(), fields);
+    }
+
+    /**
+     * 只查询指定的id，主键字段不会被自动带出
+     * @param clz
+     * @param fields
+     * @return
+     */
+    public final AbstractQuery<T> filterSpecifiedFields(Class<?> clz, String... fields) {
+    	for (String field : fields) {
+    		DMLAdapter.checkField(clz, field);
+    	}
+    	if (!concernFields.containsKey(clz)) {
+    		concernFields.put(clz, new HashSet<>());
+    	}
+    	for (String field : fields) {
+    		concernFields.get(clz).add(field);
+    	}
+    	return this;
     }
     
     /**
@@ -226,12 +259,12 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         List<T> resultList = new ArrayList<>();
         while (rs.next()) {
             T rowData = readRowData(rs);
-            Object pkv = getPrimaryKeyValue(rowData);
             boolean exist = false;
             for (int i = 0; i < resultList.size(); i++) {
-                if (pkv.equals(getPrimaryKeyValue(resultList.get(i)))) {
+                T existedRowData = resultList.get(i);
+				if (isSameRow(rowData, existedRowData)) {
                     exist = true;
-                    combineRow(resultList.get(i), rowData);
+                    combineRow(existedRowData, rowData);
                     break;
                 }
             }
@@ -240,6 +273,20 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
             }
         }
 		return resultList;
+	}
+
+	/**
+	 * 判断两个bean是相同的一条记录
+	 * @param rowData
+	 * @param existedRowData
+	 * @return
+	 */
+	private boolean isSameRow(T rowData, T existedRowData) {
+		if (null != getPrimaryKeyValue(rowData)) {
+			return getPrimaryKeyValue(rowData).equals(getPrimaryKeyValue(existedRowData));
+		} else {
+			return false;
+		}
 	}
 	
 	/**

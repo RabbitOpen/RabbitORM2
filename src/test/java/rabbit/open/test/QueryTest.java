@@ -763,6 +763,23 @@ public class QueryTest {
     	
     }
 
+    /**
+     * 测试只查询部分字段，不会默认带出id字段
+     */
+    @Test
+    public void filterSpecifiedFieldsTest() {
+    	Organization org = new Organization("mmmOr1", "mmx");
+    	os.add(org);
+    	Organization org1 = new Organization("mmmOr1", "mmx");
+    	os.add(org1);
+    	
+    	Query<Organization> query = os.createQuery();
+		List<Organization> list = query.filterSpecifiedFields("orgCode", "name")
+				.addFilter("orgCode", org.getOrgCode()).list();
+		query.showUnMaskedSql();
+		TestCase.assertEquals(2, list.size());
+    }
+
     @Test
     public void emptyFilterTest() {
     	try {
