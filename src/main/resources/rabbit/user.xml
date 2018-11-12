@@ -5,11 +5,11 @@
 <rabbit-mapping entity="rabbit.open.test.entity.User">
     <!-- 根据用户名查询用户 -->
     <select name="getUserByName" alias="U">
-        <join-fetch entity="rabbit.open.test.entity.Role" alias="R"/>
-        <join-fetch entity="rabbit.open.test.entity.Car" alias="C"/>
+        <join-fetch entity="rabbit.open.test.entity.Role" alias="R"  join-table-alias="" />
+        <join-fetch entity="rabbit.open.test.entity.Car" alias="C"  join-table-alias="" />
         <fetch entity="rabbit.open.test.entity.Organization" alias="O">
            <fetch entity="rabbit.open.test.entity.Zone" alias="Z"/>
-           <join-fetch entity="rabbit.open.test.entity.Property" alias="P"/>
+           <join-fetch entity="rabbit.open.test.entity.Property" alias="P"  join-table-alias="" />
         </fetch>
         
         <![CDATA[

@@ -34,6 +34,7 @@ import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.policy.Policy;
 import rabbit.open.orm.dml.util.SQLFormater;
 import rabbit.open.orm.exception.RabbitDDLException;
+import rabbit.open.orm.exception.RepeatedEntityMapping;
 import rabbit.open.orm.pool.SessionFactory;
 
 /**
@@ -72,6 +73,29 @@ public abstract class DDLHelper {
         helpers.put(DialectType.SQLITE3, new SQLiteDDLHelper());
     }
 
+    /**
+     * @description 检查包和类的映射关系
+     * @param basePackages
+     */
+    public static void checkMapping(String basePackages) {
+    	HashSet<String> entities = (HashSet<String>) PackageScanner
+                .filterByAnnotation(basePackages.split(","), Entity.class);
+    	Map<String, Class<?>> map = new HashMap<>();
+    	for (String clzName : entities) {
+    		try {
+				Class<?> clz = Class.forName(clzName);
+				Entity entity = clz.getAnnotation(Entity.class);
+				if (map.containsKey(entity.value())) {
+					throw new RepeatedEntityMapping(map.get(entity.value()), clz, entity.value());
+				} else {
+					map.put(entity.value(), clz);
+				}
+			} catch (ClassNotFoundException e) {
+				logger.error(e.getMessage(), e);
+			}
+    	}
+    }
+    
     protected Connection getConnection() {
         return conn;
     }

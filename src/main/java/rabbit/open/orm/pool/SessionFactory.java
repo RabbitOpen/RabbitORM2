@@ -273,6 +273,7 @@ public class SessionFactory {
         DialectTransformer.init();
         DeleteDialectAdapter.init();
         PolicyInsert.init();
+        DDLHelper.checkMapping(getPackages2Scan());
         DDLHelper.init();
         //组合数据源不支持ddl
         if (null == combinedDataSource) {
