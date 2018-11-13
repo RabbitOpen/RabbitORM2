@@ -163,7 +163,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
      * @param field
      * @author 肖乾斌
      */
-    public final AbstractQuery<T> filterFields(Class<?> clz, String... fields) {
+    public final AbstractQuery<T> queryFields(Class<?> clz, String... fields) {
     	for (String field : fields) {
     		DMLAdapter.checkField(clz, field);
     	}
@@ -182,8 +182,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
      * @param field
      * @return
      */
-    public final AbstractQuery<T> filterFields(String... field) {
-    	return filterFields(getMetaData().getEntityClz(), field);
+    public final AbstractQuery<T> queryFields(String... field) {
+    	return queryFields(getMetaData().getEntityClz(), field);
     }
     
     /**
@@ -191,8 +191,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
      * @param fields
      * @return
      */
-    public final AbstractQuery<T> filterSpecifiedFields(String... fields) {
-    	return filterSpecifiedFields(getMetaData().getEntityClz(), fields);
+    public final AbstractQuery<T> querySpecifiedFields(String... fields) {
+    	return querySpecifiedFields(getMetaData().getEntityClz(), fields);
     }
 
     /**
@@ -201,7 +201,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
      * @param fields
      * @return
      */
-    public final AbstractQuery<T> filterSpecifiedFields(Class<?> clz, String... fields) {
+    public final AbstractQuery<T> querySpecifiedFields(Class<?> clz, String... fields) {
     	for (String field : fields) {
     		DMLAdapter.checkField(clz, field);
     	}
@@ -226,7 +226,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
     		if (null == entity || 0 == entity.concern().length) {
     			continue;
     		}
-    		filterFields(entity.concern());
+    		queryFields(entity.concern());
     	}
     	return this;
     }

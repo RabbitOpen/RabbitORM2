@@ -718,7 +718,7 @@ public class QueryTest {
     	org.setLeader(l);
     	os.add(org);
 		Query<Organization> query = os.createQuery();
-		Organization o = query.filterFields("orgCode", "leader").filterFields(Leader.class, "name")
+		Organization o = query.queryFields("orgCode", "leader").queryFields(Leader.class, "name")
 				.fetch(Leader.class)
 				.addFilter("id", org.getId())
 				.unique();
@@ -774,7 +774,7 @@ public class QueryTest {
     	os.add(org1);
     	
     	Query<Organization> query = os.createQuery();
-		List<Organization> list = query.filterSpecifiedFields("orgCode", "name")
+		List<Organization> list = query.querySpecifiedFields("orgCode", "name")
 				.addFilter("orgCode", org.getOrgCode()).list();
 		query.showUnMaskedSql();
 		TestCase.assertEquals(2, list.size());

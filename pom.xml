@@ -163,7 +163,8 @@
 		<repository>
 			<id>rabbit-open</id>
 			<url>http://www.rabbit-open.top/nexus/content/repositories/thirdparty</url>
-			<!-- <id>hn-thirdparty-chengdu</id> <url>http://10.71.88.241:8085/nexus/content/repositories/releases/</url> -->
+			<!-- <id>hn-thirdparty-chengdu</id> 
+			<url>http://10.71.88.241:8085/nexus/content/repositories/releases/</url> -->
 		</repository>
 	</distributionManagement>
 

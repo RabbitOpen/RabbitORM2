@@ -106,8 +106,8 @@ public class MultiFetchTest {
         ts.addJoinRecords(t);
 
         Team team = ts.createQuery().addFilter("id", t.getId())
-        		.filterFields("org", "leader", "follower")
-        		.filterFields(Role.class, "id")
+        		.queryFields("org", "leader", "follower")
+        		.queryFields(Role.class, "id")
                 .fetch(User.class).fetch(Organization.class)
                 .joinFetch(Role.class).execute().unique();
 
