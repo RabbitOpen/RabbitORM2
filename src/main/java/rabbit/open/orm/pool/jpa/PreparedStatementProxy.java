@@ -131,7 +131,7 @@ public class PreparedStatementProxy implements MethodInterceptor {
     
     private String getString(Object o) {
     	if (null == o) {
-    		return null;
+    		return "null";
     	}
     	if (o instanceof Date) {
     		return "'" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(o) + "'";
