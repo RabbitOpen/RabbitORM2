@@ -41,27 +41,28 @@ public class NamedQuery<T> {
 	 * @param name		sql名字
 	 */
 	public NamedQuery(SessionFactory fatory, Class<T> clz, String name) {
-		query = new Query<T>(fatory, clz){
-		    @Override
-		    protected void createQuerySql() {
-		        generateQuerySql();
-		    }
-		    
-		    @Override
-		    protected void createCountSql() {
-		        generateNameCountSql();
-		    }
+		query = new Query<T>(fatory, clz) {
+			@Override
+			protected void createQuerySql() {
+				generateQuerySql();
+			}
+
+			@Override
+			protected void createCountSql() {
+				generateNameCountSql();
+			}
 		};
-		if(!SQLParser.getQueryByNameAndClass(name, clz).getClass().equals(NamedSQL.class)){
-		    throw new MisMatchedNamedQueryException(name);
+		if (!SQLParser.getQueryByNameAndClass(name, clz).getClass()
+				.equals(NamedSQL.class)) {
+			throw new MisMatchedNamedQueryException(name);
 		}
 		nameObject = (NamedSQL) SQLParser.getQueryByNameAndClass(name, clz);
 		fieldsValues = new TreeMap<>(new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return o1.compareTo(o2);
-            }
-        });
+			@Override
+			public int compare(Integer o1, Integer o2) {
+				return o1.compareTo(o2);
+			}
+		});
 	}
 
 	protected void generateQuerySql() {
@@ -75,34 +76,33 @@ public class NamedQuery<T> {
 		setPreparedValues();
 	}
 	
-	private void generateNameCountSql(){
-        query.sql = new StringBuilder(nameObject.replaceFields("COUNT(1)"));
-        setPreparedValues();
+	private void generateNameCountSql() {
+		query.sql = new StringBuilder(nameObject.replaceFields("COUNT(1)"));
+		setPreparedValues();
 	}
 	
 
     private void joinFetchEntities() {
-        FetchDescriptor<T> buildFetch = query.buildFetch();
-	    for(JoinFetcherDescriptor jfd : nameObject.getJoinFetchDescriptors()){
-	        buildFetch.joinFetch(jfd.getEntityClass());
-        }
+		FetchDescriptor<T> buildFetch = query.buildFetch();
+		for (JoinFetcherDescriptor jfd : nameObject.getJoinFetchDescriptors()) {
+			buildFetch.joinFetch(jfd.getEntityClass());
+		}
     }
 
     private void recursivelyJoinFetchEntities(List<Class<?>> deps, List<FetcherDescriptor> fetchDescriptors) {
-        for(FetcherDescriptor fd : fetchDescriptors){
-	        FetchDescriptor<T> bf = query.buildFetch();
-	        for(Class<?> dep : deps){
-	            bf.fetch(dep);
-	        }
-	        bf.fetch(fd.getEntityClass());
-	        for(JoinFetcherDescriptor jfd : fd.getJoinFetchDescriptors()){
-	            bf.joinFetch(jfd.getEntityClass());
-	        }
-	        List<Class<?>> copyList = copyList(deps);
-	        copyList.add(fd.getEntityClass());
-	        recursivelyJoinFetchEntities(copyList, fd.getFetchDescriptors());
-	        
-	    }
+		for (FetcherDescriptor fd : fetchDescriptors) {
+			FetchDescriptor<T> bf = query.buildFetch();
+			for (Class<?> dep : deps) {
+				bf.fetch(dep);
+			}
+			bf.fetch(fd.getEntityClass());
+			for (JoinFetcherDescriptor jfd : fd.getJoinFetchDescriptors()) {
+				bf.joinFetch(jfd.getEntityClass());
+			}
+			List<Class<?>> copyList = copyList(deps);
+			copyList.add(fd.getEntityClass());
+			recursivelyJoinFetchEntities(copyList, fd.getFetchDescriptors());
+		}
     }
 
     /**
@@ -114,22 +114,23 @@ public class NamedQuery<T> {
 	    fetch(nameObject.getFetchDescriptors(), deps);
     }
 
-    private void fetch(List<FetcherDescriptor> fetchDescriptors, List<Class<?>> deps) {
-        for(FetcherDescriptor fd : fetchDescriptors){
-	        query.fetch(fd.getEntityClass(), deps.toArray(new Class<?>[deps.size()]));
-	        List<Class<?>> subDeps = copyList(deps);
-            subDeps.add(0, fd.getEntityClass());
-	        fetch(fd.getFetchDescriptors(), subDeps);
-	    }
+	private void fetch(List<FetcherDescriptor> fetchDescriptors, List<Class<?>> deps) {
+		for (FetcherDescriptor fd : fetchDescriptors) {
+			query.fetch(fd.getEntityClass(),
+					deps.toArray(new Class<?>[deps.size()]));
+			List<Class<?>> subDeps = copyList(deps);
+			subDeps.add(0, fd.getEntityClass());
+			fetch(fd.getFetchDescriptors(), subDeps);
+		}
     }
 
-    private <D> List<D> copyList(List<D> list){
-        List<D> newList = new ArrayList<>();
-        for(D d : list){
-            newList.add(d);
-        }
-        return newList;
-    }
+	private <D> List<D> copyList(List<D> list) {
+		List<D> newList = new ArrayList<>();
+		for (D d : list) {
+			newList.add(d);
+		}
+		return newList;
+	}
     
     /**
      * <b>Description  设置别名</b>
@@ -141,23 +142,23 @@ public class NamedQuery<T> {
     }
 
     private void setFetchTableAlias(List<FetcherDescriptor> fetchers) {
-        for(FetcherDescriptor fd : fetchers){
-	        query.alias(fd.getEntityClass(), fd.getAlias());
-	        setJoinFetchTableAlias(fd.getJoinFetchDescriptors());
-	        setFetchTableAlias(fd.getFetchDescriptors());
-	    }
+		for (FetcherDescriptor fd : fetchers) {
+			query.alias(fd.getEntityClass(), fd.getAlias());
+			setJoinFetchTableAlias(fd.getJoinFetchDescriptors());
+			setFetchTableAlias(fd.getFetchDescriptors());
+		}
     }
 
     private void setJoinFetchTableAlias(List<JoinFetcherDescriptor> joinFetchers) {
-        for(JoinFetcherDescriptor jfd : joinFetchers){
-	        query.alias(jfd.getEntityClass(), jfd.getAlias());
-	    }
+		for (JoinFetcherDescriptor jfd : joinFetchers) {
+			query.alias(jfd.getEntityClass(), jfd.getAlias());
+		}
     }
 	
-	public Result<T> execute(){
-	    return query.execute();
+	public Result<T> execute() {
+		return query.execute();
 	}
-	
+
 	public List<T> list() {
 	    return execute().list();
 	}

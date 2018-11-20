@@ -259,6 +259,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         List<T> resultList = new ArrayList<>();
         while (rs.next()) {
             T rowData = readRowData(rs);
+            if (null == rowData) {
+            	continue;
+            }
             boolean exist = false;
             for (int i = 0; i < resultList.size(); i++) {
                 T existedRowData = resultList.get(i);
@@ -789,17 +792,19 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	}
 	
 	private void createLeftJoinSql() {
-		for(FilterDescriptor fd : many2oneFilterDescripters){
+		for (FilterDescriptor fd : many2oneFilterDescripters) {
 			boolean innered = false;
-			for(FilterDescriptor fdi : filterDescriptors){
-				if(fd.getFilterTable().equals(fdi.getFilterTable())){
+			for (FilterDescriptor fdi : filterDescriptors) {
+				if (fd.getFilterTable().equals(fdi.getFilterTable())) {
 					innered = true;
 					break;
 				}
 			}
-			if(!innered){
-				sql.append(" LEFT JOIN " + fd.getFilterTable() + " " + getTableAlias(fd));
-				sql.append(" ON " + fd.getKey() + fd.getFilter() + fd.getValue());
+			if (!innered) {
+				sql.append(" LEFT JOIN " + fd.getFilterTable() + " "
+						+ getTableAlias(fd));
+				sql.append(" ON " + fd.getKey() + fd.getFilter()
+						+ fd.getValue());
 			}
 		}
 	}
@@ -830,31 +835,34 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @param addedJoinFilters	
 	 * 
 	 */
-	protected StringBuilder addDynFilterSql(JoinFieldMetaData<?> jfm, Map<Class<?>, Map<String, List<DynamicFilterDescriptor>>> addedJoinFilters) {
+	protected StringBuilder addDynFilterSql(JoinFieldMetaData<?> jfm,
+			Map<Class<?>, Map<String, List<DynamicFilterDescriptor>>> addedJoinFilters) {
 		StringBuilder sql = new StringBuilder();
-	    Class<?> jc = jfm.getJoinClass();
-		if(!addedJoinFilters.containsKey(jc)){
+		Class<?> jc = jfm.getJoinClass();
+		if (!addedJoinFilters.containsKey(jc)) {
 			return sql;
 		}
 		Map<String, List<DynamicFilterDescriptor>> map = addedJoinFilters.get(jc);
 		Iterator<String> fields = map.keySet().iterator();
-		while(fields.hasNext()){
+		while (fields.hasNext()) {
 			String field = fields.next();
 			List<DynamicFilterDescriptor> list = map.get(field);
-			for(DynamicFilterDescriptor dfd : list){
+			for (DynamicFilterDescriptor dfd : list) {
 				FieldMetaData fmd = MetaData.getCachedFieldsMeta(jc, field);
 				sql.append("AND ");
 				String key = getAliasByTableName(jfm.getTableName()) + "." + getColumnName(fmd.getColumn());
 				String filter = dfd.getFilter().value();
-				if(dfd.isReg()){
+				if (dfd.isReg()) {
 					key = dfd.getKeyReg().replaceAll(REPLACE_WORD, key);
 				}
 				Object holderValue = RabbitValueConverter.convert(dfd.getValue(), fmd);
-				if(FilterType.IS.value().equals(filter.trim()) || FilterType.IS_NOT.value().equals(filter.trim())){
+				if (FilterType.IS.value().equals(filter.trim())
+						|| FilterType.IS_NOT.value().equals(filter.trim())) {
 					sql.append(key + " " + filter + NULL);
-				}else{
+				} else {
 					cachePreparedValues(holderValue, fmd.getField());
-					sql.append(key + " " + filter + " " + createPlaceHolder(filter, holderValue) + " ");
+					sql.append(key + " " + filter + " "
+							+ createPlaceHolder(filter, holderValue) + " ");
 				}
 			}
 		}

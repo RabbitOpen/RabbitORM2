@@ -41,12 +41,12 @@ public class SQLQuery<T> {
 	public T execute() {
 		Connection conn = null;
 		PreparedStatement stmt = null;
-		try{
+		try {
 			conn = sessionFactory.getConnection(clz, null, DMLType.SELECT);
 			showSQL(query.getSql());
 			stmt = conn.prepareStatement(query.getSql());
             return callBack.execute(stmt);
-		} catch (Exception e){
+		} catch (Exception e) {
 		    sessionFactory.flagSQLException(e);
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
@@ -56,10 +56,11 @@ public class SQLQuery<T> {
 		}
 	}
 	
-	public void showSQL(String sql){
+	public void showSQL(String sql) {
 		if (sessionFactory.isShowSql()) {
-			logger.info("\n" + (sessionFactory.isFormatSql() ? 
-					SQLFormater.format(sql) : sql));
+			logger.info("\n"
+					+ (sessionFactory.isFormatSql() ? SQLFormater.format(sql)
+							: sql));
 		}
 	}
 
