@@ -31,7 +31,7 @@ public class PackageScanner implements Serializable{
 	 * 
 	 */
     public static Set<String> filterByAnnotation(String[] roots,
-            Class<? extends Annotation> anno) {
+            Class<? extends Annotation> anno, boolean scanJar) {
         HashSet<String> targets = new HashSet<>();
         for (String root : roots) {
             List<String> list = scanPackageClasses(root);
@@ -41,7 +41,9 @@ public class PackageScanner implements Serializable{
                 }
             }
         }
-        targets.addAll(scanJarFileByAnnotation(roots, anno));
+        if (scanJar) {
+        	targets.addAll(scanJarFileByAnnotation(roots, anno));
+        }
         return targets;
     }
 
@@ -66,7 +68,7 @@ public class PackageScanner implements Serializable{
 	 * 
 	 */
     public static Set<String> filterByInterface(String[] roots,
-            Class<?> interfaceClz) {
+            Class<?> interfaceClz, boolean scanJar) {
         HashSet<String> targets = new HashSet<>();
         for (String root : roots) {
             List<String> list = scanPackageClasses(root);
@@ -76,7 +78,9 @@ public class PackageScanner implements Serializable{
                 }
             }
         }
-        targets.addAll(scanJarFileByInterface(roots, interfaceClz));
+        if (scanJar) {
+        	targets.addAll(scanJarFileByInterface(roots, interfaceClz));
+        }
         return targets;
     }
 

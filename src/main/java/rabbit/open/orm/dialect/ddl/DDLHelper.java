@@ -77,9 +77,9 @@ public abstract class DDLHelper {
      * @description 检查包和类的映射关系
      * @param basePackages
      */
-    public static void checkMapping(String basePackages) {
+    public static void checkMapping(SessionFactory factory, String basePackages) {
     	HashSet<String> entities = (HashSet<String>) PackageScanner
-                .filterByAnnotation(basePackages.split(","), Entity.class);
+                .filterByAnnotation(basePackages.split(","), Entity.class, factory.isScanJar());
     	Map<String, Class<?>> map = new HashMap<>();
     	for (String clzName : entities) {
     		try {
@@ -232,9 +232,9 @@ public abstract class DDLHelper {
             logger.info("DDLType[" + factory.getDialectType().name() + "]: "
                     + factory.getDdl().toUpperCase());
             if (DDLType.CREATE.name().equalsIgnoreCase(factory.getDdl())) {
-                doCreate(ddlHelper, basePackages);
+                doCreate(factory, ddlHelper, basePackages);
             } else {
-                doUpdate(ddlHelper, basePackages);
+                doUpdate(factory, ddlHelper, basePackages);
             }
         } catch (Exception e) {
             throw new RabbitDDLException(e);
@@ -283,9 +283,9 @@ public abstract class DDLHelper {
      * @param packages
      * 
      */
-    private static void doCreate(DDLHelper helper, String packages) {
+    private static void doCreate(SessionFactory factory, DDLHelper helper, String packages) {
         HashSet<String> entities = (HashSet<String>) PackageScanner
-                .filterByAnnotation(packages.split(","), Entity.class);
+                .filterByAnnotation(packages.split(","), Entity.class, factory.isScanJar());
         helper.dropTables(entities);
         helper.createTables(entities);
     }
@@ -298,9 +298,9 @@ public abstract class DDLHelper {
      * @param packages
      * 
      */
-    private static void doUpdate(DDLHelper helper, String packages) {
+    private static void doUpdate(SessionFactory factory, DDLHelper helper, String packages) {
         HashSet<String> entities = (HashSet<String>) PackageScanner
-                .filterByAnnotation(packages.split(","), Entity.class);
+                .filterByAnnotation(packages.split(","), Entity.class, factory.isScanJar());
         helper.updateTables(entities);
     }
 

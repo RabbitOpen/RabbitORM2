@@ -51,6 +51,9 @@ public class SessionFactory {
 
     // 是否显示真是的预编译sql
     protected boolean maskPreparedSql = false;
+    
+    // 是否扫描classpath 中的jar包
+    private boolean scanJar = false;
 
     // ddl类型
     protected String ddl = DDLType.NONE.name();
@@ -273,7 +276,7 @@ public class SessionFactory {
         DialectTransformer.init();
         DeleteDialectAdapter.init();
         PolicyInsert.init();
-        DDLHelper.checkMapping(getPackages2Scan());
+        DDLHelper.checkMapping(this, getPackages2Scan());
         DDLHelper.init();
         //组合数据源不支持ddl
         if (null == combinedDataSource) {
@@ -399,4 +402,11 @@ public class SessionFactory {
 		this.showMaskedSlowSql = showMaskedSlowSql;
 	}
     
+	public boolean isScanJar() {
+		return scanJar;
+	}
+	
+	public void setScanJar(boolean scanJar) {
+		this.scanJar = scanJar;
+	}
 }
