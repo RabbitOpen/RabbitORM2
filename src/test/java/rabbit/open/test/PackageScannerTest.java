@@ -19,7 +19,7 @@ public class PackageScannerTest {
     @Test
     public void scanInterfaceTest() {
         Set<String> clzes = PackageScanner.filterByInterface(
-                new String[] { "rabbit", "com.alibaba" }, DataSource.class);
+                new String[] { "rabbit", "com.alibaba" }, DataSource.class, false);
         System.out.println(clzes);
         TestCase.assertTrue(clzes.size() > 1);
     }
@@ -27,7 +27,7 @@ public class PackageScannerTest {
     @Test
     public void scanAnnotationsTest() {
         Set<String> clzes = PackageScanner.filterByAnnotation(
-                new String[] { "rabbit", "com.alibaba" }, Entity.class);
+                new String[] { "rabbit", "com.alibaba" }, Entity.class, false);
         System.out.println(clzes);
         TestCase.assertTrue(clzes.size() > 1);
     }
