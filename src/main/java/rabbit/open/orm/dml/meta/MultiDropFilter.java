@@ -1,10 +1,13 @@
 package rabbit.open.orm.dml.meta;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import rabbit.open.orm.annotation.FilterType;
+import rabbit.open.orm.dml.CallBackTask;
 import rabbit.open.orm.dml.DMLAdapter;
 
 /**
@@ -16,9 +19,10 @@ public class MultiDropFilter {
 
     protected Class<?> targetClz;
     
-    public MultiDropFilter(Class<?> clz) {
-        filters = new HashMap<>();
-        this.targetClz = clz;
+    private List<CallBackTask> tasks = new ArrayList<>();
+    
+    public MultiDropFilter() {
+    	filters = new HashMap<>();
     }
 
     public MultiDropFilter on(String field, Object value) {
@@ -26,10 +30,15 @@ public class MultiDropFilter {
     }
 
     public MultiDropFilter on(String field, Object value, FilterType filterType) {
-        Field f = DMLAdapter.checkField(targetClz, field);
-        FilterDescriptor fd = new FilterDescriptor(field, value, filterType.value());
-        fd.setField(f);
-        this.filters.put(field, fd);
+    	tasks.add(new CallBackTask() {
+			@Override
+			public void run() {
+				Field f = DMLAdapter.checkField(targetClz, field);
+				FilterDescriptor fd = new FilterDescriptor(field, value, filterType.value());
+				fd.setField(f);
+				filters.put(field, fd);
+			}
+		});
         return this;
     }
 
@@ -40,4 +49,13 @@ public class MultiDropFilter {
     public Class<?> getTargetClz() {
         return targetClz;
     }
+    
+    public void setTargetClz(Class<?> targetClz) {
+		this.targetClz = targetClz;
+		filters.clear();
+		for (CallBackTask task : tasks) {
+			task.run();
+		}
+	}
+    
 }

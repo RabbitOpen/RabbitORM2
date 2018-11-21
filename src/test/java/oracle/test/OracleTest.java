@@ -21,8 +21,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dml.meta.MultiDropFilter;
-import rabbit.open.orm.exception.IllegalMultiDropFilterTypeException;
-import rabbit.open.orm.pool.SessionFactory;
 
 /**
  * <b>Description: 查询测试</b><br>
@@ -133,8 +131,8 @@ public class OracleTest {
         us.add(u2);
         List<User> list = us
                 .createQuery()
-                .setMultiDropFilter(
-                        new MultiDropFilter(User.class).on("id", u1.getId(),
+                .addMultiDropFilter(
+                        new MultiDropFilter().on("id", u1.getId(),
                                 FilterType.IN).on("desc", u2.getDesc()))
                 .fetch(Organization.class).asc("id").execute().list();
         TestCase.assertEquals(2, list.size());
@@ -163,14 +161,14 @@ public class OracleTest {
 
         String name = "zhangsan";
         us.createUpdate().set("name", name)
-                .setMultiDropFilter(new MultiDropFilter(User.class)
+                .addMultiDropFilter(new MultiDropFilter()
                         .on("id", u1.getId(),FilterType.IN)
                         .on("desc", u2.getDesc()))
                 .execute();
 
         List<User> list = us.createQuery()
-                .setMultiDropFilter(
-                        new MultiDropFilter(User.class).on("id", new Long[]{u1.getId(),  u3.getId()},
+                .addMultiDropFilter(
+                        new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
                                 FilterType.IN).on("desc", u2.getDesc()))
                 .fetch(Organization.class).asc("id").execute().list();
         TestCase.assertEquals(3, list.size());
@@ -203,13 +201,13 @@ public class OracleTest {
         us.add(u3);
         
         //删除U1和U2
-        us.createDelete().setMultiDropFilter(
-                new MultiDropFilter(User.class).on("id", new Long[]{ u1.getId()},
+        us.createDelete().addMultiDropFilter(
+                new MultiDropFilter().on("id", new Long[]{ u1.getId()},
                         FilterType.IN).on("desc", u2.getDesc())).execute();
         
         List<User> list = us.createQuery()
-                .setMultiDropFilter(
-                        new MultiDropFilter(User.class).on("id", new Long[]{u1.getId(),  u3.getId()},
+                .addMultiDropFilter(
+                        new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
                                 FilterType.IN).on("desc", u2.getDesc()))
                                 .fetch(Organization.class).asc("id").execute().list();
         TestCase.assertEquals(1, list.size());
@@ -236,7 +234,7 @@ public class OracleTest {
         us.add(u3);
         
         //删除U1
-        us.createDelete().setMultiDropFilter(new MultiDropFilter(User.class).on("id", new Long[]{u1.getId()},
+        us.createDelete().addMultiDropFilter(new MultiDropFilter().on("id", new Long[]{u1.getId()},
                         FilterType.IN).on("desc", "h4"))
                     .addNullFilter("id", false)
                     .execute();
@@ -249,15 +247,4 @@ public class OracleTest {
         TestCase.assertEquals(u3.getDesc(), list.get(1).getDesc());
     }
     
-    @Test
-    public void illegalMultiDropFilterTypeExceptionTest(){
-        try {
-            us.createDelete().setMultiDropFilter(
-                    new MultiDropFilter(Organization.class).on("id", 1))
-                .execute();
-            throw new RuntimeException();
-        } catch (Exception e) {
-            TestCase.assertEquals(SessionFactory.getRootCause(e).getClass(), IllegalMultiDropFilterTypeException.class);
-        }
-    }
 }

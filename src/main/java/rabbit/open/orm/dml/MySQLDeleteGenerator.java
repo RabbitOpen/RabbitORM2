@@ -15,33 +15,31 @@ public class MySQLDeleteGenerator extends DeleteDialectAdapter{
 	public StringBuilder createDeleteSql(Delete<?> delete) {
 		StringBuilder sql = new StringBuilder("DELETE " + delete.metaData.getTableName() + " FROM " 
 							+ delete.metaData.getTableName());
-		for(FilterDescriptor fd : delete.filterDescriptors){
-			if(fd.isJoinOn()){
+		for (FilterDescriptor fd : delete.filterDescriptors) {
+			if (fd.isJoinOn()) {
 				sql.append(", " + fd.getFilterTable());
 			}
 		}
 		sql.append(" WHERE 1 = 1");
-		for(FilterDescriptor fd : delete.filterDescriptors){
-			if(!fd.isJoinOn()){
+		for (FilterDescriptor fd : delete.filterDescriptors) {
+			if (!fd.isJoinOn()) {
 				sql.append(" AND ");
 				String key = fd.getKey();
-				if(FilterType.IS.value().equals(fd.getFilter().trim()) 
-						|| FilterType.IS_NOT.value().equals(fd.getFilter().trim())){
+				if (FilterType.IS.value().equals(fd.getFilter().trim())
+						|| FilterType.IS_NOT.value().equals(fd.getFilter().trim())) {
 					sql.append(key + " " + fd.getFilter() + DMLAdapter.NULL);
-				}else{
+				} else {
 					delete.cachePreparedValues(fd.getValue(), fd.getField());
 					sql.append(key + fd.getFilter() + delete.createPlaceHolder(fd.getFilter(), fd.getValue()));
 				}
-			}else{
+			} else {
 				sql.append(" AND " + fd.getKey() + " = " + fd.getValue());
 			}
 		}
-		if (null == delete.multiDropFilter || 0 == delete.multiDropFilter.getFilters().size()) {
+		if (!delete.hasMultiDropFilters()) {
             return sql;
         }
-		sql.append(" AND (");
 		sql.append(delete.createMultiDropSql());
-		sql.append(")");
 		return sql;
 	}
 

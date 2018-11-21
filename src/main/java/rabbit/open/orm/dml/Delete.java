@@ -65,7 +65,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			sql = new StringBuilder("DELETE FROM " + metaData.getTableName());
 			StringBuilder mds = createMultiDropSql();
             if (0 != mds.length()) {
-                mds.insert(0, WHERE);
+                mds.insert(0, WHERE + " 1 = 1 ");
                 sql.append(mds);
             }
 			return;
@@ -133,7 +133,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
      * <b>Description  添加Or类型的过滤条件</b>
      * @param multiDropFilter
      */
-    public Delete<T> setMultiDropFilter(MultiDropFilter multiDropFilter) {
+    public Delete<T> addMultiDropFilter(MultiDropFilter multiDropFilter) {
         cacheMultiDropFilter(multiDropFilter);
         return this;
     }

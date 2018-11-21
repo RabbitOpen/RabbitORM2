@@ -160,7 +160,7 @@ public class ShardingTableTest {
         long age2 = 12;
         sus.createUpdate().set("age", age2).set("gender", g2)
                 .addFilter("id", 15L)
-                .setMultiDropFilter(new MultiDropFilter(ShardingUser.class)
+                .addMultiDropFilter(new MultiDropFilter()
                         .on("name", "zhangsan"))
                 .execute();
         u = sus.getByID(user.getId());

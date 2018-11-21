@@ -35,7 +35,6 @@ import rabbit.open.orm.dml.meta.MultiDropFilter;
 import rabbit.open.orm.dml.util.SQLFormater;
 import rabbit.open.orm.exception.AmbiguousDependencyException;
 import rabbit.open.orm.exception.CycleDependencyException;
-import rabbit.open.orm.exception.IllegalMultiDropFilterTypeException;
 import rabbit.open.orm.exception.InvalidFetchOperationException;
 import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.exception.InvalidQueryPathException;
@@ -95,7 +94,7 @@ public abstract class DMLAdapter<T> {
 	
 	protected Pattern pattern;
 	
-	protected MultiDropFilter multiDropFilter;
+	protected List<MultiDropFilter> multiDropFilters = new ArrayList<>();
 	
 	//动态添加的过滤器
 	protected Map<Class<?>, Map<String, List<DynamicFilterDescriptor>>> addedFilters;
@@ -820,7 +819,7 @@ public abstract class DMLAdapter<T> {
         if (filterDescriptors.isEmpty() || getFilterDescriptors().isEmpty()) {
             StringBuilder multiDropSql = createMultiDropSql();
             if (0 != multiDropSql.length()) {
-                multiDropSql.insert(0, WHERE);
+                multiDropSql.insert(0, WHERE + " 1 = 1 ");
                 fsql.append(multiDropSql);
             }
             return fsql;
@@ -829,6 +828,16 @@ public abstract class DMLAdapter<T> {
         return fsql;
 	}
 
+	protected StringBuilder createMultiDropSql() {
+		StringBuilder fsql = new StringBuilder();
+		for (MultiDropFilter filter : multiDropFilters) {
+        	fsql.append(" AND (");
+            fsql.append(createMultiDropSql(filter));
+            fsql.append(")");
+        }
+		return fsql;
+	}
+	
     private StringBuilder createFilters() {
         List<FilterDescriptor> fds = getFilterDescriptors();
         StringBuilder fsql = new StringBuilder();
@@ -849,18 +858,40 @@ public abstract class DMLAdapter<T> {
                 fsql.append(fd.getConnector());
             }
         }
-        if (null == multiDropFilter || 0 == multiDropFilter.getFilters().size()) {
-            return fsql;
+        if (!hasMultiDropFilters()) {
+        	return fsql;
         }
-        fsql.append(" AND (");
-        fsql.append(createMultiDropSql());
-        fsql.append(")");
+        for (MultiDropFilter filter : multiDropFilters) {
+        	fsql.append(" AND (");
+            fsql.append(createMultiDropSql(filter));
+            fsql.append(")");
+        }
         return fsql;
     }
 
-    protected StringBuilder createMultiDropSql() {
+	/**
+	 * <b>@description 包含有效的or条件 </b>
+	 * @return
+	 */
+	protected boolean hasMultiDropFilters() {
+		if (multiDropFilters.isEmpty()) {
+			return false;
+		}
+		for (MultiDropFilter filter : multiDropFilters) {
+			if (filter.getFilters().size() > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+    /**
+     * <b>@description 创建多分支（or条件）sql片段 </b>
+     * @return
+     */
+    protected StringBuilder createMultiDropSql(MultiDropFilter multiDropFilter) {
         StringBuilder fsql = new StringBuilder();
-        if (null == multiDropFilter || 0 == multiDropFilter.getFilters().size()) {
+        if (0 == multiDropFilter.getFilters().size()) {
             return fsql;
         }
         int i = 0;
@@ -985,10 +1016,8 @@ public abstract class DMLAdapter<T> {
     }
 
     protected void cacheMultiDropFilter(MultiDropFilter multiDropFilter) {
-        if (!metaData.getEntityClz().equals(multiDropFilter.getTargetClz())) {
-            throw new IllegalMultiDropFilterTypeException(multiDropFilter.getTargetClz());
-        }
-        this.multiDropFilter = multiDropFilter;
+    	multiDropFilter.setTargetClz(metaData.getEntityClz());
+        this.multiDropFilters.add(multiDropFilter);
     }
     
     protected void setValue2Field(Object target, Field field, Object value) {

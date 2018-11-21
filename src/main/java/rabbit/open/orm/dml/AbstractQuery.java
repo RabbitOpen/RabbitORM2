@@ -259,9 +259,6 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         List<T> resultList = new ArrayList<>();
         while (rs.next()) {
             T rowData = readRowData(rs);
-            if (null == rowData) {
-            	continue;
-            }
             boolean exist = false;
             for (int i = 0; i < resultList.size(); i++) {
                 T existedRowData = resultList.get(i);
@@ -371,6 +368,10 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         // 缓存缓存【表名】和joinFetch的实体
         Map<String, Object> joinFetcEntity = new HashMap<>();
         readEntity(rs, fetchEntity, joinFetcEntity);
+        if (null == fetchEntity.get(getAliasByTableName(metaData.getTableName()))) {
+        	fetchEntity.put(getAliasByTableName(metaData.getTableName()), 
+        			DMLAdapter.newInstance(metaData.getEntityClz()));
+        }
         T target = (T) fetchEntity.get(getAliasByTableName(metaData.getTableName()));
         for (Object entity : fetchEntity.values()) {
             if (entity == target) {
@@ -544,7 +545,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * <b>Description  添加Or类型的过滤条件</b>
 	 * @param multiDropFilter
 	 */
-    public AbstractQuery<T> setMultiDropFilter(MultiDropFilter multiDropFilter) {
+    public AbstractQuery<T> addMultiDropFilter(MultiDropFilter multiDropFilter) {
         cacheMultiDropFilter(multiDropFilter);
         return this;
     }

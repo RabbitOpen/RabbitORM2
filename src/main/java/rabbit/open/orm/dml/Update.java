@@ -102,7 +102,7 @@ public class Update<T> extends NonQueryAdapter<T> {
      * <b>Description  添加Or类型的过滤条件</b>
      * @param multiDropFilter
      */
-    public Update<T> setMultiDropFilter(MultiDropFilter multiDropFilter) {
+    public Update<T> addMultiDropFilter(MultiDropFilter multiDropFilter) {
         cacheMultiDropFilter(multiDropFilter);
         return this;
     }
@@ -256,7 +256,7 @@ public class Update<T> extends NonQueryAdapter<T> {
         if (filterDescriptors.isEmpty()) {
             StringBuilder mds = createMultiDropSql();
             if (0 != mds.length()) {
-                mds.insert(0, WHERE);
+                mds.insert(0, WHERE + " 1 = 1 ");
                 sql.append(mds);
             }
             return sql;
