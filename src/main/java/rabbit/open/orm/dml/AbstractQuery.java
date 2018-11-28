@@ -1315,7 +1315,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	public abstract AbstractQuery<T> addNullFilter(String reg, boolean isNull, Class<?>... depsPath);
-
+	
 	/**
 	 * 
 	 * <b>Description:	新增空查询条件</b><br>
@@ -1325,6 +1325,16 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	public abstract AbstractQuery<T> addNullFilter(String reg, Class<?>... depsPath);
+	
+	/**
+	 * <b>@description 新增一个非空过滤条件 </b>
+	 * @param reg
+	 * @param depsPath
+	 * @return
+	 */
+	public AbstractQuery<T> addNotNullFilter(String reg, Class<?>... depsPath) {
+		return addNullFilter(reg, false, depsPath);
+	}
 	
 	/**
 	 * 

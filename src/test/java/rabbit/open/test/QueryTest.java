@@ -437,6 +437,23 @@ public class QueryTest {
         TestCase.assertNull(u);
     }
 
+    /**
+     * 
+     * <b>Description: addNotNullFilterTest</b><br>
+     * 
+     */
+    @Test
+    public void addNotNullFilterTest() {
+    	addInitData(152);
+    	List<User> list = us.createQuery().addNotNullFilter("id")
+    			.joinFetch(Role.class).joinFetch(Car.class)
+    			.addJoinFilter("id", 1, Role.class)
+    			.addJoinFilter("roleName", "R150", Role.class)
+    			.addJoinFilter("id", 2, Car.class).execute().list();
+    	TestCase.assertTrue(list.size() > 0);
+    	
+    }
+
     public User addInitData2() {
         Zone z = new Zone("华北");
         zs.add(z);

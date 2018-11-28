@@ -154,6 +154,20 @@ public class Update<T> extends NonQueryAdapter<T> {
 	
 	/**
 	 * 
+	 * <b>Description:	新增一个非空过滤条件</b><br>
+	 * @param fieldReg
+	 * @param depsPath
+	 * @return	
+	 * 
+	 */
+	@Override
+	public Update<T> addNotNullFilter(String fieldReg, Class<?>... depsPath) {
+		super.addFilter(fieldReg, null, FilterType.IS_NOT, depsPath);
+		return this;
+	}
+	
+	/**
+	 * 
 	 * <b>Description:	设置需要更新的字段的值</b><br>
 	 * @param value
 	 * @return

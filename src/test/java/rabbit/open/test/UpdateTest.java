@@ -212,4 +212,21 @@ public class UpdateTest {
         TestCase.assertEquals(oq.getName(), "newname");
         TestCase.assertEquals(oq.getZone().getId(), z.getId());
     }
+    
+    /**
+     * 
+     * <b>Description: addNotNullFilterTest</b><br>
+     * 
+     */
+    @Test
+    public void addNotNullFilterTest() {
+    	User user = new User();
+    	user.setName("wangwu");
+    	us.add(user);
+    	long result = us.createUpdate().addNotNullFilter("name")
+    			.addFilter("id", user.getId()).set("name", "lisi").execute();
+    	TestCase.assertTrue(result >= 1);
+    	
+    }
+    
 }

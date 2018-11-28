@@ -182,4 +182,19 @@ public class Delete<T> extends NonQueryAdapter<T> {
 		super.addNullFilter(fieldReg, depsPath);
 		return this;
 	}
+	
+	/**
+	 * 
+	 * <b>Description:	新增一个非空过滤条件</b><br>
+	 * @param fieldReg
+	 * @param depsPath
+	 * @return	
+	 * 
+	 */
+	@Override
+	public Delete<T> addNotNullFilter(String fieldReg, Class<?>... depsPath) {
+		super.addFilter(fieldReg, null, FilterType.IS_NOT, depsPath);
+		return this;
+	}
+	
 }

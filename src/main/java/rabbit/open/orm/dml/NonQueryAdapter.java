@@ -198,6 +198,20 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
 		return addNullFilter(fieldReg, true, depsPath);
 	}
 	
+
+	/**
+	 * 
+	 * <b>Description:	新增一个非空过滤条件</b><br>
+	 * @param fieldReg
+	 * @param depsPath
+	 * @return	
+	 * 
+	 */
+	public NonQueryAdapter<T> addNotNullFilter(String fieldReg, Class<?>... depsPath) {
+		return addFilter(fieldReg, null, FilterType.IS_NOT, depsPath);
+	}
+	
+	
 	@Override
 	protected String getAliasByTableName(String tableName) {
 		return tableName;

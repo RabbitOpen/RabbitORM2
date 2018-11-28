@@ -96,4 +96,25 @@ public class DeleteTest {
         TestCase.assertEquals(1, result);
     }
 
+    /**
+     * 
+     * <b>Description: addNotNullFilterTest</b><br>
+     * 
+     */
+    @Test
+    public void addNotNullFilterTest() {
+    	Organization o = new Organization("deleteOrg", "deleteOrg");
+    	os.add(o);
+    	User user = new User();
+    	user.setName("wangwu");
+    	user.setOrg(o);
+    	us.add(user);
+    	long result = us.createDelete()
+    			.addNotNullFilter("name")
+    			.addFilter("orgCode", o.getOrgCode(), Organization.class,
+    					User.class).execute();
+    	TestCase.assertTrue(result >= 1);
+    	
+    }
+
 }

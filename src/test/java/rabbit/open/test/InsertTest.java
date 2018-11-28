@@ -53,7 +53,20 @@ public class InsertTest {
         uus.add(data);
         System.out.println(data);
     }
-    
+
+    @Test
+    public void addDataTest2() {
+    	String name = "testUserName";
+    	int count = 100;
+		for (int i = 0; i < count; i++) {
+    		User user = new User();
+			user.setName(name);
+        	us.add(user);
+    	}
+    	TestCase.assertEquals(count, us.createQuery().addFilter("name", name).count());
+    	
+    }
+
     @Test
     public void exceptionTest() {
         uus.add(new UUIDPolicyEntity());
