@@ -39,6 +39,7 @@ import rabbit.open.test.entity.ZProperty;
 import rabbit.open.test.entity.Zone;
 import rabbit.open.test.service.CarService;
 import rabbit.open.test.service.LeaderService;
+import rabbit.open.test.service.MyUserSerivce;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.PropertyService;
 import rabbit.open.test.service.ResourcesService;
@@ -83,6 +84,14 @@ public class QueryTest {
     @Autowired
     LeaderService ls;
 
+    @Autowired
+    MyUserSerivce mus;
+    
+    @Test
+    public void multiExtend() {
+    	mus.batchAdd();
+    }
+    
     /**
      * 
      * <b>Description: 关联(多对一、多对多)查询 + distinct </b><br>

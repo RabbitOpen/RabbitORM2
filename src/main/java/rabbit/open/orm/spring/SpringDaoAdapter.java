@@ -37,8 +37,11 @@ public abstract class SpringDaoAdapter<T> {
 	@SuppressWarnings("unchecked")
     public SpringDaoAdapter() {
         try {
-            this.clz = (Class<T>) ((ParameterizedType) (getClass()
-                    .getGenericSuperclass())).getActualTypeArguments()[0];
+        	Class<?> cls = getClass();
+        	while (!(cls.getGenericSuperclass() instanceof ParameterizedType)) {
+        		cls = cls.getSuperclass();
+        	}
+            this.clz = (Class<T>) ((ParameterizedType) (cls.getGenericSuperclass())).getActualTypeArguments()[0];
         } catch (Exception e) {
 
         }
