@@ -67,21 +67,30 @@ public class MetaData<T> {
 	//实体对应的类的class信息
 	protected Class<T> entityClz;
 	
-    public MetaData(Class<T> entityClz) {
+    private MetaData(Class<T> entityClz) {
         this.entityClz = entityClz;
-        if (metaMapping.containsKey(entityClz)) {
-            return;
-        }
-        registClassTableMapping(entityClz);
     }
 
     public static <D> MetaData<?> getMetaByClass(Class<D> clz) {
         if (metaMapping.containsKey(clz)) {
             return metaMapping.get(clz);
         }
-        metaMapping.put(clz, new MetaData<D>(clz));
+        cacheMeta(clz);
         return metaMapping.get(clz);
     }
+
+	/**
+	 * <b>@description 缓存meta信息 </b>
+	 * @param clz
+	 */
+	private static synchronized <D> void cacheMeta(Class<D> clz) {
+		if (metaMapping.containsKey(clz)) {
+			return;
+		}
+		MetaData<D> meta = new MetaData<>(clz);
+		meta.registClassTableMapping(clz);
+		metaMapping.put(clz, meta);
+	}
 
 	public List<JoinFieldMetaData<?>> getJoinMetas() {
 		return joinMetas;
@@ -110,10 +119,7 @@ public class MetaData<T> {
      * @param entityClz 
      * 
      */
-    private synchronized void registClassTableMapping(Class<T> entityClz) {
-        if (metaMapping.containsKey(entityClz)) {
-            return;
-        }
+    private void registClassTableMapping(Class<T> entityClz) {
         tableName = entityClz.getAnnotation(Entity.class).value();
         shardingPolicy = loadShardingPolicy(entityClz);
         primaryKey = getPrimaryKeyFieldMeta(entityClz).getColumn();
