@@ -28,7 +28,7 @@ import rabbit.open.orm.pool.SessionFactory;
  */
 public abstract class SpringDaoAdapter<T> {
 
-	protected Logger logger = Logger.getLogger(SpringDaoAdapter.class);
+	protected Logger logger = Logger.getLogger(getClass());
 	
 	protected Class<T> clz;
 	
