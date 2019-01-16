@@ -85,7 +85,7 @@ public class RabbitDataSource extends AbstractDataSource{
             Connection first;
             first = connectors.pollFirst(seconds, TimeUnit.SECONDS);
             if (null == first) {
-                throw new GetConnectionTimeOutException("get connection timeout[15s]!");
+                throw new GetConnectionTimeOutException("get connection timeout for [" + seconds + "]s!");
             }
             return first;
         } catch (Exception e) {
@@ -152,10 +152,10 @@ public class RabbitDataSource extends AbstractDataSource{
 	 * <b>Description: 初始化连接直至满足最小连接数</b><br>
 	 * 
 	 */
-	protected void initSessions(){
-	    while(counter < minSize){
-	        try2CreateNewSession();
-	    }
+	protected void initSessions() {
+		while (counter < minSize) {
+			try2CreateNewSession();
+		}
 	}
 
 	/**
@@ -224,10 +224,10 @@ public class RabbitDataSource extends AbstractDataSource{
         setDataSourceClosed(false);
         try {
             initSessions();
+            logger.info("datasource is successfully restarted!");
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
-        logger.info("datasource is successfully restarted!");
     }
 
 	private void setDataSourceClosed(boolean closed) {
