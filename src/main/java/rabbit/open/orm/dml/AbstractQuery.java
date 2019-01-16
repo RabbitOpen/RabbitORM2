@@ -37,6 +37,7 @@ import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.RepeatedAliasException;
 import rabbit.open.orm.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.pool.jpa.Session;
 import rabbit.open.orm.shard.ShardFactor;
 import rabbit.open.orm.shard.ShardingPolicy;
 
@@ -123,13 +124,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			rs.close();
 			return new Result<>(resultList);
 		} catch (Exception e) {
-		    sessionFactory.flagSQLException(e);
+			Session.flagSQLException(e);
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
 		    closeResultSet(rs);
 		    DMLAdapter.closeStmt(stmt);
 		    closeConnection(conn);
-		    sessionFactory.clearSQLException();
+		    Session.clearSQLException();
 		    setRunned();
 		}
 	}
@@ -1490,13 +1491,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			}
 			return 0L;
 		} catch (Exception e) {
-		    sessionFactory.flagSQLException(e);
+			Session.flagSQLException(e);
 		    throw new RabbitDMLException(e);
 		} finally {
 		    closeResultSet(rs);
 		    closeStmt(stmt);
 			closeConnection(conn);
-			sessionFactory.clearSQLException();
+			Session.clearSQLException();
 			setRunned();
 		}
 	}

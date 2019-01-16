@@ -40,16 +40,7 @@ public class SessionFactory {
     // 是否格式化sql
     protected boolean formatSql = false;
     
-    // 显示慢sql
-    protected boolean showSlowSql = false;
-    
-    // 是否显示带参数的慢sql
-    protected boolean showMaskedSlowSql = false;
-    
-    // 慢sql的耗时阈值
-    protected long threshold = 0L;
-
-    // 是否显示真是的预编译sql
+    // 是否显示真实的预编译sql
     protected boolean maskPreparedSql = false;
     
     // 是否扫描classpath 中的jar包
@@ -75,9 +66,6 @@ public class SessionFactory {
     private static ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
     
     private static SessionFactory self;
-    
-    //标记sql异常
-    private static ThreadLocal<Object> sqlExceptionContext = new ThreadLocal<>();
     
     public Connection getConnection() throws SQLException {
         return getConnection(null, null, null);
@@ -111,32 +99,6 @@ public class SessionFactory {
     
     public static SessionFactory getSessionFactory() {
     	return self;
-    }
-    
-    public void flagSQLException(Exception e) {
-        Throwable cause = getRootCause(e);
-        if (cause instanceof SQLException) {
-            sqlExceptionContext.set(true);
-        } 
-    }
-
-    /**
-     * <b>Description  清除异常context</b>
-     */
-    public void clearSQLException() {
-        sqlExceptionContext.remove();
-    }
-
-    public static Throwable getRootCause(Exception e) {
-        Throwable cause = e;
-        while(null != cause.getCause()) {
-            cause = cause.getCause();
-        }
-        return cause;
-    }
-    
-    public static boolean hasSQLException() {
-        return null != sqlExceptionContext.get();
     }
     
     /**
@@ -378,30 +340,6 @@ public class SessionFactory {
         return DDLHelper.getCurrentDDLHelper(this).getColumnName(col);
     }
 
-	public boolean isShowSlowSql() {
-		return showSlowSql;
-	}
-
-	public void setShowSlowSql(boolean showSlowSql) {
-		this.showSlowSql = showSlowSql;
-	}
-
-	public long getThreshold() {
-		return threshold;
-	}
-
-	public void setThreshold(long threshold) {
-		this.threshold = threshold;
-	}
-
-	public boolean isShowMaskedSlowSql() {
-		return showMaskedSlowSql;
-	}
-
-	public void setShowMaskedSlowSql(boolean showMaskedSlowSql) {
-		this.showMaskedSlowSql = showMaskedSlowSql;
-	}
-    
 	public boolean isScanJar() {
 		return scanJar;
 	}

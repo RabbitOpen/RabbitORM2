@@ -13,7 +13,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.orm.exception.EmptyPrimaryKeyValueException;
-import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.pool.jpa.Session;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.Role;
@@ -89,7 +89,7 @@ public class JoinTableManagerTest {
             us.clearJoinRecords(user, Role.class);
             throw new RuntimeException();
         } catch (Exception e) {
-            TestCase.assertEquals(SessionFactory.getRootCause(e).getClass(),
+            TestCase.assertEquals(Session.getRootCause(e).getClass(),
                     EmptyPrimaryKeyValueException.class);
         }
     }

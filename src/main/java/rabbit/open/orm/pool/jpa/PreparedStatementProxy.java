@@ -14,7 +14,6 @@ import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
 
 import rabbit.open.orm.exception.RabbitDMLException;
-import rabbit.open.orm.pool.SessionFactory;
 
 public class PreparedStatementProxy implements MethodInterceptor {
 
@@ -26,6 +25,8 @@ public class PreparedStatementProxy implements MethodInterceptor {
     private List<Object> parameters = new ArrayList<>();
     
     private StringBuilder preparedSql;
+    
+    private RabbitDataSource dataSource;
     
     private Logger logger = Logger.getLogger(getClass());
     
@@ -41,9 +42,10 @@ public class PreparedStatementProxy implements MethodInterceptor {
         this.stmt = stmt;
     }
     
-    public static PreparedStatement getProxy(PreparedStatement stmt, String sql){
+    public static PreparedStatement getProxy(PreparedStatement stmt, String sql, RabbitDataSource dataSource){
         PreparedStatementProxy proxy = new PreparedStatementProxy();
         proxy.preparedSql = new StringBuilder(sql);
+        proxy.dataSource = dataSource;
         proxy.setStmt(stmt);
         Enhancer eh = new Enhancer();
 		if (null != oraclePreparedStatementClz
@@ -103,10 +105,8 @@ public class PreparedStatementProxy implements MethodInterceptor {
 	 */
 	private String getSqlText() {
 		String sql = preparedSql.toString(); 
-		if (!SessionFactory.getSessionFactory().isShowMaskedSlowSql()) {
-			for (int i = 0; i < parameters.size(); i++) {
-				sql = sql.replaceFirst("\\?", getString(parameters.get(i)));
-			}
+		for (int i = 0; i < parameters.size(); i++) {
+			sql = sql.replaceFirst("\\?", getString(parameters.get(i)));
 		}
 		return sql;
 	}
@@ -117,7 +117,7 @@ public class PreparedStatementProxy implements MethodInterceptor {
 	 * @author 肖乾斌
 	 */
 	private long getSlowSqlThreshold() {
-		return SessionFactory.getSessionFactory().getThreshold();
+		return dataSource.getThreshold();
 	}
 
 	/**
@@ -126,7 +126,7 @@ public class PreparedStatementProxy implements MethodInterceptor {
 	 * @author 肖乾斌
 	 */
 	private boolean showSlowSql() {
-		return SessionFactory.getSessionFactory().isShowSlowSql();
+		return dataSource.isShowSlowSql();
 	}
     
     private String getString(Object o) {

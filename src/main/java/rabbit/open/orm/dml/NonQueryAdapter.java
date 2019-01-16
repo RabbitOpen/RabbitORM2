@@ -27,6 +27,7 @@ import rabbit.open.orm.dml.util.SQLFormater;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.pool.jpa.Session;
 import rabbit.open.orm.shard.ShardFactor;
 
 /**
@@ -119,11 +120,11 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
         } catch (UnKnownFieldException e) {
             throw e;
         } catch (Exception e) {
-            sessionFactory.flagSQLException(e);
+        	Session.flagSQLException(e);
             throw new RabbitDMLException(e.getMessage(), e);
         } finally {
             closeConnection(conn);
-            sessionFactory.clearSQLException();
+            Session.clearSQLException();
         }
 	}
 	

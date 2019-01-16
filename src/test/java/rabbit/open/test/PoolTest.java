@@ -14,8 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.pool.jpa.RabbitDataSource;
+import rabbit.open.orm.pool.jpa.Session;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.service.UserService;
 
@@ -50,7 +50,7 @@ public class PoolTest {
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertTrue(SQLException.class
-                    .isAssignableFrom(SessionFactory.getRootCause(e).getClass()));
+                    .isAssignableFrom(Session.getRootCause(e).getClass()));
             TestCase.assertEquals(rds.getCounter(), counter - 1);
         }
 

@@ -11,6 +11,7 @@ import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.dml.util.SQLFormater;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.pool.jpa.Session;
 
 public class SQLQuery<T> {
 
@@ -47,12 +48,12 @@ public class SQLQuery<T> {
 			stmt = conn.prepareStatement(query.getSql());
             return callBack.execute(stmt);
 		} catch (Exception e) {
-		    sessionFactory.flagSQLException(e);
+		    Session.flagSQLException(e);
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
 		    DMLAdapter.closeStmt(stmt);
 		    DMLAdapter.closeConnection(conn);
-		    sessionFactory.clearSQLException();
+		    Session.clearSQLException();
 		}
 	}
 	

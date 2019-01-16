@@ -13,7 +13,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.orm.dml.SQLCallBack;
-import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.pool.jpa.Session;
 import rabbit.open.test.service.UserService;
 
 /**
@@ -81,7 +81,7 @@ public class SQLQueryTest {
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertTrue(SQLException.class
-                    .isAssignableFrom(SessionFactory.getRootCause(e).getClass()));
+                    .isAssignableFrom(Session.getRootCause(e).getClass()));
         }
     }
 

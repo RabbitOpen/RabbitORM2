@@ -35,6 +35,12 @@ public class RabbitDataSource extends AbstractDataSource{
 	 */
 	protected boolean closed = false;
 	
+	// 显示慢sql
+    protected boolean showSlowSql = false;
+    
+    // 慢sql的耗时阈值
+    protected long threshold = 0L;
+    
 	/**
 	 * 创建session时使用的锁
 	 */
@@ -269,4 +275,21 @@ public class RabbitDataSource extends AbstractDataSource{
 	public LinkedBlockingDeque<Connection> getConnectors() {
 		return connectors;
 	}
+	
+	public boolean isShowSlowSql() {
+		return showSlowSql;
+	}
+
+	public void setShowSlowSql(boolean showSlowSql) {
+		this.showSlowSql = showSlowSql;
+	}
+
+	public long getThreshold() {
+		return threshold;
+	}
+
+	public void setThreshold(long threshold) {
+		this.threshold = threshold;
+	}
+	
 }

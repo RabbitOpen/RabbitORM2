@@ -61,6 +61,12 @@
 		<property name="maxIdle">
 			<value>${jdbc.maxIdle}</value>
 		</property>
+		<property name="showSlowSql">
+			<value>${jdbc.showSlowSql}</value>
+		</property>
+		<property name="threshold">
+			<value>${jdbc.threshold}</value>
+		</property>
 		<property name="maxCachedStmt">
 			<value>1000</value>
 		</property>
@@ -124,15 +130,6 @@
 		</property>
 		<property name="formatSql">
 			<value>${jdbc.formatSql}</value>
-		</property>
-		<property name="showSlowSql">
-			<value>${jdbc.showSlowSql}</value>
-		</property>
-		<property name="threshold">
-			<value>${jdbc.threshold}</value>
-		</property>
-		<property name="showMaskedSlowSql">
-			<value>${jdbc.showMaskedSlowSql}</value>
 		</property>
 		<property name="ddl">
 			<value>${jdbc.ddl}</value>
