@@ -159,4 +159,28 @@ public class MultiDropFilterTest {
         TestCase.assertEquals(u3.getDesc(), list.get(1).getDesc());
     }
     
+	/**
+	 * <b>@description 测试相同字段多分支的条件 </b>
+	 */
+	@Test
+	public void multiDropFilterDeleteTest3() {
+		User u1 = new User();
+		u1.setAge(10);
+		u1.setDesc("3H1");
+		us.add(u1);
+		User u2 = new User();
+		u2.setAge(10);
+		u2.setDesc("3H2");
+		us.add(u2);
+
+		User u3 = new User();
+		u3.setAge(10);
+		u3.setDesc("3H3");
+		us.add(u3);
+		List<User> list = us.createQuery().addMultiDropFilter(
+				new MultiDropFilter().on("id", u1.getId())
+				.on("id", u2.getId()).on("id", u3.getId()))
+				.list();
+		TestCase.assertEquals(3, list.size());
+	}
 }
