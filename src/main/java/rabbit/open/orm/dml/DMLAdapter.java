@@ -895,21 +895,20 @@ public abstract class DMLAdapter<T> {
             return fsql;
         }
         int i = 0;
-        for (Entry<String, FilterDescriptor> entry : multiDropFilter
-                .getFilters().entrySet()) {
-            FilterDescriptor fdi = entry.getValue();
+        for (MultiDropFilter filter : multiDropFilter.getFilters()) {
+            FilterDescriptor fdi = filter.getFilterDescriptor();
             Column col = fdi.getField().getAnnotation(Column.class);
             String key = getAliasByTableName(getCurrentTableName()) + "."
-                    + getColumnName(col);
+                    		+ getColumnName(col);
             Object value = RabbitValueConverter.convert(fdi.getValue(),
                             MetaData.getCachedFieldsMeta(getEntityClz(),
-                                    entry.getKey()));
+                            		filter.getKey()));
             if (FilterType.IS.value().equals(fdi.getFilter().trim())
                     || FilterType.IS_NOT.value().equals(fdi.getFilter().trim())) {
-                fsql.append((i == 0 ? " " : " OR ") + key + fdi.getFilter() + NULL);
+                fsql.append((i == 0 ? " " : " OR ") + key + " " + fdi.getFilter() + NULL);
             } else {
                 cachePreparedValues(value, fdi.getField());
-                fsql.append((i == 0 ? " " : " OR ") + key + fdi.getFilter()
+                fsql.append((i == 0 ? " " : " OR ") + key + " " + fdi.getFilter()
                         + createPlaceHolder(fdi.getFilter(), value));
             }
             i++;

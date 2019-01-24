@@ -2,9 +2,7 @@ package rabbit.open.orm.dml.meta;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dml.CallBackTask;
@@ -15,17 +13,28 @@ import rabbit.open.orm.dml.DMLAdapter;
  */
 public class MultiDropFilter {
 
-    private Map<String, FilterDescriptor> filters;
+    private List<MultiDropFilter> filters;
+    
+    // 字段名
+    private String key;
+    
+    // 过滤条件描述符
+    private FilterDescriptor filterDescriptor;
 
     protected Class<?> targetClz;
     
     private List<CallBackTask> tasks = new ArrayList<>();
     
     public MultiDropFilter() {
-    	filters = new HashMap<>();
+    	filters = new ArrayList<>();
     }
 
-    public MultiDropFilter on(String field, Object value) {
+    public MultiDropFilter(String key, FilterDescriptor filterDescriptor) {
+		this.key = key;
+		this.filterDescriptor = filterDescriptor;
+	}
+
+	public MultiDropFilter on(String field, Object value) {
         return on(field, value, FilterType.EQUAL);
     }
 
@@ -36,13 +45,13 @@ public class MultiDropFilter {
 				Field f = DMLAdapter.checkField(targetClz, field);
 				FilterDescriptor fd = new FilterDescriptor(field, value, filterType.value());
 				fd.setField(f);
-				filters.put(field, fd);
+				filters.add(new MultiDropFilter(field, fd));
 			}
 		});
         return this;
     }
 
-    public Map<String, FilterDescriptor> getFilters() {
+    public List<MultiDropFilter> getFilters() {
         return filters;
     }
     
@@ -56,6 +65,14 @@ public class MultiDropFilter {
 		for (CallBackTask task : tasks) {
 			task.run();
 		}
+	}
+    
+    public String getKey() {
+		return key;
+	}
+    
+    public FilterDescriptor getFilterDescriptor() {
+		return filterDescriptor;
 	}
     
 }
