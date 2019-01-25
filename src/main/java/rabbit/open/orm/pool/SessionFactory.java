@@ -3,7 +3,6 @@ package rabbit.open.orm.pool;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -24,7 +23,6 @@ import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.pool.jpa.CombinedDataSource;
-import rabbit.open.orm.pool.jpa.SessionProxy;
 
 public class SessionFactory {
 
@@ -63,7 +61,7 @@ public class SessionFactory {
 
     private static ThreadLocal<Object> tag = new ThreadLocal<>();
 
-    private static ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
+    public static final ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
     
     private static SessionFactory self;
     
@@ -74,27 +72,7 @@ public class SessionFactory {
     public Connection getConnection(Class<?> entityClz, String tableName,
             DMLType type) throws SQLException {
         DataSource ds = getDataSource(entityClz, tableName, type);
-        if (isTransactionOpen()) {
-            if (null == dataSourceContext.get()) {
-                dataSourceContext.set(new HashMap<>());
-            }
-            if (null != dataSourceContext.get().get(ds)) {
-                return dataSourceContext.get().get(ds);
-            } else {
-                Connection conn = SessionProxy.getProxy(ds.getConnection());
-                dataSourceContext.get().put(ds, conn);
-                if (conn.getAutoCommit()) {
-                    conn.setAutoCommit(false);
-                }
-                return conn;
-            }
-        } else {
-            Connection conn = SessionProxy.getProxy(ds.getConnection());
-            if (!conn.getAutoCommit()) {
-                conn.setAutoCommit(true);
-            }
-            return conn;
-        }
+        return ds.getConnection();
     }
     
     public static SessionFactory getSessionFactory() {

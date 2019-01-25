@@ -3,6 +3,7 @@ package rabbit.open.orm.pool.jpa;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -16,6 +17,7 @@ import rabbit.open.orm.exception.DataSourceClosedException;
 import rabbit.open.orm.exception.GetConnectionTimeOutException;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.RabbitORMException;
+import rabbit.open.orm.pool.SessionFactory;
 
 /**
  * <b>Description: 	rabbit数据源</b><br>
@@ -55,8 +57,33 @@ public class RabbitDataSource extends AbstractDataSource{
 	 * 获取一个可用的连接
 	 */
 	@Override
-    public Connection getConnection() throws SQLException {
-        if (closed) {
+	public Connection getConnection() throws SQLException {
+		if (SessionFactory.isTransactionOpen()) {
+			if (null == SessionFactory.dataSourceContext.get()) {
+				SessionFactory.dataSourceContext.set(new HashMap<>());
+			}
+			if (null != SessionFactory.dataSourceContext.get().get(this)) {
+				return SessionFactory.dataSourceContext.get().get(this);
+			} else {
+				Connection conn = SessionProxy.getProxy(getConnectionInternal());
+				SessionFactory.dataSourceContext.get().put(this, conn);
+				if (conn.getAutoCommit()) {
+					conn.setAutoCommit(false);
+				}
+				return conn;
+			}
+		} else {
+			Connection conn = SessionProxy.getProxy(getConnectionInternal());
+			if (!conn.getAutoCommit()) {
+				conn.setAutoCommit(true);
+			}
+			return conn;
+		}
+	}
+
+	private Connection getConnectionInternal()
+			throws DataSourceClosedException, SQLException, RabbitORMException {
+		if (closed) {
             throw new DataSourceClosedException("data source is closed!");
         }
         Connection first = connectors.pollFirst();
@@ -68,9 +95,8 @@ public class RabbitDataSource extends AbstractDataSource{
             return getConnection();
         } else {
             return pollConnection(15);
-
         }
-    }
+	}
 
 	/**
 	 * 
