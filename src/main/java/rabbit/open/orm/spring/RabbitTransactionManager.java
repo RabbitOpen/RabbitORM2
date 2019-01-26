@@ -53,8 +53,8 @@ public class RabbitTransactionManager extends
     }
 
     @Override
-    protected void doSetRollbackOnly(DefaultTransactionStatus status)
-    		throws TransactionException {
+    protected void doSetRollbackOnly(DefaultTransactionStatus status) {
+    	
     }
     
     @Override

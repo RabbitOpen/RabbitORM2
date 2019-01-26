@@ -76,37 +76,56 @@ public class SessionFactory {
             DMLType type) throws SQLException {
         DataSource ds = getDataSource(entityClz, tableName, type);
         if (isTransactionOpen()) {
-			if (null == dataSourceContext.get()) {
-				dataSourceContext.set(new HashMap<>());
-			}
-			if (null != dataSourceContext.get().get(ds)) {
-				return dataSourceContext.get().get(ds);
-			} else {
-				Connection conn = ds.getConnection();
-				if (!(ds instanceof RabbitDataSource)) {
-					// 兼容其它数据源
-					conn = SessionProxy.getProxy(conn);
-				}
-				dataSourceContext.get().put(ds, conn);
-				if (conn.getAutoCommit()) {
-					conn.setAutoCommit(false);
-				}
-				return conn;
-			}
+			return getConnectionFromContext(ds);
+		} else {
+			return getConnectionFromDataSource(ds);
+		}
+    }
+
+	/**
+	 * <b>@description 直接从数据源获取连接 </b>
+	 * @param ds
+	 * @return
+	 * @throws SQLException
+	 */
+	private Connection getConnectionFromDataSource(DataSource ds)
+			throws SQLException {
+		Connection conn = ds.getConnection();
+		if (!conn.getAutoCommit()) {
+			conn.setAutoCommit(true);
+		}
+		if (!(ds instanceof RabbitDataSource)) {
+			// 兼容其它数据源
+			return SessionProxy.getProxy(conn);
+		}
+		return conn;
+	}
+
+	/**
+	 * <b>@description 从threadLocal缓存中获取连接  </b>
+	 * @param ds
+	 * @return
+	 * @throws SQLException
+	 */
+	private Connection getConnectionFromContext(DataSource ds) throws SQLException {
+		if (null == dataSourceContext.get()) {
+			dataSourceContext.set(new HashMap<>());
+		}
+		if (null != dataSourceContext.get().get(ds)) {
+			return dataSourceContext.get().get(ds);
 		} else {
 			Connection conn = ds.getConnection();
-			if (!conn.getAutoCommit()) {
-				conn.setAutoCommit(true);
-			}
 			if (!(ds instanceof RabbitDataSource)) {
 				// 兼容其它数据源
-				return SessionProxy.getProxy(conn);
+				conn = SessionProxy.getProxy(conn);
+			}
+			dataSourceContext.get().put(ds, conn);
+			if (conn.getAutoCommit()) {
+				conn.setAutoCommit(false);
 			}
 			return conn;
 		}
-        
-        
-    }
+	}
     
     public static SessionFactory getSessionFactory() {
     	return self;
