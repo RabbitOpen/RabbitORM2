@@ -66,8 +66,6 @@ public class SessionFactory {
 
     public static final ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
     
-    private static SessionFactory self;
-    
     public Connection getConnection() throws SQLException {
         return getConnection(null, null, null);
     }
@@ -126,10 +124,6 @@ public class SessionFactory {
 			return conn;
 		}
 	}
-    
-    public static SessionFactory getSessionFactory() {
-    	return self;
-    }
     
     /**
      * <b>Description   获取一个数据源</b>
@@ -264,7 +258,6 @@ public class SessionFactory {
      */
     @PostConstruct
     public void setUp() {
-    	self = this;
         DialectTransformer.init();
         DeleteDialectAdapter.init();
         PolicyInsert.init();
