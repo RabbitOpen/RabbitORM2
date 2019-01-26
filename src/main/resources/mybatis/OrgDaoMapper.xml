@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="mybatis.test.mybatis.dao.OrgDao">
+
+    <resultMap id="OrgMap" type="mybatis.test.entity.MOrg">
+        <id column="ID" property="id" jdbcType="BIGINT" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+    </resultMap>
+
+	<insert id="add" parameterType="String">
+		insert into MORG(name) values(#{name})
+	
+	</insert>
+
+	<select id="count" resultType="Integer" parameterType="String">
+		select count(1) from MORG where name = #{name}
+	</select>
+	
+	<delete id="clear" parameterType="String">
+		delete from MORG where name = #{name}
+	</delete>
+	
+</mapper>

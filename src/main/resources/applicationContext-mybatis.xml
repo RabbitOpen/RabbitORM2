@@ -105,11 +105,11 @@
     
     <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
         <property name="dataSource" ref="rabbit4Mybatis" />  
-        <property name="mapperLocations" value="classpath:mybatis/*.xml"></property>
+        <property name="configLocation" value="classpath:mybatis-config.xml"></property>
     </bean>
 	
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">  
-        <property name="basePackage" value="mybatis.test" />  
+        <property name="basePackage" value="mybatis.test.mybatis.dao" />  
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>  
     </bean>  
 </beans>	
