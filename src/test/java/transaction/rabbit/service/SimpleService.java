@@ -1,4 +1,4 @@
-package transaction.service;
+package transaction.rabbit.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

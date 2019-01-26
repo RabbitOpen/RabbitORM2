@@ -1,12 +1,12 @@
-package transaction.entity;
+package mybatis.test.entity;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.dml.policy.Policy;
 
-@Entity("XUSER")
-public class TUser {
+@Entity("MUSER")
+public class MUser {
 
 	@PrimaryKey(policy=Policy.AUTOINCREMENT)
 	@Column("ID")
@@ -32,13 +32,12 @@ public class TUser {
 		this.name = name;
 	}
 	
-	public TUser() {
+	public MUser() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public TUser(String name) {
+	public MUser(String name) {
 		super();
 		this.name = name;
 	}
-	
 }

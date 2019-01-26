@@ -1,10 +1,10 @@
-package transaction.service;
+package transaction.rabbit.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import rabbit.open.test.service.BaseService;
-import transaction.entity.XOrg;
+import transaction.rabbit.entity.XOrg;
 
 @Service
 public class TOrgService extends BaseService<XOrg> {

@@ -23,7 +23,7 @@
       	   http://www.springframework.org/schema/task/spring-task-4.0.xsd">
 	
 	<!-- 配置自动扫描 -->
-	<context:component-scan base-package="transaction.c3p0test" />
+	<context:component-scan base-package="mybatis.test" />
 	<aop:aspectj-autoproxy proxy-target-class="true" />
 
 	<task:annotation-driven/>
@@ -37,27 +37,44 @@
 		</property>
 	</bean>
 	
+ 	<!-- 配置数据源 -->
+ 
+	<bean id="rabbit4Mybatis" class="rabbit.open.orm.pool.jpa.RabbitDataSource">
+		<property name="driverClass">
+			<value>${jdbc.driverName}</value>
+		</property>
+		<property name="url">
+			<value>${jdbc.url}</value>
+		</property>
+		<property name="username">
+			<value>${jdbc.username}</value>
+		</property>
+		<property name="password">
+			<value>${jdbc.password}</value>
+		</property>
+		<property name="maxSize">
+			<value>${jdbc.maxSize}</value>
+		</property>
+		<property name="minSize">
+			<value>${jdbc.minSize}</value>
+		</property>
+		<property name="maxIdle">
+			<value>${jdbc.maxIdle}</value>
+		</property>
+		<property name="showSlowSql">
+			<value>${jdbc.showSlowSql}</value>
+		</property>
+		<property name="threshold">
+			<value>${jdbc.threshold}</value>
+		</property>
+		<property name="maxCachedStmt">
+			<value>1000</value>
+		</property>
+	</bean> 
 
-	
-    <!-- c3p0数据源 -->
-    
-     <bean id="c3p0" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">    
-        <property name="driverClass" value="${jdbc.driverName}"/>    
-        <property name="jdbcUrl" value="${jdbc.url}"/>    
-        <property name="user" value="${jdbc.username}"/>    
-        <property name="password" value="${jdbc.password}"/> 
-        <property name="minPoolSize" value="${jdbc.minSize}"/>    
-        <property name="maxPoolSize" value="${jdbc.maxSize}"/>    
-        <property name="initialPoolSize" value="${jdbc.minSize}"/>    
-        <property name="maxIdleTime" value="60"/>    
-        <property name="maxStatements" value="1000"/>    
-        <property name="idleConnectionTestPeriod" value="60"/>    
-    </bean>  
-
-    
 	
 	<!-- 配置SessionFactory -->
-	<bean id="sessionFactoryC3p0" class="rabbit.open.orm.pool.SessionFactory">
+	<bean id="sessionFactory4Mybatis" class="rabbit.open.orm.pool.SessionFactory">
 		<property name="showSql">
 			<value>${jdbc.showSql}</value>
 		</property>
@@ -76,15 +93,25 @@
 		<property name="scanJar">
 			<value>${jdbc.scanJar}</value>
 		</property>
-		<property name="dataSource" ref="c3p0" />
+		<property name="dataSource" ref="rabbit4Mybatis" />
 	</bean>
 
     <bean id="transactionManager" class="rabbit.open.orm.spring.RabbitTransactionManager">  
-        <property name="sessionFactory" ref="sessionFactoryC3p0"/>
+        <property name="sessionFactory" ref="sessionFactory4Mybatis"/>
     </bean>  
       
     <!-- 开启事务控制的注解支持 -->  
     <tx:annotation-driven transaction-manager="transactionManager"/>
+    
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
+        <property name="dataSource" ref="rabbit4Mybatis" />  
+        <property name="mapperLocations" value="classpath:mybatis/*.xml"></property>
+    </bean>
+	
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">  
+        <property name="basePackage" value="mybatis.test" />  
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>  
+    </bean>  
 </beans>	
 
 

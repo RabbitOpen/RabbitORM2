@@ -1,12 +1,12 @@
-package transaction.entity;
+package mybatis.test.entity;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.dml.policy.Policy;
 
-@Entity("XORG")
-public class XOrg {
+@Entity("MORG")
+public class MOrg {
 
 	@PrimaryKey(policy=Policy.AUTOINCREMENT)
 	@Column("ID")
@@ -31,13 +31,13 @@ public class XOrg {
 	public void setName(String name) {
 		this.name = name;
 	}
+	
+	public MOrg() {
+		// TODO Auto-generated constructor stub
+	}
 
-	public XOrg(String name) {
+	public MOrg(String name) {
 		super();
 		this.name = name;
-	}
-	
-	public XOrg() {
-		// TODO Auto-generated constructor stub
 	}
 }
