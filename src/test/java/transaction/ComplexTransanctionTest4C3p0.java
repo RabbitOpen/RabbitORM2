@@ -36,7 +36,7 @@ public class ComplexTransanctionTest4C3p0 {
 	 * <b>@description 回滚用户信息 </b>
 	 */
 	@Test
-	public void t1() {
+	public void c3p0t1() {
 		String name = "user#org-0";
 		try {
 			ss.userRollback(name);
@@ -52,7 +52,7 @@ public class ComplexTransanctionTest4C3p0 {
 	 * <b>@description 一次事务 </b>
 	 */
 	@Test
-	public void t2() {
+	public void c3p0t2() {
 		String name = "user-org-1";
 		ss.simpleTransAdd(name);
 		TestCase.assertEquals(2, os.createQuery().addFilter("name", name).count());
@@ -63,7 +63,7 @@ public class ComplexTransanctionTest4C3p0 {
 	 * <b>@description 一次事务 回滚 </b>
 	 */
 	@Test
-	public void t3() {
+	public void c3p0t3() {
 		String name = "user-org-2";
 		try {
 			ts.simpleTransRollBack(name);
