@@ -37,40 +37,6 @@
 		</property>
 	</bean>
 	
- 	<!-- 配置数据源 -->
- 
-	<bean id="rabbit" class="rabbit.open.orm.pool.jpa.RabbitDataSource">
-		<property name="driverClass">
-			<value>${jdbc.driverName}</value>
-		</property>
-		<property name="url">
-			<value>${jdbc.url}</value>
-		</property>
-		<property name="username">
-			<value>${jdbc.username}</value>
-		</property>
-		<property name="password">
-			<value>${jdbc.password}</value>
-		</property>
-		<property name="maxSize">
-			<value>${jdbc.maxSize}</value>
-		</property>
-		<property name="minSize">
-			<value>${jdbc.minSize}</value>
-		</property>
-		<property name="maxIdle">
-			<value>${jdbc.maxIdle}</value>
-		</property>
-		<property name="showSlowSql">
-			<value>${jdbc.showSlowSql}</value>
-		</property>
-		<property name="threshold">
-			<value>${jdbc.threshold}</value>
-		</property>
-		<property name="maxCachedStmt">
-			<value>1000</value>
-		</property>
-	</bean> 
 
 	
 	<!-- dbcp数据源 -->
@@ -91,7 +57,7 @@
  -->
 	
     <!-- c3p0数据源 -->
-<!--     
+    
      <bean id="c3p0" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">    
         <property name="driverClass" value="${jdbc.driverName}"/>    
         <property name="jdbcUrl" value="${jdbc.url}"/>    
@@ -104,7 +70,7 @@
         <property name="maxStatements" value="1000"/>    
         <property name="idleConnectionTestPeriod" value="60"/>    
     </bean>  
--->
+
     
     <!-- hikari数据源 -->
  <!-- 
@@ -146,7 +112,7 @@
 		<property name="mappingFiles">
 			<value>${jdbc.mappingFiles}</value>
 		</property>
-		<property name="dataSource" ref="rabbit" />
+		<property name="dataSource" ref="c3p0" />
 	</bean>
 
     <bean id="transactionManager" class="rabbit.open.orm.spring.RabbitTransactionManager">  

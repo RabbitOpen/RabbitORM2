@@ -3,6 +3,7 @@ package rabbit.open.orm.pool;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -23,6 +24,8 @@ import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.pool.jpa.CombinedDataSource;
+import rabbit.open.orm.pool.jpa.RabbitDataSource;
+import rabbit.open.orm.pool.jpa.SessionProxy;
 
 public class SessionFactory {
 
@@ -59,7 +62,7 @@ public class SessionFactory {
 
     private static Logger logger = Logger.getLogger(SessionFactory.class);
 
-    private static ThreadLocal<Object> tag = new ThreadLocal<>();
+    public static final ThreadLocal<Object> transObjHolder = new ThreadLocal<>();
 
     public static final ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
     
@@ -72,7 +75,37 @@ public class SessionFactory {
     public Connection getConnection(Class<?> entityClz, String tableName,
             DMLType type) throws SQLException {
         DataSource ds = getDataSource(entityClz, tableName, type);
-        return ds.getConnection();
+        if (isTransactionOpen()) {
+			if (null == dataSourceContext.get()) {
+				dataSourceContext.set(new HashMap<>());
+			}
+			if (null != dataSourceContext.get().get(ds)) {
+				return dataSourceContext.get().get(ds);
+			} else {
+				Connection conn = ds.getConnection();
+				if (!(ds instanceof RabbitDataSource)) {
+					// 兼容其它数据源
+					conn = SessionProxy.getProxy(conn);
+				}
+				dataSourceContext.get().put(ds, conn);
+				if (conn.getAutoCommit()) {
+					conn.setAutoCommit(false);
+				}
+				return conn;
+			}
+		} else {
+			Connection conn = ds.getConnection();
+			if (!conn.getAutoCommit()) {
+				conn.setAutoCommit(true);
+			}
+			if (!(ds instanceof RabbitDataSource)) {
+				// 兼容其它数据源
+				return SessionProxy.getProxy(conn);
+			}
+			return conn;
+		}
+        
+        
     }
     
     public static SessionFactory getSessionFactory() {
@@ -100,8 +133,8 @@ public class SessionFactory {
 
     // 开启事务
     public static void beginTransaction(Object transactionObject) {
-        if (null == tag.get()) {
-            tag.set(transactionObject);
+        if (null == transObjHolder.get()) {
+            transObjHolder.set(transactionObject);
         }
     }
 
@@ -112,10 +145,10 @@ public class SessionFactory {
      * 
      */
     public static void commit(Object transactionObject) {
-        if (null == tag.get() || !tag.get().equals(transactionObject)) {
+        if (null == transObjHolder.get() || !transObjHolder.get().equals(transactionObject)) {
             return;
         }
-        tag.remove();
+        transObjHolder.remove();
         if (null == dataSourceContext.get()) {
             return;
         }
@@ -146,10 +179,10 @@ public class SessionFactory {
      * 
      */
     public static void rollBack(Object transactionObj) {
-        if (null == tag.get() || !tag.get().equals(transactionObj)) {
+        if (null == transObjHolder.get() || !transObjHolder.get().equals(transactionObj)) {
             return;
         }
-        tag.remove();
+        transObjHolder.remove();
         if (null == dataSourceContext.get()) {
             return;
         }
@@ -194,7 +227,7 @@ public class SessionFactory {
     }
 
     public static boolean isTransactionOpen() {
-        return null != tag.get();
+        return null != transObjHolder.get();
     }
 
     public void setDataSource(DataSource dataSource) {

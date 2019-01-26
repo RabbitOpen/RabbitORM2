@@ -1,12 +1,16 @@
 package rabbit.open.orm.spring;
 
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.ResourceTransactionManager;
 
 import rabbit.open.orm.pool.SessionFactory;
 
+/**
+ * <b>@description 事务管理器 </b>
+ */
 @SuppressWarnings("serial")
 public class RabbitTransactionManager extends
         AbstractPlatformTransactionManager implements
@@ -49,6 +53,11 @@ public class RabbitTransactionManager extends
     }
 
     @Override
+    protected void doSetRollbackOnly(DefaultTransactionStatus status)
+    		throws TransactionException {
+    }
+    
+    @Override
     protected void doRollback(DefaultTransactionStatus status) {
         if (status.isReadOnly()) {
             return;
@@ -56,4 +65,9 @@ public class RabbitTransactionManager extends
         SessionFactory.rollBack(status.getTransaction());
     }
 
+    @Override
+    protected boolean isExistingTransaction(Object transaction)
+    		throws TransactionException {
+    	return null != SessionFactory.transObjHolder.get();
+    }
 }

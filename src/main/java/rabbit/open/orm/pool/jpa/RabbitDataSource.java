@@ -24,7 +24,7 @@ import rabbit.open.orm.pool.SessionFactory;
  * <b>@author</b>	肖乾斌
  * 
  */
-public class RabbitDataSource extends AbstractDataSource{
+public class RabbitDataSource extends AbstractDataSource {
 
 	protected Logger logger = Logger.getLogger(getClass());
 	

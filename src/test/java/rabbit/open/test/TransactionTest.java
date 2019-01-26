@@ -46,7 +46,9 @@ public class TransactionTest {
             TestCase.assertTrue(false);
         } catch (Exception e) {
             TestCase.assertEquals(before, us.createQuery().count());
+            return;
         }
+        throw new RuntimeException();
     }
 
     /**

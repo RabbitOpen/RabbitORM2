@@ -68,7 +68,7 @@ public abstract class AbstractDataSource implements DataSource {
 	@Override
 	public Connection getConnection(String username, String password)
 			throws SQLException {
-		return null;
+		throw new RuntimeException("this method is not supported!");
 	}
 
 	public int getMaxSize() {
