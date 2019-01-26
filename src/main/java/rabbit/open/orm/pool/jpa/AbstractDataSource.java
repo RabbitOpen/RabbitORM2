@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 
 import javax.sql.DataSource;
 
+import rabbit.open.orm.exception.RabbitDMLException;
+
 public abstract class AbstractDataSource implements DataSource {
 
 	// 最大连接数
@@ -68,7 +70,7 @@ public abstract class AbstractDataSource implements DataSource {
 	@Override
 	public Connection getConnection(String username, String password)
 			throws SQLException {
-		throw new RuntimeException("this method is not supported!");
+		throw new RabbitDMLException("this method is not supported!");
 	}
 
 	public int getMaxSize() {
