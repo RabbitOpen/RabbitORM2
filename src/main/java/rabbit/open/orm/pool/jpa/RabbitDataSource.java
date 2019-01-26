@@ -92,7 +92,7 @@ public class RabbitDataSource extends AbstractDataSource {
         }
         try2CreateNewSession();
         if (counter < maxSize) {
-            return getConnection();
+            return getConnectionInternal();
         } else {
             return pollConnection(15);
         }
