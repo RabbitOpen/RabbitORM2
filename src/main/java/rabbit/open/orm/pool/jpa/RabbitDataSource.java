@@ -43,6 +43,11 @@ public class RabbitDataSource extends AbstractDataSource {
     // 慢sql的耗时阈值
     protected long threshold = 0L;
     
+    // 打印可疑的连接获取操作堆栈信息
+    protected boolean dumpSuspectedFetch = false;
+    
+    private SessionKeeper keeper = new SessionKeeper(this);
+    
 	/**
 	 * 创建session时使用的锁
 	 */
@@ -65,7 +70,7 @@ public class RabbitDataSource extends AbstractDataSource {
 			if (null != SessionFactory.dataSourceContext.get().get(this)) {
 				return SessionFactory.dataSourceContext.get().get(this);
 			} else {
-				Connection conn = SessionProxy.getProxy(getConnectionInternal());
+				Connection conn = SessionProxy.getProxy(getConnectionFromPool());
 				SessionFactory.dataSourceContext.get().put(this, conn);
 				if (conn.getAutoCommit()) {
 					conn.setAutoCommit(false);
@@ -73,16 +78,21 @@ public class RabbitDataSource extends AbstractDataSource {
 				return conn;
 			}
 		} else {
-			Connection conn = SessionProxy.getProxy(getConnectionInternal());
+			Connection conn = SessionProxy.getProxy(getConnectionFromPool());
 			if (!conn.getAutoCommit()) {
 				conn.setAutoCommit(true);
 			}
 			return conn;
 		}
 	}
-
-	private Connection getConnectionInternal()
-			throws DataSourceClosedException, SQLException, RabbitORMException {
+	
+	private Connection getConnectionFromPool() throws SQLException {
+		Connection conn = getConnectionInternal();
+		keeper.fetchFromPool(conn);
+		return conn;
+	}
+	
+	private Connection getConnectionInternal() throws SQLException {
 		if (closed) {
             throw new DataSourceClosedException("data source is closed!");
         }
@@ -154,6 +164,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	 */
 	public void releaseSession(Session conn){
 		try {
+			keeper.back2Pool(conn);
 			connectors.putFirst(conn);
 		} catch (Exception e) {
 			logger.info(e.getMessage(), e);
@@ -269,6 +280,7 @@ public class RabbitDataSource extends AbstractDataSource {
     public void closeSession(Session session) {
         try {
             sessionCreateLock.lock();
+            keeper.back2Pool(session);
             counter--;
             session.getConnector().close();
         } catch (Exception e) {
@@ -316,6 +328,14 @@ public class RabbitDataSource extends AbstractDataSource {
 
 	public void setThreshold(long threshold) {
 		this.threshold = threshold;
+	}
+
+	public boolean isDumpSuspectedFetch() {
+		return dumpSuspectedFetch;
+	}
+
+	public void setDumpSuspectedFetch(boolean dumpSuspectedFetch) {
+		this.dumpSuspectedFetch = dumpSuspectedFetch;
 	}
 	
 }

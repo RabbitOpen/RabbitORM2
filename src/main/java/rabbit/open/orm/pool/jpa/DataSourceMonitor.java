@@ -13,28 +13,28 @@ import org.apache.log4j.Logger;
  * <b>@author</b>	肖乾斌
  * 
  */
-public class DataSourceMonitor extends Thread{
+public class DataSourceMonitor extends Thread {
 
 	private boolean run = true;
-	
+
 	private Logger logger = Logger.getLogger(getClass());
-	
+
 	protected RabbitDataSource dataSource;
-	
+
 	private Semaphore semaphore = new Semaphore(0);
-	
+
 	public DataSourceMonitor(RabbitDataSource dataSource) {
-        super();
-        this.dataSource = dataSource;
-    }
-	
+		super();
+		this.dataSource = dataSource;
+	}
+
 	@Override
-    public void run() {
-        while (run) {
-            monitorDataSource();
-            sleep5s();
-        }
-    }
+	public void run() {
+		while (run) {
+			monitorDataSource();
+			sleep5s();
+		}
+	}
 
 	/**
 	 * 

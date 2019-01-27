@@ -67,6 +67,9 @@
 		<property name="threshold">
 			<value>${jdbc.threshold}</value>
 		</property>
+		<property name="dumpSuspectedFetch">
+			<value>true</value>
+		</property>
 		<property name="maxCachedStmt">
 			<value>1000</value>
 		</property>
