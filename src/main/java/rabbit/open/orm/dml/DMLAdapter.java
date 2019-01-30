@@ -160,7 +160,11 @@ public abstract class DMLAdapter<T> {
      * <b>Description  显示带真实值的sql.</b>
      */
     public void showUnMaskedSql() {
-        try {
+        showSqlByLevel(true);
+    }
+
+	protected void showSqlByLevel(boolean info) {
+		try {
             String valuesql = sql.toString();
             StringBuilder vs = new StringBuilder("prepareStatement values(");
             for (Object v : preparedValues) {
@@ -174,14 +178,19 @@ public abstract class DMLAdapter<T> {
                 vs.deleteCharAt(index);
             }
             vs.append(")");
-            logger.info(NEW_LINE + (sessionFactory.isFormatSql() ? SQLFormater
-                            .format(valuesql) : valuesql)
-                    + (preparedValues.isEmpty() ? "" : (NEW_LINE + vs
-                            .toString())));
+            String msg = NEW_LINE + (sessionFactory.isFormatSql() ? SQLFormater
+					.format(valuesql) : valuesql)
+					+ (preparedValues.isEmpty() ? "" : (NEW_LINE + vs
+							.toString()));
+			if (info) {
+            	logger.info(msg);
+            } else {
+            	logger.error(msg);
+            }
         } catch (Exception e) {
             logger.error("show sql error for " + e.getMessage(), e);
         }
-    }
+	}
 
     /**
      * 
