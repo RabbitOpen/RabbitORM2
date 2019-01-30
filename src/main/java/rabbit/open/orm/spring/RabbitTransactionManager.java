@@ -68,4 +68,15 @@ public class RabbitTransactionManager extends
     protected boolean isExistingTransaction(Object transaction) {
     	return null != SessionFactory.transObjHolder.get();
     }
+    
+    @Override
+    protected Object doSuspend(Object transaction) {
+    	return null;
+    }
+    
+    @Override
+    protected void doResume(Object transaction, Object suspendedResources) {
+    	
+    }
+    
 }
