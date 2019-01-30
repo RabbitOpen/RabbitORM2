@@ -7,6 +7,8 @@
     
     2、RabbitDataSource引入dumpSuspectedFetch配置boolean属性，会在连接可能泄漏时打印出堆栈日志 
     
+    3、新增sql执行异常时打印日志信息的功能
+    
 ================================== V 2.6.3 =========================================   
     
     1、迁移Spring事务支持逻辑，从SessionFactory中迁移到DataSource。以支持三方框架直接使用数据源

@@ -124,6 +124,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			rs.close();
 			return new Result<>(resultList);
 		} catch (Exception e) {
+			showUnMaskedSql();
 			Session.flagSQLException(e);
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
@@ -1491,6 +1492,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			}
 			return 0L;
 		} catch (Exception e) {
+			showUnMaskedSql();
 			Session.flagSQLException(e);
 		    throw new RabbitDMLException(e);
 		} finally {
