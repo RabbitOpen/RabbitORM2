@@ -174,9 +174,9 @@
 	<distributionManagement>
 		<repository>
 			<id>rabbit-open</id>
-			<url>http://www.rabbit-open.top/nexus/content/repositories/thirdparty</url> 
+			<url>http://www.rabbit-open.top/nexus/content/repositories/thirdparty</url>
 			<!-- <id>hn-thirdparty-chengdu</id> 
-			<url>http://localhost/nexus/content/repositories/releases/</url> -->
+			<url>http://localhost/nexus/content/repositories/thirdparty</url> -->
 		</repository>
 	</distributionManagement>
 

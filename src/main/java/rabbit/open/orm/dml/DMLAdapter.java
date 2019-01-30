@@ -169,7 +169,7 @@ public abstract class DMLAdapter<T> {
             StringBuilder vs = new StringBuilder("prepareStatement values(");
             for (Object v : preparedValues) {
                 Object text = convert2Str((PreparedValue) v);
-                valuesql = replace(valuesql, text.toString());
+                valuesql = replace(valuesql, text.toString().replaceAll("'", "\\\\'"));
                 vs.append(text + ", ");
             }
             if (-1 != vs.indexOf(",")) {
