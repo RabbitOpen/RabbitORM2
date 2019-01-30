@@ -169,7 +169,7 @@ public abstract class DMLAdapter<T> {
             StringBuilder vs = new StringBuilder("prepareStatement values(");
             for (Object v : preparedValues) {
                 Object text = convert2Str((PreparedValue) v);
-                valuesql = replace(valuesql, text.toString().replaceAll("'", "\\\\'"));
+                valuesql = replace(valuesql, text.toString());
                 vs.append(text + ", ");
             }
             if (-1 != vs.indexOf(",")) {
@@ -204,7 +204,7 @@ public abstract class DMLAdapter<T> {
         	return "null";
         }
     	if(v.getValue() instanceof String){
-    		return "'" + v.getValue().toString() + "'";
+    		return "'" + v.getValue().toString().replaceAll("'", "\\\\'") + "'";
     	}
     	if(v.getValue() instanceof Date){
     		String ds = new SimpleDateFormat(DEFAULT_DATE_PATTERN).format(v.getValue());
