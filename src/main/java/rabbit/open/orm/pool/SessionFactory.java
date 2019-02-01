@@ -3,6 +3,7 @@ package rabbit.open.orm.pool;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,6 +12,7 @@ import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.transaction.TransactionDefinition;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.ddl.DDLType;
@@ -26,6 +28,7 @@ import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.pool.jpa.CombinedDataSource;
 import rabbit.open.orm.pool.jpa.RabbitDataSource;
 import rabbit.open.orm.pool.jpa.SessionProxy;
+import rabbit.open.orm.spring.TransactionObject;
 
 public class SessionFactory {
 
@@ -63,6 +66,9 @@ public class SessionFactory {
     private static Logger logger = Logger.getLogger(SessionFactory.class);
 
     public static final ThreadLocal<Object> transObjHolder = new ThreadLocal<>();
+    
+    // 内嵌事务的事务对象
+    public static final ThreadLocal<Object> nestedTransObj = new ThreadLocal<>();
 
     public static final ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
     
@@ -74,11 +80,28 @@ public class SessionFactory {
             DMLType type) throws SQLException {
         DataSource ds = getDataSource(entityClz, tableName, type);
         if (isTransactionOpen()) {
-			return getConnectionFromContext(ds);
+			Connection conn = getConnectionFromContext(ds);
+			cacheSavepoint(conn);
+			return conn;
 		} else {
 			return getConnectionFromDataSource(ds);
 		}
     }
+
+	/**
+	 * <b>@description 缓存回滚点 </b>
+	 * @param conn
+	 * @throws SQLException
+	 */
+	private void cacheSavepoint(Connection conn) throws SQLException {
+		if (null != nestedTransObj.get()) {
+			Savepoint sp = conn.setSavepoint();
+			TransactionObject tranObj = (TransactionObject) nestedTransObj.get();
+			tranObj.setSavePoint(sp);
+			tranObj.setConnection(conn);
+			nestedTransObj.remove();
+		}
+	}
 
 	/**
 	 * <b>@description 直接从数据源获取连接 </b>
@@ -145,9 +168,15 @@ public class SessionFactory {
     }
 
     // 开启事务
-    public static void beginTransaction(Object transactionObject) {
+    public static void beginTransaction(Object obj) {
         if (null == transObjHolder.get()) {
-            transObjHolder.set(transactionObject);
+            transObjHolder.set(obj);
+            nestedTransObj.remove();
+        } else {
+        	TransactionObject tObj = (TransactionObject) obj;
+        	if (TransactionDefinition.PROPAGATION_NESTED == tObj.getPropagation()) {
+        		nestedTransObj.set(obj);
+        	}
         }
     }
 
@@ -192,32 +221,56 @@ public class SessionFactory {
      * 
      */
     public static void rollBack(Object transactionObj) {
-        if (null == transObjHolder.get() || !transObjHolder.get().equals(transactionObj)) {
+        if (null == transObjHolder.get()) {
             return;
         }
-        transObjHolder.remove();
-        if (null == dataSourceContext.get()) {
-            return;
+        if (transObjHolder.get().equals(transactionObj)) {
+        	rollbackAll();
+        } else {
+        	rollBackToSavepoint(transactionObj);
         }
-        for (Entry<DataSource, Connection> entry : dataSourceContext.get().entrySet()) {
-            Connection conn = entry.getValue();
-            if (null == conn) {
-                continue;
-            }
-            try {
-                conn.rollback();
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            } finally {
-                try {
-                    conn.close();
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-        }
-        dataSourceContext.remove();
     }
+
+	/**
+	 * <b>@description 回滚到指定的savePoint </b>
+	 * @param transactionObj
+	 */
+	private static void rollBackToSavepoint(Object transactionObj) {
+		TransactionObject tObj = (TransactionObject) transactionObj;
+		Savepoint sp = tObj.getSavePoint();
+		if (null != sp) {
+			try {
+				tObj.getConnection().rollback(sp);
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+	}
+
+	private static void rollbackAll() {
+		transObjHolder.remove();
+		if (null == dataSourceContext.get()) {
+			return;
+		}
+		for (Entry<DataSource, Connection> entry : dataSourceContext.get().entrySet()) {
+			Connection conn = entry.getValue();
+			if (null == conn) {
+				continue;
+			}
+			try {
+				conn.rollback();
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			} finally {
+				try {
+					conn.close();
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+		}
+		dataSourceContext.remove();
+	}
 
     /**
      * 

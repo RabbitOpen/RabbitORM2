@@ -23,24 +23,24 @@ public class MyBatisTest {
 
 	@Autowired
 	private MyBatisService myBatisService;
-	
+
 	@Autowired
 	private MyBatisTranService mbs;
-	
+
 	@Autowired
 	private OrgDao orgDao;
-	
+
 	@Autowired
 	private UserDao userDao;
-	
+
 	@Autowired
 	private MUserService us;
-	
+
 	@Autowired
 	MOrgService os;
-	
+
 	@Test
-	public void addTest() { 
+	public void addTest() {
 		orgDao.clear("myorg");
 		userDao.clear("zhangsan");
 		TestCase.assertEquals(1, myBatisService.addUser("zhangsan"));
@@ -51,14 +51,14 @@ public class MyBatisTest {
 	 * <b>@description 事务测试 </b>
 	 */
 	@Test
-	public void tranTest() { 
+	public void tranTest() {
 		String name = "tranxxx";
 		orgDao.clear(name);
 		userDao.clear(name);
 		mbs.tranadd(name);
 		TestCase.assertEquals(1, orgDao.count(name));
 		TestCase.assertEquals(1, userDao.count(name));
-		
+
 		name = "tranxxxRollback";
 		orgDao.clear(name);
 		userDao.clear(name);
@@ -71,7 +71,7 @@ public class MyBatisTest {
 		}
 		throw new RuntimeException("回滚失败");
 	}
-	
+
 	/**
 	 * <b>@description mybatis 混合rabbit一起测试 </b>
 	 */

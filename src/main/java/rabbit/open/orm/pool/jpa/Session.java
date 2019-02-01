@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.LinkedHashMap;
 
@@ -227,6 +228,30 @@ public class Session extends AbstractConnection {
 	@Override
 	public boolean isReadOnly() throws SQLException {
 		return conn.isReadOnly();
+	}
+	
+	@Override
+	public Savepoint setSavepoint() throws SQLException {
+		return conn.setSavepoint();
+	}
+
+	@Override
+	public Savepoint setSavepoint(String name) throws SQLException {
+		return conn.setSavepoint(name);
+	}
+
+	@Override
+	public void rollback(Savepoint savepoint) throws SQLException {
+		if (!conn.getAutoCommit()) {
+			conn.rollback(savepoint);
+		}
+	}
+
+	@Override
+	public void releaseSavepoint(Savepoint savepoint) throws SQLException {
+		if (!conn.getAutoCommit()) {
+			conn.releaseSavepoint(savepoint);
+		}
 	}
 
 }

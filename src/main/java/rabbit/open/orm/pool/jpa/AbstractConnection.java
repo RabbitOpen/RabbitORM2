@@ -11,7 +11,6 @@ import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
-import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
 import java.util.Map;
@@ -113,29 +112,6 @@ public abstract class AbstractConnection implements Connection{
 	public int getHoldability() throws SQLException {
 		
 		return 0;
-	}
-
-	@Override
-	public Savepoint setSavepoint() throws SQLException {
-		
-		return null;
-	}
-
-	@Override
-	public Savepoint setSavepoint(String name) throws SQLException {
-		
-		return null;
-	}
-
-	@Override
-	public void rollback(Savepoint savepoint) throws SQLException {
-		
-	}
-
-	@Override
-	public void releaseSavepoint(Savepoint savepoint) throws SQLException {
-		
-		
 	}
 
 	@Override

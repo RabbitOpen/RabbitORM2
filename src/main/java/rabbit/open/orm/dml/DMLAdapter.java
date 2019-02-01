@@ -160,10 +160,14 @@ public abstract class DMLAdapter<T> {
      * <b>Description  显示带真实值的sql.</b>
      */
     public void showUnMaskedSql() {
-        showSqlByLevel(true);
+        showUnMaskedSql(true);
     }
 
-	protected void showSqlByLevel(boolean info) {
+	/**
+	 * <b>@description  显示带真实值的sql</b>
+	 * @param info 是否以info级别打印日志
+	 */
+	protected void showUnMaskedSql(boolean info) {
 		try {
             String valuesql = sql.toString();
             StringBuilder vs = new StringBuilder("prepareStatement values(");

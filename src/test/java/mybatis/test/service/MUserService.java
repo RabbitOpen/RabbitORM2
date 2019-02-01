@@ -5,6 +5,7 @@ import mybatis.test.mybatis.service.MyBatisTranService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import rabbit.open.orm.exception.RabbitDMLException;
@@ -14,6 +15,9 @@ public class MUserService extends BaseService<MUser> {
 
 	@Autowired
 	MyBatisTranService mbs;
+	
+	@Autowired
+	MOrgService orgService;
 	
 	@Transactional
 	public void combinedAdd(String username) {
@@ -27,4 +31,19 @@ public class MUserService extends BaseService<MUser> {
 		add(new MUser(username));
 		throw new RabbitDMLException("");
 	}
+	
+	@Transactional(propagation = Propagation.NESTED)
+	public void nestedTranAdd(String name) {
+		add(new MUser(name));
+		add(new MUser(name));
+		throw new RuntimeException();
+	}
+
+	@Transactional()
+	public void tranAdd(String name) {
+		add(new MUser(name));
+		add(new MUser(name));
+		throw new RuntimeException();
+	}
+	
 }

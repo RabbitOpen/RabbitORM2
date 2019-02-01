@@ -1,0 +1,55 @@
+package rabbit.open.orm.spring;
+
+import java.sql.Connection;
+import java.sql.Savepoint;
+
+import org.springframework.transaction.SavepointManager;
+import org.springframework.transaction.TransactionDefinition;
+
+public class TransactionObject implements SavepointManager {
+	
+	private Savepoint savePoint;
+	
+	private Connection connection;
+	
+	private int propagation = TransactionDefinition.PROPAGATION_REQUIRED;
+
+	@Override
+	public Object createSavepoint() {
+		return null;
+	}
+
+	@Override
+	public void rollbackToSavepoint(Object obj) {
+		
+	}
+
+	@Override
+	public void releaseSavepoint(Object obj) {
+		
+	}
+	
+	public void setSavePoint(Savepoint savePoint) {
+		this.savePoint = savePoint;
+	}
+	
+	public Savepoint getSavePoint() {
+		return savePoint;
+	}
+	
+	public void setConnection(Connection connection) {
+		this.connection = connection;
+	}
+	
+	public Connection getConnection() {
+		return connection;
+	}
+	
+	public int getPropagation() {
+		return propagation;
+	}
+	
+	public void setPropagation(int propagation) {
+		this.propagation = propagation;
+	}
+}

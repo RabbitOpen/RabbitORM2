@@ -1,6 +1,10 @@
 
      官网：http://www.rabbit-open.top/rabbit/orm2
     
+================================== V 2.6.6 =========================================   
+    
+    1、增强RabbitTransactionManager, 新增对nested事务的支持
+    
 ================================== V 2.6.5 =========================================   
     
     1、优化RabbitTransactionManager，规避调用doSuspend方法异常
