@@ -1,6 +1,10 @@
 
      官网：http://www.rabbit-open.top/rabbit/orm2
     
+================================== V 2.6.7 =========================================   
+    
+    1、优化RabbitTransactionManager, 非nested事务全部认为是required(不在抛异常)
+    
 ================================== V 2.6.6 =========================================   
     
     1、增强RabbitTransactionManager, 新增对nested事务的支持

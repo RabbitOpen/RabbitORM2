@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.orm.exception.PropagationException;
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:applicationContext-mybatis.xml" })
 public class RabbitTransactionManagerTest {
@@ -64,18 +62,4 @@ public class RabbitTransactionManagerTest {
 		TestCase.assertEquals(3, userDao.count(name));
 	}
 
-	/**
-	 * <b>@description 没有内嵌事务就不进行局部回滚 </b>
-	 */
-	@Test
-	public void propagationTest() {
-		String name = "propagationTest";
-		try {
-			nestedService.propagation(name);
-		} catch (PropagationException e) {
-			TestCase.assertEquals(0, userDao.count(name));
-			return;
-		}
-		throw new RuntimeException();
-	}
 }

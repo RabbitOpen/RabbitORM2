@@ -5,7 +5,6 @@ import org.springframework.transaction.support.AbstractPlatformTransactionManage
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.ResourceTransactionManager;
 
-import rabbit.open.orm.exception.PropagationException;
 import rabbit.open.orm.pool.SessionFactory;
 
 /**
@@ -41,14 +40,9 @@ public class RabbitTransactionManager extends
         if (def.isReadOnly()) {
             return;
         }
-        if (TransactionDefinition.PROPAGATION_NESTED == def.getPropagationBehavior() ||
-        		TransactionDefinition.PROPAGATION_REQUIRED == def.getPropagationBehavior()) {
-        	TransactionObject tObj = (TransactionObject) obj;
-        	tObj.setPropagation(def.getPropagationBehavior());
-        	SessionFactory.beginTransaction(obj);
-        } else {
-        	throw new PropagationException();
-        }
+        TransactionObject tObj = (TransactionObject) obj;
+        tObj.setPropagation(def.getPropagationBehavior());
+        SessionFactory.beginTransaction(obj);
     }
 
     @Override
