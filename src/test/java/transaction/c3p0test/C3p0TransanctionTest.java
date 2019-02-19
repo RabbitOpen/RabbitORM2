@@ -35,7 +35,7 @@ public class C3p0TransanctionTest {
 		String name = "user#org-0";
 		try {
 			ss.userRollback(name);
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
 			TestCase.assertEquals(2, os.createQuery().addFilter("name", name).count());
 			TestCase.assertEquals(0, us.createQuery().addFilter("name", name).count());
 			return;
