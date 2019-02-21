@@ -68,7 +68,7 @@
 			<value>${jdbc.threshold}</value>
 		</property>
 		<property name="maxCachedStmt">
-			<value>1000</value>
+			<value>20</value>
 		</property>
 	</bean> 
 
