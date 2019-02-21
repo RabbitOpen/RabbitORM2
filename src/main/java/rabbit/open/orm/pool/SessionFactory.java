@@ -4,15 +4,16 @@ import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Savepoint;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.ddl.DDLType;
@@ -26,7 +27,6 @@ import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.pool.jpa.CombinedDataSource;
-import rabbit.open.orm.pool.jpa.RabbitDataSource;
 import rabbit.open.orm.pool.jpa.SessionProxy;
 import rabbit.open.orm.spring.TransactionObject;
 
@@ -68,9 +68,9 @@ public class SessionFactory {
     public static final ThreadLocal<Object> transObjHolder = new ThreadLocal<>();
     
     // 内嵌事务的事务对象
-    public static final ThreadLocal<Object> nestedTransObj = new ThreadLocal<>();
+    private static final ThreadLocal<Object> nestedTransObj = new ThreadLocal<>();
 
-    public static final ThreadLocal<Map<DataSource, Connection>> dataSourceContext = new ThreadLocal<>();
+    private Set<DataSource> sources = new HashSet<>();
     
     public Connection getConnection() throws SQLException {
         return getConnection(null, null, null);
@@ -79,12 +79,28 @@ public class SessionFactory {
     public Connection getConnection(Class<?> entityClz, String tableName,
             DMLType type) throws SQLException {
         DataSource ds = getDataSource(entityClz, tableName, type);
+        Connection conn;
         if (isTransactionOpen()) {
-			Connection conn = getConnectionFromContext(ds);
+			RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager.getResource(ds);
+			if (holder.hasConnection()) {
+				conn = holder.getConnection();
+			} else {
+				conn = ds.getConnection();
+				holder.setConnection(conn);
+			}
+			conn = SessionProxy.getProxy(conn);
+			if (conn.getAutoCommit()) {
+				conn.setAutoCommit(false);
+			}
 			cacheSavepoint(conn);
 			return conn;
 		} else {
-			return getConnectionFromDataSource(ds);
+			conn = ds.getConnection();
+			conn = SessionProxy.getProxy(conn);
+			if (!conn.getAutoCommit()) {
+				conn.setAutoCommit(true);
+			}
+			return conn;
 		}
     }
 
@@ -103,51 +119,6 @@ public class SessionFactory {
 		}
 	}
 
-	/**
-	 * <b>@description 直接从数据源获取连接 </b>
-	 * @param ds
-	 * @return
-	 * @throws SQLException
-	 */
-	private Connection getConnectionFromDataSource(DataSource ds)
-			throws SQLException {
-		Connection conn = ds.getConnection();
-		if (!conn.getAutoCommit()) {
-			conn.setAutoCommit(true);
-		}
-		if (!(ds instanceof RabbitDataSource)) {
-			// 兼容其它数据源
-			return SessionProxy.getProxy(conn);
-		}
-		return conn;
-	}
-
-	/**
-	 * <b>@description 从threadLocal缓存中获取连接  </b>
-	 * @param ds
-	 * @return
-	 * @throws SQLException
-	 */
-	private Connection getConnectionFromContext(DataSource ds) throws SQLException {
-		if (null == dataSourceContext.get()) {
-			dataSourceContext.set(new HashMap<>());
-		}
-		if (null != dataSourceContext.get().get(ds)) {
-			return dataSourceContext.get().get(ds);
-		} else {
-			Connection conn = ds.getConnection();
-			if (!(ds instanceof RabbitDataSource)) {
-				// 兼容其它数据源
-				conn = SessionProxy.getProxy(conn);
-			}
-			dataSourceContext.get().put(ds, conn);
-			if (conn.getAutoCommit()) {
-				conn.setAutoCommit(false);
-			}
-			return conn;
-		}
-	}
-    
     /**
      * <b>Description   获取一个数据源</b>
      * @param entityClz
@@ -163,13 +134,30 @@ public class SessionFactory {
         return dataSource;
     }
     
+    /**
+     * <b>@description 获取sessionfactory能够支配的所有数据源 </b>
+     * @return
+     */
+    private Set<DataSource> getAllDataSources() {
+    	if (!sources.isEmpty()) {
+    		return sources;
+    	}
+    	if (null != combinedDataSource) {
+    		sources.addAll(combinedDataSource.getAllDataSources());
+        } else {
+        	sources.add(dataSource);
+        }
+    	return sources;
+    }
+    
     public void setCombinedDataSource(CombinedDataSource combinedDataSource) {
         this.combinedDataSource = combinedDataSource;
     }
 
     // 开启事务
-    public static void beginTransaction(Object obj) {
+    public static void beginTransaction(Object obj, SessionFactory factory) {
         if (null == transObjHolder.get()) {
+        	initSessionHolder(factory);
             transObjHolder.set(obj);
             nestedTransObj.remove();
         } else {
@@ -180,52 +168,66 @@ public class SessionFactory {
         }
     }
 
+	/**
+	 * <b>@description 初始化connectionHolder给框架使用 </b>
+	 * @param factory
+	 */
+	private static void initSessionHolder(SessionFactory factory) {
+		for (DataSource ds : factory.getAllDataSources()) {
+			ConnectionHolder holder = new RabbitConnectionHolder();
+			holder.setSynchronizedWithTransaction(true);
+			if (null == TransactionSynchronizationManager.getResource(ds)) {
+				TransactionSynchronizationManager.bindResource(ds, holder);
+			}
+		}
+	}
+
     /**
      * 
      * <b>Description: 提交事务</b><br>
      * @param transactionObject 事务对象
+     * @param factory 
      * 
      */
-    public static void commit(Object transactionObject) {
+    public static void commit(Object transactionObject, SessionFactory factory) {
         if (null == transObjHolder.get() || !transObjHolder.get().equals(transactionObject)) {
             return;
         }
         transObjHolder.remove();
-        if (null == dataSourceContext.get()) {
-            return;
-        }
-        for (Entry<DataSource, Connection> entry : dataSourceContext.get().entrySet()) {
-            Connection conn = entry.getValue();
-            if (null == conn) {
-                continue;
-            }
-            try {
-                conn.commit();
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            } finally {
-                try {
-                    conn.close();
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-        }
-        dataSourceContext.remove();
+        for (DataSource ds : factory.getAllDataSources()) {
+        	RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager
+					.getResource(ds);
+        	if (!holder.hasConnection()) {
+        		continue;
+        	}
+			try {
+				holder.getConnection().commit();
+			} catch (SQLException e) {
+				logger.error(e.getMessage(), e);
+			} finally {
+				try {
+					holder.getConnection().close();
+				} catch (SQLException e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+        	TransactionSynchronizationManager.unbindResource(ds);
+		}
     }
 
     /**
      * 
      * <b>Description: 回滚操作</b><br>
      * @param transactionObj
+     * @param factory
      * 
      */
-    public static void rollBack(Object transactionObj) {
+    public static void rollBack(Object transactionObj, SessionFactory factory) {
         if (null == transObjHolder.get()) {
             return;
         }
         if (transObjHolder.get().equals(transactionObj)) {
-        	rollbackAll();
+        	rollbackAll(factory);
         } else {
         	rollBackToSavepoint(transactionObj);
         }
@@ -247,29 +249,27 @@ public class SessionFactory {
 		}
 	}
 
-	private static void rollbackAll() {
+	private static void rollbackAll(SessionFactory factory) {
 		transObjHolder.remove();
-		if (null == dataSourceContext.get()) {
-			return;
-		}
-		for (Entry<DataSource, Connection> entry : dataSourceContext.get().entrySet()) {
-			Connection conn = entry.getValue();
-			if (null == conn) {
-				continue;
-			}
+		for (DataSource ds : factory.getAllDataSources()) {
+			RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager
+					.getResource(ds);
+			if (!holder.hasConnection()) {
+        		continue;
+        	}
 			try {
-				conn.rollback();
-			} catch (Exception e) {
+				holder.getConnection().rollback();
+			} catch (SQLException e) {
 				logger.error(e.getMessage(), e);
 			} finally {
 				try {
-					conn.close();
-				} catch (Exception e) {
+					holder.getConnection().close();
+				} catch (SQLException e) {
 					logger.error(e.getMessage(), e);
 				}
 			}
+			TransactionSynchronizationManager.unbindResource(ds);
 		}
-		dataSourceContext.remove();
 	}
 
     /**

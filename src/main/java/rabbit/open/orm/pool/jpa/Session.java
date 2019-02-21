@@ -45,6 +45,9 @@ public class Session extends AbstractConnection {
 		activeTime = System.currentTimeMillis();
 	}
 	
+	public Session() {
+	}
+	
 	public static Throwable getRootCause(Exception e) {
         Throwable cause = e;
         while(null != cause.getCause()) {

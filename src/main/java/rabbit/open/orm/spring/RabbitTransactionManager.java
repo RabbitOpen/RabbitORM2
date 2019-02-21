@@ -42,7 +42,7 @@ public class RabbitTransactionManager extends
         }
         TransactionObject tObj = (TransactionObject) obj;
         tObj.setPropagation(def.getPropagationBehavior());
-        SessionFactory.beginTransaction(obj);
+        SessionFactory.beginTransaction(obj, sessionFactory);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class RabbitTransactionManager extends
         if (status.isReadOnly()) {
             return;
         }
-        SessionFactory.commit(status.getTransaction());
+        SessionFactory.commit(status.getTransaction(), sessionFactory);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class RabbitTransactionManager extends
         if (status.isReadOnly()) {
             return;
         }
-        SessionFactory.rollBack(status.getTransaction());
+        SessionFactory.rollBack(status.getTransaction(), sessionFactory);
     }
 
     @Override

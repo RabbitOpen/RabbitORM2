@@ -1,5 +1,7 @@
 package rabbit.open.orm.pool.jpa;
 
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import rabbit.open.orm.dml.filter.DMLType;
@@ -20,5 +22,11 @@ public interface CombinedDataSource {
      * @return              数据源
      */
     public abstract DataSource getDataSource(Class<?> entityClz, String tableName, DMLType type);
+    
+    /**
+     * <b>@description  获取所有数据源</b>
+     * @return
+     */
+    public abstract List<DataSource> getAllDataSources();
 
 }

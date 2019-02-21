@@ -21,12 +21,12 @@ public class TransactionObject implements SavepointManager {
 
 	@Override
 	public void rollbackToSavepoint(Object obj) {
-		
+		// do nothing
 	}
 
 	@Override
 	public void releaseSavepoint(Object obj) {
-		
+		// do nothing
 	}
 	
 	public void setSavePoint(Savepoint savePoint) {

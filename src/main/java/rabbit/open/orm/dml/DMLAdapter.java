@@ -891,7 +891,7 @@ public abstract class DMLAdapter<T> {
 			return false;
 		}
 		for (MultiDropFilter filter : multiDropFilters) {
-			if (filter.getFilters().size() > 0) {
+			if (!filter.getFilters().isEmpty()) {
 				return true;
 			}
 		}
@@ -904,7 +904,7 @@ public abstract class DMLAdapter<T> {
      */
     protected StringBuilder createMultiDropSql(MultiDropFilter multiDropFilter) {
         StringBuilder fsql = new StringBuilder();
-        if (0 == multiDropFilter.getFilters().size()) {
+        if (multiDropFilter.getFilters().isEmpty()) {
             return fsql;
         }
         int i = 0;

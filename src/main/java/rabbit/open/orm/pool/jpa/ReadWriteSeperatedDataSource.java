@@ -1,5 +1,8 @@
 package rabbit.open.orm.pool.jpa;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import rabbit.open.orm.dml.filter.DMLType;
@@ -16,6 +19,8 @@ public class ReadWriteSeperatedDataSource implements CombinedDataSource {
     //读的源
     private DataSource writeSource;
     
+    private List<DataSource> sources = new ArrayList<>();
+    
     @Override
     public DataSource getDataSource(Class<?> entityClz, String tableName, DMLType type) {
     	if (SessionFactory.isTransactionOpen()) {
@@ -26,7 +31,7 @@ public class ReadWriteSeperatedDataSource implements CombinedDataSource {
         }
         return getWriteSource();
     }
-
+    
     public DataSource getReadSource() {
         return readSource;
     }
@@ -37,9 +42,16 @@ public class ReadWriteSeperatedDataSource implements CombinedDataSource {
     
     public void setReadSource(DataSource readSource) {
         this.readSource = readSource;
+        sources.add(readSource);
     }
     
     public void setWriteSource(DataSource writeSource) {
         this.writeSource = writeSource;
+        sources.add(writeSource);
     }
+
+	@Override
+	public List<DataSource> getAllDataSources() {
+		return sources;
+	}
 }

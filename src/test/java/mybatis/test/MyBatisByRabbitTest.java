@@ -19,7 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:applicationContext-mybatis.xml" })
-public class MyBatisTest {
+public class MyBatisByRabbitTest {
 
 	@Autowired
 	private MyBatisService myBatisService;
@@ -101,6 +101,13 @@ public class MyBatisTest {
 			return;
 		}
 		throw new RuntimeException("回滚失败");
+	}
+	
+	@Test
+	public void repeatedCallTest() {
+		combinedCallRollbackTest();
+		combinedCallRollbackTest();
+		combinedCallRollbackTest();
 	}
 	
 }

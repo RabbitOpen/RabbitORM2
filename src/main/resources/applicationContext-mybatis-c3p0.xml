@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+      	   http://www.springframework.org/schema/tx 
+      	   http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+      	   http://www.springframework.org/schema/context
+      	   http://www.springframework.org/schema/context/spring-context-4.0.xsd
+      	   http://www.springframework.org/schema/mvc
+      	   http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+      	   http://www.springframework.org/schema/aop 
+      	   http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+      	   http://www.springframework.org/schema/util
+      	   http://www.springframework.org/schema/util/spring-util-4.0.xsd
+      	   http://www.springframework.org/schema/task
+      	   http://www.springframework.org/schema/task/spring-task-4.0.xsd">
+	
+	<!-- 配置自动扫描 -->
+	<context:component-scan base-package="mybatis.test" />
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<task:annotation-driven/>
+	
+	<!-- 配置 数据库属性文件 -->
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:jdbc.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+ 	<!-- 配置数据源 -->
+ 
+ 	<bean id="c3p0" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">    
+        <property name="driverClass" value="${jdbc.driverName}"/>    
+        <property name="jdbcUrl" value="${jdbc.url}"/>    
+        <property name="user" value="${jdbc.username}"/>    
+        <property name="password" value="${jdbc.password}"/> 
+        <property name="minPoolSize" value="${jdbc.minSize}"/>    
+        <property name="maxPoolSize" value="${jdbc.maxSize}"/>    
+        <property name="initialPoolSize" value="${jdbc.minSize}"/>    
+        <property name="maxIdleTime" value="60"/>    
+        <property name="maxStatements" value="1000"/>    
+        <property name="idleConnectionTestPeriod" value="60"/>    
+    </bean>  
+	
+	<!-- 配置SessionFactory -->
+	<bean id="sessionFactory4Mybatis" class="rabbit.open.orm.pool.SessionFactory">
+		<property name="showSql">
+			<value>${jdbc.showSql}</value>
+		</property>
+		<property name="formatSql">
+			<value>${jdbc.formatSql}</value>
+		</property>
+		<property name="ddl">
+			<value>${jdbc.ddl}</value>
+		</property>
+		<property name="dialect">
+			<value>${jdbc.dialect}</value>
+		</property>
+		<property name="packages2Scan">
+			<value>${jdbc.packages}</value>
+		</property>
+		<property name="scanJar">
+			<value>${jdbc.scanJar}</value>
+		</property>
+		<property name="dataSource" ref="c3p0" />
+	</bean>
+
+    <bean id="transactionManager" class="rabbit.open.orm.spring.RabbitTransactionManager">  
+        <property name="sessionFactory" ref="sessionFactory4Mybatis"/>
+    </bean>  
+      
+    <!-- 开启事务控制的注解支持 -->  
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+    
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
+        <property name="dataSource" ref="c3p0" />  
+        <property name="configLocation" value="classpath:mybatis-config.xml"></property>
+    </bean>
+	
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">  
+        <property name="basePackage" value="mybatis.test.mybatis.dao" />  
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>  
+    </bean>  
+</beans>	
+
+
