@@ -194,11 +194,11 @@
 	</dependencies>
 	<distributionManagement>
 		<repository>
-			<!-- <id>rabbit-open</id>
-			<url>http://www.rabbit-open.top/nexus/content/repositories/thirdparty</url> -->
-			<id>hnair-releases</id> 
+			<id>rabbit-open</id>
+			<url>http://www.rabbit-open.top/nexus/content/repositories/thirdparty</url>
+			<!-- <id>hnair-releases</id> 
 			<name>HNAir Release Repository</name>
-			<url>http://nexus.dev.hnair.net/repository/hnair-maven-releases</url>
+			<url>http://nexus.dev.hnair.net/repository/hnair-maven-releases</url> -->
 		</repository>
 	</distributionManagement>
 
@@ -275,7 +275,9 @@
 								<exclude>**/*.xml</exclude>
 								<exclude>rabbit/oracle</exclude>
 								<exclude>*.properties</exclude>
+								<exclude>db</exclude>
 								<exclude>db/*.s3db</exclude>
+								<exclude>mybatis</exclude>
                             </excludes>
 						</configuration>
 					</execution>
@@ -299,7 +301,9 @@
 								<exclude>**/*.xml</exclude>
 								<exclude>rabbit/oracle</exclude>
 								<exclude>*.properties</exclude>
+								<exclude>db</exclude>
 								<exclude>db/*.s3db</exclude>
+								<exclude>mybatis</exclude>
 							</excludes>
 						</configuration>
 					</execution>
