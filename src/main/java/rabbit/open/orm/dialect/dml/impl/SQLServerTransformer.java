@@ -6,7 +6,7 @@ import rabbit.open.orm.dml.AbstractQuery;
 import rabbit.open.orm.dml.DialectTransformer;
 import rabbit.open.orm.dml.filter.PreparedValue;
 
-public class SQLServerTransformer extends DialectTransformer{
+public class SQLServerTransformer extends DialectTransformer {
 
     /**
      * 
@@ -59,8 +59,6 @@ public class SQLServerTransformer extends DialectTransformer{
         return super.createOrderSql(query);
     }
 
-    
-    
     /**
      * 
      * <b>Description:  创建分页sql</b><br>.
@@ -69,10 +67,10 @@ public class SQLServerTransformer extends DialectTransformer{
      * 
      */
     @Override
-    public StringBuilder createPageSql(AbstractQuery<?> query){
-        int pageSize = getPageSize(query);
-        int pageIndex = getPageIndex(query);
-        List<Object> preparedValues = getPreparedValues(query);
+	public StringBuilder createPageSql(AbstractQuery<?> query) {
+		int pageSize = getPageSize(query);
+		int pageIndex = getPageIndex(query);
+		List<Object> preparedValues = getPreparedValues(query);
         long start = 1L + pageIndex * pageSize;
         long end = (1L + pageIndex) * pageSize;
         preparedValues.add(new PreparedValue(start));

@@ -7,6 +7,8 @@
     
     2、扩展多数据源接口CombinedDataSource类，新增获取所有数据源信息的方法
     
+    3、修正session缓存数超过最大值时未真正释放Statement的bug
+    
 ================================== V 2.6.7 =========================================   
     
     1、优化RabbitTransactionManager, 非nested事务全部认为是required(不再抛异常)

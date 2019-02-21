@@ -206,7 +206,7 @@ public class Session extends AbstractConnection {
 		if (cachedStmts.size() == dataSource.getMaxCachedStmt()) {
 			PreparedStatement idleStmt = cachedStmts.remove(cachedStmts
 					.keySet().iterator().next());
-			idleStmt.close();
+			closeRealStmt(idleStmt);
 			logger.warn("idle PreparedStatement is removed");
 		}
 		PreparedStatement stmt = null;

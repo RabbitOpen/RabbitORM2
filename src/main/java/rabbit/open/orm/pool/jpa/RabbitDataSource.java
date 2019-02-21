@@ -75,7 +75,7 @@ public class RabbitDataSource extends AbstractDataSource {
             return first;
         }
         try2CreateNewSession();
-        if (counter < maxSize) {
+        if (counter < getMaxSize()) {
             return getConnectionInternal();
         } else {
             return pollConnection(15);
@@ -117,7 +117,7 @@ public class RabbitDataSource extends AbstractDataSource {
             if (counter >= maxSize) {
                 return;
             }
-            Session session = new Session(DriverManager.getConnection(url, username, password), this);
+            Session session = new Session(DriverManager.getConnection(getUrl(), getUsername(), getPassword()), this);
             counter++;
             connectors.addFirst(session);
             logger.info("new session[" + session + "] is created! [" + counter
@@ -164,7 +164,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * 
 	 */
 	protected void initSessions() {
-		while (counter < minSize) {
+		while (counter < getMinSize()) {
 			try2CreateNewSession();
 		}
 	}
@@ -176,7 +176,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	 */
 	protected void loadDriverClass() {
 		try {
-			Class.forName(driverClass);
+			Class.forName(getDriverClass());
 		} catch (ClassNotFoundException e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -206,8 +206,6 @@ public class RabbitDataSource extends AbstractDataSource {
         }
 		throw new RabbitDMLException("unkown driver type[" + driverClass + "]");
 	}
-	
-	
 	
 	/**
 	 * 
@@ -270,7 +268,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * 
 	 */
     private void closeAllSessions() {
-        while (counter != 0) {
+        while (0 != counter) {
             try {
                 Session session = (Session) pollConnection(10);
                 session.destroy();

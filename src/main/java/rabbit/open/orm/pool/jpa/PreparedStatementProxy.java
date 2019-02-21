@@ -42,34 +42,34 @@ public class PreparedStatementProxy implements MethodInterceptor {
         this.stmt = stmt;
     }
     
-    public static PreparedStatement getProxy(PreparedStatement stmt, String sql, RabbitDataSource dataSource){
-        PreparedStatementProxy proxy = new PreparedStatementProxy();
-        proxy.preparedSql = new StringBuilder(sql);
-        proxy.dataSource = dataSource;
-        proxy.setStmt(stmt);
-        Enhancer eh = new Enhancer();
-		if (null != oraclePreparedStatementClz
-				&& oraclePreparedStatementClz.isAssignableFrom(stmt.getClass())) {
+	public static PreparedStatement getProxy(PreparedStatement stmt,
+			String sql, RabbitDataSource dataSource) {
+		PreparedStatementProxy proxy = new PreparedStatementProxy();
+		proxy.preparedSql = new StringBuilder(sql);
+		proxy.dataSource = dataSource;
+		proxy.setStmt(stmt);
+		Enhancer eh = new Enhancer();
+		if (null != oraclePreparedStatementClz && oraclePreparedStatementClz.isAssignableFrom(stmt.getClass())) {
 			eh.setSuperclass(oraclePreparedStatementClz);
 		} else {
 			eh.setSuperclass(PreparedStatement.class);
 		}
-        eh.setCallback(proxy);
-        return (PreparedStatement) eh.create();
-    }
+		eh.setCallback(proxy);
+		return (PreparedStatement) eh.create();
+	}
 
     /**
      * 
      * <b>Description:  销毁jdbc存储过程  </b><br>.	
      * 
      */
-    public void destroy(){
-        try {
-            this.stmt.close();
-        } catch (SQLException e) {
-            throw new RabbitDMLException(e);
-        }
-    }
+	public void destroy() {
+		try {
+			this.stmt.close();
+		} catch (SQLException e) {
+			throw new RabbitDMLException(e);
+		}
+	}
     
     /***
      * 代理PreparedStatement close方法，什么都不做
