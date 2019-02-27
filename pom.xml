@@ -4,7 +4,7 @@
 
 	<groupId>rabbit.open</groupId>
 	<artifactId>orm</artifactId>
-	<version>2.7.0</version>
+	<version>2.7.1</version>
 	<packaging>jar</packaging>
 
 	<name>rabbit.open</name>
