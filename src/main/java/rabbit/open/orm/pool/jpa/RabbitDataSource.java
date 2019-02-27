@@ -70,7 +70,12 @@ public class RabbitDataSource extends AbstractDataSource {
 		if (closed) {
             throw new DataSourceClosedException("data source is closed!");
         }
-        Connection first = connectors.pollFirst();
+        Connection first = null;
+        try {
+        	first = connectors.pollFirst(1, TimeUnit.SECONDS);
+        } catch (Exception e) {
+        	logger.error(e.getMessage(), e);
+        }
         if (null != first) {
             return first;
         }

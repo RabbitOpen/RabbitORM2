@@ -48,12 +48,12 @@ public class SQLQuery<T> {
 			stmt = conn.prepareStatement(query.getSql());
             return callBack.execute(stmt);
 		} catch (Exception e) {
-		    Session.flagSQLException(e);
+		    Session.flagException(e);
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
 		    DMLAdapter.closeStmt(stmt);
 		    DMLAdapter.closeConnection(conn);
-		    Session.clearSQLException();
+		    Session.clearException();
 		}
 	}
 	

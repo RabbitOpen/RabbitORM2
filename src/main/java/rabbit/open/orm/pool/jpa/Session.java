@@ -60,17 +60,14 @@ public class Session extends AbstractConnection {
 		return null != sqlExceptionContext.get();
 	}
 
-	public static void flagSQLException(Exception e) {
-		Throwable cause = getRootCause(e);
-		if (cause instanceof SQLException) {
-			sqlExceptionContext.set(true);
-		}
+	public static void flagException(Exception e) {
+		sqlExceptionContext.set(true);
 	}
 
 	/**
 	 * <b>Description 清除异常context</b>
 	 */
-	public static void clearSQLException() {
+	public static void clearException() {
 		sqlExceptionContext.remove();
 	}
 

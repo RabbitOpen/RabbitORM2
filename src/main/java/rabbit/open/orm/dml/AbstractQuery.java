@@ -125,13 +125,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			return new Result<>(resultList);
 		} catch (Exception e) {
 			showUnMaskedSql(false);
-			Session.flagSQLException(e);
+			Session.flagException(e);
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
 		    closeResultSet(rs);
 		    DMLAdapter.closeStmt(stmt);
 		    closeConnection(conn);
-		    Session.clearSQLException();
+		    Session.clearException();
 		    setRunned();
 		}
 	}
@@ -1493,13 +1493,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			return 0L;
 		} catch (Exception e) {
 			showUnMaskedSql(false);
-			Session.flagSQLException(e);
+			Session.flagException(e);
 		    throw new RabbitDMLException(e);
 		} finally {
 		    closeResultSet(rs);
 		    closeStmt(stmt);
 			closeConnection(conn);
-			Session.clearSQLException();
+			Session.clearException();
 			setRunned();
 		}
 	}

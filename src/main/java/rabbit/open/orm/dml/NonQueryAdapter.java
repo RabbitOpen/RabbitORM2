@@ -121,11 +121,11 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
             throw e;
         } catch (Exception e) {
         	showUnMaskedSql(false);
-        	Session.flagSQLException(e);
+        	Session.flagException(e);
             throw new RabbitDMLException(e.getMessage(), e);
         } finally {
             closeConnection(conn);
-            Session.clearSQLException();
+            Session.clearException();
         }
 	}
 	
