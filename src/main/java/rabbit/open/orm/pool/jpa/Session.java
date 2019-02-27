@@ -60,7 +60,7 @@ public class Session extends AbstractConnection {
 		return null != sqlExceptionContext.get();
 	}
 
-	public static void flagException(Exception e) {
+	public static void flagException() {
 		sqlExceptionContext.set(true);
 	}
 
