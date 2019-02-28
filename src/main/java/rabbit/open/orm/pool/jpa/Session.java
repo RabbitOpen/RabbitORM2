@@ -33,6 +33,9 @@ public class Session extends AbstractConnection {
 	private LinkedHashMap<String, PreparedStatement> cachedStmts;
 
 	protected Logger logger = Logger.getLogger(getClass());
+	
+	// 代表数据源重启的次数
+	private long version = 0;
 
 	// 标记sql异常
 	private static ThreadLocal<Object> sqlExceptionContext = new ThreadLocal<>();
@@ -182,7 +185,7 @@ public class Session extends AbstractConnection {
 	public void destroy() {
 		closeStmts();
 		dataSource.closeSession(this);
-		logger.info("session{stmtments:" + cachedStmts.size() + "} closed, ["
+		logger.info("session{version: " + version + ", stmtments:" + cachedStmts.size() + "} closed, ["
 				+ dataSource.getCounter() + "] session left!");
 	}
 
@@ -252,6 +255,14 @@ public class Session extends AbstractConnection {
 		if (!conn.getAutoCommit()) {
 			conn.releaseSavepoint(savepoint);
 		}
+	}
+	
+	public void setVersion(long version) {
+		this.version = version;
+	}
+	
+	public long getVersion() {
+		return version;
 	}
 
 }

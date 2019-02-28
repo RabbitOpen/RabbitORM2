@@ -3,6 +3,9 @@ package rabbit.open.orm.pool.jpa;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -22,6 +25,8 @@ public class DataSourceMonitor extends Thread {
 	protected RabbitDataSource dataSource;
 
 	private Semaphore semaphore = new Semaphore(0);
+	
+	private Map<Session, SessionHolderInfo> sessionHolder = new ConcurrentHashMap<>();
 
 	public DataSourceMonitor(RabbitDataSource dataSource) {
 		super();
@@ -35,7 +40,25 @@ public class DataSourceMonitor extends Thread {
 			sleep5s();
 		}
 	}
+	
+	public void fetchSession(Session session) {
+		sessionHolder.put(session, new SessionHolderInfo());
+	}
+	
+	public void releaseSession(Session session) {
+		sessionHolder.remove(session);
+	}
 
+	/**
+	 * <b>@description 释放太长时间都没释放的session </b>
+	 */
+	public void releaseHoldedSession() {
+		for (Entry<Session, SessionHolderInfo> entry : sessionHolder.entrySet()) {
+			logger.error(sessionHolder.size() + " connection left, " + entry.getValue());
+			entry.getKey().destroy();
+		}
+	}
+	
 	/**
 	 * 
 	 * <b>Description:	监控数据源</b><br>
@@ -60,7 +83,7 @@ public class DataSourceMonitor extends Thread {
 	 * 
 	 */
     private void doKeepAlive() {
-        Session last = (Session) dataSource.getConnectors().pollLast();
+        Session last = dataSource.getConnectors().pollLast();
         if (null == last) {
             dataSource.initSessions();
             return;
@@ -93,7 +116,7 @@ public class DataSourceMonitor extends Thread {
             return;
         }
         try {
-            Session tail = (Session) dataSource.getConnectors().peekLast();
+            Session tail = dataSource.getConnectors().peekLast();
             if (null == tail) {
                 return;
             }
@@ -101,7 +124,7 @@ public class DataSourceMonitor extends Thread {
             if (idle < getMaxIdle()) {
                 return;
             }
-            tail = (Session) dataSource.getConnectors().pollLast();
+            tail = dataSource.getConnectors().pollLast();
             if (null == tail) {
                 return;
             }
@@ -128,7 +151,7 @@ public class DataSourceMonitor extends Thread {
 	 * 
 	 */
     private void checkNetWork() {
-        Session tail = (Session) dataSource.getConnectors().pollLast();
+        Session tail = dataSource.getConnectors().pollLast();
         if (null == tail) {
             return;
         }

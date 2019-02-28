@@ -19,7 +19,7 @@ public class SessionKeeper {
 		this.dataSource = dataSource;
 	}
 
-	public void fetchFromPool(Connection conn) {
+	public void fetchFromPool(Session conn) {
 		if (null != keeper.get()) {
 			if (dataSource.isDumpSuspectedFetch()) {
 				showFetchTrace();
@@ -50,7 +50,7 @@ public class SessionKeeper {
 		logger.error(sb.toString());
 	}
 	
-	public void back2Pool(Connection conn) {
+	public void back2Pool(Session conn) {
 		if (null == conn) {
 			return;
 		}

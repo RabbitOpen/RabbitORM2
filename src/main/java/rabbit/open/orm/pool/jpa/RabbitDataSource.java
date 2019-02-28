@@ -26,7 +26,7 @@ public class RabbitDataSource extends AbstractDataSource {
 
 	protected Logger logger = Logger.getLogger(getClass());
 	
-	protected LinkedBlockingDeque<Connection> connectors = new LinkedBlockingDeque<>();
+	protected LinkedBlockingDeque<Session> connectors = new LinkedBlockingDeque<>();
 	
 	protected DataSourceMonitor monitor;
 	
@@ -46,6 +46,8 @@ public class RabbitDataSource extends AbstractDataSource {
     
     private SessionKeeper keeper = new SessionKeeper(this);
     
+    private long restartTimes = 0;
+    
 	/**
 	 * 创建session时使用的锁
 	 */
@@ -61,16 +63,17 @@ public class RabbitDataSource extends AbstractDataSource {
 	 */
 	@Override
 	public Connection getConnection() throws SQLException {
-		Connection conn = getConnectionInternal();
+		Session conn = getConnectionInternal();
+		monitor.fetchSession(conn);
 		keeper.fetchFromPool(conn);
 		return conn;
 	}
 	
-	private Connection getConnectionInternal() throws SQLException {
+	private Session getConnectionInternal() throws SQLException {
 		if (closed) {
             throw new DataSourceClosedException("data source is closed!");
         }
-        Connection first = null;
+        Session first = null;
         try {
         	first = connectors.pollFirst(1, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -80,7 +83,7 @@ public class RabbitDataSource extends AbstractDataSource {
             return first;
         }
         try2CreateNewSession();
-        if (counter < getMaxSize()) {
+        if (getCounter() < getMaxSize()) {
             return getConnectionInternal();
         } else {
             return pollConnection(15);
@@ -95,9 +98,9 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * @throws 	RabbitORMException
 	 * 
 	 */
-    private Connection pollConnection(int seconds) throws RabbitORMException {
+    private Session pollConnection(int seconds) throws RabbitORMException {
         try {
-            Connection first;
+        	Session first;
             first = connectors.pollFirst(seconds, TimeUnit.SECONDS);
             if (null == first) {
                 throw new GetConnectionTimeOutException("get connection timeout for [" + seconds + "]s!");
@@ -113,26 +116,28 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * <b>Description: 尝试新建一个数据库连接</b><br>
 	 * 
 	 */
-	private void try2CreateNewSession(){
-        try {
-            sessionCreateLock.lock();
-            if (closed) {
-                throw new DataSourceClosedException("data source is closed!");
-            }
-            if (counter >= maxSize) {
-                return;
-            }
-            Session session = new Session(DriverManager.getConnection(getUrl(), getUsername(), getPassword()), this);
-            counter++;
-            connectors.addFirst(session);
-            logger.info("new session[" + session + "] is created! [" + counter
-                    + "] session alive! " + "[" + connectors.size()
-                    + "] sessions is idle");
-        } catch (Exception e) {
-            throw new RabbitDMLException(e);
-        } finally {
-            sessionCreateLock.unlock();
-        }
+	private synchronized void try2CreateNewSession() {
+		try {
+			sessionCreateLock.lock();
+			if (closed) {
+				throw new DataSourceClosedException("data source is closed!");
+			}
+			if (getCounter() >= getMaxSize()) {
+				return;
+			}
+			Session session = new Session(DriverManager.getConnection(getUrl(),
+					getUsername(), getPassword()), this);
+			session.setVersion(getRestartTimes());
+			counter++;
+			connectors.addFirst(session);
+			logger.info("new session{" + session.getVersion() + "}[" + session + "] is created! [" + counter
+					+ "] session alive! " + "[" + connectors.size()
+					+ "] sessions is idle");
+		} catch (Exception e) {
+			throw new RabbitDMLException(e);
+		} finally {
+			sessionCreateLock.unlock();
+		}
 	}
 	
 	/**
@@ -144,7 +149,12 @@ public class RabbitDataSource extends AbstractDataSource {
 	public void releaseSession(Session conn){
 		try {
 			keeper.back2Pool(conn);
-			connectors.putFirst(conn);
+			monitor.releaseSession(conn);
+			if (conn.getVersion() == getRestartTimes()) {
+				connectors.putFirst(conn);
+			} else {
+				logger.error("session version[" + conn.getVersion() + "] is old, current version is " + getRestartTimes());
+			}
 		} catch (Exception e) {
 			logger.info(e.getMessage(), e);
 		}
@@ -169,7 +179,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * 
 	 */
 	protected void initSessions() {
-		while (counter < getMinSize()) {
+		while (getCounter() < getMinSize()) {
 			try2CreateNewSession();
 		}
 	}
@@ -221,7 +231,7 @@ public class RabbitDataSource extends AbstractDataSource {
     public void shutdown() {
         logger.info("datasource is closing.....");
         monitor.shutdown();
-        setDataSourceClosed(true);
+        diableDataSource();
         closeAllSessions();
         logger.info("datasource is successfully closed!");
     }
@@ -231,18 +241,27 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * <b>Description:	重启数据源</b><br>
 	 * 
 	 */
-    public void restart() {
+    public synchronized void restart() {
         logger.info("datasource is restarting.....");
-        setDataSourceClosed(true);
+        diableDataSource();
         closeAllSessions();
-        setDataSourceClosed(false);
+        enableDataSource();
         try {
+        	setRestartTimes(getRestartTimes() + 1);
             initSessions();
-            logger.info("datasource is successfully restarted!");
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
+        logger.info("datasource is restarted!");
     }
+
+	private void enableDataSource() {
+		setDataSourceClosed(false);
+	}
+
+	private void diableDataSource() {
+		setDataSourceClosed(true);
+	}
 
 	private void setDataSourceClosed(boolean closed) {
 		this.closed = closed;
@@ -251,13 +270,13 @@ public class RabbitDataSource extends AbstractDataSource {
 	/**
 	 * 
 	 * <b>Description: 关闭资源</b><br>
-	 * @throws SQLException
 	 * 
 	 */
     public void closeSession(Session session) {
         try {
             sessionCreateLock.lock();
             keeper.back2Pool(session);
+            monitor.releaseSession(session);
             counter--;
             session.getConnector().close();
         } catch (Exception e) {
@@ -273,12 +292,14 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * 
 	 */
     private void closeAllSessions() {
-        while (0 != counter) {
+        while (getCounter() > 0) {
             try {
-                Session session = (Session) pollConnection(10);
+                Session session = pollConnection(30);
                 session.destroy();
             } catch (Exception e) {
-                logger.warn(e.getMessage(), e);
+                logger.error("datasource restart timeout : " + e.getMessage(), e);
+                // 如果太久都没释放连接
+                monitor.releaseHoldedSession();
             }
         }
     }
@@ -287,7 +308,7 @@ public class RabbitDataSource extends AbstractDataSource {
 		return counter;
 	}
 	
-	public LinkedBlockingDeque<Connection> getConnectors() {
+	public LinkedBlockingDeque<Session> getConnectors() {
 		return connectors;
 	}
 	
@@ -313,6 +334,14 @@ public class RabbitDataSource extends AbstractDataSource {
 
 	public void setDumpSuspectedFetch(boolean dumpSuspectedFetch) {
 		this.dumpSuspectedFetch = dumpSuspectedFetch;
+	}
+	
+	public void setRestartTimes(long restartTimes) {
+		this.restartTimes = restartTimes;
+	}
+	
+	public long getRestartTimes() {
+		return restartTimes;
 	}
 	
 }
