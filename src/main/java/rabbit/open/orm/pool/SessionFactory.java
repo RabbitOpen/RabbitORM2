@@ -135,11 +135,15 @@ public class SessionFactory {
 	/**
 	 * <b>@description 缓存回滚点 </b>
 	 * @param conn
-	 * @throws SQLException
 	 */
-	private void cacheSavepoint(Connection conn) throws SQLException {
+	private void cacheSavepoint(Connection conn) {
 		if (null != nestedTransObj.get()) {
-			Savepoint sp = conn.setSavepoint();
+			Savepoint sp = null;
+			try {
+				sp = conn.setSavepoint();
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
 			TransactionObject tranObj = (TransactionObject) nestedTransObj.get();
 			tranObj.setSavePoint(sp);
 			tranObj.setConnection(conn);
