@@ -294,7 +294,7 @@ public class RabbitDataSource extends AbstractDataSource {
     private void closeAllSessions() {
         while (getCounter() > 0) {
             try {
-                Session session = pollConnection(30);
+                Session session = pollConnection(10);
                 session.destroy();
             } catch (Exception e) {
                 logger.error("datasource restart timeout : " + e.getMessage(), e);

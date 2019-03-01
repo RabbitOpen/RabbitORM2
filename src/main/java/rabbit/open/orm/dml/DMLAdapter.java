@@ -1005,8 +1005,8 @@ public abstract class DMLAdapter<T> {
         }
         try {
             conn.close();
-        } catch (SQLException e) {
-            throw new RabbitDMLException(e.getMessage(), e);
+        } catch (Exception e) {
+            
         }
     }
     
@@ -1022,8 +1022,8 @@ public abstract class DMLAdapter<T> {
         }
         try {
             stmt.close();
-        } catch (SQLException e) {
-            throw new RabbitDMLException(e);
+        } catch (Exception e) {
+            
         }
     }
 

@@ -1516,8 +1516,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		if (null != rs) {
             try {
                 rs.close();
-            } catch (SQLException e) {
-                throw new RabbitDMLException(e);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
             }
         }
     }
