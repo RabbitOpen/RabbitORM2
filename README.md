@@ -5,6 +5,8 @@
     
     1、优化DMLAdapter，AbstractQuery。规避关闭statement、ResultSet失败导致连接释放失败的风险
     
+    2、修复SessionFactory获取连接时由于setAutoCommit方法发生网络异常造成连接泄漏bug
+    
 ================================== V 2.7.1 =========================================   
     
     1、优化datasource获取连接逻辑，允许获取连接时等待1秒

@@ -81,7 +81,8 @@ public class SessionFactory {
         DataSource ds = getDataSource(entityClz, tableName, type);
         Connection conn;
         if (isTransactionOpen()) {
-			RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager.getResource(ds);
+			RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager
+					.getResource(ds);
 			if (holder.hasConnection()) {
 				conn = holder.getConnection();
 			} else {
@@ -89,21 +90,48 @@ public class SessionFactory {
 				holder.setConnection(conn);
 			}
 			conn = SessionProxy.getProxy(conn);
-			if (conn.getAutoCommit()) {
-				conn.setAutoCommit(false);
-			}
+			disableAutoCommit(conn);
 			cacheSavepoint(conn);
 			return conn;
 		} else {
 			conn = ds.getConnection();
 			conn = SessionProxy.getProxy(conn);
-			if (!conn.getAutoCommit()) {
-				conn.setAutoCommit(true);
-			}
+			enableAutoCommit(conn);
 			return conn;
 		}
     }
 
+	/**
+	 * <b>@description 禁止自定提交  </b>
+	 * @param conn
+	 */
+	public static void disableAutoCommit(Connection conn) {
+		try {
+			if (conn.getAutoCommit()) {
+				conn.setAutoCommit(false);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * <b>@description 允许自动提交 </b>
+	 * @param conn
+	 */
+	public static void enableAutoCommit(Connection conn) {
+		try {
+			if (!conn.getAutoCommit()) {
+				conn.setAutoCommit(true);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
+
+    
+    
+    
 	/**
 	 * <b>@description 缓存回滚点 </b>
 	 * @param conn
