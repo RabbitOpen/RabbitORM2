@@ -110,18 +110,26 @@ public class SessionFactory {
 		}
     }
 
-	private void setTransactionIsolation(Connection conn, DataSource ds) throws SQLException {
+	/**
+	 * <b>@description 设置事务隔离级别  </b>
+	 * @param conn
+	 * @param ds
+	 */
+	private void setTransactionIsolation(Connection conn, DataSource ds) {
 		TransactionObject tObj = (TransactionObject) transObjHolder.get();
+		int isolationLevel = 0;
 		if (null != tObj) {
-			int isolationLevel = tObj.getTransactionIsolationLevel();
+			isolationLevel = tObj.getTransactionIsolationLevel();
 			if (TransactionDefinition.ISOLATION_DEFAULT == isolationLevel) {
-				//使用默认事务隔离级别
 				isolationLevel = defaultIsolationLevelHolder.get(ds);
 			}
-			// 该方法被代理对象SessionProxy接管了
-			conn.setTransactionIsolation(isolationLevel);
 		} else {
-			conn.setTransactionIsolation(defaultIsolationLevelHolder.get(ds));
+			isolationLevel = defaultIsolationLevelHolder.get(ds);
+		}
+		try {
+			conn.setTransactionIsolation(isolationLevel);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
 		}
 	}
 

@@ -2,6 +2,7 @@ package rabbit.open.orm.pool.jpa;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
 import org.springframework.cglib.proxy.Enhancer;
@@ -39,15 +40,12 @@ public class SessionProxy implements MethodInterceptor {
 	/**
 	 * <b>@description 设置真实连接的事务隔离级别 </b>
 	 * @param level
+	 * @throws SQLException 
 	 */
-	public void setTransactionIsolation(int level) {
+	public void setTransactionIsolation(int level) throws SQLException {
 		if (getTransactionIsolation() != level) {
 			this.transactionIsolation = level;
-			try {
-				realSession.setTransactionIsolation(level);
-			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
-			}
+			realSession.setTransactionIsolation(level);
 		}
 	}
 	
