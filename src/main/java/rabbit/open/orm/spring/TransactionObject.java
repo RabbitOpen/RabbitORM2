@@ -13,6 +13,8 @@ public class TransactionObject implements SavepointManager {
 	private Connection connection;
 	
 	private int propagation = TransactionDefinition.PROPAGATION_REQUIRED;
+	
+	private int transactionIsolationLevel = -1;
 
 	@Override
 	public Object createSavepoint() {
@@ -52,4 +54,13 @@ public class TransactionObject implements SavepointManager {
 	public void setPropagation(int propagation) {
 		this.propagation = propagation;
 	}
+
+	public int getTransactionIsolationLevel() {
+		return transactionIsolationLevel;
+	}
+
+	public void setTransactionIsolationLevel(int transactionIsolationLevel) {
+		this.transactionIsolationLevel = transactionIsolationLevel;
+	}
+	
 }

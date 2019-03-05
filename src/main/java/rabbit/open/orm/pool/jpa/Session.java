@@ -28,6 +28,9 @@ public class Session extends AbstractConnection {
 
 	// 数据源
 	private RabbitDataSource dataSource;
+	
+	// 事务隔离级别
+	private int transactionIsolation = 0;
 
 	// 缓存PreparedStatement
 	private LinkedHashMap<String, PreparedStatement> cachedStmts;
@@ -40,10 +43,11 @@ public class Session extends AbstractConnection {
 	// 标记sql异常
 	private static ThreadLocal<Object> sqlExceptionContext = new ThreadLocal<>();
 
-	public Session(Connection conn, RabbitDataSource dataSource) {
+	public Session(Connection conn, RabbitDataSource dataSource) throws SQLException {
 		super();
 		cachedStmts = new LinkedHashMap<>();
 		this.conn = conn;
+		this.transactionIsolation = conn.getTransactionIsolation();
 		this.dataSource = dataSource;
 		activeTime = System.currentTimeMillis();
 	}
@@ -265,4 +269,16 @@ public class Session extends AbstractConnection {
 		return version;
 	}
 
+	@Override
+	public int getTransactionIsolation() throws SQLException {
+		return transactionIsolation;
+	}
+	
+	@Override
+	public void setTransactionIsolation(int level) throws SQLException {
+		if (getTransactionIsolation() != level) {
+			conn.setTransactionIsolation(level);
+			this.transactionIsolation = level;
+		}
+	}
 }

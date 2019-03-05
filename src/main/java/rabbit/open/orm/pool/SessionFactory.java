@@ -5,7 +5,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -20,12 +22,14 @@ import rabbit.open.orm.ddl.DDLType;
 import rabbit.open.orm.dialect.ddl.DDLHelper;
 import rabbit.open.orm.dialect.dml.DeleteDialectAdapter;
 import rabbit.open.orm.dialect.dml.DialectType;
+import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.DialectTransformer;
 import rabbit.open.orm.dml.PolicyInsert;
 import rabbit.open.orm.dml.filter.DMLFilter;
 import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.name.SQLParser;
+import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.jpa.CombinedDataSource;
 import rabbit.open.orm.pool.jpa.SessionProxy;
 import rabbit.open.orm.spring.TransactionObject;
@@ -69,6 +73,9 @@ public class SessionFactory {
     
     // 内嵌事务的事务对象
     private static final ThreadLocal<Object> nestedTransObj = new ThreadLocal<>();
+    
+    // 缓存各个数据源的默认事务隔离级别
+    private Map<DataSource, Integer> defaultIsolationLevelHolder = new ConcurrentHashMap<>();
 
     private Set<DataSource> sources = new HashSet<>();
     
@@ -90,16 +97,33 @@ public class SessionFactory {
 				holder.setConnection(conn);
 			}
 			conn = SessionProxy.getProxy(conn);
+			setTransactionIsolation(conn, ds);
 			disableAutoCommit(conn);
 			cacheSavepoint(conn);
 			return conn;
 		} else {
 			conn = ds.getConnection();
 			conn = SessionProxy.getProxy(conn);
+			setTransactionIsolation(conn, ds);
 			enableAutoCommit(conn);
 			return conn;
 		}
     }
+
+	private void setTransactionIsolation(Connection conn, DataSource ds) throws SQLException {
+		TransactionObject tObj = (TransactionObject) transObjHolder.get();
+		if (null != tObj) {
+			int isolationLevel = tObj.getTransactionIsolationLevel();
+			if (TransactionDefinition.ISOLATION_DEFAULT == isolationLevel) {
+				//使用默认事务隔离级别
+				isolationLevel = defaultIsolationLevelHolder.get(ds);
+			}
+			// 该方法被代理对象SessionProxy接管了
+			conn.setTransactionIsolation(isolationLevel);
+		} else {
+			conn.setTransactionIsolation(defaultIsolationLevelHolder.get(ds));
+		}
+	}
 
 	/**
 	 * <b>@description 禁止自定提交  </b>
@@ -348,6 +372,7 @@ public class SessionFactory {
         PolicyInsert.init();
         DDLHelper.checkMapping(this, getPackages2Scan());
         DDLHelper.init();
+        cacheDefaultIsolationLevel();
         //组合数据源不支持ddl
         if (null == combinedDataSource) {
             DDLHelper.executeDDL(this, getPackages2Scan());
@@ -356,6 +381,23 @@ public class SessionFactory {
             new SQLParser(mappingFiles).doXmlParsing();
         }
     }
+
+	/**
+	 * <b>@description 缓存默认事务隔离级别 </b>
+	 */
+	private void cacheDefaultIsolationLevel() {
+		for (DataSource ds : getAllDataSources()) {
+			Connection conn = null;
+			try {
+				conn = ds.getConnection();
+				defaultIsolationLevelHolder.put(ds, conn.getTransactionIsolation());
+			} catch (Exception e) {
+				throw new RabbitDMLException(e);
+			} finally {
+				DMLAdapter.closeConnection(conn);
+			}
+        }
+	}
 
     public static boolean isEmpty(String str) {
         return null == str || "".equals(str.trim());

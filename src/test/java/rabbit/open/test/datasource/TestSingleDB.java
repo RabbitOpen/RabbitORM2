@@ -153,6 +153,7 @@ public class TestSingleDB {
      */
     public static DataSource getRabbitDatasource() {
         RabbitDataSource ds = new RabbitDataSource();
+        ds.setDriverClass("com.mysql.jdbc.Driver");
         ds.setUrl(url);
         ds.setUsername(username);
         ds.setPassword(password);

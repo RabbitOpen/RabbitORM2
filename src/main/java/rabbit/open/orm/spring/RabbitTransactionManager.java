@@ -42,6 +42,7 @@ public class RabbitTransactionManager extends
         }
         TransactionObject tObj = (TransactionObject) obj;
         tObj.setPropagation(def.getPropagationBehavior());
+        tObj.setTransactionIsolationLevel(def.getIsolationLevel());
         SessionFactory.beginTransaction(obj, sessionFactory);
     }
 

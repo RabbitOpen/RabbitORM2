@@ -50,16 +50,6 @@ public abstract class AbstractConnection implements Connection{
 	}
 
 	@Override
-	public void setTransactionIsolation(int level) throws SQLException {
-
-	}
-
-	@Override
-	public int getTransactionIsolation() throws SQLException {
-		return 0;
-	}
-
-	@Override
 	public SQLWarning getWarnings() throws SQLException {
 		return null;
 	}

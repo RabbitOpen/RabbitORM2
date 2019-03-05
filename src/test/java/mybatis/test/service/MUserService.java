@@ -5,6 +5,7 @@ import mybatis.test.mybatis.service.MyBatisTranService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +20,7 @@ public class MUserService extends BaseService<MUser> {
 	@Autowired
 	MOrgService orgService;
 	
-	@Transactional
+	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void combinedAdd(String username) {
 		mbs.tranadd(username);
 		add(new MUser(username));
