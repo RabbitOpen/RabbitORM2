@@ -212,6 +212,29 @@ public class UpdateTest {
         TestCase.assertEquals(oq.getName(), "newname");
         TestCase.assertEquals(oq.getZone().getId(), z.getId());
     }
+
+    @Test
+    public void replaceByIDTest() {
+    	User u = new User();
+    	String name = "lisi";
+		u.setName(name);
+    	u.setAge(10);
+    	us.add(u);
+    	u = us.getByID(u.getId());
+    	TestCase.assertEquals(u.getName(), name);
+    	TestCase.assertEquals(u.getAge().intValue(), 10);
+    	
+    	User r = new User();
+    	name = "wangwu";
+    	r.setId(u.getId());
+    	r.setName(name);
+    	us.replaceByID(r);
+    	u = us.getByID(u.getId());
+    	TestCase.assertEquals(u.getName(), name);
+    	TestCase.assertNull(u.getAge());
+    	
+    	
+    }
     
     /**
      * 

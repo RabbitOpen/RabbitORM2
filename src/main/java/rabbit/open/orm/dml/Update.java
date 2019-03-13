@@ -173,7 +173,7 @@ public class Update<T> extends NonQueryAdapter<T> {
 	 * @return
 	 * 
 	 */
-	public Update<T> setValue(T value){
+	public Update<T> setValue(T value) {
 		this.value2Update = value;
 		return this;
 	}
@@ -219,6 +219,32 @@ public class Update<T> extends NonQueryAdapter<T> {
         }
         return this;
     }
+    
+    /**
+     * <b>@description 根据id替换数据库中的同id数据 </b>
+     * @param data
+     * @return
+     */
+    public long replaceByID(T data) {
+    	if (null == data) {
+    		throw new RabbitDMLException("data can't be empty!");
+    	}
+    	List<FieldMetaData> fmds = getMetaData().getFieldMetas();
+    	valueMetas = new ArrayList<>(); 
+    	String tableName = getMetaData().getTableName();
+    	for (FieldMetaData fmd : fmds) {
+    		FieldMetaData copy = fmd.copy();
+    		copy.setFieldValue(getValue(fmd.getField(), data));
+    		copy.setFieldTableName(tableName);
+    		valueMetas.add(copy);
+    	}
+        sql = new StringBuilder("UPDATE " + TARGET_TABLE_NAME + " SET");
+        for (int i = 0; i < valueMetas.size(); i++) {
+            sql.append(createSqlSegmentByMeta(valueMetas.get(i)));
+        }
+        sql.deleteCharAt(sql.lastIndexOf(","));
+    	return updateDataByPreparedSql(data);
+    }
 	
 	/**
 	 * 
@@ -227,9 +253,13 @@ public class Update<T> extends NonQueryAdapter<T> {
 	 * @return
 	 * 
 	 */
-	public long updateByID(T data){
+	public long updateByID(T data) {
         sql = createUpdateSql(data);
-        FieldMetaData fmd = MetaData.getPrimaryKeyFieldMeta(getEntityClz());
+        return updateDataByPreparedSql(data);
+	}
+
+	private long updateDataByPreparedSql(T data) {
+		FieldMetaData fmd = MetaData.getPrimaryKeyFieldMeta(getEntityClz());
         Field pk = fmd.getField();
         Object pkValue;
         pkValue = getValue(pk, data);
@@ -238,7 +268,8 @@ public class Update<T> extends NonQueryAdapter<T> {
         }
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(pkValue, 
 		        new FieldMetaData(pk, fmd.getColumn())), pk));
-		sql.append(WHERE + TARGET_TABLE_NAME + "." + getColumnName(metaData.getPrimaryKey()) + " = " + PLACE_HOLDER);
+		sql.append(WHERE + TARGET_TABLE_NAME + "." + getColumnName(metaData.getPrimaryKey()) 
+				+ " = " + PLACE_HOLDER);
         sqlOperation = new SQLOperation() {
             @Override
             public long executeSQL(Connection conn) throws SQLException {
@@ -307,12 +338,11 @@ public class Update<T> extends NonQueryAdapter<T> {
 	 * 
 	 */
 	private StringBuilder createUpdateSql(T valueData) {
-        StringBuilder sb = new StringBuilder();
         valueMetas = getNonEmptyFieldMetas(valueData);
         if (noFields2Update()) {
             throw new RabbitDMLException("no field is expected to update!");
         }
-        sb.append("UPDATE " + TARGET_TABLE_NAME + " SET");
+        StringBuilder sb = new StringBuilder("UPDATE " + TARGET_TABLE_NAME + " SET");
         for (int i = 0; i < valueMetas.size(); i++) {
             sb.append(createSqlSegmentByMeta(valueMetas.get(i)));
         }
@@ -405,37 +435,26 @@ public class Update<T> extends NonQueryAdapter<T> {
             return new ArrayList<>();
         }
         String tableName = getTableNameByClass(value.getClass());
-        Class<?> clz = value.getClass();
-        List<FieldMetaData> fields = new ArrayList<>();
-        while (!clz.equals(Object.class)) {
-            for (Field field : clz.getDeclaredFields()) {
-                fields.addAll(getNonEmptyFieldMetasByField(value,
-                        tableName, field));
-            }
-            clz = clz.getSuperclass();
+        List<FieldMetaData> fmds = new ArrayList<>();
+        for (FieldMetaData fmd : getMetaData().getFieldMetas()) {
+        	if (nullfields.contains(fmd.getField().getName())) {
+        		FieldMetaData copy = fmd.copy();
+        		copy.setFieldValue(null);
+        		copy.setFieldTableName(tableName);
+				fmds.add(copy);
+				continue;
+        	}
+        	Object fieldValue = getValue(fmd.getField(), value);
+			if (null != fieldValue) {
+        		FieldMetaData copy = fmd.copy();
+        		copy.setFieldValue(fieldValue);
+        		copy.setFieldTableName(tableName);
+        		fmds.add(copy);
+        	}
         }
-        return fields;
+        return fmds;
     }
 
-    private List<FieldMetaData> getNonEmptyFieldMetasByField(Object data,
-            String tableName, Field field) {
-        List<FieldMetaData> fields = new ArrayList<>();
-        Column col = field.getAnnotation(Column.class);
-        if (null == col) {
-            return fields;
-        }
-        if (nullfields.contains(field.getName())) {
-            fields.add(new FieldMetaData(field, col, null, tableName));
-            return fields;
-        }
-        Object fieldValue = getValue(field, data);
-        if (null == fieldValue) {
-            return fields;
-        }
-        fields.add(new FieldMetaData(field, col, fieldValue, tableName));
-        return fields;
-    }
-	
 	/**
 	 * 
 	 * <b>Description:	合并需要更新的值</b><br>

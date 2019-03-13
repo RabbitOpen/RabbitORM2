@@ -137,6 +137,15 @@ public abstract class SpringDaoAdapter<T> {
 	public long updateByID(T data){
 		return new Update<>(sessionFactory, clz).updateByID(data);
 	}
+
+	/**
+	 * <b>@description 根据id替换数据库中的同id数据  </b>
+	 * @param data
+	 * @return
+	 */
+	public long replaceByID(T data){
+		return new Update<>(sessionFactory, clz).replaceByID(data);
+	}
 	
 	/**
 	 * 

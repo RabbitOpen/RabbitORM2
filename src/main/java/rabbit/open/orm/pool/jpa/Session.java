@@ -211,7 +211,6 @@ public class Session extends AbstractConnection {
 			PreparedStatement idleStmt = cachedStmts.remove(cachedStmts
 					.keySet().iterator().next());
 			closeRealStmt(idleStmt);
-			logger.warn("idle PreparedStatement is removed");
 		}
 		PreparedStatement stmt = null;
 		if (DO_NOTHING == genKey) {

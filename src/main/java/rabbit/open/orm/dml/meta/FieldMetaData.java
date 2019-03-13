@@ -15,6 +15,21 @@ import rabbit.open.orm.exception.RabbitDMLException;
  * 
  */
 public class FieldMetaData {
+	
+	/**
+	 * <b>@description 复制一个元信息 </b>
+	 * @return
+	 */
+	public FieldMetaData copy() {
+		FieldMetaData fmd = new FieldMetaData();
+		fmd.field = field;
+		fmd.column = column;
+		fmd.primaryKey = primaryKey;
+		fmd.foreignField = foreignField;
+		fmd.isPrimaryKey = isPrimaryKey;
+		fmd.isForeignKey = isForeignKey;
+		return fmd;
+	}
 
 	//字段在其所在的类中的Field对象
 	private Field field;
@@ -55,6 +70,10 @@ public class FieldMetaData {
                        + byte.class.getName() + "|"
                        + boolean.class.getName();
 	
+    public FieldMetaData() {
+    	
+    }
+    
     public FieldMetaData(Field field, Column column) {
 		super();
 		this.field = field;
@@ -155,6 +174,14 @@ public class FieldMetaData {
 	//日期类型字段
 	public boolean isDate(){
 		return field.getType().equals(Date.class);
+	}
+	
+	public void setFieldValue(Object fieldValue) {
+		this.fieldValue = fieldValue;
+	}
+	
+	public void setFieldTableName(String fieldTableName) {
+		this.fieldTableName = fieldTableName;
 	}
 
 }

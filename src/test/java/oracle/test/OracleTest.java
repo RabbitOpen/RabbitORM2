@@ -180,6 +180,26 @@ public class OracleTest {
         TestCase.assertEquals(list.get(1).getName(), name);
     }
     
+    @Test
+	public void updateNullTest() {
+		User user = new User();
+		user.setAge(23);
+		String name = "lxis";
+		user.setName(name);
+		String desc = "x1H1";
+		user.setDesc(desc);
+		us.add(user);
+		
+		User u = us.getByID(user.getId());
+		TestCase.assertEquals(u.getName(), name);
+		TestCase.assertEquals(u.getDesc(), desc);
+		
+		us.createUpdate().setNull("desc", "name").addFilter("id", u.getId()).execute();
+		u = us.getByID(user.getId());
+		
+		TestCase.assertNull(u.getName());
+		TestCase.assertNull(u.getDesc());
+	}
 
     /**
      * <b>Description  删除</b>
