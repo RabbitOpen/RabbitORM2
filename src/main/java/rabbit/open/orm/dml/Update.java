@@ -468,6 +468,7 @@ public class Update<T> extends NonQueryAdapter<T> {
         }
         if (data == null) {
             data = DMLAdapter.newInstance(getEntityClz());
+            clearDefaultValue(data);
         }
         Iterator<String> it = settedValue.keySet().iterator();
         while (it.hasNext()) {
@@ -482,6 +483,16 @@ public class Update<T> extends NonQueryAdapter<T> {
             }
         }
         return data;
+	}
+
+	/**
+	 * <b>@description 清空对象的默认值，避免更新时更新到数据库 </b>
+	 * @param data
+	 */
+	private void clearDefaultValue(Object data) {
+		for (FieldMetaData fmd : getMetaData().getFieldMetas()) {
+			setValue2Field(data, fmd.getField(), null);
+		}
 	}
 
     /**
