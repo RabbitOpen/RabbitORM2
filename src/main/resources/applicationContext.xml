@@ -38,7 +38,7 @@
 	</bean>
 	
  	<!-- 配置数据源 -->
- 
+
 	<bean id="rabbit" class="rabbit.open.orm.pool.jpa.RabbitDataSource">
 		<property name="driverClass">
 			<value>${jdbc.driverName}</value>
@@ -67,10 +67,14 @@
 		<property name="threshold">
 			<value>${jdbc.threshold}</value>
 		</property>
+		<!-- 获取连接等待时间(ms)默认500ms，超过这个时间就会尝试新建连接 -->
+		<property name="fetchTimeOut">
+			<value>${jdbc.fetchTimeOut}</value>
+		</property>
 		<property name="maxCachedStmt">
 			<value>20</value>
 		</property>
-	</bean> 
+	</bean>  
 
 	
 	<!-- dbcp数据源 -->
@@ -91,20 +95,21 @@
  -->
 	
     <!-- c3p0数据源 -->
-<!--     
-     <bean id="c3p0" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">    
-        <property name="driverClass" value="${jdbc.driverName}"/>    
-        <property name="jdbcUrl" value="${jdbc.url}"/>    
-        <property name="user" value="${jdbc.username}"/>    
-        <property name="password" value="${jdbc.password}"/> 
-        <property name="minPoolSize" value="${jdbc.minSize}"/>    
-        <property name="maxPoolSize" value="${jdbc.maxSize}"/>    
-        <property name="initialPoolSize" value="${jdbc.minSize}"/>    
-        <property name="maxIdleTime" value="60"/>    
-        <property name="maxStatements" value="1000"/>    
-        <property name="idleConnectionTestPeriod" value="60"/>    
-    </bean>  
--->
+
+	<bean id="c3p0" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="${jdbc.driverName}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="minPoolSize" value="${jdbc.minSize}" />
+		<property name="maxPoolSize" value="${jdbc.maxSize}" />
+		<property name="initialPoolSize" value="${jdbc.minSize}" />
+		<property name="maxIdleTime" value="60" />
+		<property name="maxStatements" value="1000" />
+		<property name="idleConnectionTestPeriod" value="60" />
+	</bean>  
+
     
     <!-- hikari数据源 -->
  <!-- 
@@ -146,7 +151,7 @@
 		<property name="mappingFiles">
 			<value>${jdbc.mappingFiles}</value>
 		</property>
-		<property name="dataSource" ref="rabbit" />
+		<property name="dataSource" ref="c3p0" />
 	</bean>
 
     <bean id="transactionManager" class="rabbit.open.orm.spring.RabbitTransactionManager">  

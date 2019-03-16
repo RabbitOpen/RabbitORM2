@@ -43,9 +43,10 @@ public class TestDatasource {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    for (int i = 0; i < 1000; i++) {
+                    for (int i = 0; i < 10000; i++) {
                         us.createQuery().fetch(Organization.class)
-                                .addFilter("id", 1L).execute().list();
+                                .addFilter("id", 1L).execute().unique();
+//                        System.out.println(u.getId() + ", " + u.getName());
                     }
                     s.release();
                 }

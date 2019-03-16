@@ -53,6 +53,8 @@ public class RabbitDataSource extends AbstractDataSource {
 	 */
 	private ReentrantLock sessionCreateLock = new ReentrantLock();
 	
+	private long fetchTimeOut = 500L;
+	
 	/**
 	 * 计数器
 	 */
@@ -75,7 +77,7 @@ public class RabbitDataSource extends AbstractDataSource {
         }
         Session first = null;
         try {
-        	first = connectors.pollFirst(1, TimeUnit.SECONDS);
+        	first = connectors.pollFirst(fetchTimeOut, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
         	logger.error(e.getMessage(), e);
         }
@@ -344,4 +346,7 @@ public class RabbitDataSource extends AbstractDataSource {
 		return restartTimes;
 	}
 	
+	public void setFetchTimeOut(long fetchTimeOut) {
+		this.fetchTimeOut = fetchTimeOut;
+	}
 }
