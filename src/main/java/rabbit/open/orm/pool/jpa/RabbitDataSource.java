@@ -53,6 +53,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	 */
 	private ReentrantLock sessionCreateLock = new ReentrantLock();
 	
+	// 获取连接时的等待时间
 	private long fetchTimeOut = 500L;
 	
 	/**
