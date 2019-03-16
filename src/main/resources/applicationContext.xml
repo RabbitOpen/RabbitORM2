@@ -95,7 +95,7 @@
  -->
 	
     <!-- c3p0数据源 -->
-
+<!-- 
 	<bean id="c3p0" class="com.mchange.v2.c3p0.ComboPooledDataSource"
 		destroy-method="close">
 		<property name="driverClass" value="${jdbc.driverName}" />
@@ -108,7 +108,7 @@
 		<property name="maxIdleTime" value="60" />
 		<property name="maxStatements" value="1000" />
 		<property name="idleConnectionTestPeriod" value="60" />
-	</bean>  
+	</bean>   -->
 
     
     <!-- hikari数据源 -->
@@ -151,7 +151,7 @@
 		<property name="mappingFiles">
 			<value>${jdbc.mappingFiles}</value>
 		</property>
-		<property name="dataSource" ref="c3p0" />
+		<property name="dataSource" ref="rabbit" />
 	</bean>
 
     <bean id="transactionManager" class="rabbit.open.orm.spring.RabbitTransactionManager">  

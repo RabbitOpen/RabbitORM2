@@ -526,7 +526,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 				return fmd.getField();
 			}
 		}
-		throw new RabbitDMLException("new field [" + fieldName + "] was found in " + tableName);
+		throw new RabbitDMLException("no field [" + fieldName + "] was found in " + tableName);
 	}
 	
 	/**
