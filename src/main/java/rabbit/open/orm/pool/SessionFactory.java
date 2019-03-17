@@ -90,7 +90,7 @@ public class SessionFactory {
 			RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager
 					.getResource(ds);
 			if (holder.hasConnection()) {
-				conn = holder.getConnection();//conn.getTransactionIsolation()
+				conn = holder.getConnection();
 			} else {
 				conn = ds.getConnection();
 				holder.setConnection(conn);
