@@ -13,7 +13,6 @@ import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
-import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -91,20 +90,18 @@ public class SessionFactory {
 			RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager
 					.getResource(ds);
 			if (holder.hasConnection()) {
-				conn = holder.getConnection();
+				conn = holder.getConnection();//conn.getTransactionIsolation()
 			} else {
 				conn = ds.getConnection();
 				holder.setConnection(conn);
 			}
 			conn = SessionProxy.getProxy(conn);
-			setTransactionIsolation(conn, ds);
 			disableAutoCommit(conn);
 			cacheSavepoint(conn);
 			return conn;
 		} else {
 			conn = ds.getConnection();
 			conn = SessionProxy.getProxy(conn);
-			setTransactionIsolation(conn, ds);
 			enableAutoCommit(conn);
 			return conn;
 		}
@@ -115,26 +112,26 @@ public class SessionFactory {
 	 * @param conn
 	 * @param ds
 	 */
-	private void setTransactionIsolation(Connection conn, DataSource ds) {
+	public void setTransactionIsolation(Connection conn, DataSource ds) {
 		TransactionObject tObj = (TransactionObject) transObjHolder.get();
-		int isolationLevel = 0;
-		if (null != tObj) {
-			isolationLevel = tObj.getTransactionIsolationLevel();
-			if (TransactionDefinition.ISOLATION_DEFAULT == isolationLevel) {
-				isolationLevel = defaultIsolationLevelHolder.get(ds);
-			}
-		} else {
-			isolationLevel = defaultIsolationLevelHolder.get(ds);
+		if (null == tObj) {
+			return;
 		}
-		try {
-			conn.setTransactionIsolation(isolationLevel);
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+		int requiredIsolationLevel = tObj.getTransactionIsolationLevel();
+		if (requiredIsolationLevel == TransactionDefinition.ISOLATION_DEFAULT) {
+			return;
+		}
+		if (requiredIsolationLevel != defaultIsolationLevelHolder.get(ds)) {
+			try {
+				conn.setTransactionIsolation(requiredIsolationLevel);
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
 		}
 	}
 
 	/**
-	 * <b>@description 禁止自定提交  </b>
+	 * <b>@description 禁止自动提交  </b>
 	 * @param conn
 	 */
 	public static void disableAutoCommit(Connection conn) {
@@ -238,8 +235,9 @@ public class SessionFactory {
 	 */
 	private static void initSessionHolder(SessionFactory factory) {
 		for (DataSource ds : factory.getAllDataSources()) {
-			ConnectionHolder holder = new RabbitConnectionHolder();
+			RabbitConnectionHolder holder = new RabbitConnectionHolder();
 			holder.setSynchronizedWithTransaction(true);
+			holder.setFactory(factory);
 			if (null == TransactionSynchronizationManager.getResource(ds)) {
 				TransactionSynchronizationManager.bindResource(ds, holder);
 			}
@@ -253,10 +251,17 @@ public class SessionFactory {
      * @param factory 
      * 
      */
+    /**
+     * <b>@description  </b>
+     * @param transactionObject
+     * @param factory
+     */
     public static void commit(Object transactionObject, SessionFactory factory) {
         if (null == transObjHolder.get() || !transObjHolder.get().equals(transactionObject)) {
             return;
         }
+        TransactionObject tObj = (TransactionObject) transObjHolder.get();
+		int requiredIsolationLevel = tObj.getTransactionIsolationLevel();
         transObjHolder.remove();
         for (DataSource ds : factory.getAllDataSources()) {
         	RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager
@@ -266,18 +271,39 @@ public class SessionFactory {
         	}
 			try {
 				holder.getConnection().commit();
-			} catch (SQLException e) {
+				resetIsolationLevel(factory, requiredIsolationLevel, ds, holder);
+			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 			} finally {
 				try {
 					holder.getConnection().close();
-				} catch (SQLException e) {
+				} catch (Exception e) {
 					logger.error(e.getMessage(), e);
 				}
 			}
         	TransactionSynchronizationManager.unbindResource(ds);
 		}
     }
+
+	/**
+	 * <b>@description 重置连接的事务隔离级别 </b>
+	 * @param factory
+	 * @param requiredIsolationLevel 当前事务要求的事务隔离级别
+	 * @param ds
+	 * @param holder		
+	 * @throws SQLException
+	 */
+	private static void resetIsolationLevel(SessionFactory factory,
+			int requiredIsolationLevel, DataSource ds,
+			RabbitConnectionHolder holder) throws SQLException {
+		if (requiredIsolationLevel != TransactionDefinition.ISOLATION_DEFAULT) {
+			// 数据源默认的事务隔离级别
+			Integer defaultIsolationLevel = factory.defaultIsolationLevelHolder.get(ds);
+			if (requiredIsolationLevel != defaultIsolationLevel) {
+				holder.getConnection().setTransactionIsolation(defaultIsolationLevel);
+			}
+		}
+	}
 
     /**
      * 
@@ -314,6 +340,8 @@ public class SessionFactory {
 	}
 
 	private static void rollbackAll(SessionFactory factory) {
+		TransactionObject tObj = (TransactionObject) transObjHolder.get();
+		int requiredIsolationLevel = tObj.getTransactionIsolationLevel();
 		transObjHolder.remove();
 		for (DataSource ds : factory.getAllDataSources()) {
 			RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager
@@ -323,12 +351,13 @@ public class SessionFactory {
         	}
 			try {
 				holder.getConnection().rollback();
-			} catch (SQLException e) {
+				resetIsolationLevel(factory, requiredIsolationLevel, ds, holder);
+			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 			} finally {
 				try {
 					holder.getConnection().close();
-				} catch (SQLException e) {
+				} catch (Exception e) {
 					logger.error(e.getMessage(), e);
 				}
 			}
@@ -504,5 +533,9 @@ public class SessionFactory {
 	
 	public void setScanJar(boolean scanJar) {
 		this.scanJar = scanJar;
+	}
+	
+	public Map<DataSource, Integer> getDefaultIsolationLevelHolder() {
+		return defaultIsolationLevelHolder;
 	}
 }

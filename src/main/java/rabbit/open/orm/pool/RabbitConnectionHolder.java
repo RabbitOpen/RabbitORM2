@@ -1,8 +1,13 @@
 package rabbit.open.orm.pool;
 
 import java.sql.Connection;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.sql.DataSource;
 
 import org.springframework.jdbc.datasource.ConnectionHolder;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import rabbit.open.orm.pool.jpa.Session;
 
@@ -11,6 +16,8 @@ import rabbit.open.orm.pool.jpa.Session;
  */
 public class RabbitConnectionHolder extends ConnectionHolder {
 
+	private SessionFactory factory;
+	
 	public RabbitConnectionHolder() {
 		super(new EmptyConnection());
 		setConnection(null);
@@ -28,10 +35,21 @@ public class RabbitConnectionHolder extends ConnectionHolder {
 			return;
 		}
 		if (SessionFactory.isTransactionOpen()) {
+			Map<Object, Object> resourceMap = TransactionSynchronizationManager.getResourceMap();
+			for (Entry<Object, Object> entry : resourceMap.entrySet()) {
+				if (entry.getValue() == this && entry.getKey() instanceof DataSource) {
+					factory.setTransactionIsolation(connection, (DataSource) entry.getKey());
+					break;
+				}
+			}
 			SessionFactory.disableAutoCommit(connection);
 		}
 	}
 
+	public void setFactory(SessionFactory factory) {
+		this.factory = factory;
+	}
+	
 	/**
 	 * <b>@description 什么都不做的数据库连接对象 </b>
 	 */

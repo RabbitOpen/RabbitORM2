@@ -34,6 +34,13 @@ public class SessionProxy implements MethodInterceptor {
      * @return
      */
     public int getTransactionIsolation() {
+    	if (-1 == transactionIsolation) {
+    		try {
+				transactionIsolation = realSession.getTransactionIsolation();
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+    	}
 		return transactionIsolation;
 	}
 	
@@ -59,12 +66,6 @@ public class SessionProxy implements MethodInterceptor {
     public static Connection getProxy(Connection realSession) {
         SessionProxy proxy = new SessionProxy();
         proxy.setRealSession(realSession);
-        try {
-        	// 缓存当前事务隔离级别
-			proxy.transactionIsolation = realSession.getTransactionIsolation();
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
         Enhancer eh = new Enhancer();
         eh.setSuperclass(Connection.class);
         eh.setCallback(proxy);
