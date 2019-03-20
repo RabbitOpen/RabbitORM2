@@ -207,7 +207,7 @@ public class UpdateTest {
         z.setId(1993L);
         org.setName("newname");
         org.setZone(z);
-        os.updateByID(org);
+        TestCase.assertEquals(1, os.updateByID(org));
         Organization oq = os.createQuery().addFilter("id", org.getId()).fetch(Zone.class).unique();
         TestCase.assertEquals(oq.getName(), "newname");
         TestCase.assertEquals(oq.getZone().getId(), z.getId());
@@ -228,7 +228,7 @@ public class UpdateTest {
     	name = "wangwu";
     	r.setId(u.getId());
     	r.setName(name);
-    	us.replaceByID(r);
+    	TestCase.assertEquals(1, us.replaceByID(r));
     	u = us.getByID(u.getId());
     	TestCase.assertEquals(u.getName(), name);
     	TestCase.assertNull(u.getAge());
