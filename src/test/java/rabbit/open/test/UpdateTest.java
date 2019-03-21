@@ -1,5 +1,7 @@
 package rabbit.open.test;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import junit.framework.TestCase;
@@ -127,8 +129,29 @@ public class UpdateTest {
         } catch (Exception e) {
             TestCase.assertSame(RabbitDMLException.class, e.getClass());
         }
-
-        
+    }
+    
+    @Test
+    public void excludeTest() throws ParseException {
+    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		User user = new User("lili", 10, sdf.parse("2018-10-10"), null);
+    	us.add(user);
+    	
+    	User update = new User("lilix", 12, sdf.parse("2019-10-10"), null);
+    	update.setId(user.getId());
+    	us.createUpdate().exclude("age").updateByID(update);
+    	User get = us.getByID(user.getId());
+    	TestCase.assertEquals(update.getName(), get.getName());
+    	TestCase.assertEquals(update.getBirth(), get.getBirth());
+    	TestCase.assertEquals(user.getAge(), get.getAge());
+    	
+    	User replace = new User("replace", 13, sdf.parse("2011-10-10"), null);
+    	replace.setId(user.getId());
+    	us.createUpdate().exclude("age", "name").replaceByID(replace);
+    	get = us.getByID(user.getId());
+    	TestCase.assertEquals(update.getName(), get.getName());
+    	TestCase.assertEquals(replace.getBirth(), get.getBirth());
+    	TestCase.assertEquals(user.getAge(), get.getAge());
     }
 
     @Test

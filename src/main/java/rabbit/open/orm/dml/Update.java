@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.FilterType;
@@ -41,6 +42,8 @@ public class Update<T> extends NonQueryAdapter<T> {
 	private HashSet<String> nullfields = new HashSet<>();
 	
 	private List<FieldMetaData> valueMetas;
+	
+	private Set<String> excludes = new HashSet<>();
 	
 	public Update(SessionFactory sessionFactory, Class<T> clz) {
         this(sessionFactory, null, clz);
@@ -233,6 +236,9 @@ public class Update<T> extends NonQueryAdapter<T> {
     	valueMetas = new ArrayList<>(); 
     	String tableName = getMetaData().getTableName();
     	for (FieldMetaData fmd : fmds) {
+    		if (excludes.contains(fmd.getField().getName())) {
+    			continue;
+    		}
     		FieldMetaData copy = fmd.copy();
     		copy.setFieldValue(getValue(fmd.getField(), data));
     		copy.setFieldTableName(tableName);
@@ -246,6 +252,18 @@ public class Update<T> extends NonQueryAdapter<T> {
     	return updateDataByPreparedSql(data);
     }
 	
+    /**
+     * <b>@description updateByID replaceByID时排除特定字段 </b>
+     * @param fields
+     * @return
+     */
+    public Update<T> exclude(String... fields) {
+    	for (String f : fields) {
+    		excludes.add(f);
+    	}
+    	return this;
+    }
+    
 	/**
 	 * 
 	 * <b>Description:	根据id字段更新</b><br>
@@ -344,6 +362,9 @@ public class Update<T> extends NonQueryAdapter<T> {
         }
         StringBuilder sb = new StringBuilder("UPDATE " + TARGET_TABLE_NAME + " SET");
         for (int i = 0; i < valueMetas.size(); i++) {
+        	if (excludes.contains(valueMetas.get(i).getField().getName())) {
+    			continue;
+    		}
             sb.append(createSqlSegmentByMeta(valueMetas.get(i)));
         }
         sb.deleteCharAt(sb.lastIndexOf(","));
