@@ -18,6 +18,9 @@ public class Role {
 	@Column("ROLENAME")
 	private String roleName;
 	
+	@Column("TESTID")
+	private Integer testId = 10;
+	
 	@ManyToMany(id="ID", policy=Policy.AUTOINCREMENT, 
             joinTable="T_ROLE_RESOURCE", 
             joinColumn="ROLE_ID", reverseJoinColumn="RESOURCE_ID")
@@ -77,5 +80,18 @@ public class Role {
         this.zone = zone;
     }
 
+	public Integer getTestId() {
+		return testId;
+	}
+
+	public void setTestId(Integer testId) {
+		this.testId = testId;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+    
     
 }

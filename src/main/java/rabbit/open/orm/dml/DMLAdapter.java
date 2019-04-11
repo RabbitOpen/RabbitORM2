@@ -384,7 +384,7 @@ public abstract class DMLAdapter<T> {
                     FilterDescriptor desc = new FilterDescriptor(
                             getAliasByTableName(getTableNameByClass(entry.getKey()))
                                     + "." + getColumnName(fmd.getColumn()),
-                            RabbitValueConverter.convert(dfd.getValue(), fmd),
+                            RabbitValueConverter.convert(dfd.getValue(), fmd, dfd.isReg()),
                             dfd.getFilter().value());
                     desc.setField(fmd.getField());
                     replaceKeyByReg(dfd, desc);
@@ -403,10 +403,31 @@ public abstract class DMLAdapter<T> {
     private void replaceKeyByReg(DynamicFilterDescriptor dfd,
             FilterDescriptor desc) {
         if (dfd.isReg()) {
-            desc.setKey(dfd.getKeyReg().replaceAll(REPLACE_WORD,
-                    desc.getKey()));
+        	String key = replaceRegByColumnName(dfd.getKeyReg(), desc.getField(), desc.getKey());
+        	desc.setKey(key);
         }
     }
+
+	/**
+	 * <b>@description  用字段名替换正则中的内容 </b>
+	 * @param reg		原始的正则表达式
+	 * @param firstField		正则表达式中第一个字段的对应的field对象
+	 * @param firstColumnName 	正则表达式中第一个字段的对应数据库字段
+	 * @return
+	 */
+	protected String replaceRegByColumnName(String reg, Field firstField, String firstColumnName) {
+		String key = reg.replaceFirst(REPLACE_WORD, firstColumnName);
+		while (true) {
+			String fieldName = getFieldByReg(key);
+			if (fieldName.equals(key)) {
+				break;
+			}
+			FieldMetaData fmd = getFieldMetaByFieldName(firstField.getDeclaringClass(), fieldName);
+			String columnName = getColumnName(fmd.getColumn());
+			key = key.replaceFirst(REPLACE_WORD, firstColumnName.split("\\.")[0] + "." + columnName);
+		}
+		return key;
+	}
 	
 	public SessionFactory getSessionFactory() {
         return sessionFactory;

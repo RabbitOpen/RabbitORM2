@@ -856,9 +856,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 				String key = getAliasByTableName(jfm.getTableName()) + "." + getColumnName(fmd.getColumn());
 				String filter = dfd.getFilter().value();
 				if (dfd.isReg()) {
-					key = dfd.getKeyReg().replaceAll(REPLACE_WORD, key);
+					key = replaceRegByColumnName(dfd.getKeyReg(), fmd.getField(), key);
 				}
-				Object holderValue = RabbitValueConverter.convert(dfd.getValue(), fmd);
+				Object holderValue = RabbitValueConverter.convert(dfd.getValue(), fmd, dfd.isReg());
 				if (FilterType.IS.value().equals(filter.trim())
 						|| FilterType.IS_NOT.value().equals(filter.trim())) {
 					sql.append(key + " " + filter + NULL);
@@ -1058,11 +1058,11 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		List<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(jfm.getJoinClass());
 		StringBuilder sb = new StringBuilder();
 		Map<String, String> aliasMappings = MetaData.getFieldsAliasMapping(jfm.getJoinClass());
-		if(null == aliasMappings){
+		if (null == aliasMappings) {
 			aliasMappings = new ConcurrentHashMap<>();
 			MetaData.setFieldsAliasMapping(jfm.getJoinClass(), aliasMappings);
 		}
-		for(int i = 0; i < fieldsMetas.size(); i++){
+		for (int i = 0; i < fieldsMetas.size(); i++) {
 			FieldMetaData fmd = fieldsMetas.get(i);
 			if (!isConcernedField(jfm.getJoinClass(), fmd)) {
 				continue;
@@ -1089,11 +1089,11 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		StringBuilder sb = new StringBuilder();
 		List<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(clz);
 		Map<String, String> aliasMappings = MetaData.getFieldsAliasMapping(clz);
-		if(null == aliasMappings){
+		if (null == aliasMappings) {
 			aliasMappings = new ConcurrentHashMap<>();
 			MetaData.setFieldsAliasMapping(clz, aliasMappings);
 		}
-		for(int i = 0; i < fieldsMetas.size(); i++){
+		for (int i = 0; i < fieldsMetas.size(); i++) {
 			FieldMetaData fmd = fieldsMetas.get(i);
 			if (!isConcernedField(clz, fmd)) {
 				continue;
@@ -1102,14 +1102,14 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			String alias = Integer.toString(i);
 			aliasMappings.put(alias, fn);
 			String tableAlias = getAliasByTableName(getTableNameByClass(clz));
-			if(fetchTimesMappingTable.containsKey(clz) && fetchTimesMappingTable.get(clz) > 1){
-			    for(int j = 1; j <= fetchTimesMappingTable.get(clz); j++){
+			if (fetchTimesMappingTable.containsKey(clz) && fetchTimesMappingTable.get(clz) > 1) {
+				for (int j = 1; j <= fetchTimesMappingTable.get(clz); j++) {
 			        sql.append(tableAlias + UNDERLINE + j + "." + getColumnName(fmd.getColumn()));
 	                sql.append(" AS ");
 	                sql.append(tableAlias + UNDERLINE + j  + SEPARATOR + alias);
 	                sql.append(", ");
 			    }
-	        }else{
+			} else {
 	            sql.append(tableAlias + "." + getColumnName(fmd.getColumn()));
 	            sql.append(" AS ");
 	            sql.append(tableAlias + SEPARATOR + alias);
