@@ -2,6 +2,7 @@ package rabbit.open.test;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -12,6 +13,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.orm.annotation.FilterType;
+import rabbit.open.orm.exception.InvalidGroupByFieldException;
 import rabbit.open.test.entity.RegRoom;
 import rabbit.open.test.entity.RegUser;
 import rabbit.open.test.service.RegRoomService;
@@ -24,7 +26,7 @@ import rabbit.open.test.service.RegUserService;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:applicationContext.xml" })
-public class RegQueryTest {
+public class MysqlRegQueryTest {
 
 	@Autowired
 	RegUserService rus;
@@ -32,6 +34,9 @@ public class RegQueryTest {
 	@Autowired
 	RegRoomService rrs;
 
+	/**
+	 * <b>@description 正则表达式查询  </b>
+	 */
 	@Test
 	public void regQueryTest() {
 		RegUser user = new RegUser();
@@ -79,7 +84,56 @@ public class RegQueryTest {
 		TestCase.assertTrue(sdf.format(unique.getRooms().get(0).getEnd()).equals(sdf.format(end)));
 	}
 	
-	public static void main(String[] args) {
-		System.out.println(new Integer(1) == new Integer(1));
+	@Test
+	public void dynamicQueryTest() {
+		int count = 5;
+		for (int i = 0; i < count; i++) {
+			RegUser user = new RegUser();
+			Date start = new Date();
+			// 一天的毫秒数
+			long milDays = 24 * 60 * 60 * 1000;
+			Date end = new Date(start.getTime() + 2L * milDays);
+			user.setStart(start);
+			user.setEnd(end);
+			user.setFrom(100);
+			user.setTo(200);
+			user.setName("zhangsan");
+			rus.add(user);
+		}
+		for (int i = 0; i < count; i++) {
+			RegUser user = new RegUser();
+			Date start = new Date();
+			// 一天的毫秒数
+			long milDays = 24 * 60 * 60 * 1000;
+			Date end = new Date(start.getTime() + 2L * milDays);
+			user.setStart(start);
+			user.setEnd(end);
+			user.setFrom(100);
+			user.setTo(200);
+			user.setName("lisi");
+			rus.add(user);
+		}
+		List<RegUser> list = rus.createDynamicQuery()
+				.querySpecifiedFields("name", "countOfName").groupBy("name")
+				.list();
+		TestCase.assertTrue(list.size() >= 2);
+		int find = 0;
+		for (RegUser u : list) {
+			if ("lisi".equals(u.getName()) || "zhangsan".equals(u.getName())) {
+				TestCase.assertTrue(count == u.getCountOfName());
+				find++;
+			}
+		}
+		TestCase.assertEquals(2, find);
+	}
+	
+	@Test
+	public void exceptionTest() {
+		try {
+			rus.createDynamicQuery().querySpecifiedFields("name", "countOfName").groupBy("countOfName").list();
+		} catch (InvalidGroupByFieldException e) {
+			return;
+		}
+		throw new RuntimeException();
 	}
 }

@@ -1,13 +1,13 @@
 package rabbit.open.orm.exception;
 
 /**
- * <b>Description 重复别名 </b>. 
+ * <b>Description 重复别名 </b>.
  */
 @SuppressWarnings("serial")
-public class RepeatedAliasException extends RuntimeException{
-    
-    public RepeatedAliasException(String alias) {
-        super("repeated alias[" + alias + "] is defined");
-    }
+public class RepeatedAliasException extends RuntimeException {
+
+	public RepeatedAliasException(String alias) {
+		super("repeated alias[" + alias + "] is defined");
+	}
 
 }

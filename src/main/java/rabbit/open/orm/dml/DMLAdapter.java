@@ -57,6 +57,9 @@ public abstract class DMLAdapter<T> {
     protected static final String NULL = " NULL ";
     
     protected static final String WHERE = " WHERE ";
+    
+    // 禁止动态字段的查询
+    protected boolean forbiddenDynamic = true;
 
     //换行
 	private static final String NEW_LINE = "\n";
@@ -1069,4 +1072,8 @@ public abstract class DMLAdapter<T> {
             throw new RabbitDMLException(e);
         }
     }
+    
+    public boolean isForbiddenDynamic() {
+		return forbiddenDynamic;
+	}
 }

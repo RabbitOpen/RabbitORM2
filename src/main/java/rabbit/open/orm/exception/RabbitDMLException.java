@@ -1,7 +1,7 @@
 package rabbit.open.orm.exception;
 
 @SuppressWarnings("serial")
-public class RabbitDMLException extends RuntimeException{
+public class RabbitDMLException extends RuntimeException {
 
 	public RabbitDMLException(String message, Throwable cause) {
 		super(message, cause);
@@ -14,5 +14,5 @@ public class RabbitDMLException extends RuntimeException{
 	public RabbitDMLException(Throwable cause) {
 		super(cause);
 	}
-	
+
 }

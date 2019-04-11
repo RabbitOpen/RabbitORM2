@@ -159,4 +159,9 @@ public class Query<T> extends AbstractQuery<T> {
 		return addNullFilter(reg, true, depsPath);
 	}
 
+	@Override
+	public AbstractQuery<T> groupBy(String... fields) {
+		return this;
+	}
+
 }

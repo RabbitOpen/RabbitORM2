@@ -1,4 +1,4 @@
-package rabbit.open.test.entity;
+package oracle.test.entity;
 
 import java.util.Date;
 import java.util.List;
@@ -12,7 +12,7 @@ import rabbit.open.orm.dml.policy.Policy;
 @Entity("REG_USER")
 public class RegUser {
 
-	@PrimaryKey(policy = Policy.AUTOINCREMENT)
+	@PrimaryKey(policy = Policy.SEQUENCE, sequence="MYSEQ")
 	@Column("ID")
 	private Integer id;
 

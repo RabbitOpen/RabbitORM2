@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.Delete;
+import rabbit.open.orm.dml.DynamicQuery;
 import rabbit.open.orm.dml.Insert;
 import rabbit.open.orm.dml.JoinTableManager;
 import rabbit.open.orm.dml.NamedQuery;
@@ -70,6 +71,27 @@ public abstract class SpringDaoAdapter<T> {
 	 */
 	public Query<T> createQuery(T filter){
 		return new Query<>(sessionFactory, filter, clz);
+	}
+	
+	/**
+	 * 
+	 * <b>Description:	创建一个可以查询动态字段的查询对象</b><br>
+	 * @return	
+	 * 
+	 */
+	public DynamicQuery<T> createDynamicQuery(){
+		return new DynamicQuery<>(sessionFactory, clz);
+	}
+	
+	/**
+	 * 
+	 * <b>Description:	创建一个可以查询动态字段的查询对象</b><br>
+	 * @param filter	原始过滤条件
+	 * @return	
+	 * 
+	 */
+	public DynamicQuery<T> createDynamicQuery(T filter){
+		return new DynamicQuery<>(sessionFactory, filter, clz);
 	}
 	
 	/**

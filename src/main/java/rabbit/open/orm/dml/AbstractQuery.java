@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -57,7 +58,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
     private static final String INNER_JOIN = " INNER JOIN ";
 
     private static final String LEFT_JOIN = "LEFT JOIN ";
-
+    
     //希望查询出来的实体
 	protected HashSet<Class<?>> entity2Fetch = new HashSet<>();
 	
@@ -434,6 +435,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
             Map<String, Object> joinFetcEntity) throws SQLException {
         for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
             Object colValue = rs.getObject(i);
+            if (sessionFactory.getDialectType().isOracle() && colValue instanceof Date ) {
+            	colValue = rs.getTimestamp(i);
+            }
             if (null == colValue) {
                 continue;
             }
@@ -573,8 +577,23 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         createFromSql();
         createJoinSql();
         createFilterSql();
+        createGroupBySql();
         createOrderSql();
         createPageSql();
+	}
+	
+	/**
+	 * <b>@description 添加groupBy字段 </b>
+	 * @param fields
+	 * @return
+	 */
+	public abstract AbstractQuery<T> groupBy(String... fields);
+	
+	/**
+	 * <b>@description 创建groupby sql片段 </b>
+	 */
+	protected void createGroupBySql() {
+		
 	}
 
     /**
@@ -1064,15 +1083,18 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		}
 		for (int i = 0; i < fieldsMetas.size(); i++) {
 			FieldMetaData fmd = fieldsMetas.get(i);
-			if (!isConcernedField(jfm.getJoinClass(), fmd)) {
+			boolean dynamic = fmd.getColumn().dynamic();
+			if ((isForbiddenDynamic() && dynamic) || 
+					!isConcernedField(jfm.getJoinClass(), fmd)) {
 				continue;
 			}
 			String fn = fmd.getField().getName();
 			String alias = Integer.toString(i);
 			aliasMappings.put(alias, fn);
-			sql.append(getAliasByTableName(jfm.getTableName()) + "." + getColumnName(fmd.getColumn()));
+			String tableAlias = getAliasByTableName(jfm.getTableName());
+			appendColumnName(dynamic, tableAlias, getColumnName(fmd.getColumn()));
 			sql.append(" AS ");
-			sql.append("J" + SEPARATOR + getAliasByTableName(jfm.getTableName()) + SEPARATOR + alias);
+			sql.append("J" + SEPARATOR + tableAlias + SEPARATOR + alias);
 			sql.append(", ");
 		}
 		return sb;
@@ -1095,28 +1117,40 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		}
 		for (int i = 0; i < fieldsMetas.size(); i++) {
 			FieldMetaData fmd = fieldsMetas.get(i);
-			if (!isConcernedField(clz, fmd)) {
+			boolean dynamic = fmd.getColumn().dynamic();
+			if ((isForbiddenDynamic() && dynamic) || 
+					!isConcernedField(clz, fmd)) {
 				continue;
 			}
 			String fn = fmd.getField().getName();
 			String alias = Integer.toString(i);
 			aliasMappings.put(alias, fn);
 			String tableAlias = getAliasByTableName(getTableNameByClass(clz));
+			String columnName = getColumnName(fmd.getColumn());
 			if (fetchTimesMappingTable.containsKey(clz) && fetchTimesMappingTable.get(clz) > 1) {
 				for (int j = 1; j <= fetchTimesMappingTable.get(clz); j++) {
-			        sql.append(tableAlias + UNDERLINE + j + "." + getColumnName(fmd.getColumn()));
+			        sql.append(tableAlias + UNDERLINE + j + "." + columnName);
 	                sql.append(" AS ");
 	                sql.append(tableAlias + UNDERLINE + j  + SEPARATOR + alias);
 	                sql.append(", ");
 			    }
 			} else {
-	            sql.append(tableAlias + "." + getColumnName(fmd.getColumn()));
+				appendColumnName(dynamic, tableAlias, columnName);
 	            sql.append(" AS ");
 	            sql.append(tableAlias + SEPARATOR + alias);
 	            sql.append(", ");
 	        }
 		}
 		return sb;
+	}
+
+	private void appendColumnName(boolean dynamic, String tableAlias,
+			String columnName) {
+		if (dynamic) {
+			sql.append(columnName);
+		} else {
+			sql.append(tableAlias + "." + columnName);
+		}
 	}
 
 	/**
@@ -1533,6 +1567,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         createFromSql();
         createJoinSql();
         createFilterSql();
+        createGroupBySql();
     }
 	
 	protected void generateCountSql() {

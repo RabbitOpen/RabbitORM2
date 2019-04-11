@@ -530,10 +530,11 @@ public abstract class DDLHelper {
         }
         List<StringBuilder> sqls = new ArrayList<>();
         for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(entityClz)) {
+			if (fmd.getColumn().dynamic()
+					|| cols.contains(fmd.getColumn().value().toUpperCase())) {
+				continue;
+			}
             StringBuilder sql = new StringBuilder();
-            if (cols.contains(fmd.getColumn().value().toUpperCase())) {
-                continue;
-            }
             sql.append("ALTER TABLE " + tableName + getAddColumnKeywords()
                     + getColumnName(fmd.getColumn()).toUpperCase() + " ");
             if (fmd.isForeignKey()) {
@@ -625,6 +626,9 @@ public abstract class DDLHelper {
             List<FieldMetaData> fmds, StringBuilder sql) {
         FieldMetaData pkm = null;
         for (FieldMetaData fmd : fmds) {
+        	if (fmd.getColumn().dynamic()) {
+        		continue;
+        	}
             sql.append(createFieldSqlByMeta(fmd));
             if (fmd.isPrimaryKey()) {
                 pkm = fmd;

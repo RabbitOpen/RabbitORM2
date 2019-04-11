@@ -7,7 +7,8 @@ package rabbit.open.orm.exception;
 public class RepeatedEntityMapping extends RabbitDDLException {
 
 	public RepeatedEntityMapping(Class<?> clz1, Class<?> clz2, String tableName) {
-		super("table[" + tableName + "] should be mapped by only one class, rather than mapped by class [" + clz1 + "] and [" + clz2 + "] at the same time!");
+		super("table[" + tableName + "] should be mapped by only one class, rather than mapped by class ["
+				+ clz1 + "] and [" + clz2 + "] at the same time!");
 	}
 
 }

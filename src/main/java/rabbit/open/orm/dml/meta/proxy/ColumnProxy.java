@@ -26,11 +26,15 @@ public class ColumnProxy implements MethodInterceptor {
     // column 是否为keyword
     private boolean keyWord;
     
+    // 是否是动态字段
+    private boolean dynamic;
+    
     public void setRealObject(Column column) {
         this.value = column.value();
         this.pattern = column.pattern();
         this.length = column.length();
         this.keyWord = column.keyWord();
+        this.dynamic = column.dynamic();
     }
     
     /**
@@ -69,6 +73,9 @@ public class ColumnProxy implements MethodInterceptor {
         }
         if ("value".equals(method.getName())) {
             return value;
+        }
+        if ("dynamic".equals(method.getName())) {
+        	return dynamic;
         }
         return null;
     }
