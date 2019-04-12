@@ -114,7 +114,7 @@ public class MysqlRegQueryTest {
 			rus.add(user);
 		}
 		List<RegUser> list = rus.createDynamicQuery()
-				.querySpecifiedFields("name", "countOfName").groupBy("name")
+				.querySpecifiedFields("name", "countOfName").groupBy("name").page(0,  10)
 				.list();
 		TestCase.assertTrue(list.size() >= 2);
 		int find = 0;
