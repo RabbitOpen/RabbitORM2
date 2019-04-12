@@ -1,14 +1,10 @@
-package oracle.test;
+package reg.sqlserver;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
 import junit.framework.TestCase;
-import oracle.test.entity.RegRoom;
-import oracle.test.entity.RegUser;
-import oracle.test.service.OracleRegRoomService;
-import oracle.test.service.OracleRegUserService;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,6 +14,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.exception.InvalidGroupByFieldException;
+import reg.sqlserver.entity.RegRoom;
+import reg.sqlserver.entity.RegUser;
+import reg.sqlserver.service.SqlServerRegRoomService;
+import reg.sqlserver.service.SqlServerRegUserService;
 
 /**
  * <b>Description: 关于正则表达式参数的查询测试</b><br>
@@ -25,14 +25,14 @@ import rabbit.open.orm.exception.InvalidGroupByFieldException;
  * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:applicationContext-oracle.xml" })
-public class OracleRegQueryTest {
+@ContextConfiguration(locations = { "classpath:applicationContext-sqlserver-reg.xml" })
+public class SqlServerRegQueryTest {
 
 	@Autowired
-	OracleRegUserService rus;
+	SqlServerRegUserService rus;
 	
 	@Autowired
-	OracleRegRoomService rrs;
+	SqlServerRegRoomService rrs;
 
 	/**
 	 * <b>@description 正则表达式查询  </b>
@@ -69,14 +69,14 @@ public class OracleRegQueryTest {
 		TestCase.assertEquals(1, rus.createQuery()
 				.addFilter("${to} - ${from}", user.getTo() - user.getFrom(), FilterType.LTE)
 				// 起始日期和截止日期相差48小时
-				.addFilter("24 * (${end} - ${start})", 48)
+				.addFilter("DATEDIFF(hour, ${start}, ${end})", 48)
 				.count());
 		
 		RegUser unique = rus.createQuery().addFilter("${to} - ${from}", user.getTo() - user.getFrom(), FilterType.LTE)
 			// 起始日期和截止日期相差48小时
-			.addFilter("24 * (${end} - ${start})", 48)
+			.addFilter("DATEDIFF(hour, ${start}, ${end})", 48)
 			.joinFetch(RegRoom.class)
-			.addJoinFilter("24 * (${end} - ${start})", 48, RegRoom.class)
+			.addJoinFilter("DATEDIFF(hour, ${start}, ${end})", 48, RegRoom.class)
 			.addFilter("id", user.getId()).unique();
 		TestCase.assertEquals(unique.getRooms().size(), 2);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

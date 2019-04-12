@@ -27,6 +27,7 @@ import rabbit.open.orm.dml.PolicyInsert;
 import rabbit.open.orm.dml.filter.DMLFilter;
 import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
+import rabbit.open.orm.dml.name.SQLObject;
 import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.jpa.CombinedDataSource;
@@ -77,6 +78,8 @@ public class SessionFactory {
     private Map<DataSource, Integer> defaultIsolationLevelHolder = new ConcurrentHashMap<>();
 
     private Set<DataSource> sources = new HashSet<>();
+    
+    private SQLParser sqlParser;
     
     public Connection getConnection() throws SQLException {
         return getConnection(null, null, null);
@@ -415,9 +418,34 @@ public class SessionFactory {
             DDLHelper.executeDDL(this, getPackages2Scan());
         }
         if (!isEmpty(mappingFiles)) {
-            new SQLParser(mappingFiles).doXmlParsing();
+            sqlParser = new SQLParser(mappingFiles);
+			sqlParser.doXmlParsing();
         }
     }
+    
+    /**
+	 * 
+	 * <b>Description:	根据查询的名字和类信息获取命名查询对象</b><br>
+	 * @param name		定义的查询名字	
+	 * @param clz		namespace对应的class	
+	 * @return	
+	 * 
+	 */
+	public SQLObject getQueryByNameAndClass(String name, Class<?> clz) {
+		return sqlParser.getQueryByNameAndClass(name, clz);
+	}
+
+	/**
+	 * 
+	 * <b>Description:	根据查询的名字和类信息获取jdbc命名查询对象</b><br>
+	 * @param name
+	 * @param clz
+	 * @return	
+	 * 
+	 */
+	public SQLObject getNamedJdbcQuery(String name, Class<?> clz) {
+		return sqlParser.getNamedJdbcQuery(name, clz);
+	}
 
 	/**
 	 * <b>@description 缓存默认事务隔离级别 </b>

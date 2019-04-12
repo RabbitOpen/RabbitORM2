@@ -1,4 +1,4 @@
-package oracle.test.entity;
+package reg.sqlite.entity;
 
 import java.util.Date;
 
@@ -7,10 +7,10 @@ import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.dml.policy.Policy;
 
-@Entity("REG_ROOM_ORACLE")
+@Entity("REG_ROOM_SQLITE")
 public class RegRoom {
 	
-	@PrimaryKey(policy = Policy.SEQUENCE, sequence="MYSEQ")
+	@PrimaryKey(policy = Policy.AUTOINCREMENT)
 	@Column("ID")
 	private Integer id;
 	

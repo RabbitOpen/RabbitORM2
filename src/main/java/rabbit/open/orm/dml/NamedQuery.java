@@ -13,7 +13,6 @@ import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.name.FetcherDescriptor;
 import rabbit.open.orm.dml.name.JoinFetcherDescriptor;
 import rabbit.open.orm.dml.name.NamedSQL;
-import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.exception.MisMatchedNamedQueryException;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.exception.UnKnownFieldException;
@@ -52,11 +51,11 @@ public class NamedQuery<T> {
 				generateNameCountSql();
 			}
 		};
-		if (!SQLParser.getQueryByNameAndClass(name, clz).getClass()
+		if (!query.getSessionFactory().getQueryByNameAndClass(name, clz).getClass()
 				.equals(NamedSQL.class)) {
 			throw new MisMatchedNamedQueryException(name);
 		}
-		nameObject = (NamedSQL) SQLParser.getQueryByNameAndClass(name, clz);
+		nameObject = (NamedSQL) query.getSessionFactory().getQueryByNameAndClass(name, clz);
 		fieldsValues = new TreeMap<>(new Comparator<Integer>() {
 			@Override
 			public int compare(Integer o1, Integer o2) {

@@ -6,6 +6,6 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-public class RegUserService extends OracleBaseService<RegUser> {
+public class OracleRegUserService extends OracleBaseService<RegUser> {
 
 }

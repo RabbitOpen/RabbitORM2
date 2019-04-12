@@ -37,7 +37,7 @@ public class SQLParser {
 	private String sqlPath;
 	
 	//缓存的命名查询对象
-	static Map<Class<?>, Map<String, SQLObject>> nameQueries = new ConcurrentHashMap<>();
+	private Map<Class<?>, Map<String, SQLObject>> nameQueries = new ConcurrentHashMap<>();
 
 	public SQLParser(String path) {
 		super();
@@ -55,7 +55,7 @@ public class SQLParser {
 	 * @return	
 	 * 
 	 */
-	public static SQLObject getQueryByNameAndClass(String name, Class<?> clz){
+	public SQLObject getQueryByNameAndClass(String name, Class<?> clz) {
 		Map<String, SQLObject> map = nameQueries.get(clz);
         if (null == map) {
             throw new NoNamedSQLDefinedException(clz);
@@ -75,7 +75,7 @@ public class SQLParser {
 	 * @return	
 	 * 
 	 */
-	public static SQLObject getNamedJdbcQuery(String name, Class<?> clz){
+	public SQLObject getNamedJdbcQuery(String name, Class<?> clz) {
 		Map<String, SQLObject> map = nameQueries.get(clz);
         if (null == map) {
             throw new NoNamedSQLDefinedException(clz);
@@ -92,7 +92,7 @@ public class SQLParser {
 	 * <b>Description:	解析文件</b><br>	
 	 * 
 	 */
-	public void doXmlParsing(){
+	public void doXmlParsing() {
 		List<String> xmls = readFiles();
 		if(xmls.isEmpty()){
 			return;
@@ -184,7 +184,7 @@ public class SQLParser {
 	 * @return	
 	 * 
 	 */
-	private List<String> readFiles(){
+	private List<String> readFiles() {
 		URL url = getClass().getClassLoader().getResource(sqlPath);
         if (null == url) {
 			throw new WrongMappingFilePathException("mapping file path[" + sqlPath + "] is not found!");

@@ -1,4 +1,4 @@
-package oracle.test.entity;
+package reg.sqlserver.entity;
 
 import java.util.Date;
 import java.util.List;
@@ -9,10 +9,10 @@ import rabbit.open.orm.annotation.OneToMany;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.dml.policy.Policy;
 
-@Entity("REG_USER_ORACLE")
+@Entity("REG_USER_SQLSERVER")
 public class RegUser {
 
-	@PrimaryKey(policy = Policy.SEQUENCE, sequence="MYSEQ")
+	@PrimaryKey(policy = Policy.AUTOINCREMENT)
 	@Column("ID")
 	private Integer id;
 

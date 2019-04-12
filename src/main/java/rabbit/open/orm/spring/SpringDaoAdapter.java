@@ -79,7 +79,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public DynamicQuery<T> createDynamicQuery(){
+	public Query<T> createDynamicQuery(){
 		return new DynamicQuery<>(sessionFactory, clz);
 	}
 	
@@ -90,7 +90,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public DynamicQuery<T> createDynamicQuery(T filter){
+	public Query<T> createDynamicQuery(T filter){
 		return new DynamicQuery<>(sessionFactory, filter, clz);
 	}
 	

@@ -7,7 +7,6 @@ import org.apache.log4j.Logger;
 
 import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.name.SQLObject;
-import rabbit.open.orm.dml.name.SQLParser;
 import rabbit.open.orm.dml.util.SQLFormater;
 import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
@@ -28,7 +27,7 @@ public class SQLQuery<T> {
 	public SQLQuery(SessionFactory sessionFactory, String queryName, Class<?> clz, SQLCallBack<T> callBack) {
 		super();
 		this.sessionFactory = sessionFactory;
-		query = SQLParser.getNamedJdbcQuery(queryName, clz);
+		query = sessionFactory.getNamedJdbcQuery(queryName, clz);
 		this.clz = clz;
 		this.callBack = callBack;
 	}

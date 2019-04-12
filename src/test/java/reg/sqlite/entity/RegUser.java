@@ -1,4 +1,4 @@
-package oracle.test.entity;
+package reg.sqlite.entity;
 
 import java.util.Date;
 import java.util.List;
@@ -9,10 +9,10 @@ import rabbit.open.orm.annotation.OneToMany;
 import rabbit.open.orm.annotation.PrimaryKey;
 import rabbit.open.orm.dml.policy.Policy;
 
-@Entity("REG_USER_ORACLE")
+@Entity("REG_USER_SQLITE")
 public class RegUser {
 
-	@PrimaryKey(policy = Policy.SEQUENCE, sequence="MYSEQ")
+	@PrimaryKey(policy = Policy.AUTOINCREMENT)
 	@Column("ID")
 	private Integer id;
 
