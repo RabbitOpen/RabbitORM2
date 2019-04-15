@@ -44,8 +44,6 @@ public class DB2Transformer extends DialectTransformer{
         return super.createOrderSql(query);
     }
 
-    
-    
     /**
      * 
      * <b>Description:  创建分页sql</b><br>.
