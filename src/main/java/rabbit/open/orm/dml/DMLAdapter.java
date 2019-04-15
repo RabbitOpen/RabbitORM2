@@ -453,7 +453,7 @@ public abstract class DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-    private FieldMetaData getFieldMetaByFieldName(Class<?> clz, String fieldName) {
+    protected FieldMetaData getFieldMetaByFieldName(Class<?> clz, String fieldName) {
         List<FieldMetaData> cachedFieldsMetas = MetaData
                 .getCachedFieldsMetas(clz);
         for (FieldMetaData fmd : cachedFieldsMetas) {

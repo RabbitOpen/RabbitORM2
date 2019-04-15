@@ -12,7 +12,7 @@ import rabbit.open.orm.dml.policy.Policy;
 @Entity("REG_USER_ORACLE")
 public class RegUser {
 
-	@PrimaryKey(policy = Policy.SEQUENCE, sequence="MYSEQ")
+	@PrimaryKey(policy = Policy.SEQUENCE, sequence = "MYSEQ")
 	@Column("ID")
 	private Integer id;
 
@@ -38,6 +38,10 @@ public class RegUser {
 	// 相同名字的人的个数
 	@Column(value = "COUNT(1)", dynamic = true)
 	private Integer countOfName;
+
+	// 统计from的和
+	@Column(value = "SUM(${from})", dynamic = true)
+	private Integer sumOfFrom;
 
 	public Integer getId() {
 		return id;
@@ -103,4 +107,13 @@ public class RegUser {
 		this.countOfName = countOfName;
 	}
 
+	public Integer getSumOfFrom() {
+		return sumOfFrom;
+	}
+
+	public void setSumOfFrom(Integer sumOfFrom) {
+		this.sumOfFrom = sumOfFrom;
+	}
+
+	
 }

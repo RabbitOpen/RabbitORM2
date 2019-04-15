@@ -87,6 +87,8 @@ public class SqliteRegQueryTest {
 	@Test
 	public void dynamicQueryTest() {
 		int count = 5;
+		int from = 100;
+		int to = 200;
 		for (int i = 0; i < count; i++) {
 			RegUser user = new RegUser();
 			Date start = new Date();
@@ -95,8 +97,8 @@ public class SqliteRegQueryTest {
 			Date end = new Date(start.getTime() + 2L * milDays);
 			user.setStart(start);
 			user.setEnd(end);
-			user.setFrom(100);
-			user.setTo(200);
+			user.setFrom(from);
+			user.setTo(to);
 			user.setName("zhangsan");
 			rus.add(user);
 		}
@@ -108,19 +110,20 @@ public class SqliteRegQueryTest {
 			Date end = new Date(start.getTime() + 2L * milDays);
 			user.setStart(start);
 			user.setEnd(end);
-			user.setFrom(100);
-			user.setTo(200);
+			user.setFrom(from);
+			user.setTo(to);
 			user.setName("lisi");
 			rus.add(user);
 		}
 		List<RegUser> list = rus.createDynamicQuery()
-				.querySpecifiedFields("name", "countOfName").groupBy("name")
+				.querySpecifiedFields("name", "countOfName", "sumOfFrom").groupBy("name")
 				.list();
 		TestCase.assertTrue(list.size() >= 2);
 		int find = 0;
 		for (RegUser u : list) {
 			if ("lisi".equals(u.getName()) || "zhangsan".equals(u.getName())) {
 				TestCase.assertTrue(count == u.getCountOfName());
+				TestCase.assertTrue(count * from == u.getSumOfFrom());
 				find++;
 			}
 		}

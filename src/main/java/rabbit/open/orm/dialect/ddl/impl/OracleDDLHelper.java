@@ -262,6 +262,9 @@ public class OracleDDLHelper extends DDLHelper{
 
     @Override
     public String getColumnName(Column column) {
+    	if (column.dynamic()) {
+    		return column.value();
+    	}
         if (!column.keyWord()) {
             return column.value().toUpperCase();
         }

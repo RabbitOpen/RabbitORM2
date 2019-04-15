@@ -39,6 +39,10 @@ public class RegUser {
 	@Column(value = "COUNT(1)", dynamic = true)
 	private Integer countOfName;
 
+	// 统计from的和
+	@Column(value = "SUM(${from})", dynamic = true)
+	private Integer sumOfFrom;
+
 	public Integer getId() {
 		return id;
 	}
@@ -101,6 +105,14 @@ public class RegUser {
 
 	public void setCountOfName(Integer countOfName) {
 		this.countOfName = countOfName;
+	}
+
+	public Integer getSumOfFrom() {
+		return sumOfFrom;
+	}
+
+	public void setSumOfFrom(Integer sumOfFrom) {
+		this.sumOfFrom = sumOfFrom;
 	}
 
 }

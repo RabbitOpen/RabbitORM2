@@ -1092,7 +1092,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			String alias = Integer.toString(i);
 			aliasMappings.put(alias, fn);
 			String tableAlias = getAliasByTableName(jfm.getTableName());
-			appendColumnName(dynamic, tableAlias, getColumnName(fmd.getColumn()));
+			appendColumnName(dynamic, tableAlias, getColumnName(fmd.getColumn()), jfm.getJoinClass());
 			sql.append(" AS ");
 			sql.append("J" + SEPARATOR + tableAlias + SEPARATOR + alias);
 			sql.append(", ");
@@ -1135,7 +1135,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	                sql.append(", ");
 			    }
 			} else {
-				appendColumnName(dynamic, tableAlias, columnName);
+				appendColumnName(dynamic, tableAlias, columnName, clz);
 	            sql.append(" AS ");
 	            sql.append(tableAlias + SEPARATOR + alias);
 	            sql.append(", ");
@@ -1144,10 +1144,23 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		return sb;
 	}
 
+	/**
+	 * <b>@description 向sql对象拼接字段信息 </b>
+	 * @param dynamic	是否是动态字段
+	 * @param tableAlias	表的别名
+	 * @param columnName	字段名
+	 * @param fieldClz		字段所属的类的class信息
+	 */
 	private void appendColumnName(boolean dynamic, String tableAlias,
-			String columnName) {
+			String columnName, Class<?> fieldClz) {
 		if (dynamic) {
-			sql.append(columnName);
+			String field = getFieldByReg(columnName);
+			if (columnName.equals(field)) {
+				sql.append(columnName);
+			} else {
+				FieldMetaData fmd = getFieldMetaByFieldName(fieldClz, field);
+				sql.append(replaceRegByColumnName(columnName, fmd.getField(), tableAlias + "." + getColumnName(fmd.getColumn())));
+			}
 		} else {
 			sql.append(tableAlias + "." + columnName);
 		}
