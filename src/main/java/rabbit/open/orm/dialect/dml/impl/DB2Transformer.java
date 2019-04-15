@@ -52,7 +52,7 @@ public class DB2Transformer extends DialectTransformer{
      * 
      */
     @Override
-    public StringBuilder createPageSql(AbstractQuery<?> query){
+	public StringBuilder createPageSql(AbstractQuery<?> query) {
         int pageSize = getPageSize(query);
         int pageIndex = getPageIndex(query);
         List<Object> preparedValues = getPreparedValues(query);
