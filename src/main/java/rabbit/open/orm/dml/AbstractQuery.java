@@ -1080,6 +1080,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			boolean dynamic = fmd.getColumn().dynamic();
 			if ((isForbiddenDynamic() && dynamic) || 
 					!isConcernedField(jfm.getJoinClass(), fmd)) {
+				i++;
 				continue;
 			}
 			String fn = fmd.getField().getName();
@@ -1115,6 +1116,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			boolean dynamic = fmd.getColumn().dynamic();
 			if ((isForbiddenDynamic() && dynamic) || 
 					!isConcernedField(clz, fmd)) {
+				i++;
 				continue;
 			}
 			String fn = fmd.getField().getName();
