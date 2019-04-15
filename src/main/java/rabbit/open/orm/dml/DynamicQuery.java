@@ -2,7 +2,7 @@ package rabbit.open.orm.dml;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.dml.meta.FieldMetaData;
@@ -47,12 +47,10 @@ public class DynamicQuery<T> extends Query<T> {
 	 * @return
 	 */
 	private String getColumnNameByFieldName(String f) {
-		List<FieldMetaData> cachedFieldsMetas = MetaData
+		Map<String, FieldMetaData> cachedFieldsMetas = MetaData
 		        .getCachedFieldsMetas(getEntityClz());
-		for (FieldMetaData fmd : cachedFieldsMetas) {
-		    if (fmd.getField().getName().equals(f)) {
-		    	return getColumnName(fmd.getColumn());
-		    }
+		if (cachedFieldsMetas.containsKey(f)) {
+			return getColumnName(cachedFieldsMetas.get(f).getColumn());
 		}
 		return "";
 	}

@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -529,7 +530,7 @@ public abstract class DDLHelper {
             cols.add(columns.getString("COLUMN_NAME").toUpperCase());
         }
         List<StringBuilder> sqls = new ArrayList<>();
-        for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(entityClz)) {
+        for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(entityClz).values()) {
 			if (fmd.getColumn().dynamic()
 					|| cols.contains(fmd.getColumn().value().toUpperCase())) {
 				continue;
@@ -614,7 +615,7 @@ public abstract class DDLHelper {
      * @return
      */
     protected StringBuilder createTableSQL(Class<?> clz, String tableName) {
-        List<FieldMetaData> fmds = MetaData.getCachedFieldsMetas(clz);
+    	Collection<FieldMetaData> fmds = MetaData.getCachedFieldsMetas(clz).values();
         StringBuilder sql = new StringBuilder("CREATE TABLE "
                 + tableName.toUpperCase() + "(");
         String pkName = appendFieldsSQLPiece(clz, fmds, sql);
@@ -623,7 +624,7 @@ public abstract class DDLHelper {
     }
 
     protected String appendFieldsSQLPiece(Class<?> clz,
-            List<FieldMetaData> fmds, StringBuilder sql) {
+    		Collection<FieldMetaData> fmds, StringBuilder sql) {
         FieldMetaData pkm = null;
         for (FieldMetaData fmd : fmds) {
         	if (fmd.getColumn().dynamic()) {

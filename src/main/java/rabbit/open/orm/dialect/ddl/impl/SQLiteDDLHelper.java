@@ -1,6 +1,7 @@
 package rabbit.open.orm.dialect.ddl.impl;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +46,7 @@ public class SQLiteDDLHelper extends OracleDDLHelper {
     
     @Override
     protected StringBuilder createTableSQL(Class<?> clz, String tableName) {
-        List<FieldMetaData> fmds = MetaData.getCachedFieldsMetas(clz);
+        Collection<FieldMetaData> fmds = MetaData.getCachedFieldsMetas(clz).values();
         StringBuilder sql = new StringBuilder("CREATE TABLE " + tableName.toUpperCase() + "(");
         appendFieldsSQLPiece(clz, fmds, sql);
         sql.deleteCharAt(sql.lastIndexOf(","));

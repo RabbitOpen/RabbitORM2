@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -232,7 +233,7 @@ public class Update<T> extends NonQueryAdapter<T> {
     	if (null == data) {
     		throw new RabbitDMLException("data can't be empty!");
     	}
-    	List<FieldMetaData> fmds = getMetaData().getFieldMetas();
+    	Collection<FieldMetaData> fmds = getMetaData().getFieldMetas();
     	valueMetas = new ArrayList<>(); 
     	String tableName = getMetaData().getTableName();
     	for (FieldMetaData fmd : fmds) {

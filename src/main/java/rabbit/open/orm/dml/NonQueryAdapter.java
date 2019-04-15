@@ -304,7 +304,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
 	 * 
 	 */
     protected FieldMetaData getPrimayKeyFieldMeta(Class<?> clz) {
-        for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(clz)) {
+        for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(clz).values()) {
             if (fmd.isPrimaryKey()) {
                 return fmd;
             }

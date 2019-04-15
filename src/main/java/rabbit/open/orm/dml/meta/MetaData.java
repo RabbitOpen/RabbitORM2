@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class MetaData<T> {
 	private static ConcurrentHashMap<Class<?>, MetaData<?>> metaMapping = new ConcurrentHashMap<>();
 
 	//缓存实体类和字段的映射关系
-	private static ConcurrentHashMap<Class<?>, List<FieldMetaData>> fieldsMapping = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<Class<?>, Map<String, FieldMetaData>> fieldsMapping = new ConcurrentHashMap<>();
 	
 	//缓存主键和class的关系
 	private static ConcurrentHashMap<Class<?>, Field> primaryKeyMapping = new ConcurrentHashMap<>();
@@ -49,7 +50,7 @@ public class MetaData<T> {
 	private static Map<Class<?>, Map<String, String>> fieldsAlias = new ConcurrentHashMap<>();
 	
 	//字段元信息
-	private List<FieldMetaData> fieldMetas;
+	private Collection<FieldMetaData> fieldMetas;
 	
 	//能进行一对多、多对多查询的实体信息
 	protected List<JoinFieldMetaData<?>> joinMetas;
@@ -126,7 +127,7 @@ public class MetaData<T> {
         tableMapping.put(tableName, entityClz);
         clzMapping.put(entityClz, tableName);
         joinMetas = getJoinMetas(entityClz);
-        fieldMetas = getMappingFieldMetas(entityClz);
+        fieldMetas = getMappingFieldMetas(entityClz).values();
     }
 
     private ShardingPolicy loadShardingPolicy(Class<T> entityClz) {
@@ -147,9 +148,9 @@ public class MetaData<T> {
 	 * @param clzz
 	 * 
 	 */
-    private static List<FieldMetaData> getMappingFieldMetas(Class<?> clzz) {
+    private static Map<String, FieldMetaData> getMappingFieldMetas(Class<?> clzz) {
         Class<?> clz = clzz;
-        List<FieldMetaData> fields = new ArrayList<>();
+        Map<String, FieldMetaData> fields = new ConcurrentHashMap<>();
         Map<Class<?>, Integer> counter = new HashMap<>();
         while (!clz.equals(Object.class)) {
             lookupMappingFieldMetasByClass(clz, fields, counter);
@@ -159,7 +160,7 @@ public class MetaData<T> {
     }
 
     private static void lookupMappingFieldMetasByClass(Class<?> clz,
-            List<FieldMetaData> fields, Map<Class<?>, Integer> counter) {
+    		Map<String, FieldMetaData> fields, Map<Class<?>, Integer> counter) {
         for (Field f : clz.getDeclaredFields()) {
             Column col = f.getAnnotation(Column.class);
             if (null == col) {
@@ -176,21 +177,21 @@ public class MetaData<T> {
                 fmd.setMutiFetchField(true);
                 flagMutiFetchFieldByType(fields, f.getType());
             }
-            fields.add(fmd);
+            fields.put(f.getName(), fmd);
         }
     }
 
 	//标识type对应的字段为mutiFetchField
-    private static void flagMutiFetchFieldByType(List<FieldMetaData> fields,
+    private static void flagMutiFetchFieldByType(Map<String, FieldMetaData> fields,
             Class<?> type) {
-        for (FieldMetaData fmd : fields) {
+        for (FieldMetaData fmd : fields.values()) {
             if (fmd.getField().getType().equals(type)) {
                 fmd.setMutiFetchField(true);
             }
         }
     }
 
-	public List<FieldMetaData> getFieldMetas() {
+	public Collection<FieldMetaData> getFieldMetas() {
 		return fieldMetas;
 	}
 	
@@ -201,32 +202,32 @@ public class MetaData<T> {
 	 * @return
 	 * 
 	 */
-	public static FieldMetaData getPrimaryKeyFieldMeta(Class<?> clz){
-	    List<FieldMetaData> fmds = getCachedFieldsMetas(clz);
-	    for (FieldMetaData fmd : fmds) {
-	        if (fmd.isPrimaryKey()) {
-	            return fmd;
-	        }
-	    }
+	public static FieldMetaData getPrimaryKeyFieldMeta(Class<?> clz) {
+		Map<String, FieldMetaData> fmds = getCachedFieldsMetas(clz);
+		for (FieldMetaData fmd : fmds.values()) {
+			if (fmd.isPrimaryKey()) {
+				return fmd;
+			}
+		}
 	    throw new RabbitDMLException("no primary key was found in [" + clz.getName() + "]");
 	}
 	
-	public static Field getPrimaryKeyField(Class<?> clzz){
-	    Class<?> clz = clzz;
-		if(null != primaryKeyMapping.get(clz)){
+	public static Field getPrimaryKeyField(Class<?> clzz) {
+		Class<?> clz = clzz;
+		if (null != primaryKeyMapping.get(clz)) {
 			return primaryKeyMapping.get(clz);
 		}
 		String name = clz.getName();
-		while(true){
-			for(Field f : clz.getDeclaredFields()){
+		while (true) {
+			for (Field f : clz.getDeclaredFields()) {
 				PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
-				if(null != pk ){
+				if (null != pk) {
 					primaryKeyMapping.put(clz, f);
 					return f;
 				}
 			}
 			clz = clz.getSuperclass();
-			if(clz.equals(Object.class)){
+			if (clz.equals(Object.class)) {
 				break;
 			}
 		}
@@ -234,15 +235,15 @@ public class MetaData<T> {
 	}
 	
 	//通过类信息查表名
-	public static String getTableNameByClass(Class<?> clz){
+	public static String getTableNameByClass(Class<?> clz) {
 		String tableName = clzMapping.get(clz);
-		if(null == tableName){
+		if (null == tableName) {
 			Class<?> c = clz;
-			while(null ==  c.getAnnotation(Entity.class)){
-				 c =  c.getSuperclass();
-				 if(c == null){
-					 return null;
-				 }
+			while (null == c.getAnnotation(Entity.class)) {
+				c = c.getSuperclass();
+				if (c == null) {
+					return null;
+				}
 			}
 			String tbName = c.getAnnotation(Entity.class).value();
 			clzMapping.put(clz, tbName);
@@ -268,7 +269,7 @@ public class MetaData<T> {
 	 * @param 	clz
 	 * 
 	 */
-	public static boolean isEntityClass(Class<?> clz){
+	public static boolean isEntityClass(Class<?> clz) {
 		return null != clz.getAnnotation(Entity.class);
 	}
 	
@@ -279,8 +280,8 @@ public class MetaData<T> {
 	 * @param clz
 	 * 
 	 */
-	public static void updateTableMapping(String table, Class<?> clz){
-		if(tableMapping.containsKey(table)){
+	public static void updateTableMapping(String table, Class<?> clz) {
+		if (tableMapping.containsKey(table)) {
 			return;
 		}
 		tableMapping.put(table, clz);
@@ -298,8 +299,8 @@ public class MetaData<T> {
 	 * @throws Exception 
 	 * 
 	 */
-	public static List<FieldMetaData> getCachedFieldsMetas(Class<?> clz){
-        List<FieldMetaData> mapping = fieldsMapping.get(clz);
+	public static Map<String, FieldMetaData> getCachedFieldsMetas(Class<?> clz) {
+		Map<String, FieldMetaData> mapping = fieldsMapping.get(clz);
         if (null != mapping) {
             return mapping;
         } else {
@@ -322,9 +323,10 @@ public class MetaData<T> {
 	 * @param type
 	 * @return
 	 */
-	public static FieldMetaData getCachedFieldMetaByType(Class<?> clz, Class<?> type){
-        List<FieldMetaData> cachedFieldsMetas = getCachedFieldsMetas(clz);
-        for (FieldMetaData fmd : cachedFieldsMetas) {
+	public static FieldMetaData getCachedFieldMetaByType(Class<?> clz,
+			Class<?> type) {
+        Map<String, FieldMetaData> cachedFieldsMetas = getCachedFieldsMetas(clz);
+        for (FieldMetaData fmd : cachedFieldsMetas.values()) {
             if (fmd.getField().getType().equals(type)) {
                 return fmd;
             }
@@ -340,22 +342,23 @@ public class MetaData<T> {
 	 * @return	
 	 * 
 	 */
-	public static FieldMetaData getCachedFieldsMeta(Class<?> clz, String fieldName){
-        for (FieldMetaData fmd : getCachedFieldsMetas(clz)) {
-            if (fmd.getField().getName().equals(fieldName)) {
-                return fmd;
-            }
-        }
+	public static FieldMetaData getCachedFieldsMeta(Class<?> clz,
+			String fieldName) {
+		Map<String, FieldMetaData> cachedFieldsMetas = getCachedFieldsMetas(clz);
+		if (cachedFieldsMetas.containsKey(fieldName)) {
+			return cachedFieldsMetas.get(fieldName);
+		}
 		throw new UnKnownFieldException("field[" + fieldName + "] does not belong to class[" 
                 + clz.getName() + "]");
 	}
 	
 	//字段别名映射 key 是别名 value是字段名
-	public static Map<String, String> getFieldsAliasMapping(Class<?> clz){
+	public static Map<String, String> getFieldsAliasMapping(Class<?> clz) {
 		return fieldsAlias.get(clz);
 	}
 	
-	public static void setFieldsAliasMapping(Class<?> clz, Map<String, String> mapping){
+	public static void setFieldsAliasMapping(Class<?> clz,
+			Map<String, String> mapping) {
 		fieldsAlias.put(clz, mapping);
 	}
 		
@@ -399,7 +402,7 @@ public class MetaData<T> {
     }
 	
 	//通过表名查类信息
-	public static Class<?> getClassByTableName(String tableName){
+	public static Class<?> getClassByTableName(String tableName) {
 		return tableMapping.get(tableName);
 	}
 }

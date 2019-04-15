@@ -524,13 +524,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 
 	protected Field getFieldByName(String tableName, String fieldName){
 		Class<?> clz = MetaData.getClassByTableName(tableName);
-		List<FieldMetaData> fmds = MetaData.getCachedFieldsMetas(clz);
-		for (FieldMetaData fmd : fmds) {
-			if (fmd.getField().getName().equals(fieldName)) {
-				return fmd.getField();
-			}
-		}
-		throw new RabbitDMLException("no field [" + fieldName + "] was found in " + tableName);
+		return checkField(clz, fieldName);
 	}
 	
 	/**
@@ -1074,15 +1068,15 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	private StringBuilder createFieldsSqlByJoinMetas(JoinFieldMetaData<?> jfm) {
-		List<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(jfm.getJoinClass());
+		Collection<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(jfm.getJoinClass()).values();
 		StringBuilder sb = new StringBuilder();
 		Map<String, String> aliasMappings = MetaData.getFieldsAliasMapping(jfm.getJoinClass());
 		if (null == aliasMappings) {
 			aliasMappings = new ConcurrentHashMap<>();
 			MetaData.setFieldsAliasMapping(jfm.getJoinClass(), aliasMappings);
 		}
-		for (int i = 0; i < fieldsMetas.size(); i++) {
-			FieldMetaData fmd = fieldsMetas.get(i);
+		int i = 0;
+		for (FieldMetaData fmd : fieldsMetas) {
 			boolean dynamic = fmd.getColumn().dynamic();
 			if ((isForbiddenDynamic() && dynamic) || 
 					!isConcernedField(jfm.getJoinClass(), fmd)) {
@@ -1096,6 +1090,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			sql.append(" AS ");
 			sql.append("J" + SEPARATOR + tableAlias + SEPARATOR + alias);
 			sql.append(", ");
+			i++;
 		}
 		return sb;
 	}
@@ -1107,16 +1102,16 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	private StringBuilder createFieldsSqlByMetas(Class<?> clz){
+	private StringBuilder createFieldsSqlByMetas(Class<?> clz) {
 		StringBuilder sb = new StringBuilder();
-		List<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(clz);
+		Collection<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(clz).values();
 		Map<String, String> aliasMappings = MetaData.getFieldsAliasMapping(clz);
 		if (null == aliasMappings) {
 			aliasMappings = new ConcurrentHashMap<>();
 			MetaData.setFieldsAliasMapping(clz, aliasMappings);
 		}
-		for (int i = 0; i < fieldsMetas.size(); i++) {
-			FieldMetaData fmd = fieldsMetas.get(i);
+		int i = 0;
+		for (FieldMetaData fmd : fieldsMetas) {
 			boolean dynamic = fmd.getColumn().dynamic();
 			if ((isForbiddenDynamic() && dynamic) || 
 					!isConcernedField(clz, fmd)) {
@@ -1140,6 +1135,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	            sql.append(tableAlias + SEPARATOR + alias);
 	            sql.append(", ");
 	        }
+			i++;
 		}
 		return sb;
 	}
@@ -1480,14 +1476,14 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	private String getColumnNameByFieldAndClz(String fieldName, Class<?> targetClz){
-		List<FieldMetaData> fms = MetaData.getCachedFieldsMetas(targetClz);
-		for(FieldMetaData fmd : fms){
-			if(fmd.getField().getName().equals(fieldName)){
-				return getColumnName(fmd.getColumn());
-			}
+	private String getColumnNameByFieldAndClz(String fieldName,
+			Class<?> targetClz) {
+		Map<String, FieldMetaData> fms = MetaData.getCachedFieldsMetas(targetClz);
+		if (fms.containsKey(fieldName)) {
+			return getColumnName(fms.get(fieldName).getColumn());
 		}
-		throw new RabbitDMLException("field [" + fieldName + "] is no declared in " + targetClz.getName());
+		throw new RabbitDMLException("field [" + fieldName
+				+ "] is no declared in " + targetClz.getName());
 	}
 	
 	/**

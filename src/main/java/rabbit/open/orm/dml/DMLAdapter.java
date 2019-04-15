@@ -454,15 +454,7 @@ public abstract class DMLAdapter<T> {
 	 * 
 	 */
     protected FieldMetaData getFieldMetaByFieldName(Class<?> clz, String fieldName) {
-        List<FieldMetaData> cachedFieldsMetas = MetaData
-                .getCachedFieldsMetas(clz);
-        for (FieldMetaData fmd : cachedFieldsMetas) {
-            if (fmd.getField().getName().equals(fieldName)) {
-                return fmd;
-            }
-        }
-        throw new RabbitDMLException("no field meta info is found for["
-                + fieldName + "]");
+        return MetaData.getCachedFieldsMeta(clz, fieldName);
     }
 	
 	/**
@@ -612,7 +604,7 @@ public abstract class DMLAdapter<T> {
 	
 	//找出该实体下所有能够被关联查询的类
 	private void findOutEnable2JoinClzes(Class<?> clz){
-        for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(clz)) {
+        for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(clz).values()) {
             if (!fmd.isForeignKey()) {
                 continue;
             }
@@ -760,13 +752,10 @@ public abstract class DMLAdapter<T> {
 	 * 
 	 */
     public static Field checkField(Class<?> target, String field) {
-        List<FieldMetaData> cachedFieldsMetas = MetaData
-                .getCachedFieldsMetas(target);
-        for (FieldMetaData fmd : cachedFieldsMetas) {
-            if (fmd.getField().getName().equals(field)) {
-                return fmd.getField();
-            }
-        }
+        Map<String, FieldMetaData> cachedFieldsMetas = MetaData.getCachedFieldsMetas(target);
+		if (cachedFieldsMetas.containsKey(field)) {
+			return cachedFieldsMetas.get(field).getField();
+		}
         throw new UnKnownFieldException("field[" + field
                 + "] does not belong to " + target);
     }
