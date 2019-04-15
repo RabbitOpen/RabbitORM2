@@ -86,8 +86,8 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			throw new RabbitDMLException("id can't be null");
 		}
 		sql = new StringBuilder("DELETE FROM " + TARGET_TABLE_NAME + WHERE);
-		for(FieldMetaData fmd : metaData.getFieldMetas()){
-			if(!fmd.isPrimaryKey()){
+		for (FieldMetaData fmd : metaData.getFieldMetas()) {
+			if (!fmd.isPrimaryKey()) {
 				continue;
 			}
 			factors.add(new ShardFactor(fmd.getField(), FilterType.EQUAL.value(), id));

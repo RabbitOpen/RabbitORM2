@@ -98,7 +98,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	 * @return
 	 * 
 	 */
-	private StringBuilder createValuesSql(T obj){
+	private StringBuilder createValuesSql(T obj) {
         StringBuilder values = new StringBuilder("(");
         for (FieldMetaData fmd : metaData.getFieldMetas()) {
             values.append(createValueSqlByMeta(obj, fmd));
@@ -159,10 +159,10 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	private StringBuilder createFieldsSql(T obj){
 		StringBuilder fields = new StringBuilder("(");
 		long nonEmptyFields = 0;
-		for(FieldMetaData fmd : metaData.getFieldMetas()){
+		for (FieldMetaData fmd : metaData.getFieldMetas()) {
 			Object value = getValue(fmd.getField(), obj);
-			if(null == value && isIgnoreField(fmd)){
-		        continue;
+			if (null == value && isIgnoreField(fmd)) {
+				continue;
 			}
 			nonEmptyFields++;
 			fields.append(getColumnName(fmd.getColumn()) + ",");
