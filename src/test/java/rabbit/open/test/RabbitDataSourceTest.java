@@ -1,6 +1,8 @@
 package rabbit.open.test;
 
 import java.sql.Connection;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -30,7 +32,7 @@ public class RabbitDataSourceTest {
 					while (!stop) {
 						try {
 							Connection connection = rds.getConnection();
-							Thread.sleep(10);
+							new Semaphore(0).tryAcquire(10, TimeUnit.MILLISECONDS);
 							connection.close();
 						} catch (Exception e) {
 							e.printStackTrace();

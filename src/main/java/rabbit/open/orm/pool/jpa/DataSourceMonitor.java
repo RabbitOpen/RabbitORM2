@@ -1,5 +1,6 @@
 package rabbit.open.orm.pool.jpa;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +11,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
+
+import rabbit.open.orm.exception.SessionHoldOverTimeException;
 
 /**
  * <b>Description: 	数据源监控线程</b><br>
@@ -28,6 +31,8 @@ public class DataSourceMonitor extends Thread {
 	
 	private Map<Session, SessionHolderInfo> sessionHolder = new ConcurrentHashMap<>();
 
+	private Map<Connection, ConnectionContext> connCtx = new ConcurrentHashMap<>();
+
 	public DataSourceMonitor(RabbitDataSource dataSource) {
 		super();
 		this.dataSource = dataSource;
@@ -37,7 +42,32 @@ public class DataSourceMonitor extends Thread {
 	public void run() {
 		while (run) {
 			monitorDataSource();
+			monitorSessionTimeout();
 			sleep5s();
+		}
+	}
+
+	/**
+	 * <b>@description 监控session持有超时 </b>
+	 */
+	private void monitorSessionTimeout() {
+		for (Entry<Connection, ConnectionContext> entry : connCtx.entrySet()) {
+			try {
+				assertTimeout(entry);
+			} catch (SessionHoldOverTimeException e) {
+				logger.error(e.getMessage());
+				if (dataSource.isDumpSuspectedFetch()) {
+					SessionKeeper.showFetchTrace(entry.getValue().getStacks());
+				}
+			}
+		}
+	}
+
+	public void assertTimeout(Entry<Connection, ConnectionContext> entry) {
+		if (System.currentTimeMillis()
+				- entry.getValue().getFetchMoment() > dataSource
+				.getMaxSessionHoldingSeconds() * 1000) {
+			throw new SessionHoldOverTimeException(entry.getKey());
 		}
 	}
 	
@@ -75,6 +105,19 @@ public class DataSourceMonitor extends Thread {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+    }
+    
+    /**
+     * <b>@description 记录连接获取时的信息 </b>
+     * @param conn
+     * @param ctx
+     */
+    public void snapshot(Connection conn, ConnectionContext ctx) {
+    	connCtx.put(conn, ctx);
+    }
+    
+    public void removeSnapshot(Connection conn) {
+    	connCtx.remove(conn);
     }
 
 	/**

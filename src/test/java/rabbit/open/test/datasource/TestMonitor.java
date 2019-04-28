@@ -3,6 +3,7 @@ package rabbit.open.test.datasource;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -65,7 +66,7 @@ public class TestMonitor {
 
                 public void sleep1s() {
                     try {
-                        Thread.sleep(1000L);
+                        new Semaphore(0).tryAcquire(1, TimeUnit.SECONDS);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

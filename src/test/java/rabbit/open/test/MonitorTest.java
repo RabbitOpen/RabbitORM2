@@ -1,5 +1,8 @@
 package rabbit.open.test;
 
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
 import junit.framework.TestCase;
 
 import org.junit.Before;
@@ -32,7 +35,7 @@ public class MonitorTest {
                     @Override
                     protected void sleep5s() {
                         try {
-                            Thread.sleep(1000L);
+                        	new Semaphore(0).tryAcquire(1, TimeUnit.SECONDS);
                         } catch (InterruptedException e) {
                             logger.error("database monitor is interrupted");
                         }

@@ -6,7 +6,7 @@ import org.apache.log4j.Logger;
 
 public class SessionKeeper {
 
-	private Logger logger = Logger.getLogger(getClass());
+	private static Logger logger = Logger.getLogger(SessionKeeper.class);
 	
 	private ThreadLocal<Connection> keeper = new ThreadLocal<>();
 
@@ -22,27 +22,31 @@ public class SessionKeeper {
 	public void fetchFromPool(Session conn) {
 		if (null != keeper.get()) {
 			if (dataSource.isDumpSuspectedFetch()) {
-				showFetchTrace();
+				showFetchTrace(stacks.get());
 			} else {
 				logger.warn("suspective fetch operation is found!");
 			}
 		}
 		if (dataSource.isDumpSuspectedFetch()) {
-			stacks.set(Thread.currentThread().getStackTrace());
+			StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+			stacks.set(stackTrace);
+			dataSource.monitor.snapshot(conn, new ConnectionContext(stackTrace));
+		} else {
+			dataSource.monitor.snapshot(conn, new ConnectionContext());
 		}
 		keeper.set(conn);
 	}
 
-	private void showFetchTrace() {
+	public static void showFetchTrace(StackTraceElement[] stackTraceElements) {
 		StringBuilder sb = new StringBuilder("suspective fetch operation 1: \n");
-		for (int i = 1; i < stacks.get().length; i++) {
-			StackTraceElement ste = stacks.get()[i];
+		for (int i = 1; i < stackTraceElements.length; i++) {
+			StackTraceElement ste = stackTraceElements[i];
 			sb.append("\t" + ste.toString() + "\r\n");
 		}
 		logger.error(sb.toString());
 		
 		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
-		sb = new StringBuilder("suspective fetch operation 2: \n");
+		sb = new StringBuilder("current operation 2: \n");
 		for (int i = 1; i < stes.length; i++) {
 			StackTraceElement ste = stes[i];
 			sb.append("\t" + ste.toString() + "\r\n");
@@ -57,6 +61,7 @@ public class SessionKeeper {
 		if (conn.equals(keeper.get())) {
 			keeper.remove();
 			stacks.remove();
+			dataSource.monitor.removeSnapshot(conn);
 		}
 	}
 	

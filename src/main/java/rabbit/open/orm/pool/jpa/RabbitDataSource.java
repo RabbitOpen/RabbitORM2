@@ -46,6 +46,7 @@ public class RabbitDataSource extends AbstractDataSource {
     
     private SessionKeeper keeper = new SessionKeeper(this);
     
+    // 数据源重启次数
     private long restartTimes = 0;
     
 	/**
@@ -54,7 +55,10 @@ public class RabbitDataSource extends AbstractDataSource {
 	private ReentrantLock sessionCreateLock = new ReentrantLock();
 	
 	// 获取连接时的等待时间
-	private long fetchTimeOut = 500L;
+	private long fetchTimeOut = 0L;
+	
+	// session的最大允许持有时间，超时会打印日志(如果允许的话)
+	private long maxSessionHoldingSeconds = 60L * 3;
 	
 	/**
 	 * 计数器
@@ -149,14 +153,15 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * @param conn
 	 * 
 	 */
-	public void releaseSession(Session conn){
+	public void releaseSession(Session conn) {
 		try {
 			keeper.back2Pool(conn);
 			monitor.releaseSession(conn);
 			if (conn.getVersion() == getRestartTimes()) {
 				connectors.putFirst(conn);
 			} else {
-				logger.error("session version[" + conn.getVersion() + "] is old, current version is " + getRestartTimes());
+				logger.error("session version[" + conn.getVersion()
+						+ "] is old, current version is " + getRestartTimes());
 			}
 		} catch (Exception e) {
 			logger.info(e.getMessage(), e);
@@ -169,7 +174,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * 
 	 */
 	@PostConstruct
-	public void init(){
+	public void init() {
 		loadDriverClass();
 		initSessions();
 		monitor = new DataSourceMonitor(this);
@@ -206,7 +211,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * @return
 	 * 
 	 */
-	public DBType getDBType(){
+	public DBType getDBType() {
         if (driverClass.toLowerCase().contains("oracle")) {
             return DBType.ORACLE;
         }
@@ -350,4 +355,13 @@ public class RabbitDataSource extends AbstractDataSource {
 	public void setFetchTimeOut(long fetchTimeOut) {
 		this.fetchTimeOut = fetchTimeOut;
 	}
+	
+	public long getMaxSessionHoldingSeconds() {
+		return maxSessionHoldingSeconds;
+	}
+	
+	public void setMaxSessionHoldingSeconds(long maxSessionHoldingSeconds) {
+		this.maxSessionHoldingSeconds = maxSessionHoldingSeconds;
+	}
+	
 }

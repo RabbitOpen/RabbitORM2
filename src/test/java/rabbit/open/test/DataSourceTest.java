@@ -1,7 +1,9 @@
 package rabbit.open.test;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
@@ -39,7 +41,6 @@ public class DataSourceTest {
     /**
      * 
      * <b>Description: 获取300万次连接测试 </b><br>
-     * 
      * @throws InterruptedException
      * 
      */
@@ -68,10 +69,6 @@ public class DataSourceTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // 等6s，让monitor检测连接池，尝试释放空闲连接
-        synchronized (this) {
-            wait(6000);
-        }
         rds.shutdown();
         TestCase.assertEquals(0, rds.getConnectors().size());
     }
@@ -81,6 +78,17 @@ public class DataSourceTest {
         rds.restart();
         rds.shutdown();
         TestCase.assertEquals(0, rds.getConnectors().size());
+    }
+
+    @Test
+    public void sessionHoldTimeoutTest() throws InterruptedException, SQLException {
+    	rds.setMaxSessionHoldingSeconds(1);
+    	rds.setDumpSuspectedFetch(true);
+    	Connection conn = rds.getConnection();
+    	new Semaphore(0).tryAcquire(7, TimeUnit.SECONDS);
+    	conn.close();
+    	rds.shutdown();
+    	TestCase.assertEquals(0, rds.getConnectors().size());
     }
 
 }
