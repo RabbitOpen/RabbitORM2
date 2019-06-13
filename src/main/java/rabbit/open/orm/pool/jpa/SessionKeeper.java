@@ -22,7 +22,7 @@ public class SessionKeeper {
 	public void fetchFromPool(Session conn) {
 		if (null != keeper.get()) {
 			if (dataSource.isDumpSuspectedFetch()) {
-				showFetchTrace(stacks.get());
+				showFetchTrace(stacks.get(), "");
 			} else {
 				logger.warn("suspective fetch operation is found!");
 			}
@@ -37,8 +37,9 @@ public class SessionKeeper {
 		keeper.set(conn);
 	}
 
-	public static void showFetchTrace(StackTraceElement[] stackTraceElements) {
-		StringBuilder sb = new StringBuilder("suspective fetch operation 1: \n");
+	public static void showFetchTrace(StackTraceElement[] stackTraceElements, String prefixMsg) {
+		StringBuilder sb = new StringBuilder(prefixMsg);
+		sb.append("suspective fetch operation 1: \n");
 		for (int i = 1; i < stackTraceElements.length; i++) {
 			StackTraceElement ste = stackTraceElements[i];
 			sb.append("\t" + ste.toString() + "\r\n");

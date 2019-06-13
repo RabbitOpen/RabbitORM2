@@ -55,9 +55,10 @@ public class DataSourceMonitor extends Thread {
 			try {
 				assertTimeout(entry);
 			} catch (SessionHoldOverTimeException e) {
-				logger.error(e.getMessage());
 				if (dataSource.isDumpSuspectedFetch()) {
-					SessionKeeper.showFetchTrace(entry.getValue().getStacks());
+					SessionKeeper.showFetchTrace(entry.getValue().getStacks(), e.getMessage() + "\n");
+				} else {
+					logger.error(e.getMessage());
 				}
 			}
 		}
