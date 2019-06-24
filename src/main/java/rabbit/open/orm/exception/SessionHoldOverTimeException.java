@@ -8,8 +8,8 @@ import java.sql.Connection;
 @SuppressWarnings("serial")
 public class SessionHoldOverTimeException extends RabbitDMLException {
 
-	public SessionHoldOverTimeException(Connection session) {
-		super("session[" + session + "] is holded for a long time");
+	public SessionHoldOverTimeException(Connection session, long seconds) {
+		super("session[" + session + "] is holded over " + seconds + " seconds!");
 	}
 
 }

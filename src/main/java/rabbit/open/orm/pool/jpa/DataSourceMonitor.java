@@ -64,11 +64,12 @@ public class DataSourceMonitor extends Thread {
 		}
 	}
 
-	public void assertTimeout(Entry<Connection, ConnectionContext> entry) {
+	private void assertTimeout(Entry<Connection, ConnectionContext> entry) {
 		if (System.currentTimeMillis()
 				- entry.getValue().getFetchMoment() > dataSource
 				.getMaxSessionHoldingSeconds() * 1000) {
-			throw new SessionHoldOverTimeException(entry.getKey());
+			throw new SessionHoldOverTimeException(entry.getKey(), dataSource
+					.getMaxSessionHoldingSeconds());
 		}
 	}
 	
