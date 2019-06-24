@@ -58,7 +58,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	private long fetchTimeOut = 0L;
 	
 	// session的最大允许持有时间，超时会打印日志(如果允许的话)
-	private long maxSessionHoldingSeconds = 60L * 3;
+	private long maxSessionHoldingSeconds = 3L * 60;
 	
 	/**
 	 * 计数器
