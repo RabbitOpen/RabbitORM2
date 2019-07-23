@@ -100,7 +100,7 @@ public class QueryTest {
      */
     @Test
     public void simpleQueryTest() {
-        User user = addInitData(100);
+        User user = addInitData(1201);
         List<User> list = us.createQuery(user).joinFetch(Role.class)
                 .fetch(Organization.class).distinct().execute().list();
         TestCase.assertTrue(list.size() > 0);
