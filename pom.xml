@@ -294,7 +294,6 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
-							<classesDirectory>${basedir}/target/classes</classesDirectory>
 							<finalName>${project.artifactId}</finalName>
 							<excludes>
 								<exclude>*.xml</exclude>
