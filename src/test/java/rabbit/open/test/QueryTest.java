@@ -124,7 +124,7 @@ public class QueryTest {
 
     @Test
     public void queryByID() {
-        User user = addInitData(100);
+        User user = addInitData(1090);
         User u = us.getByID(user.getId());
         TestCase.assertEquals(user.getId(), u.getId());
         TestCase.assertEquals(user.getName(), u.getName());
