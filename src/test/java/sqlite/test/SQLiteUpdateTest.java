@@ -1,21 +1,19 @@
 package sqlite.test;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import rabbit.open.orm.exception.UnKnownFieldException;
 import sqlite.test.entity.SQLiteOrganization;
 import sqlite.test.entity.SQLiteUser;
 import sqlite.test.service.SQLiteOrganizationService;
 import sqlite.test.service.SQLiteUserService;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * <b>Description: update测试</b><br>
@@ -49,6 +47,21 @@ public class SQLiteUpdateTest {
                 .fetch(SQLiteOrganization.class).execute().unique();
         TestCase.assertEquals(user.getName(), "lisi");
 
+    }
+
+    /**
+     * 增量测试
+     */
+    @Test
+    public void deltaUpdateTest() {
+        SQLiteUser u = new SQLiteUser();
+        int age = 101;
+        u.setAge(age);
+        us.add(u);
+        int delta = -10;
+        us.createUpdate(u).deltaUpdate("age", delta).execute();
+        SQLiteUser user = us.getByID(u.getId());
+        TestCase.assertEquals(user.getAge().intValue(), age + delta);
     }
 
     /**

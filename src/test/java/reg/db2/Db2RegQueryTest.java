@@ -139,4 +139,19 @@ public class Db2RegQueryTest {
 		}
 		throw new RuntimeException();
 	}
+
+	/**
+	 * 增量测试
+	 */
+	@Test
+	public void deltaUpdateTest() {
+		RegUser u = new RegUser();
+		int age = 1100;
+		u.setFrom(age);
+		rus.add(u);
+		int delta = -10;
+		rus.createUpdate(u).deltaUpdate("from", delta).execute();
+		RegUser user = rus.getByID(u.getId());
+		TestCase.assertEquals(user.getFrom().intValue(), age + delta);
+	}
 }

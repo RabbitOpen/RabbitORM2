@@ -38,7 +38,10 @@ public class Update<T> extends NonQueryAdapter<T> {
 	
 	//动态添加的字段
 	private Map<String, Object> settedValue = new HashMap<>();
-		
+
+	//需要新增值或者减少值字段
+	private Map<String, Number> deltaValues = new HashMap<>();
+
 	//设置为空的字段
 	private HashSet<String> nullfields = new HashSet<>();
 	
@@ -72,11 +75,23 @@ public class Update<T> extends NonQueryAdapter<T> {
 		};
 	}
 
+	/**
+	 * 差量更新
+	 * @param field	需要更新的字段
+	 * @param delta	增加/减少的值
+	 * @return
+	 */
+	public Update<T> deltaUpdate(String field, Number delta) {
+		deltaValues.put(field, delta);
+		settedValue.put(field, delta);
+		return this;
+	}
+
 	private void replaceTableName() {
 	    String replaceAll = sql.toString().replaceAll(TABLE_NAME_REG, metaData.getTableName());
 	    sql = new StringBuilder(replaceAll);
 	}
-	
+
 	@Override
 	public long execute() {
 	    prepareFilterMetas();
@@ -130,7 +145,7 @@ public class Update<T> extends NonQueryAdapter<T> {
 	/**
 	 * 
 	 * <b>Description:	新增一个空过滤条件</b><br>
-	 * @param fieldReg
+	 * @param reg
 	 * @param isNull	true -> is, false -> is not
 	 * @param depsPath
 	 * @return	
@@ -145,7 +160,7 @@ public class Update<T> extends NonQueryAdapter<T> {
 	/**
 	 * 
 	 * <b>Description:	新增一个空过滤条件</b><br>
-	 * @param fieldReg
+	 * @param reg
 	 * @param depsPath
 	 * @return	
 	 * 
@@ -379,7 +394,7 @@ public class Update<T> extends NonQueryAdapter<T> {
         }
         if (null == fmd.getFieldValue()) {
             preparedValues.add(new PreparedValue(null));
-            sb.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
+            sb.append(createFieldSqlPiece(getColumnName(fmd.getColumn()), false));
             return sb;
         }
         if (fmd.isForeignKey()) {
@@ -404,21 +419,31 @@ public class Update<T> extends NonQueryAdapter<T> {
 	    StringBuilder sb =  new StringBuilder();
 		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fmd.getFieldValue(), fmd), 
 		        fmd.getField()));
-		sb.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
+		String fieldName = fmd.getField().getName();
+		sb.append(createFieldSqlPiece(getColumnName(fmd.getColumn()), deltaValues.containsKey(fieldName)));
 		return sb;
 	}
 
     /**
      * <b>Description  创建更新字段sql片段</b>
-     * @param columnName
-     * @return
-     */
-    private StringBuilder createFieldSqlPiece(String columnName) {
+	 * @param columnName
+	 * @param isDeltaUpdate
+	 * @return
+	 */
+    private StringBuilder createFieldSqlPiece(String columnName, boolean isDeltaUpdate) {
         StringBuilder sb = new StringBuilder();
         if (sessionFactory.getDialectType().isSQLITE3()) {
-            sb.append(" " + columnName + " = ");
+            if (isDeltaUpdate) {
+				sb.append(" " + columnName + " = " + columnName + " + ");
+			} else {
+				sb.append(" " + columnName + " = ");
+			}
         } else {
-            sb.append(" " + TARGET_TABLE_NAME + "." + columnName + " = ");
+			if (isDeltaUpdate) {
+				sb.append(" " + TARGET_TABLE_NAME + "." + columnName + " = " + TARGET_TABLE_NAME + "." + columnName + " + ");
+			} else {
+				sb.append(" " + TARGET_TABLE_NAME + "." + columnName + " = ");
+			}
         }
 		sb.append(PLACE_HOLDER);
 		sb.append(",");
@@ -439,7 +464,8 @@ public class Update<T> extends NonQueryAdapter<T> {
             preparedValues.add(new PreparedValue(RabbitValueConverter.convert(
                     fkValue, new FieldMetaData(foreignField, foreignField
                             .getAnnotation(Column.class))), foreignField));
-            sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn())));
+			String fieldName = fmd.getField().getName();
+			sql.append(createFieldSqlPiece(getColumnName(fmd.getColumn()), deltaValues.containsKey(fieldName)));
         }
         return sql;
 	}

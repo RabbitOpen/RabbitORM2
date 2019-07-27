@@ -58,6 +58,22 @@ public class OracleTest {
         TestCase.assertTrue(list.size() > 0);
     }
 
+	/**
+	 * 增量测试
+	 */
+	@Test
+	public void deltaUpdateTest() {
+		User u = new User();
+		int age = 1100;
+		u.setAge(age);
+		us.add(u);
+		int delta = -10;
+		us.createUpdate(u).deltaUpdate("age", delta).execute();
+		User user = us.getByID(u.getId());
+		TestCase.assertEquals(user.getAge().intValue(), age + delta);
+	}
+
+
     @Test
     public void simpleQueryTest() {
         User user = addInitData(100);
