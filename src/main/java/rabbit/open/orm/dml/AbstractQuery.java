@@ -163,7 +163,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	
     /**
      * <b>Description 设置只想查询出来的字段（主键字段会默认带出） </b>
-     * @param field
+     * @param fields
      * @author 肖乾斌
      */
     public final AbstractQuery<T> queryFields(Class<?> clz, String... fields) {
@@ -932,7 +932,6 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
     /**
      * <b>Description 添加一对多、多对多的过滤条件部分sql </b>
      * @param jfm
-     * @param sb
      */
     private StringBuilder createJoinFilterSqlSegment(JoinFieldMetaData<?> jfm) {
         StringBuilder sb = new StringBuilder();
@@ -1421,7 +1420,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	
 	/**
 	 * 
-	 * <b>Description:	添加内链接过滤条件，相同target的内链接过滤条件和合并</b><br>
+	 * <b>Description:	添加内链接过滤条件，相同target的内链接过滤条件会合并</b><br>
 	 * @param reg
 	 * @param ft
 	 * @param value
