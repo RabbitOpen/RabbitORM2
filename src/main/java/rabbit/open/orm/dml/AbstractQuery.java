@@ -413,26 +413,25 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @param fetchEntity
 	 * @param entity
 	 */
-	private void injectFetchDependency(Map<String, Object> fetchEntity, Object entity) {
-        if (null == clzesEnabled2Join) {
-            return;
-        }
-        List<FilterDescriptor> deps = clzesEnabled2Join.get(entity.getClass());
-        for (FilterDescriptor fd : deps) {
-            Object depObj = fetchEntity
-                    .get(getAliasByTableName(getTableNameByClass(fd
-                            .getJoinDependency())));
-            Object value = null;
-            if (null == depObj
-                    || null == (value = getValue(fd.getJoinField(), depObj))) {
-                continue;
-            }
-            Field pk = MetaData.getPrimaryKeyFieldMeta(entity.getClass()).getField();
-            if (getValue(pk, value).equals(getValue(pk, entity))) {
-                setValue2Field(depObj, fd.getJoinField(), entity);
-                return;
-            }
-        }
+	private void injectFetchDependency(Map<String, Object> fetchEntity,
+			Object entity) {
+		if (null == clzesEnabled2Join) {
+			return;
+		}
+		List<FilterDescriptor> deps = clzesEnabled2Join.get(entity.getClass());
+		for (FilterDescriptor fd : deps) {
+			Object depObj = fetchEntity.get(getAliasByTableName(getTableNameByClass(fd
+							.getJoinDependency())));
+			Object value = null;
+			if (null == depObj || null == (value = getValue(fd.getJoinField(), depObj))) {
+				continue;
+			}
+			Field pk = MetaData.getPrimaryKeyFieldMeta(entity.getClass()).getField();
+			if (getValue(pk, value).equals(getValue(pk, entity))) {
+				setValue2Field(depObj, fd.getJoinField(), entity);
+				return;
+			}
+		}
 	}
 	
     private void readEntity(ResultSet rs, Map<String, Object> fetchEntity,
@@ -821,7 +820,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 				}
 			}
 			if (!innered) {
-				sql.append(" LEFT JOIN " + fd.getFilterTable() + " "
+				sql.append(LEFT_JOIN + fd.getFilterTable() + " "
 						+ getTableAlias(fd));
 				sql.append(" ON " + fd.getKey() + fd.getFilter()
 						+ fd.getValue());
@@ -931,7 +930,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	protected StringBuilder createOTMJoinSql(JoinFieldMetaData<?> jfm, boolean leftJoin){
 		StringBuilder sb = new StringBuilder();
 		OneToMany otm = (OneToMany) jfm.getAnnotation();
-		String lj = leftJoin ? " LEFT JOIN " : INNER_JOIN;
+		String lj = leftJoin ? LEFT_JOIN : INNER_JOIN;
 		sb.append(lj + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
 		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "." 
 		        + MetaData.getPrimaryKey(jfm.getTargetClass(), sessionFactory) + " = ");

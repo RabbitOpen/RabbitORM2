@@ -23,7 +23,6 @@ import rabbit.open.orm.dml.meta.FilterDescriptor;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.meta.MultiDropFilter;
 import rabbit.open.orm.exception.RabbitDMLException;
-import rabbit.open.orm.exception.RabbitORMException;
 import rabbit.open.orm.exception.WrongJavaTypeException;
 import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.shard.ShardFactor;
