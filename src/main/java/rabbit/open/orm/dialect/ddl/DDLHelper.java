@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
+import org.springframework.util.StringUtils;
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.annotation.ManyToMany;
@@ -372,6 +373,9 @@ public abstract class DDLHelper {
                 .reverseJoinColumn(), MetaData
                 .getPrimaryKeyFieldMeta((Class<?>) pt.getActualTypeArguments()[0])
                 .getColumn().length()));
+        if (!StringUtils.isEmpty(m2m.filterColumn())) {
+            des.add(new JoinTableDescriptor(String.class, m2m.filterColumn(), 50));
+        }
         return des;
     }
 

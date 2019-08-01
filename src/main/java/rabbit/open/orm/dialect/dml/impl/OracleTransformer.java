@@ -6,7 +6,7 @@ import rabbit.open.orm.dml.AbstractQuery;
 import rabbit.open.orm.dml.DialectTransformer;
 import rabbit.open.orm.dml.filter.PreparedValue;
 
-public class OracleTransformer extends DialectTransformer{
+public class OracleTransformer extends DialectTransformer {
 
     /**
      * 
@@ -31,7 +31,7 @@ public class OracleTransformer extends DialectTransformer{
      * 
      */
     @Override
-    public StringBuilder createPageSql(AbstractQuery<?> query){
+    public StringBuilder createPageSql(AbstractQuery<?> query) {
         int pageSize = getPageSize(query);
         int pageIndex = getPageIndex(query);
         List<Object> preparedValues = getPreparedValues(query);
@@ -40,11 +40,11 @@ public class OracleTransformer extends DialectTransformer{
         long end = (1L + pageIndex) * pageSize;
         preparedValues.add(new PreparedValue(start));
         preparedValues.add(new PreparedValue(end));
-        if(!doOrder(query)){
+        if (!doOrder(query)) {
             sql = new StringBuilder("SELECT * FROM (")
                 .append(sql)
                 .append(") T WHERE RN BETWEEN ? AND ?");
-        }else{
+        } else {
             sql = new StringBuilder("SELECT T.*, ROWNUM AS RN FROM (")
                 .append(sql + ")T ");
             sql = new StringBuilder("SELECT * FROM (")

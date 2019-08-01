@@ -23,6 +23,8 @@ import rabbit.open.orm.dml.meta.FilterDescriptor;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.meta.MultiDropFilter;
 import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.orm.exception.RabbitORMException;
+import rabbit.open.orm.exception.WrongJavaTypeException;
 import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.shard.ShardFactor;
 
@@ -527,6 +529,9 @@ public class Update<T> extends NonQueryAdapter<T> {
             try {
                 setValue2Field(data, fmd.getField(), value);
             } catch (Exception e) {
+            	if (fmd.getField().getType().getName().contains("java.lang")) {
+            		throw new WrongJavaTypeException(fmd.getField().getType(), value);
+				}
                 setEntityFiled(data, key, fmd, value);
             }
         }

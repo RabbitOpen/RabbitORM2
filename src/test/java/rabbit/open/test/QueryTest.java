@@ -18,35 +18,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.dml.Query;
 import rabbit.open.orm.dml.meta.JoinFilterBuilder;
-import rabbit.open.orm.exception.CycleDependencyException;
-import rabbit.open.orm.exception.EmptyListFilterException;
-import rabbit.open.orm.exception.InvalidFetchOperationException;
-import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
-import rabbit.open.orm.exception.InvalidJoinFilterException;
-import rabbit.open.orm.exception.InvalidQueryPathException;
-import rabbit.open.orm.exception.OrderAssociationException;
-import rabbit.open.orm.exception.RepeatedFetchOperationException;
-import rabbit.open.test.entity.Car;
-import rabbit.open.test.entity.Leader;
-import rabbit.open.test.entity.Organization;
-import rabbit.open.test.entity.Property;
-import rabbit.open.test.entity.Resources;
-import rabbit.open.test.entity.Role;
-import rabbit.open.test.entity.Team;
-import rabbit.open.test.entity.UUIDPolicyEntity;
-import rabbit.open.test.entity.User;
-import rabbit.open.test.entity.ZProperty;
-import rabbit.open.test.entity.Zone;
-import rabbit.open.test.service.CarService;
-import rabbit.open.test.service.LeaderService;
-import rabbit.open.test.service.MyUserSerivce;
-import rabbit.open.test.service.OrganizationService;
-import rabbit.open.test.service.PropertyService;
-import rabbit.open.test.service.ResourcesService;
-import rabbit.open.test.service.RoleService;
-import rabbit.open.test.service.UserService;
-import rabbit.open.test.service.ZPropertyService;
-import rabbit.open.test.service.ZoneService;
+import rabbit.open.orm.exception.*;
+import rabbit.open.test.entity.*;
+import rabbit.open.test.service.*;
 
 /**
  * <b>Description: 查询测试</b><br>
@@ -826,6 +800,64 @@ public class QueryTest {
     	} catch (Exception e) {
     		TestCase.assertEquals(e.getClass(), EmptyListFilterException.class);
     	}
+    }
+
+
+    @Autowired
+    private MasterService masterService;
+
+    @Autowired
+    private SlaveService slaveService;
+
+    @Autowired
+    private MasterSlaveService masterSlaveService;
+
+    @Test
+    public void joinFetchWithFilterTest() {
+
+        Master m = new Master();
+        m.setName("master");
+        masterService.add(m);
+
+        Slave s1 = new Slave();
+        s1.setName("s1");
+        slaveService.add(s1);Slave s2 = new Slave();
+        s2.setName("s2");
+        slaveService.add(s2);
+
+        List<Slave> slaves = new ArrayList<>();
+        slaves.add(s1);
+        slaves.add(s2);
+        m.setSlaves(slaves);
+        masterService.addJoinRecords(m);
+
+        try {
+            masterSlaveService.createUpdate().set("type", 1)
+                    .addFilter("masterId", m.getId())
+                    .execute();
+            throw  new RuntimeException();
+        } catch (Exception e) {
+            TestCase.assertEquals(WrongJavaTypeException.class, e.getCause().getClass());
+        }
+
+        masterSlaveService.createUpdate().set("type", "1")
+                .addFilter("masterId", m.getId())
+                .execute();
+        Master queriedMaster = masterService.createQuery().addFilter("id", m.getId())
+                .joinFetchByFilter("1", Slave.class)
+                .unique();
+
+        TestCase.assertEquals(slaves.size(), queriedMaster.getSlaves().size());
+
+
+        queriedMaster = masterService.createQuery().addFilter("id", m.getId())
+                .joinFetchByFilter("2", Slave.class)
+                .unique();
+
+        TestCase.assertNull(queriedMaster.getSlaves());
+
+
+
     }
     
 }

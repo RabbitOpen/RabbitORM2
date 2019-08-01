@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.util.StringUtils;
 import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.annotation.FilterType;
 import rabbit.open.orm.annotation.ManyToMany;
@@ -57,15 +58,18 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 
     private static final String INNER_JOIN = " INNER JOIN ";
 
-    private static final String LEFT_JOIN = "LEFT JOIN ";
+    private static final String LEFT_JOIN = " LEFT JOIN ";
     
-    //希望查询出来的实体
+    // 希望查询出来的实体
 	protected HashSet<Class<?>> entity2Fetch = new HashSet<>();
 	
-	//manytoone的过滤条件
+	// manytoone的过滤条件
 	protected List<FilterDescriptor> many2oneFilterDescripters = new ArrayList<>();
-	
-	//是否分页查询
+
+	// 中间表过滤字段的值map
+	private Map<Class<?>, Object> joinColumnFilterValueMap = new HashMap<>();
+
+	// 是否分页查询
 	protected boolean page = false;
 
 	protected int pageSize = 0;
@@ -78,7 +82,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	
 	protected Map<Class<?>, HashSet<String>> desc = new ConcurrentHashMap<>();
 	
-	//缓存需要fetch的对象
+	// 缓存需要fetch的对象
 	private Map<Class<?>, Class<?>> fetchClzes = new ConcurrentHashMap<>();
 	
 	//别名映射key是表名
@@ -896,13 +900,21 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	protected StringBuilder createMTMJoinSql(JoinFieldMetaData<?> jfm, boolean leftJoin){
 		StringBuilder sb = new StringBuilder();
 		ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
-		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + mtm.joinTable() + " " + getAliasByTableName(mtm.joinTable()) + " ON ");
-		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "." 
+		// 中间表别名
+		String middleTableAias = getAliasByTableName(mtm.joinTable());
+		// 多端表的别名
+		String joinTableAlias = getAliasByTableName(jfm.getTableName());
+		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + mtm.joinTable() + " " + middleTableAias + " ON ");
+		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "."
 		        + MetaData.getPrimaryKey(jfm.getTargetClass(), sessionFactory) + " = ");
-		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.joinColumn() + " ");
-		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
-		sb.append(getAliasByTableName(mtm.joinTable()) + "." + mtm.reverseJoinColumn() + " = ");
-		sb.append(getAliasByTableName(jfm.getTableName()) + "." + getColumnName(jfm.getPrimaryKey()));
+		sb.append(middleTableAias + "." + mtm.joinColumn() + " ");
+		if (!StringUtils.isEmpty(mtm.filterColumn()) && joinColumnFilterValueMap.containsKey(jfm.getJoinClass())) {
+			cachePreparedValues(joinColumnFilterValueMap.get(jfm.getJoinClass()), null);
+			sb.append(" AND " + middleTableAias + "." + mtm.filterColumn() + " = " + PLACE_HOLDER);
+		}
+		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + jfm.getTableName() + " " + joinTableAlias + " ON ");
+		sb.append(middleTableAias + "." + mtm.reverseJoinColumn() + " = ");
+		sb.append(joinTableAlias + "." + getColumnName(jfm.getPrimaryKey()));
 		sb.append(createJoinFilterSqlSegment(jfm));
 		sb.append(" ");
 		return sb;
@@ -999,7 +1011,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * <b>Description:	将动态添加的过滤条件转换成meta信息</b><br>	
 	 * 
 	 */
-	private void convertJoinFilter2Metas(){
+	private void convertJoinFilter2Metas() {
         Iterator<Class<?>> it = addedJoinFilters.keySet().iterator();
         while (it.hasNext()) {
             Class<?> clz = it.next();
@@ -1027,8 +1039,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         }
         return false;
     }
-	
-	public AbstractQuery<T> distinct(){
+
+	public AbstractQuery<T> distinct() {
 		this.distinct = true;
 		return this;
 	}
@@ -1038,22 +1050,22 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * <b>Description:	创建被查询的表字段sql片段</b><br>	
 	 * 
 	 */
-	protected void createFieldsSql(){
-		if(distinct){
+	protected void createFieldsSql() {
+		if (distinct) {
 			sql.append(" DISTINCT ");
 		}
 		//主表字段
 		sql.append(createFieldsSqlByMetas(getEntityClz()));
-		
+
 		//many2one关联表字段
-		for(Class<?> clz : entity2Fetch){
-			if(clz.equals(getEntityClz())){
+		for (Class<?> clz : entity2Fetch) {
+			if (clz.equals(getEntityClz())) {
 				continue;
 			}
 			sql.append(createFieldsSqlByMetas(clz));
 		}
 		//多对多、一对多关联表字段
-		for(JoinFieldMetaData<?> jfm : joinFieldMetas){
+		for (JoinFieldMetaData<?> jfm : joinFieldMetas) {
 			sql.append(createFieldsSqlByJoinMetas(jfm));
 		}
 		sql.deleteCharAt(sql.lastIndexOf(","));
@@ -1668,43 +1680,67 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	/**
 	 * 
 	 * 查询出一对多或者多对多的数据。
-	 * @param entity
+	 * @param entityClz
 	 * @return
 	 * 
 	 */
-	public <E> AbstractQuery<T> joinFetch(Class<E> entity){
-		return joinFetch(entity, null);
+	public <E> AbstractQuery<T> joinFetch(Class<E> entityClz) {
+		return joinFetch(entityClz, null);
+	}
+
+	/**
+	 *
+	 * <b>Description:	联合查询多端数据</b><br>
+	 * @param entityClz
+	 * @param filter	多端过滤条件
+	 * @return
+	 *
+	 */
+	public <E> AbstractQuery<T> joinFetch(Class<E> entityClz, E filter) {
+		checkShardedFetch(entityClz);
+		if (!isValidFetch(entityClz)) {
+			throw new InvalidJoinFetchOperationException(entityClz,
+					getEntityClz());
+		}
+		for (JoinFieldMetaData<?> jfmo : metaData.getJoinMetas()) {
+			if (entityClz.equals(jfmo.getJoinClass())) {
+				refreshJoinFieldMetas(entityClz, filter, jfmo);
+				return this;
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * 多端查询时指定中间表的过滤字段值
+	 * @param filterValue	中间表的filterColumn的值
+	 * @param entityClz
+	 * @param <E>
+	 * @return
+	 */
+	public <E> AbstractQuery<T> joinFetchByFilter(Object filterValue, Class<E> entityClz) {
+		return joinFetchByFilter(filterValue, entityClz, null);
+	}
+
+	/**
+	 * 多端查询时指定中间表的过滤字段值
+	 * @param filterValue	中间表的filterColumn的值
+	 * @param entityClz
+	 * @param filter
+	 * @param <E>
+	 * @return
+	 */
+	public <E> AbstractQuery<T> joinFetchByFilter(Object filterValue, Class<E> entityClz, E filter) {
+		joinColumnFilterValueMap.put(entityClz, filterValue);
+		return joinFetch(entityClz, filter);
 	}
 
 	/**
 	 * <b>Description  构建fetch操作.</b>
 	 * @return
 	 */
-	public FetchDescriptor<T> buildFetch(){
-	    return new FetchDescriptor<>(this);
-	}
-	
-	/**
-	 * 
-	 * <b>Description:	联合查询多端数据</b><br>
-	 * @param entityClz
-	 * @param filter	多端过滤条件
-	 * @return	
-	 * 
-	 */
-	public <E> AbstractQuery<T> joinFetch(Class<E> entityClz, E filter){
-	    checkShardedFetch(entityClz);
-        if (!isValidFetch(entityClz)) {
-            throw new InvalidJoinFetchOperationException(entityClz,
-                    getEntityClz());
-        }
-        for (JoinFieldMetaData<?> jfmo : metaData.getJoinMetas()) {
-            if (entityClz.equals(jfmo.getJoinClass())) {
-                refreshJoinFieldMetas(entityClz, filter, jfmo);
-                return this;
-            }
-        }
-		return this;
+	public FetchDescriptor<T> buildFetch() {
+		return new FetchDescriptor<>(this);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -1722,7 +1758,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
     }
 
     private <E> boolean isValidFetch(Class<E> entityClz) {
-        for (@SuppressWarnings("rawtypes") JoinFieldMetaData jfmo : metaData.getJoinMetas()) {
+		for (@SuppressWarnings("rawtypes") JoinFieldMetaData jfmo : metaData.getJoinMetas()) {
             if (!entityClz.equals(jfmo.getJoinClass())) {
                 continue;
             }
@@ -1737,7 +1773,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @param alias
 	 * @return
 	 */
-	public AbstractQuery<T> alias(Class<?> entityClz, String alias){
+	public AbstractQuery<T> alias(Class<?> entityClz, String alias) {
 	    if(aliasMapping.containsValue(alias.toUpperCase())){
 	        throw new RepeatedAliasException(alias);
 	    }

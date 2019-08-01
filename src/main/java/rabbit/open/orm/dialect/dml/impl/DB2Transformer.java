@@ -6,7 +6,7 @@ import rabbit.open.orm.dml.AbstractQuery;
 import rabbit.open.orm.dml.DialectTransformer;
 import rabbit.open.orm.dml.filter.PreparedValue;
 
-public class DB2Transformer extends DialectTransformer{
+public class DB2Transformer extends DialectTransformer {
 
     /**
      * 

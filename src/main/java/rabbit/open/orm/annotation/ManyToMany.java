@@ -33,4 +33,7 @@ public @interface ManyToMany {
 	
 	//中间表的主键字段名
 	public String id() default "";
+
+	//中间表中用于过滤映射关系的字段名
+	public String filterColumn() default "";
 }

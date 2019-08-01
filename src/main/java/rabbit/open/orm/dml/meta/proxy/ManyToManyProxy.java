@@ -28,6 +28,9 @@ public class ManyToManyProxy implements MethodInterceptor {
     // 策略为sequence时的sequence的名字
     private String sequence;
 
+    //中间表中用于过滤映射关系的字段名
+    private String filterColumn;
+
     // 中间表的主键字段名
     private String id;
 
@@ -37,6 +40,7 @@ public class ManyToManyProxy implements MethodInterceptor {
         this.reverseJoinColumn = m2m.reverseJoinColumn();
         this.policy = m2m.policy();
         this.sequence = m2m.sequence();
+        this.filterColumn = m2m.filterColumn();
         this.id = m2m.id();
     }
 
@@ -80,6 +84,9 @@ public class ManyToManyProxy implements MethodInterceptor {
         }
         if ("sequence".equals(method.getName())) {
             return sequence;
+        }
+        if ("filterColumn".equals(method.getName())) {
+            return filterColumn;
         }
         if ("id".equals(method.getName())) {
             return id;

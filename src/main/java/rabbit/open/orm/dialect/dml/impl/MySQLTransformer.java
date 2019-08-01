@@ -11,7 +11,7 @@ import rabbit.open.orm.dml.filter.PreparedValue;
  * <b>@author</b>	肖乾斌
  * 
  */
-public class MySQLTransformer extends DialectTransformer{
+public class MySQLTransformer extends DialectTransformer {
 
 	/**
      * 
@@ -21,7 +21,7 @@ public class MySQLTransformer extends DialectTransformer{
      * 
      */
 	@Override
-    public StringBuilder createPageSql(AbstractQuery<?> query){
+    public StringBuilder createPageSql(AbstractQuery<?> query) {
 	    int pageSize = getPageSize(query);
 	    int pageIndex = getPageIndex(query);
 	    List<Object> preparedValues = getPreparedValues(query);

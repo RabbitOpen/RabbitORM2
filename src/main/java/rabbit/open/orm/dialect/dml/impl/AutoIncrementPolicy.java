@@ -19,7 +19,7 @@ import com.mysql.jdbc.Statement;
  * <b>@author</b>    肖乾斌
  * 
  */
-public class AutoIncrementPolicy extends PolicyInsert{
+public class AutoIncrementPolicy extends PolicyInsert {
 
     @Override
     public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) throws SQLException {

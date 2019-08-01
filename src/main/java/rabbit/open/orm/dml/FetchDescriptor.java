@@ -28,8 +28,8 @@ public class FetchDescriptor<T> {
     private List<Field> dependencyFields = new ArrayList<>();
     
     private Class<?> joinFetchClz = null;
-    
-    protected FetchDescriptor(AbstractQuery<T> query){
+
+    protected FetchDescriptor(AbstractQuery<T> query) {
         path = new ArrayList<>();
         path.add(query.getMetaData().getEntityClz());
         this.query = query;
@@ -41,7 +41,7 @@ public class FetchDescriptor<T> {
      * @param clz
      * @return
      */
-    public FetchDescriptor<T> fetch(Class<?> clz){
+    public FetchDescriptor<T> fetch(Class<?> clz) {
         Class<?>[] array = path2Array();
         query.fetch(clz, array);
         path.add(0, clz);
@@ -50,18 +50,18 @@ public class FetchDescriptor<T> {
         targetClz = clz;
         return this;
     }
-    
-    private Class<?>[] path2Array(){
+
+    private Class<?>[] path2Array() {
         Class<?>[] array = new Class<?>[path.size()];
-        for(int i = 0; i < path.size(); i++){
+        for (int i = 0; i < path.size(); i++) {
             array[i] = path.get(i);
         }
         return array;
     }
 
-    private Field[] dep2Array(){
+    private Field[] dep2Array() {
         Field[] array = new Field[dependencyFields.size()];
-        for(int i = 0; i < dependencyFields.size(); i++){
+        for (int i = 0; i < dependencyFields.size(); i++) {
             array[i] = dependencyFields.get(i);
         }
         return array;
@@ -72,13 +72,13 @@ public class FetchDescriptor<T> {
      * @param clz
      * @return
      */
-    public JoinFetcher<T> joinFetch(Class<?> clz){
+    public JoinFetcher<T> joinFetch(Class<?> clz) {
         query.checkShardedFetch(clz);
         joinFetchClz = clz;
         MetaData<?> meta = MetaData.getMetaByClass(targetClz);
-        for(JoinFieldMetaData<?> jfmd : meta.getJoinMetas()){
-            if(jfmd.getJoinClass().equals(joinFetchClz)){
-                if(!isRepeatedJoinFetch()){
+        for (JoinFieldMetaData<?> jfmd : meta.getJoinMetas()) {
+            if (jfmd.getJoinClass().equals(joinFetchClz)) {
+                if (!isRepeatedJoinFetch()) {
                     jfmd.setDependencyFields(dep2Array());
                     query.joinFieldMetas.add(jfmd.clone());
                 }
@@ -92,29 +92,29 @@ public class FetchDescriptor<T> {
      * <b>Description  检查重复的joinFetch.</b>
      */
     private boolean isRepeatedJoinFetch() {
-        for(JoinFieldMetaData<?> jfme : query.joinFieldMetas){
-            if(!jfme.getJoinClass().equals(joinFetchClz)){
+        for (JoinFieldMetaData<?> jfme : query.joinFieldMetas) {
+            if (!jfme.getJoinClass().equals(joinFetchClz)) {
                 continue;
             }
-            if(!jfme.getTargetClass().equals(targetClz)){
+            if (!jfme.getTargetClass().equals(targetClz)) {
                 throw new RepeatedJoinFetchOperationException(joinFetchClz, targetClz, jfme.getTargetClass());
-            }else{
+            } else {
                 return true;
             }
         }
         return false;
     }
-    
-    protected FetchDescriptor<T> on(String reg, Object value, FilterType filterType){
+
+    protected FetchDescriptor<T> on(String reg, Object value, FilterType filterType) {
         String field = query.getFieldByReg(reg);
         DMLAdapter.checkField(joinFetchClz, field);
-        if(!query.addedJoinFilters.containsKey(joinFetchClz)){
+        if (!query.addedJoinFilters.containsKey(joinFetchClz)) {
             query.addedJoinFilters.put(joinFetchClz, new HashMap<String, List<DynamicFilterDescriptor>>());
         }
-        if(!query.addedJoinFilters.get(joinFetchClz).containsKey(field)){
+        if (!query.addedJoinFilters.get(joinFetchClz).containsKey(field)) {
             query.addedJoinFilters.get(joinFetchClz).put(field, new ArrayList<DynamicFilterDescriptor>());
         }
-        query.addedJoinFilters.get(joinFetchClz).get(field).add(new DynamicFilterDescriptor(reg, filterType, 
+        query.addedJoinFilters.get(joinFetchClz).get(field).add(new DynamicFilterDescriptor(reg, filterType,
                 value, !field.equals(reg)));
         return this;
     }
