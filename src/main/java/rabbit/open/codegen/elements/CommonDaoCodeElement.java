@@ -27,7 +27,7 @@ public class CommonDaoCodeElement extends AbstractDaoCodeElement {
 		sb.append("package " + packageName + ";\n\n");
 		sb.append(AbstractDaoCodeElement.IMPORT + entityName + ";\n");
 		sb.append(AbstractDaoCodeElement.IMPORT + Repository.class.getName() + ";\n");
-		sb.append(AbstractDaoCodeElement.IMPORT + entityName.substring(0, entityName.lastIndexOf(".") + 1) + "dao.base."
+		sb.append(AbstractDaoCodeElement.IMPORT + entityName.substring(0, entityName.lastIndexOf('.') + 1) + "dao.base."
 				+ AbstractDaoCodeElement.GENERICAL_DAO_CLASS_NAME + ";\n");
 		sb.append(new DocElement(CodeGenerator.COMMON_MSG, "@desc:  " + entitySimpleName + " dao 实现类"));
 		sb.append(new AnnotationElement("@Repository", "", Repository.class.getName()));
