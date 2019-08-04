@@ -4,6 +4,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import rabbit.open.codegen.DBFieldDescriptor;
+import rabbit.open.codegen.MappingRegistry;
 import rabbit.open.codegen.filter.GeneratorFilter;
 import rabbit.open.codegen.generator.CodeGenerator;
 
@@ -16,6 +18,9 @@ public class CodeGeneratorTest {
 				"jdbc:mysql://localhost:3306/cas?useUnicode=true&characterEncoding=UTF-8&useServerPrepStmts=true",
 				"com.mysql.jdbc.Driver", "root", "123",
 				"C:/Users/admin/Desktop/java", "com.org");
+		
+		MappingRegistry.regist("VARCHAR", new DBFieldDescriptor(String.class, true));
+		
 		cg.setFilter(new GeneratorFilter(){
 			
 			@Override

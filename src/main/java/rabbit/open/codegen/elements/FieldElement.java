@@ -61,20 +61,8 @@ public class FieldElement extends JavaElement {
 		return getPackageString();
 	}
 
-	public DocElement getDoc() {
-		return doc;
-	}
-
-	public void setDoc(DocElement doc) {
-		this.doc = doc;
-	}
-
 	public String getPackageString() {
 		return packageString;
-	}
-
-	public void setPackageString(String packageString) {
-		this.packageString = packageString;
 	}
 
 	public MethodElement getGetter() {

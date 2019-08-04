@@ -239,18 +239,6 @@ public class CodeGenerator {
 		this.filter = filter;
 	}
 	
-	/**
-	 * <b>@description 设置基础包名 </b>
-	 * @param basePackageName
-	 */
-	public void setBasePackageName(String basePackageName) {
-		if (JavaElement.isEmptyStr(basePackageName)) {
-			return;
-		}
-		this.basePackageName = basePackageName;
-		createDirs();
-	}
-
 	private void createDirs() {
 		String pathSeperator = "/";
 		File entityFile = new File(fileRootPath + pathSeperator + basePackageName.replaceAll("\\.", pathSeperator));

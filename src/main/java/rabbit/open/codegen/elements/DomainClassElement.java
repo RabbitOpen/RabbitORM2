@@ -10,7 +10,7 @@ import rabbit.open.codegen.JavaElement;
 /**
  * <b>@description 实体class 元素 </b>
  */
-public class DomainClassElement extends JavaElement {
+public class DomainClassElement {
 
 	// 类名, 比如User
 	private String className;
@@ -41,23 +41,6 @@ public class DomainClassElement extends JavaElement {
 
 	public DomainClassElement(String className, List<AnnotationElement> annos) {
 		this(className, null, annos);
-	}
-
-	@Override
-	public String getImportPackageString() {
-		return null;
-	}
-
-	public String getClassName() {
-		return className;
-	}
-
-	public void setClassName(String className) {
-		this.className = className;
-	}
-
-	public String getPackageName() {
-		return packageName;
 	}
 
 	public void setPackageName(String packageName) {
@@ -156,7 +139,7 @@ public class DomainClassElement extends JavaElement {
 	 */
 	private StringBuilder createPackageInfo() {
 		StringBuilder sb = new StringBuilder();
-		if (!isEmptyStr(packageName)) {
+		if (!JavaElement.isEmptyStr(packageName)) {
 			sb.append("package " + packageName + ";\n\n");
 		}
 		return sb;
