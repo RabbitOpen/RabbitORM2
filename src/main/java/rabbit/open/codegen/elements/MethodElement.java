@@ -44,36 +44,4 @@ public class MethodElement {
 		return sb.toString();
 	}
 
-	public String getVarName() {
-		return varName;
-	}
-
-	public void setVarName(String varName) {
-		this.varName = varName;
-	}
-
-	public String getReturnType() {
-		return returnType;
-	}
-
-	public void setReturnType(String returnType) {
-		this.returnType = returnType;
-	}
-
-	public String getVarType() {
-		return varType;
-	}
-
-	public void setVarType(String varType) {
-		this.varType = varType;
-	}
-
-	public boolean isGet() {
-		return get;
-	}
-
-	public void setGet(boolean get) {
-		this.get = get;
-	}
-	
 }
