@@ -24,18 +24,6 @@ public class AnnotationElement extends JavaElement {
 		this.annoFullName = annoFullName;
 	}
 
-	public String getAnnoName() {
-		return annoName;
-	}
-
-	public void setAnnoName(String annoName) {
-		this.annoName = annoName;
-	}
-
-	public String getContent() {
-		return content;
-	}
-
 	public void setContent(String content) {
 		this.content = content;
 	}
