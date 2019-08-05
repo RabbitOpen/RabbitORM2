@@ -1,24 +1,23 @@
 package rabbit.open.orm.pool.jpa;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.sql.DataSource;
-
 import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.pool.SessionFactory;
+
+import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <b>Description  读写分离数据源</b>
  */
 public class ReadWriteSeperatedDataSource implements CombinedDataSource {
 
-    //写的源
+    //读的源
     private DataSource readSource;
 
-    //读的源
+    //写的源
     private DataSource writeSource;
-    
+
     private List<DataSource> sources = new ArrayList<>();
     
     @Override
