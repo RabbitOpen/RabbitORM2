@@ -28,6 +28,8 @@ import rabbit.open.orm.exception.RabbitDMLException;
 
 public class CodeGenerator {
 
+	private static final String COLUMN_NAME = "COLUMN_NAME";
+
 	// 数据库连接
 	private String url;
 
@@ -146,7 +148,6 @@ public class CodeGenerator {
 
 	/**
 	 * <b>@description 根据表名生成类文件 </b>
-	 * 
 	 * @param tableName
 	 * @param conn
 	 * @throws SQLException 
@@ -174,44 +175,11 @@ public class CodeGenerator {
 		}
 		String pkName = getPrimaryKeyName(tableName, conn);
 		while (columns.next()) {
-			String columnName = columns.getString("COLUMN_NAME");
+			String columnName = columns.getString(COLUMN_NAME);
 			if (!filter.filterColumn(columnName)) {
 				continue;
 			}
-			String type = columns.getString("TYPE_NAME").toUpperCase();
-			String size = columns.getString("COLUMN_SIZE");
-			boolean isIncrement = "YES".equalsIgnoreCase(columns.getString("IS_AUTOINCREMENT"));
-			String remark = columns.getString("REMARKS");
-			String name = convertDbName2Java(columnName);
-			
-			DBFieldDescriptor fieldDescriptor = MappingRegistry.getFieldDescriptor(type);
-			if (null == fieldDescriptor) {
-				throw new RabbitDMLException("没有找到字段类型[" + type + "]的注册信息");
-			}
-			
-			// 字段注解
-			AnnotationElement an = new AnnotationElement("@Column", "", Column.class.getName());
-			if (fieldDescriptor.isLengthSensitive()) {
-				an.setContent(annoValueStartStr + columnName + "\", length = " + size);
-			} else {
-				an.setContent(annoValueStartStr + columnName + "\"");
-			}
-			
-			DocElement doc = new DocElement(COMMON_MSG, "@desc:  " + remark);
-			
-			FieldElement fe = new FieldElement(an, doc, 
-					// java.lang的就不用导入了
-					fieldDescriptor.getJavaType().getName().startsWith("java.lang") ? "" : fieldDescriptor.getJavaType().getName(), 
-					fieldDescriptor.getJavaType().getSimpleName(), name);
-			
-			if (columnName.equals(pkName)) {
-				String content = isIncrement ? "policy = Policy.AUTOINCREMENT" : "";
-				AnnotationElement pkAnno = new AnnotationElement("@PrimaryKey", content, PrimaryKey.class.getName());
-				pkAnno.addImport(Policy.class.getName());
-				fe.addAnnotationElement(pkAnno);
-			}
-			
-			ce.addFieldElement(fe);
+			ce.addFieldElement(createFieldElement(columns, annoValueStartStr, pkName));
 		}
 		FileWriter fw = new FileWriter(filePath + "\\" + className + ".java");
 		try {
@@ -220,6 +188,53 @@ public class CodeGenerator {
 			fw.close();
 		}
 		columns.close();
+	}
+	
+	/**
+	 * <b>@description 根据列数据创建字段元素 </b>
+	 * @param rows
+	 * @param annoValueStartStr
+	 * @param pkName
+	 * @throws SQLException
+	 */
+	private FieldElement createFieldElement(ResultSet rows, String annoValueStartStr, String pkName) throws SQLException {
+		String columnName = rows.getString(COLUMN_NAME);
+		String type = rows.getString("TYPE_NAME").toUpperCase();
+		String size = rows.getString("COLUMN_SIZE");
+		boolean isAutoIncrement = "YES".equalsIgnoreCase(rows.getString("IS_AUTOINCREMENT"));
+		String remark = rows.getString("REMARKS");
+		String name = convertDbName2Java(columnName);
+		
+		DBFieldDescriptor fieldDescriptor = MappingRegistry.getFieldDescriptor(type);
+		if (null == fieldDescriptor) {
+			throw new RabbitDMLException("没有找到字段类型[" + type + "]的注册信息");
+		}
+		
+		// 字段注解
+		AnnotationElement an = new AnnotationElement("@Column", "", Column.class.getName());
+		if (fieldDescriptor.isLengthSensitive()) {
+			an.setContent(annoValueStartStr + columnName + "\", length = " + size);
+		} else {
+			an.setContent(annoValueStartStr + columnName + "\"");
+		}
+		
+		DocElement doc = new DocElement(COMMON_MSG, "@desc:  " + remark);
+		
+		FieldElement fe = new FieldElement(an, doc, 
+				// java.lang的就不用导入了
+				fieldDescriptor.getJavaType().getName().startsWith("java.lang") ? "" 
+						: fieldDescriptor.getJavaType().getName(), 
+				fieldDescriptor.getJavaType().getSimpleName(), name);
+		
+		if (columnName.equals(pkName)) {
+			String content = isAutoIncrement ? "policy = Policy.AUTOINCREMENT" : "";
+			AnnotationElement pkAnno = new AnnotationElement("@PrimaryKey", content, PrimaryKey.class.getName());
+			if (isAutoIncrement) {
+				pkAnno.addImport(Policy.class.getName());
+			}
+			fe.addAnnotationElement(pkAnno);
+		}
+		return fe;
 	}
 
 	/**
@@ -234,7 +249,7 @@ public class CodeGenerator {
 		ResultSet primaryKeys = conn.getMetaData().getPrimaryKeys(null, null, tableName);
 		String pkName = null;
 		if (primaryKeys.next()) {
-			pkName = primaryKeys.getString("COLUMN_NAME");
+			pkName = primaryKeys.getString(COLUMN_NAME);
 			primaryKeys.close();
 		}
 		return pkName;

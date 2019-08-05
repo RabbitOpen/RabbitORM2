@@ -14,9 +14,6 @@ public class AnnotationElement {
 	// 注解括号内的内容，比如'(value = "T_USER")'
 	private String content;
 	
-	// 注解包全名
-	private String annoFullName;
-
 	// 需要导入的包
 	private List<String> imports = new ArrayList<>();
 	
