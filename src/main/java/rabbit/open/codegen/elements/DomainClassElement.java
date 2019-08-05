@@ -1,11 +1,11 @@
 package rabbit.open.codegen.elements;
 
+import rabbit.open.codegen.JavaElement;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import rabbit.open.codegen.JavaElement;
 
 /**
  * <b>@description 实体class 元素 </b>
@@ -110,7 +110,7 @@ public class DomainClassElement {
 		Set<String> imports = new HashSet<>();
 		// 类注解需要导入的包
 		for (AnnotationElement an : annos) {
-			imports.add(an.getImportPackageString());
+			imports.addAll(an.getImports());
 		}
 		// 字段对应的包
 		for (FieldElement fe : this.fieldElements) {
@@ -118,9 +118,7 @@ public class DomainClassElement {
 				imports.add(fe.getImportPackageString());
 			}
 			for (AnnotationElement anno : fe.getAnnotationElements()) {
-				if (!JavaElement.isEmptyStr(anno.getImportPackageString())) {
-					imports.add(anno.getImportPackageString());
-				}
+				imports.addAll(anno.getImports());
 			}
 		}
 		for (String im : imports) {

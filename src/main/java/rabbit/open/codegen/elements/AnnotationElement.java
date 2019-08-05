@@ -1,11 +1,12 @@
 package rabbit.open.codegen.elements;
 
-import rabbit.open.codegen.JavaElement;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <b>@description 注释描述 </b>
  */
-public class AnnotationElement extends JavaElement {
+public class AnnotationElement {
 
 	// 注解名字比如Entity
 	private String annoName;
@@ -15,13 +16,16 @@ public class AnnotationElement extends JavaElement {
 	
 	// 注解包全名
 	private String annoFullName;
+
+	// 需要导入的包
+	private List<String> imports = new ArrayList<>();
 	
 	public AnnotationElement(String annoName, String content,
 			String annoFullName) {
 		super();
 		this.annoName = annoName;
 		this.content = content;
-		this.annoFullName = annoFullName;
+		this.imports.add(annoFullName);
 	}
 
 	public void setContent(String content) {
@@ -33,9 +37,11 @@ public class AnnotationElement extends JavaElement {
 		return annoName + "(" + content + ")\n";
 	}
 
-	@Override
-	public String getImportPackageString() {
-		return annoFullName;
+	public List<String> getImports() {
+		return imports;
 	}
-	
+
+	public void addImport(String imp) {
+		this.imports.add(imp);
+	}
 }

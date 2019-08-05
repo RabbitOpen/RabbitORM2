@@ -23,6 +23,7 @@ import rabbit.open.codegen.filter.GeneratorFilter;
 import rabbit.open.orm.annotation.Column;
 import rabbit.open.orm.annotation.Entity;
 import rabbit.open.orm.annotation.PrimaryKey;
+import rabbit.open.orm.dml.policy.Policy;
 import rabbit.open.orm.exception.RabbitDMLException;
 
 public class CodeGenerator {
@@ -179,6 +180,7 @@ public class CodeGenerator {
 			}
 			String type = columns.getString("TYPE_NAME").toUpperCase();
 			String size = columns.getString("COLUMN_SIZE");
+			boolean isIncrement = "YES".equalsIgnoreCase(columns.getString("IS_AUTOINCREMENT"));
 			String remark = columns.getString("REMARKS");
 			String name = convertDbName2Java(columnName);
 			
@@ -203,7 +205,10 @@ public class CodeGenerator {
 					fieldDescriptor.getJavaType().getSimpleName(), name);
 			
 			if (columnName.equals(pkName)) {
-				fe.addAnnotationElement(new AnnotationElement("@PrimaryKey", "", PrimaryKey.class.getName()));
+				String content = isIncrement ? "policy = Policy.AUTOINCREMENT" : "";
+				AnnotationElement pkAnno = new AnnotationElement("@PrimaryKey", content, PrimaryKey.class.getName());
+				pkAnno.addImport(Policy.class.getName());
+				fe.addAnnotationElement(pkAnno);
 			}
 			
 			ce.addFieldElement(fe);
