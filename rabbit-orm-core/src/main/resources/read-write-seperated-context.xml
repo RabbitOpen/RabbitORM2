@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+      	   http://www.springframework.org/schema/tx 
+      	   http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+      	   http://www.springframework.org/schema/context
+      	   http://www.springframework.org/schema/context/spring-context-4.0.xsd
+      	   http://www.springframework.org/schema/mvc
+      	   http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+      	   http://www.springframework.org/schema/aop 
+      	   http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+      	   http://www.springframework.org/schema/util
+      	   http://www.springframework.org/schema/util/spring-util-4.0.xsd
+      	   http://www.springframework.org/schema/task
+      	   http://www.springframework.org/schema/task/spring-task-4.0.xsd">
+	
+	<!-- 配置自动扫描 -->
+	<context:component-scan base-package="sharding.test.db" />
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<task:annotation-driven/>
+	
+	<!-- 配置 数据库属性文件 -->
+	<bean id="propertyConfigurer-ox" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:jdbc-combinedDatasource.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+ 	<!-- 配置读数据源 -->
+	<bean id="read" class="rabbit.open.orm.pool.jpa.RabbitDataSource">
+		<property name="driverClass">
+			<value>${jdbc.driverName}</value>
+		</property>
+		<property name="url">
+			<value>${jdbc.url.read}</value>
+		</property>
+		<property name="username">
+			<value>${jdbc.username}</value>
+		</property>
+		<property name="password">
+			<value>${jdbc.password}</value>
+		</property>
+		<property name="maxSize">
+			<value>${jdbc.maxSize}</value>
+		</property>
+		<property name="minSize">
+			<value>${jdbc.minSize}</value>
+		</property>
+		<property name="maxIdle">
+			<value>${jdbc.maxIdle}</value>
+		</property>
+		<property name="maxCachedStmt">
+			<value>1000</value>
+		</property>
+	</bean> 
+
+    <!-- 配置写数据源 -->
+	<bean id="write" class="rabbit.open.orm.pool.jpa.RabbitDataSource">
+		<property name="driverClass">
+			<value>${jdbc.driverName}</value>
+		</property>
+		<property name="url">
+			<value>${jdbc.url.write}</value>
+		</property>
+		<property name="username">
+			<value>${jdbc.username}</value>
+		</property>
+		<property name="password">
+			<value>${jdbc.password}</value>
+		</property>
+		<property name="maxSize">
+			<value>${jdbc.maxSize}</value>
+		</property>
+		<property name="minSize">
+			<value>${jdbc.minSize}</value>
+		</property>
+		<property name="maxIdle">
+			<value>${jdbc.maxIdle}</value>
+		</property>
+		<property name="maxCachedStmt">
+			<value>1000</value>
+		</property>
+	</bean> 
+
+    <!-- 配置复合数据源   -->
+    <bean id="combinedDataSource" class="rabbit.open.orm.pool.ReadWriteSeperatedDataSource">
+        <property name="readSource" ref="read"/>
+        <property name="writeSource" ref="write"/>
+    </bean>
+	
+	<!-- 配置SessionFactory -->
+	<bean id="readWriteSplitedSessionFactory" class="rabbit.open.orm.pool.SessionFactory">
+		<property name="showSql">
+			<value>${jdbc.showSql}</value>
+		</property>
+		<property name="formatSql">
+			<value>${jdbc.formatSql}</value>
+		</property>
+		<!-- 复合数据源暂时不支持自动ddl  -->
+		<property name="ddl">
+			<value>${jdbc.ddl}</value>
+		</property>
+		<property name="dialect">
+			<value>${jdbc.dialect}</value>
+		</property>
+		<property name="packages2Scan">
+			<value>${jdbc.packages}</value>
+		</property>
+		<property name="maskPreparedSql">
+			<value>true</value>
+		</property>
+		<!-- 配置复合数据源，该数据源优先级高于 datasource -->
+		<property name="combinedDataSource" ref="combinedDataSource" />
+	</bean>
+
+	<!-- 配置SessionFactory -->
+	<bean id="writeSessionFactory" class="rabbit.open.orm.pool.SessionFactory">
+		<property name="showSql">
+			<value>${jdbc.showSql}</value>
+		</property>
+		<property name="formatSql">
+			<value>${jdbc.formatSql}</value>
+		</property>
+		<property name="ddl">
+			<value>NONE</value>
+		</property>
+		<property name="dialect">
+			<value>${jdbc.dialect}</value>
+		</property>
+		<property name="packages2Scan">
+			<value>${jdbc.packages}</value>
+		</property>
+		<property name="maskPreparedSql">
+			<value>true</value>
+		</property>
+		
+		<property name="dataSource" ref="write" />
+	</bean>
+
+    <bean id="transactionManager" class="rabbit.open.orm.spring.RabbitTransactionManager">  
+        <property name="sessionFactory" ref="readWriteSplitedSessionFactory"/>
+    </bean>  
+      
+    <!-- 开启事务控制的注解支持 -->  
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>	
+
+

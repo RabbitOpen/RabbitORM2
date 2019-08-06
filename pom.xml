@@ -1,11 +1,13 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>rabbit.open</groupId>
 	<artifactId>orm</artifactId>
-	<version>2.8.1</version>
-	<packaging>jar</packaging>
+	<version>3.0</version>
+	<packaging>pom</packaging>
 
 	<name>rabbit.open</name>
 	<url>http://maven.apache.org</url>
@@ -196,9 +198,7 @@
 		<repository>
 			<id>rabbit-open</id>
 			<url>http://www.rabbit-open.top/nexus/content/repositories/thirdparty</url>
-			<!-- <id>hnair-releases</id> 
-			<name>HNAir Release Repository</name>
-			<url>http://nexus.dev.hnair.net/repository/hnair-maven-releases</url> -->
+			<!-- <id>hnair-releases</id> <name>HNAir Release Repository</name> <url>http://nexus.dev.hnair.net/repository/hnair-maven-releases</url> -->
 		</repository>
 	</distributionManagement>
 
@@ -210,104 +210,17 @@
 			</activation>
 			<properties>
 				<sonar.host.url>http://localhost:9000/sonar</sonar.host.url>
-				<!-- <sonar.login>sonar</sonar.login>
-				<sonar.password>sonar</sonar.password>  -->
+				<!-- <sonar.login>sonar</sonar.login> <sonar.password>sonar</sonar.password> -->
 				<sonar.projectName>rabbit.open.orm</sonar.projectName>
 			</properties>
 		</profile>
 	</profiles>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.4.1</version>
-			</plugin>
 
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.7.8</version>
-				<executions>
-					<execution>
-						<id>pre-test</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>post-test</id>
-						<phase>test</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<!-- 指定编码格式，否则在DOS下运行mvn compile命令时会出现莫名的错误，因为系统默认使用GBK编码 -->
-					<encoding>UTF-8</encoding>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-			<!-- 打jar -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.4</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<classesDirectory>${basedir}/target/classes</classesDirectory>
-							<finalName>${project.artifactId}</finalName>
-							<excludes>
-                                <exclude>*.xml</exclude>
-								<exclude>**/*.xml</exclude>
-								<exclude>rabbit/oracle</exclude>
-								<exclude>*.properties</exclude>
-								<exclude>db</exclude>
-								<exclude>db/*.s3db</exclude>
-								<exclude>mybatis</exclude>
-                            </excludes>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>2.4</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<finalName>${project.artifactId}</finalName>
-							<excludes>
-								<exclude>*.xml</exclude>
-								<exclude>**/*.xml</exclude>
-								<exclude>rabbit/oracle</exclude>
-								<exclude>*.properties</exclude>
-								<exclude>db</exclude>
-								<exclude>db/*.s3db</exclude>
-								<exclude>mybatis</exclude>
-							</excludes>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+	<modules>
+		<module>rabbit-orm-common</module>
+		<module>rabbit-orm-code-helper</module>
+		<module>rabbit-orm-core</module>
+		<module>rabbit-orm-datasource</module>
+	</modules>
 </project>
