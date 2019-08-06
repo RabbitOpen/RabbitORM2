@@ -38,7 +38,7 @@
 	</bean>
 	
  	<!-- 配置数据源 -->
-	<bean id="rabbit-sqlite" class="rabbit.open.orm.pool.jpa.RabbitDataSource">
+	<bean id="rabbit-sqlite" class="rabbit.open.orm.datasource.RabbitDataSource">
 		<property name="driverClass">
 			<value>${jdbc.driverName}</value>
 		</property>
@@ -67,7 +67,7 @@
 
 	
 	<!-- 配置SessionFactory -->
-	<bean id="sessionFactory-sqlite" class="rabbit.open.orm.pool.SessionFactory">
+	<bean id="sessionFactory-sqlite" class="rabbit.open.orm.core.dml.SessionFactory">
 		<property name="showSql">
 			<value>${jdbc.showSql}</value>
 		</property>
@@ -89,7 +89,7 @@
 		<property name="dataSource" ref="rabbit-sqlite" />
 	</bean>
 
-    <bean id="transactionManager-sqlite" class="rabbit.open.orm.spring.RabbitTransactionManager">  
+    <bean id="transactionManager-sqlite" class="rabbit.open.orm.core.spring.RabbitTransactionManager">  
         <property name="sessionFactory" ref="sessionFactory-sqlite"/>
     </bean>  
       

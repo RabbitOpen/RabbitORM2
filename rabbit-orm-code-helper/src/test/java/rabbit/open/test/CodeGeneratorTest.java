@@ -16,7 +16,7 @@ public class CodeGeneratorTest {
 	public void genCodeTest() {
 		CodeGenerator cg = new CodeGenerator(
 				"jdbc:mysql://localhost:3306/cas?useUnicode=true&characterEncoding=UTF-8&useServerPrepStmts=true",
-				"com.mysql.jdbc.Driver", "root", "123456",
+				"com.mysql.jdbc.Driver", "root", "123",
 				"C:/Users/xiaoqianbin/Desktop/java", "com.org");
 		
 		MappingRegistry.regist("VARCHAR", new DBFieldDescriptor(String.class, true));

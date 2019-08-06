@@ -1,7 +1,7 @@
 package sqlite.test;
 
 import junit.framework.TestCase;
-import rabbit.open.common.exception.UnKnownFieldException;
+import rabbit.open.orm.common.exception.UnKnownFieldException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

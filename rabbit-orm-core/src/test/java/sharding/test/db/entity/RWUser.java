@@ -1,9 +1,9 @@
 package sharding.test.db.entity;
 
-import rabbit.open.common.annotation.Column;
-import rabbit.open.common.annotation.Entity;
-import rabbit.open.common.annotation.PrimaryKey;
-import rabbit.open.common.dml.Policy;
+import rabbit.open.orm.common.annotation.Column;
+import rabbit.open.orm.common.annotation.Entity;
+import rabbit.open.orm.common.annotation.PrimaryKey;
+import rabbit.open.orm.common.dml.Policy;
 
 /**
  * <b>Description  读写分离的用户表</b>

@@ -38,7 +38,7 @@
 	</bean>
 	
  	<!-- 配置读数据源 -->
-	<bean id="read" class="rabbit.open.orm.pool.jpa.RabbitDataSource">
+	<bean id="read" class="rabbit.open.orm.datasource.RabbitDataSource">
 		<property name="driverClass">
 			<value>${jdbc.driverName}</value>
 		</property>
@@ -66,7 +66,7 @@
 	</bean> 
 
     <!-- 配置写数据源 -->
-	<bean id="write" class="rabbit.open.orm.pool.jpa.RabbitDataSource">
+	<bean id="write" class="rabbit.open.orm.datasource.RabbitDataSource">
 		<property name="driverClass">
 			<value>${jdbc.driverName}</value>
 		</property>
@@ -94,13 +94,13 @@
 	</bean> 
 
     <!-- 配置复合数据源   -->
-    <bean id="combinedDataSource" class="rabbit.open.orm.pool.ReadWriteSeperatedDataSource">
+    <bean id="combinedDataSource" class="rabbit.open.orm.core.datasource.ReadWriteSeperatedDataSource">
         <property name="readSource" ref="read"/>
         <property name="writeSource" ref="write"/>
     </bean>
 	
 	<!-- 配置SessionFactory -->
-	<bean id="readWriteSplitedSessionFactory" class="rabbit.open.orm.pool.SessionFactory">
+	<bean id="readWriteSplitedSessionFactory" class="rabbit.open.orm.core.dml.SessionFactory">
 		<property name="showSql">
 			<value>${jdbc.showSql}</value>
 		</property>
@@ -125,7 +125,7 @@
 	</bean>
 
 	<!-- 配置SessionFactory -->
-	<bean id="writeSessionFactory" class="rabbit.open.orm.pool.SessionFactory">
+	<bean id="writeSessionFactory" class="rabbit.open.orm.core.dml.SessionFactory">
 		<property name="showSql">
 			<value>${jdbc.showSql}</value>
 		</property>
@@ -148,7 +148,7 @@
 		<property name="dataSource" ref="write" />
 	</bean>
 
-    <bean id="transactionManager" class="rabbit.open.orm.spring.RabbitTransactionManager">  
+    <bean id="transactionManager" class="rabbit.open.orm.core.spring.RabbitTransactionManager">  
         <property name="sessionFactory" ref="readWriteSplitedSessionFactory"/>
     </bean>  
       

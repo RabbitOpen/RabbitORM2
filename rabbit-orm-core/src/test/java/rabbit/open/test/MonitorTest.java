@@ -4,14 +4,13 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
+import rabbit.open.orm.datasource.DataSourceMonitor;
+import rabbit.open.orm.datasource.RabbitDataSource;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import rabbit.open.orm.pool.jpa.DataSourceMonitor;
-import rabbit.open.orm.pool.jpa.RabbitDataSource;
 
 @RunWith(JUnit4.class)
 public class MonitorTest {

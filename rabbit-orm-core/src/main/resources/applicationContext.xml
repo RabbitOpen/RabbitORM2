@@ -39,7 +39,7 @@
 	
  	<!-- 配置数据源 -->
 
-	<bean id="rabbit" class="rabbit.open.orm.pool.jpa.RabbitDataSource">
+	<bean id="rabbit" class="rabbit.open.orm.datasource.RabbitDataSource">
 		<property name="driverClass">
 			<value>${jdbc.driverName}</value>
 		</property>
@@ -129,7 +129,7 @@
      -->
 	
 	<!-- 配置SessionFactory -->
-	<bean id="sessionFactory" class="rabbit.open.orm.pool.SessionFactory">
+	<bean id="sessionFactory" class="rabbit.open.orm.core.dml.SessionFactory">
 		<property name="showSql">
 			<value>${jdbc.showSql}</value>
 		</property>
@@ -154,7 +154,7 @@
 		<property name="dataSource" ref="rabbit" />
 	</bean>
 
-    <bean id="transactionManager" class="rabbit.open.orm.spring.RabbitTransactionManager">  
+    <bean id="transactionManager" class="rabbit.open.orm.core.spring.RabbitTransactionManager">  
         <property name="sessionFactory" ref="sessionFactory"/>
     </bean>  
       

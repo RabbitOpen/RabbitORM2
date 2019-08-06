@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import rabbit.open.common.exception.RabbitDMLException;
+import rabbit.open.orm.common.exception.RabbitDMLException;
 
 @Service
 public class MyBatisTranService {

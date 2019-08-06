@@ -16,8 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.common.annotation.FilterType;
-import rabbit.open.common.exception.InvalidGroupByFieldException;
+import rabbit.open.orm.common.annotation.FilterType;
+import rabbit.open.orm.common.exception.InvalidGroupByFieldException;
 
 /**
  * <b>Description: 关于正则表达式参数的查询测试</b><br>

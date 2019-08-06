@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.orm.dml.SQLCallBack;
-import rabbit.open.orm.pool.jpa.Session;
+import rabbit.open.orm.core.dml.SQLCallBack;
+import rabbit.open.orm.datasource.Session;
 import rabbit.open.test.service.UserService;
 
 /**

@@ -2,12 +2,12 @@ package sharding.test.table.entity;
 
 import java.util.List;
 
-import rabbit.open.common.annotation.Column;
-import rabbit.open.common.annotation.Entity;
-import rabbit.open.common.annotation.ManyToMany;
-import rabbit.open.common.annotation.OneToMany;
-import rabbit.open.common.annotation.PrimaryKey;
-import rabbit.open.common.dml.Policy;
+import rabbit.open.orm.common.annotation.Column;
+import rabbit.open.orm.common.annotation.Entity;
+import rabbit.open.orm.common.annotation.ManyToMany;
+import rabbit.open.orm.common.annotation.OneToMany;
+import rabbit.open.orm.common.annotation.PrimaryKey;
+import rabbit.open.orm.common.dml.Policy;
 import sharding.test.table.policy.DemoShardingPolicy;
 
 @Entity(value = "T_SHARD_USER", policy=DemoShardingPolicy.class)

@@ -39,7 +39,7 @@
 	
  	<!-- 配置数据源 -->
  
-	<bean id="rabbit-oracle" class="rabbit.open.orm.pool.jpa.RabbitDataSource">
+	<bean id="rabbit-oracle" class="rabbit.open.orm.datasource.RabbitDataSource">
 		<property name="driverClass">
 			<value>${jdbc.driverName}</value>
 		</property>
@@ -68,7 +68,7 @@
 
 	
 	<!-- 配置SessionFactory -->
-	<bean id="sessionFactory-oracle" class="rabbit.open.orm.pool.SessionFactory">
+	<bean id="sessionFactory-oracle" class="rabbit.open.orm.core.dml.SessionFactory">
 		<property name="showSql">
 			<value>${jdbc.showSql}</value>
 		</property>

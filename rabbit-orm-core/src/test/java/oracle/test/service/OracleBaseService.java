@@ -3,8 +3,8 @@ package oracle.test.service;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
-import rabbit.open.orm.pool.SessionFactory;
-import rabbit.open.orm.spring.SpringDaoAdapter;
+import rabbit.open.orm.core.dml.SessionFactory;
+import rabbit.open.orm.core.spring.SpringDaoAdapter;
 
 public class OracleBaseService<T> extends SpringDaoAdapter<T>{
 

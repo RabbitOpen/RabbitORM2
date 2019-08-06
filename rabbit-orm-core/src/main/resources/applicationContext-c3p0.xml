@@ -57,7 +57,7 @@
     
 	
 	<!-- 配置SessionFactory -->
-	<bean id="sessionFactoryC3p0" class="rabbit.open.orm.pool.SessionFactory">
+	<bean id="sessionFactoryC3p0" class="rabbit.open.orm.core.dml.SessionFactory">
 		<property name="showSql">
 			<value>${jdbc.showSql}</value>
 		</property>
@@ -79,7 +79,7 @@
 		<property name="dataSource" ref="c3p0" />
 	</bean>
 
-    <bean id="transactionManager" class="rabbit.open.orm.spring.RabbitTransactionManager">  
+    <bean id="transactionManager" class="rabbit.open.orm.core.spring.RabbitTransactionManager">  
         <property name="sessionFactory" ref="sessionFactoryC3p0"/>
     </bean>  
       

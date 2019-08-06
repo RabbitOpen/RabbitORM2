@@ -1,9 +1,9 @@
 package sqlite.test.entity;
 
-import rabbit.open.common.annotation.Column;
-import rabbit.open.common.annotation.Entity;
-import rabbit.open.common.annotation.PrimaryKey;
-import rabbit.open.common.dml.Policy;
+import rabbit.open.orm.common.annotation.Column;
+import rabbit.open.orm.common.annotation.Entity;
+import rabbit.open.orm.common.annotation.PrimaryKey;
+import rabbit.open.orm.common.dml.Policy;
 
 @Entity("T_RESOURCE")
 public class SQLiteResources {

@@ -4,8 +4,8 @@ import org.apache.log4j.Logger;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 
-import rabbit.open.orm.pool.SessionFactory;
-import rabbit.open.orm.spring.RabbitTransactionManager;
+import rabbit.open.orm.core.dml.SessionFactory;
+import rabbit.open.orm.core.spring.RabbitTransactionManager;
 
 @SuppressWarnings("serial")
 public class LogTransactionManager extends RabbitTransactionManager {

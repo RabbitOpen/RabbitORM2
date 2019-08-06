@@ -19,8 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.common.annotation.FilterType;
-import rabbit.open.orm.dml.meta.MultiDropFilter;
+import rabbit.open.orm.common.annotation.FilterType;
+import rabbit.open.orm.core.dml.meta.MultiDropFilter;
 
 /**
  * <b>Description: 查询测试</b><br>

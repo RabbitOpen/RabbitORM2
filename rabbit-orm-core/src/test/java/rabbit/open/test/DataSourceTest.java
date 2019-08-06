@@ -6,13 +6,12 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
+import rabbit.open.orm.datasource.RabbitDataSource;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import rabbit.open.orm.pool.jpa.RabbitDataSource;
 
 /**
  * <b>Description: 数据源测试</b><br>

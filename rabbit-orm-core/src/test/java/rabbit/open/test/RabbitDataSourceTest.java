@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import rabbit.open.orm.pool.jpa.RabbitDataSource;
+import rabbit.open.orm.datasource.RabbitDataSource;
 
 public class RabbitDataSourceTest {
 

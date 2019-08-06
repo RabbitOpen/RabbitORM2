@@ -2,7 +2,7 @@ package mybatis.test.service;
 
 import mybatis.test.entity.MUser;
 import mybatis.test.mybatis.service.MyBatisTranService;
-import rabbit.open.common.exception.RabbitDMLException;
+import rabbit.open.orm.common.exception.RabbitDMLException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

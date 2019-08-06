@@ -4,8 +4,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import rabbit.open.orm.codegen.generator.CodeGenerator;
-import rabbit.open.orm.pool.SessionFactory;
-import rabbit.open.orm.spring.SpringDaoAdapter;
+import rabbit.open.orm.core.dml.SessionFactory;
+import rabbit.open.orm.core.spring.SpringDaoAdapter;
 
 /**
  * <b>@description 抽象dao代码 </b>

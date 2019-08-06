@@ -7,8 +7,8 @@ import oracle.test.entity.User;
 
 import org.springframework.stereotype.Service;
 
-import rabbit.open.orm.pool.SessionFactory;
-import rabbit.open.orm.spring.SpringDaoAdapter;
+import rabbit.open.orm.core.dml.SessionFactory;
+import rabbit.open.orm.core.spring.SpringDaoAdapter;
 
 @Service
 public class OracleUserService extends SpringDaoAdapter<User>{

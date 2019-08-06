@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.common.annotation.FilterType;
-import rabbit.open.common.exception.InvalidGroupByFieldException;
+import rabbit.open.orm.common.annotation.FilterType;
+import rabbit.open.orm.common.exception.InvalidGroupByFieldException;
 import reg.db2.entity.RegRoom;
 import reg.db2.entity.RegUser;
 import reg.db2.service.Db2RegRoomService;

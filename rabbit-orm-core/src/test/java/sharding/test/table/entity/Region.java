@@ -1,8 +1,8 @@
 package sharding.test.table.entity;
 
-import rabbit.open.common.annotation.Column;
-import rabbit.open.common.annotation.Entity;
-import rabbit.open.common.annotation.PrimaryKey;
+import rabbit.open.orm.common.annotation.Column;
+import rabbit.open.orm.common.annotation.Entity;
+import rabbit.open.orm.common.annotation.PrimaryKey;
 
 @Entity("T_REGION")
 public class Region {

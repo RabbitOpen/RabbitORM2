@@ -1,8 +1,8 @@
 package oracle.test.entity;
 
-import rabbit.open.common.annotation.Column;
-import rabbit.open.common.annotation.Entity;
-import rabbit.open.common.annotation.PrimaryKey;
+import rabbit.open.orm.common.annotation.Column;
+import rabbit.open.orm.common.annotation.Entity;
+import rabbit.open.orm.common.annotation.PrimaryKey;
 import sharding.test.table.policy.DemoShardingPolicy;
 
 @Entity(value = "T_SHARD_USER", policy=DemoShardingPolicy.class)

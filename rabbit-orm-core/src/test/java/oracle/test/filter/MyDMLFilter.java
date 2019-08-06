@@ -7,8 +7,8 @@ import oracle.test.entity.UUIDPolicyEntity;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import rabbit.open.common.dml.DMLType;
-import rabbit.open.orm.dml.filter.DMLFilter;
+import rabbit.open.orm.common.dml.DMLType;
+import rabbit.open.orm.core.dml.filter.DMLFilter;
 
 @Component
 public class MyDMLFilter implements DMLFilter {

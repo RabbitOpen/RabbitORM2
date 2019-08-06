@@ -16,9 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.orm.dialect.ddl.DDLHelper;
-import rabbit.open.orm.dml.DMLAdapter;
-import rabbit.open.orm.pool.SessionFactory;
+import rabbit.open.orm.core.dialect.ddl.DDLHelper;
+import rabbit.open.orm.core.dml.DMLAdapter;
+import rabbit.open.orm.core.dml.SessionFactory;
 
 /**
  * <b>Description: 分片表测试</b><br>

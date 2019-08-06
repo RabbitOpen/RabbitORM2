@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.orm.dml.Query;
+import rabbit.open.orm.core.dml.Query;
 import rabbit.open.test.entity.Role;
 import rabbit.open.test.service.RoleService;
 

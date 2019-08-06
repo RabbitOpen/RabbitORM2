@@ -15,9 +15,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import rabbit.open.common.annotation.Entity;
-import rabbit.open.common.dml.DMLType;
-import rabbit.open.common.exception.RabbitDMLException;
+import rabbit.open.orm.common.annotation.Entity;
+import rabbit.open.orm.common.dml.DMLType;
+import rabbit.open.orm.common.exception.RabbitDMLException;
 import sharding.test.db.entity.RWUser;
 import sharding.test.db.service.RWUserService;
 import sharding.test.db.service.WriteOnlyUserService;
