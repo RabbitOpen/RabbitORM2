@@ -9,8 +9,8 @@
 		<artifactId>orm</artifactId>
 		<version>3.0</version>
 	</parent>
-	<artifactId>rabbit-orm-code-helper</artifactId>
 	<packaging>jar</packaging>
+	<artifactId>rabbit-orm-code-helper</artifactId>
 	<name>rabbit-orm-code-helper</name>
 	
 	<url>http://maven.apache.org</url>
@@ -84,15 +84,6 @@
 						<configuration>
 							<classesDirectory>${basedir}/target/classes</classesDirectory>
 							<finalName>${project.artifactId}</finalName>
-							<excludes>
-								<exclude>*.xml</exclude>
-								<exclude>**/*.xml</exclude>
-								<exclude>rabbit/oracle</exclude>
-								<exclude>*.properties</exclude>
-								<exclude>db</exclude>
-								<exclude>db/*.s3db</exclude>
-								<exclude>mybatis</exclude>
-							</excludes>
 						</configuration>
 					</execution>
 				</executions>
@@ -109,15 +100,6 @@
 						</goals>
 						<configuration>
 							<finalName>${project.artifactId}</finalName>
-							<excludes>
-								<exclude>*.xml</exclude>
-								<exclude>**/*.xml</exclude>
-								<exclude>rabbit/oracle</exclude>
-								<exclude>*.properties</exclude>
-								<exclude>db</exclude>
-								<exclude>db/*.s3db</exclude>
-								<exclude>mybatis</exclude>
-							</excludes>
 						</configuration>
 					</execution>
 				</executions>
