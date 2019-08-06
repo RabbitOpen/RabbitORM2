@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.orm.exception.EmptyPrimaryKeyValueException;
+import rabbit.open.common.exception.EmptyPrimaryKeyValueException;
 import rabbit.open.orm.pool.jpa.Session;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.Organization;

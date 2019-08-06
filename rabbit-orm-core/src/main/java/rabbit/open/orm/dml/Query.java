@@ -5,10 +5,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-import rabbit.open.orm.annotation.FilterType;
+import rabbit.open.common.annotation.FilterType;
+import rabbit.open.common.exception.EmptyListFilterException;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.JoinFilterBuilder;
-import rabbit.open.orm.exception.EmptyListFilterException;
 import rabbit.open.orm.pool.SessionFactory;
 
 /**

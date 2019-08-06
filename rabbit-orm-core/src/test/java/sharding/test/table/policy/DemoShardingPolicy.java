@@ -2,9 +2,9 @@ package sharding.test.table.policy;
 
 import java.util.List;
 
-import rabbit.open.orm.annotation.Entity;
-import rabbit.open.orm.shard.ShardFactor;
-import rabbit.open.orm.shard.ShardingPolicy;
+import rabbit.open.common.annotation.Entity;
+import rabbit.open.common.shard.ShardFactor;
+import rabbit.open.common.shard.ShardingPolicy;
 import sharding.test.table.exception.UnKownShardException;
 
 /**

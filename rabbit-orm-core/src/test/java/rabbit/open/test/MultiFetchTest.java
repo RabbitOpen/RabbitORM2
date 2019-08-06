@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.orm.exception.AmbiguousDependencyException;
-import rabbit.open.orm.exception.CycleFetchException;
-import rabbit.open.orm.exception.RepeatedFetchOperationException;
+import rabbit.open.common.exception.AmbiguousDependencyException;
+import rabbit.open.common.exception.CycleFetchException;
+import rabbit.open.common.exception.RepeatedFetchOperationException;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.Department;
 import rabbit.open.test.entity.Organization;

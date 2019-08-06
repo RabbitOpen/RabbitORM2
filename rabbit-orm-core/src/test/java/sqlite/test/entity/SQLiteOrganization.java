@@ -2,11 +2,11 @@ package sqlite.test.entity;
 
 import java.util.List;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.Entity;
-import rabbit.open.orm.annotation.OneToMany;
-import rabbit.open.orm.annotation.PrimaryKey;
-import rabbit.open.orm.dml.policy.Policy;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.annotation.Entity;
+import rabbit.open.common.annotation.OneToMany;
+import rabbit.open.common.annotation.PrimaryKey;
+import rabbit.open.common.dml.Policy;
 
 @Entity("T_ORG")
 public class SQLiteOrganization {

@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.Delete;
 import rabbit.open.orm.dml.DynamicQuery;
@@ -18,7 +19,6 @@ import rabbit.open.orm.dml.SQLCallBack;
 import rabbit.open.orm.dml.SQLQuery;
 import rabbit.open.orm.dml.Update;
 import rabbit.open.orm.dml.meta.MetaData;
-import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
 
 /**

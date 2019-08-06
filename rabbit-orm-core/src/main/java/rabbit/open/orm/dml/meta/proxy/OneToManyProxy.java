@@ -6,7 +6,7 @@ import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
 
-import rabbit.open.orm.annotation.OneToMany;
+import rabbit.open.common.annotation.OneToMany;
 
 /**
  * <b>Description 自定义的注解代理</b>

@@ -8,8 +8,8 @@ import java.util.regex.Pattern;
 
 import org.dom4j.Element;
 
-import rabbit.open.orm.exception.EmptyAliasException;
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.common.exception.EmptyAliasException;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
 
 public class NamedSQL extends SQLObject {

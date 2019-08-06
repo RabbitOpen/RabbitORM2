@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import rabbit.open.orm.annotation.FilterType;
+import rabbit.open.common.annotation.FilterType;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 
 /**

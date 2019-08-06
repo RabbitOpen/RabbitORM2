@@ -18,25 +18,26 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 
 import org.springframework.util.StringUtils;
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.Entity;
-import rabbit.open.orm.annotation.ManyToMany;
-import rabbit.open.orm.ddl.DDLType;
-import rabbit.open.orm.ddl.JoinTableDescriptor;
-import rabbit.open.orm.ddl.PackageScanner;
+
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.annotation.Entity;
+import rabbit.open.common.annotation.ManyToMany;
+import rabbit.open.common.ddl.DDLType;
+import rabbit.open.common.ddl.JoinTableDescriptor;
+import rabbit.open.common.ddl.PackageScanner;
+import rabbit.open.common.dialect.DialectType;
+import rabbit.open.common.dml.Policy;
+import rabbit.open.common.dml.SQLFormater;
+import rabbit.open.common.exception.RabbitDDLException;
+import rabbit.open.common.exception.RepeatedEntityMapping;
 import rabbit.open.orm.dialect.ddl.impl.DB2DDLHelper;
 import rabbit.open.orm.dialect.ddl.impl.MySQLDDLHelper;
 import rabbit.open.orm.dialect.ddl.impl.OracleDDLHelper;
 import rabbit.open.orm.dialect.ddl.impl.SQLServerDDLHelper;
 import rabbit.open.orm.dialect.ddl.impl.SQLiteDDLHelper;
-import rabbit.open.orm.dialect.dml.DialectType;
 import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
-import rabbit.open.orm.dml.policy.Policy;
-import rabbit.open.orm.dml.util.SQLFormater;
-import rabbit.open.orm.exception.RabbitDDLException;
-import rabbit.open.orm.exception.RepeatedEntityMapping;
 import rabbit.open.orm.pool.SessionFactory;
 
 /**

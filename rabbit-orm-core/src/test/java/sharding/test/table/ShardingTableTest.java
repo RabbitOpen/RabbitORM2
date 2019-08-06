@@ -14,10 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import rabbit.open.common.exception.FetchShardEntityException;
 import rabbit.open.orm.dialect.ddl.DDLHelper;
 import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.meta.MultiDropFilter;
-import rabbit.open.orm.exception.FetchShardEntityException;
 import rabbit.open.orm.pool.SessionFactory;
 import sharding.test.table.entity.Region;
 import sharding.test.table.entity.ShardCar;

@@ -6,8 +6,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
-import rabbit.open.orm.ddl.JoinTableDescriptor;
-import rabbit.open.orm.exception.RabbitDDLException;
+import rabbit.open.common.ddl.JoinTableDescriptor;
+import rabbit.open.common.exception.RabbitDDLException;
 
 /**
  * <b>Description: 	sqlserver ddl助手</b><br>

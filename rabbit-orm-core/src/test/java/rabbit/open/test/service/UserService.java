@@ -5,7 +5,7 @@ import java.util.Date;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.test.entity.User;
 
 @Service

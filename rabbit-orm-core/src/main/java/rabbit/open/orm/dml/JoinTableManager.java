@@ -7,17 +7,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import rabbit.open.orm.annotation.ManyToMany;
-import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.common.annotation.ManyToMany;
+import rabbit.open.common.dml.DMLType;
+import rabbit.open.common.exception.EmptyPrimaryKeyValueException;
+import rabbit.open.common.exception.RabbitDMLException;
+import rabbit.open.common.shard.ShardFactor;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.meta.PreparedSqlDescriptor;
-import rabbit.open.orm.exception.EmptyPrimaryKeyValueException;
-import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
-import rabbit.open.orm.shard.ShardFactor;
 
 /**
  * <b>Description: 中间表管理器</b><br>

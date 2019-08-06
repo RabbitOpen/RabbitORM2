@@ -3,7 +3,7 @@ package rabbit.open.orm.dml.name;
 import java.util.ArrayList;
 import java.util.List;
 
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.common.exception.RabbitDMLException;
 
 /**
  * <b>Description  命名查询的fetch行为描述对象</b>

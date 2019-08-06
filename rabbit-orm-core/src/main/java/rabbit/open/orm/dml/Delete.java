@@ -5,15 +5,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import rabbit.open.orm.annotation.FilterType;
+import rabbit.open.common.annotation.FilterType;
+import rabbit.open.common.dml.DMLType;
+import rabbit.open.common.exception.RabbitDMLException;
+import rabbit.open.common.shard.ShardFactor;
 import rabbit.open.orm.dialect.dml.DeleteDialectAdapter;
-import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.MultiDropFilter;
-import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
-import rabbit.open.orm.shard.ShardFactor;
 
 /**
  * <b>Description: 	删除操作</b><br>

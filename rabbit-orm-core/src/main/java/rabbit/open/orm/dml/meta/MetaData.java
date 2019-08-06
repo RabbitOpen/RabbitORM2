@@ -10,18 +10,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.Entity;
-import rabbit.open.orm.annotation.ManyToMany;
-import rabbit.open.orm.annotation.OneToMany;
-import rabbit.open.orm.annotation.PrimaryKey;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.annotation.Entity;
+import rabbit.open.common.annotation.ManyToMany;
+import rabbit.open.common.annotation.OneToMany;
+import rabbit.open.common.annotation.PrimaryKey;
+import rabbit.open.common.exception.RabbitDMLException;
+import rabbit.open.common.exception.UnKnownFieldException;
+import rabbit.open.common.shard.ShardingPolicy;
 import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.meta.proxy.ManyToManyProxy;
 import rabbit.open.orm.dml.meta.proxy.OneToManyProxy;
-import rabbit.open.orm.exception.RabbitDMLException;
-import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
-import rabbit.open.orm.shard.ShardingPolicy;
 
 
 /**

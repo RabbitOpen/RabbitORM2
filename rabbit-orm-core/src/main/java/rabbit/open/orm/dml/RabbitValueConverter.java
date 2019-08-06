@@ -9,9 +9,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import rabbit.open.orm.annotation.Column;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.dml.meta.FieldMetaData;
-import rabbit.open.orm.exception.RabbitDMLException;
 
 /**
  * 

@@ -2,7 +2,7 @@ package rabbit.open.orm.dml.meta;
 
 import java.lang.reflect.Field;
 
-import rabbit.open.orm.annotation.FilterType;
+import rabbit.open.common.annotation.FilterType;
 
 /**
  * 过滤条件描述符

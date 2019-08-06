@@ -3,11 +3,11 @@ package rabbit.open.orm.dml.meta;
 import java.lang.reflect.Field;
 import java.util.Date;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.PrimaryKey;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.annotation.PrimaryKey;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.dml.meta.proxy.ColumnProxy;
 import rabbit.open.orm.dml.meta.proxy.PrimaryKeyProxy;
-import rabbit.open.orm.exception.RabbitDMLException;
 
 /**
  * <b>Description: 	字段元信息对象</b><br>

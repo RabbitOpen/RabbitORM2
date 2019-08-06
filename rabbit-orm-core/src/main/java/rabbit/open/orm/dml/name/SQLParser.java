@@ -19,11 +19,11 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.xml.sax.SAXException;
 
-import rabbit.open.orm.ddl.PackageScanner;
-import rabbit.open.orm.exception.MappingFileParsingException;
-import rabbit.open.orm.exception.NoNamedSQLDefinedException;
-import rabbit.open.orm.exception.UnExistedNamedSQLException;
-import rabbit.open.orm.exception.WrongMappingFilePathException;
+import rabbit.open.common.ddl.PackageScanner;
+import rabbit.open.common.exception.MappingFileParsingException;
+import rabbit.open.common.exception.NoNamedSQLDefinedException;
+import rabbit.open.common.exception.UnExistedNamedSQLException;
+import rabbit.open.common.exception.WrongMappingFilePathException;
 import rabbit.open.orm.pool.SessionFactory;
 
 public class SQLParser {

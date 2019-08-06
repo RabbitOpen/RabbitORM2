@@ -20,10 +20,20 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.Entity;
-import rabbit.open.orm.annotation.FilterType;
-import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.annotation.Entity;
+import rabbit.open.common.annotation.FilterType;
+import rabbit.open.common.dml.DMLType;
+import rabbit.open.common.dml.SQLFormater;
+import rabbit.open.common.exception.AmbiguousDependencyException;
+import rabbit.open.common.exception.CycleDependencyException;
+import rabbit.open.common.exception.InvalidFetchOperationException;
+import rabbit.open.common.exception.InvalidJoinFetchOperationException;
+import rabbit.open.common.exception.InvalidQueryPathException;
+import rabbit.open.common.exception.RabbitDMLException;
+import rabbit.open.common.exception.UnKnownFieldException;
+import rabbit.open.common.shard.ShardFactor;
+import rabbit.open.common.shard.ShardingPolicy;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
@@ -32,17 +42,7 @@ import rabbit.open.orm.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFilter;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.meta.MultiDropFilter;
-import rabbit.open.orm.dml.util.SQLFormater;
-import rabbit.open.orm.exception.AmbiguousDependencyException;
-import rabbit.open.orm.exception.CycleDependencyException;
-import rabbit.open.orm.exception.InvalidFetchOperationException;
-import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
-import rabbit.open.orm.exception.InvalidQueryPathException;
-import rabbit.open.orm.exception.RabbitDMLException;
-import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
-import rabbit.open.orm.shard.ShardFactor;
-import rabbit.open.orm.shard.ShardingPolicy;
 
 /**
  * <b>Description: 	所有dml操作的基类</b><br>

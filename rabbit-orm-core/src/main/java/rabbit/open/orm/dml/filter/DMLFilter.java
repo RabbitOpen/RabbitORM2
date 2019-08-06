@@ -2,6 +2,8 @@ package rabbit.open.orm.dml.filter;
 
 import java.lang.reflect.Field;
 
+import rabbit.open.common.dml.DMLType;
+
 /**
  * <b>Description  dml操作前置过滤器</b>
  */

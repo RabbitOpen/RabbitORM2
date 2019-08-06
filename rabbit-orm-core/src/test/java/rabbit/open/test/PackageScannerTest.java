@@ -10,8 +10,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import rabbit.open.orm.annotation.Entity;
-import rabbit.open.orm.ddl.PackageScanner;
+import rabbit.open.common.annotation.Entity;
+import rabbit.open.common.ddl.PackageScanner;
 
 @RunWith(JUnit4.class)
 public class PackageScannerTest {

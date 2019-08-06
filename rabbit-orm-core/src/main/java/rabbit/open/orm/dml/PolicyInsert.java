@@ -8,11 +8,11 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import rabbit.open.common.dml.DMLType;
+import rabbit.open.common.dml.Policy;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.dialect.dml.impl.AutoIncrementPolicy;
 import rabbit.open.orm.dialect.dml.impl.SequencePolicy;
-import rabbit.open.orm.dml.filter.DMLType;
-import rabbit.open.orm.dml.policy.Policy;
-import rabbit.open.orm.exception.RabbitDMLException;
 
 /**
  * <b>Description:   insert策略</b>.

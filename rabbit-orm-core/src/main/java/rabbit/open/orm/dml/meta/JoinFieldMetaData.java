@@ -3,8 +3,8 @@ package rabbit.open.orm.dml.meta;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.exception.RabbitDMLException;
 
 /**
  * 

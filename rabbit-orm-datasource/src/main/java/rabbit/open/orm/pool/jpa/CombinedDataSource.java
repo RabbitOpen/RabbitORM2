@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.common.dml.DMLType;
 
 /**
  * <b>Description  复合数据源接口</b>

@@ -6,7 +6,7 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.spring.SpringDaoAdapter;
 import sharding.test.db.entity.RWUser;

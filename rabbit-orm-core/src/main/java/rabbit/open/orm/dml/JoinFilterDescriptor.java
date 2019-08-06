@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import rabbit.open.orm.annotation.FilterType;
-import rabbit.open.orm.annotation.ManyToMany;
+import rabbit.open.common.annotation.FilterType;
+import rabbit.open.common.annotation.ManyToMany;
+import rabbit.open.common.exception.InvalidJoinFilterException;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
-import rabbit.open.orm.exception.InvalidJoinFilterException;
 
 
 /**

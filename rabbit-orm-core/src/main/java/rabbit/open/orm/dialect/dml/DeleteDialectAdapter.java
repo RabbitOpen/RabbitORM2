@@ -3,12 +3,13 @@ package rabbit.open.orm.dialect.dml;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import rabbit.open.common.dialect.DialectType;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.dml.DB2DeleteGenerator;
 import rabbit.open.orm.dml.Delete;
 import rabbit.open.orm.dml.MySQLDeleteGenerator;
 import rabbit.open.orm.dml.OracleDeleteGenerator;
 import rabbit.open.orm.dml.SqlServerDeleteGenerator;
-import rabbit.open.orm.exception.RabbitDMLException;
 
 
 /**

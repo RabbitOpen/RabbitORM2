@@ -10,13 +10,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
-import rabbit.open.orm.dialect.dml.DialectType;
+import rabbit.open.common.dialect.DialectType;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.dialect.dml.impl.DB2Transformer;
 import rabbit.open.orm.dialect.dml.impl.MySQLTransformer;
 import rabbit.open.orm.dialect.dml.impl.OracleTransformer;
 import rabbit.open.orm.dialect.dml.impl.SQLServerTransformer;
 import rabbit.open.orm.dialect.dml.impl.SQLite3Transformer;
-import rabbit.open.orm.exception.RabbitDMLException;
 
 /**
  * <b>Description: 	sql方言转换器</b><br>

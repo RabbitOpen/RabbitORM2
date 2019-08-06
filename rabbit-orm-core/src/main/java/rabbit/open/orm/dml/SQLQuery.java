@@ -5,10 +5,10 @@ import java.sql.PreparedStatement;
 
 import org.apache.log4j.Logger;
 
-import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.common.dml.DMLType;
+import rabbit.open.common.dml.SQLFormater;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.dml.name.SQLObject;
-import rabbit.open.orm.dml.util.SQLFormater;
-import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.pool.jpa.Session;
 

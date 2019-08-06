@@ -6,11 +6,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.ddl.JoinTableDescriptor;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.ddl.JoinTableDescriptor;
+import rabbit.open.common.dml.Policy;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
-import rabbit.open.orm.dml.policy.Policy;
 
 /**
  * <b>Description  sqlite ddl助手</b>

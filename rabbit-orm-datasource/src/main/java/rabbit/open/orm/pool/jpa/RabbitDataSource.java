@@ -12,10 +12,10 @@ import javax.annotation.PreDestroy;
 
 import org.apache.log4j.Logger;
 
-import rabbit.open.orm.exception.DataSourceClosedException;
-import rabbit.open.orm.exception.GetConnectionTimeOutException;
-import rabbit.open.orm.exception.RabbitDMLException;
-import rabbit.open.orm.exception.RabbitORMException;
+import rabbit.open.common.exception.DataSourceClosedException;
+import rabbit.open.common.exception.GetConnectionTimeOutException;
+import rabbit.open.common.exception.RabbitDMLException;
+import rabbit.open.common.exception.RabbitORMException;
 
 /**
  * <b>Description: 	rabbit数据源</b><br>

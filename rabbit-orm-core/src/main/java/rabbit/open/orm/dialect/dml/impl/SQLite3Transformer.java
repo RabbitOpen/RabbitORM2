@@ -5,11 +5,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.dml.AbstractQuery;
 import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.DialectTransformer;
 import rabbit.open.orm.dml.filter.PreparedValue;
-import rabbit.open.orm.exception.RabbitDMLException;
 
 /**
  * <b>Description  SQLite3方言转换器</b>

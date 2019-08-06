@@ -12,9 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import rabbit.open.common.exception.RabbitDMLException;
+import rabbit.open.common.exception.UnKnownFieldException;
 import rabbit.open.orm.dml.Update;
-import rabbit.open.orm.exception.RabbitDMLException;
-import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.entity.Zone;

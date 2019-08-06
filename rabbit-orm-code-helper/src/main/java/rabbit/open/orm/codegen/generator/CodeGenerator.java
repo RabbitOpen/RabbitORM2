@@ -9,9 +9,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.Entity;
-import rabbit.open.orm.annotation.PrimaryKey;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.annotation.Entity;
+import rabbit.open.common.annotation.PrimaryKey;
+import rabbit.open.common.dml.Policy;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.codegen.DBFieldDescriptor;
 import rabbit.open.orm.codegen.JavaElement;
 import rabbit.open.orm.codegen.MappingRegistry;
@@ -23,8 +25,6 @@ import rabbit.open.orm.codegen.elements.DomainClassElement;
 import rabbit.open.orm.codegen.elements.FieldElement;
 import rabbit.open.orm.codegen.elements.ServiceCodeElement;
 import rabbit.open.orm.codegen.filter.GeneratorFilter;
-import rabbit.open.orm.dml.policy.Policy;
-import rabbit.open.orm.exception.RabbitDMLException;
 
 public class CodeGenerator {
 

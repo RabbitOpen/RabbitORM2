@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 import javax.sql.DataSource;
 
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.common.exception.RabbitDMLException;
 
 public abstract class AbstractDataSource implements DataSource {
 

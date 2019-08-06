@@ -16,20 +16,20 @@ import org.apache.log4j.Logger;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.ddl.DDLType;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.ddl.DDLType;
+import rabbit.open.common.dialect.DialectType;
+import rabbit.open.common.dml.DMLType;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.dialect.ddl.DDLHelper;
 import rabbit.open.orm.dialect.dml.DeleteDialectAdapter;
-import rabbit.open.orm.dialect.dml.DialectType;
 import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.DialectTransformer;
 import rabbit.open.orm.dml.PolicyInsert;
 import rabbit.open.orm.dml.filter.DMLFilter;
-import rabbit.open.orm.dml.filter.DMLType;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.name.SQLObject;
 import rabbit.open.orm.dml.name.SQLParser;
-import rabbit.open.orm.exception.RabbitDMLException;
 import rabbit.open.orm.pool.jpa.CombinedDataSource;
 import rabbit.open.orm.spring.TransactionObject;
 

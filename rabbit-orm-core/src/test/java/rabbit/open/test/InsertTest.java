@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.orm.exception.NoField2InsertException;
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.common.exception.NoField2InsertException;
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.UUIDPolicyEntity;
 import rabbit.open.test.entity.User;

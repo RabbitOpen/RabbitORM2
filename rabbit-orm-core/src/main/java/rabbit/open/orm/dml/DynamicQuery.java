@@ -4,10 +4,10 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Map;
 
-import rabbit.open.orm.annotation.Column;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.exception.InvalidGroupByFieldException;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
-import rabbit.open.orm.exception.InvalidGroupByFieldException;
 import rabbit.open.orm.pool.SessionFactory;
 
 

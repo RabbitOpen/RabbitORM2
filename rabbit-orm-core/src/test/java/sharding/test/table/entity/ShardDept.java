@@ -2,11 +2,11 @@ package sharding.test.table.entity;
 
 import java.util.List;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.Entity;
-import rabbit.open.orm.annotation.ManyToMany;
-import rabbit.open.orm.annotation.PrimaryKey;
-import rabbit.open.orm.dml.policy.Policy;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.annotation.Entity;
+import rabbit.open.common.annotation.ManyToMany;
+import rabbit.open.common.annotation.PrimaryKey;
+import rabbit.open.common.dml.Policy;
 
 @Entity("T_SHAR_DEPT")
 public class ShardDept {

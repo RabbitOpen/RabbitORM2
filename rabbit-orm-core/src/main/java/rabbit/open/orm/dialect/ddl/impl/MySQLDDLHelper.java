@@ -9,11 +9,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.ddl.JoinTableDescriptor;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.ddl.JoinTableDescriptor;
+import rabbit.open.common.dml.SQLFormater;
+import rabbit.open.common.exception.RabbitDDLException;
 import rabbit.open.orm.dialect.ddl.DDLHelper;
-import rabbit.open.orm.dml.util.SQLFormater;
-import rabbit.open.orm.exception.RabbitDDLException;
 
 /**
  * <b>Description: mysql ddl助手</b><br>

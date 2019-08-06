@@ -11,9 +11,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import rabbit.open.orm.annotation.FilterType;
-import rabbit.open.orm.annotation.ManyToMany;
-import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.common.annotation.FilterType;
+import rabbit.open.common.annotation.ManyToMany;
+import rabbit.open.common.dml.DMLType;
+import rabbit.open.common.dml.Policy;
+import rabbit.open.common.dml.SQLFormater;
+import rabbit.open.common.exception.RabbitDMLException;
+import rabbit.open.common.exception.UnKnownFieldException;
+import rabbit.open.common.shard.ShardFactor;
 import rabbit.open.orm.dml.filter.PreparedValue;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
@@ -21,14 +26,9 @@ import rabbit.open.orm.dml.meta.FilterDescriptor;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
 import rabbit.open.orm.dml.meta.PreparedSqlDescriptor;
-import rabbit.open.orm.dml.policy.Policy;
 import rabbit.open.orm.dml.policy.UUIDPolicy;
-import rabbit.open.orm.dml.util.SQLFormater;
-import rabbit.open.orm.exception.RabbitDMLException;
-import rabbit.open.orm.exception.UnKnownFieldException;
 import rabbit.open.orm.pool.SessionFactory;
 import rabbit.open.orm.pool.jpa.Session;
-import rabbit.open.orm.shard.ShardFactor;
 
 /**
  * <b>Description: 	非查询操作的适配器</b><br>

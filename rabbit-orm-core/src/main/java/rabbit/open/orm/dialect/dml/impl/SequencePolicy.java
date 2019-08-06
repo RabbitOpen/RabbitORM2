@@ -8,13 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import rabbit.open.common.exception.RabbitDMLException;
 import rabbit.open.orm.dml.DMLAdapter;
 import rabbit.open.orm.dml.NonQueryAdapter;
 import rabbit.open.orm.dml.PolicyInsert;
 import rabbit.open.orm.dml.RabbitValueConverter;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
-import rabbit.open.orm.exception.RabbitDMLException;
 
 /**
  * <b>Description:   序列插入策略实现</b>.

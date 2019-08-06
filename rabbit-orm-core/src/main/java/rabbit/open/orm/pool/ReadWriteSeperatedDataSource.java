@@ -1,6 +1,6 @@
 package rabbit.open.orm.pool;
 
-import rabbit.open.orm.dml.filter.DMLType;
+import rabbit.open.common.dml.DMLType;
 import rabbit.open.orm.pool.jpa.CombinedDataSource;
 
 import javax.sql.DataSource;

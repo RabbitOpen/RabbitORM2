@@ -1,9 +1,9 @@
 package rabbit.open.test.entity;
 
-import rabbit.open.orm.annotation.Column;
-import rabbit.open.orm.annotation.Entity;
-import rabbit.open.orm.annotation.PrimaryKey;
-import rabbit.open.orm.dml.policy.Policy;
+import rabbit.open.common.annotation.Column;
+import rabbit.open.common.annotation.Entity;
+import rabbit.open.common.annotation.PrimaryKey;
+import rabbit.open.common.dml.Policy;
 
 @Entity("T_RESOURCE")
 public class Resources {

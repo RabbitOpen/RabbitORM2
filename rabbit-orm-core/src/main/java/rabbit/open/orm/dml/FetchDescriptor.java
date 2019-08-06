@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import rabbit.open.orm.annotation.FilterType;
+import rabbit.open.common.annotation.FilterType;
+import rabbit.open.common.exception.InvalidJoinFetchOperationException;
+import rabbit.open.common.exception.RepeatedJoinFetchOperationException;
 import rabbit.open.orm.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.dml.meta.FieldMetaData;
 import rabbit.open.orm.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.dml.meta.MetaData;
-import rabbit.open.orm.exception.InvalidJoinFetchOperationException;
-import rabbit.open.orm.exception.RepeatedJoinFetchOperationException;
 
 /**
  * <b>Description  关联查询描述符</b>. 

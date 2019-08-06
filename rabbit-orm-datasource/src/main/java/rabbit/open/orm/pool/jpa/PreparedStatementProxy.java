@@ -13,7 +13,7 @@ import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
 
-import rabbit.open.orm.exception.RabbitDMLException;
+import rabbit.open.common.exception.RabbitDMLException;
 
 public class PreparedStatementProxy implements MethodInterceptor {
 

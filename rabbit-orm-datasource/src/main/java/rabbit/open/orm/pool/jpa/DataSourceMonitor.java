@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import rabbit.open.orm.exception.SessionHoldOverTimeException;
+import rabbit.open.common.exception.SessionHoldOverTimeException;
 
 /**
  * <b>Description: 	数据源监控线程</b><br>
