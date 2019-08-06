@@ -20,12 +20,12 @@
 		<dependency>
 			<groupId>rabbit.open</groupId>
 			<artifactId>rabbit-orm-common</artifactId>
-			<version>3.0</version>
+			<version>${parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>rabbit.open</groupId>
 			<artifactId>rabbit-orm-datasource</artifactId>
-			<version>3.0</version>
+			<version>${parent.version}</version>
 		</dependency>
 	</dependencies>
 	
