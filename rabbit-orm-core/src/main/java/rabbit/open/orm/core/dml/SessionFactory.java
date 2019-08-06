@@ -28,7 +28,6 @@ import rabbit.open.orm.core.dml.filter.PreparedValue;
 import rabbit.open.orm.core.dml.name.SQLObject;
 import rabbit.open.orm.core.dml.name.SQLParser;
 import rabbit.open.orm.core.spring.TransactionObject;
-import rabbit.open.orm.datasource.CombinedDataSource;
 
 public class SessionFactory {
 

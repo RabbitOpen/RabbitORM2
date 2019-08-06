@@ -24,6 +24,19 @@
 		</dependency>
 	</dependencies>
 	
+	<profiles>
+		<profile>
+			<id>sonar</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<sonar.host.url>http://localhost:9000/sonar</sonar.host.url>
+				<sonar.projectName>rabbit.open.orm.datasource</sonar.projectName>
+			</properties>
+		</profile>
+	</profiles>
+	
 	<build>
 		<plugins>
 			<plugin>

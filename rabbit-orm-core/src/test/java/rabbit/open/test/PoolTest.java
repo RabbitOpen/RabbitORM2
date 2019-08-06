@@ -46,6 +46,7 @@ public class PoolTest {
         try {
             us.add(data);
             us.createQuery().count();
+            //重复添加，主键冲突
             us.add(data);
             throw new RuntimeException();
         } catch (Exception e) {
