@@ -8,10 +8,10 @@
     
     |--orm
     |   |
-    |   |---rabbit-orm-common		基础公共包
-    |   |---rabbit-orm-datasource	内置数据源
-    |   |---rabbit-orm-core			核心功能包
-    |   |---rabbit-orm-code-helper	逆向工程包
+    |   |--rabbit-orm-common		基础公共包
+    |   |--rabbit-orm-datasource			内置数据源
+    |   |--rabbit-orm-core			核心功能包
+    |   |--rabbit-orm-code-helper			逆向工程包
 
 ================================== V 2.8.1 =========================================   
     
