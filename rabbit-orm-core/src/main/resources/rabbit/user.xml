@@ -98,4 +98,31 @@
             COUNT(abc)
         FROM T_USER 
     </jdbc>
+    
+    <!-- 命名删除 -->
+    <delete name="namedDelete">
+    	DELETE FROM T_USER WHERE ID = ${userId}
+    </delete>
+    
+    <!-- 命名更新 -->
+    <update name="namedUpdate">
+    	UPDATE T_USER
+			SET T_USER.NAME = ${name}
+			WHERE
+				T_USER.ID IN (
+					SELECT
+						*
+					FROM
+						(
+							SELECT
+								T_USER.ID
+							FROM
+								T_USER
+							INNER JOIN T_ORG T_ORG ON T_USER.ORG_ID = T_ORG.ID
+							WHERE
+								T_USER.ID = ${userId}
+						) t
+				)
+    </update>
+    
 </rabbit-mapping>   

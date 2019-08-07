@@ -32,6 +32,10 @@ public class SQLParser {
 
 	private static final String SELECT = "select";
 
+	private static final String UPDATE = "update";
+
+	private static final String DELETE = "delete";
+
 	private Logger logger = Logger.getLogger(getClass());
 	
 	private String sqlPath;
@@ -107,7 +111,6 @@ public class SQLParser {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void parseOneByOne(String xml) {
 		InputStream inputSteam = getClass().getResourceAsStream(xml);
 		SAXReader reader = new SAXReader();   
@@ -121,22 +124,10 @@ public class SQLParser {
 			Element root = doc.getRootElement(); 
 			String clzName = root.attributeValue("entity");
 			Class<?> clz = checkClassName(xml, clzName);
-			Iterator<Element> iterator = root.elementIterator(SELECT);
-            while (iterator.hasNext()) {
-                Element select = iterator.next();
-                String name = select.attributeValue("name");
-                String sql = select.getText();
-                checkNameQuery(clz, name, sql);
-		        nameQueries.get(clz).put(name.trim(), new NamedSQL(sql, name, select));
-			}
-			iterator = root.elementIterator(JDBC);
-            while (iterator.hasNext()) {
-			    Element select = iterator.next();
-			    String name = select.attributeValue("name");
-			    String sql = select.getText();
-			    checkNameQuery(clz, name, sql);
-			    nameQueries.get(clz).put(name.trim(), new SQLObject(sql, name));
-			}
+			scan(root, clz, SELECT);
+			scan(root, clz, UPDATE);
+			scan(root, clz, DELETE);
+			scanJdbc(root, clz);
 		} catch (DocumentException e) {
 			throw new MappingFileParsingException(e.getMessage());
 		} finally {
@@ -145,6 +136,40 @@ public class SQLParser {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
+		}
+	}
+
+	/**
+	 * <b>@description 扫描jdbc语句 </b>
+	 * @param root
+	 * @param clz
+	 */
+	@SuppressWarnings("unchecked")
+	private void scanJdbc(Element root, Class<?> clz) {
+		Iterator<Element> iterator = root.elementIterator(JDBC);
+		while (iterator.hasNext()) {
+		    Element select = iterator.next();
+		    String name = select.attributeValue("name");
+		    String sql = select.getText();
+		    checkNameQuery(clz, name, sql);
+		    nameQueries.get(clz).put(name.trim(), new SQLObject(sql, name));
+		}
+	}
+
+	/**
+	 * <b>@description 扫描select/update/delete语句 </b>
+	 * @param root
+	 * @param clz
+	 */
+	@SuppressWarnings("unchecked")
+	private void scan(Element root, Class<?> clz, String type) {
+		Iterator<Element> iterator = root.elementIterator(type);
+		while (iterator.hasNext()) {
+		    Element select = iterator.next();
+		    String name = select.attributeValue("name");
+		    String sql = select.getText();
+		    checkNameQuery(clz, name, sql);
+		    nameQueries.get(clz).put(name.trim(), new NamedSQL(sql, name, select));
 		}
 	}
 

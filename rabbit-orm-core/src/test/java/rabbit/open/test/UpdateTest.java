@@ -292,4 +292,22 @@ public class UpdateTest {
     	
     }
     
+    /**
+     * <b>@description 命名更新查询 </b>
+     */
+    @Test
+    public void namedUpdateTest() {
+    	Organization org = new Organization();
+        org.setName("myorg");
+        os.add(org);
+        User user = new User("lili", 10, null, org);
+        us.add(user);
+    	String newName = "lisixx";
+		us.createNamedUpdate("namedUpdate")
+	    	.set("name", newName)
+	    	.set("userId", user.getId())
+	    	.execute();
+    	TestCase.assertEquals(us.getByID(user.getId()).getName(), newName);
+    }
+    
 }

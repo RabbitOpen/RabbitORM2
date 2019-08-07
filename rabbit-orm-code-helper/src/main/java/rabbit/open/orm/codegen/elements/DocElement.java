@@ -3,8 +3,6 @@ package rabbit.open.orm.codegen.elements;
 import java.util.ArrayList;
 import java.util.List;
 
-import rabbit.open.orm.codegen.JavaElement;
-
 /**
  * <b>@description 注释元素 </b>
  */
@@ -28,17 +26,11 @@ public class DocElement {
 	 * @param line
 	 */
 	public void addDocLine(String line) {
-		if (JavaElement.isEmptyStr(line)) {
-			return;
-		}
 		lines.add(" * " + line + "\n");
 	}
 
 	@Override
 	public String toString() {
-		if (lines.isEmpty()) {
-			return "";
-		}
 		text.append(linePrefix + "/**\n");
 		text.append(linePrefix + " *\n");
 		for (String str : lines) {

@@ -13,7 +13,9 @@ import rabbit.open.orm.core.dml.Delete;
 import rabbit.open.orm.core.dml.DynamicQuery;
 import rabbit.open.orm.core.dml.Insert;
 import rabbit.open.orm.core.dml.JoinTableManager;
+import rabbit.open.orm.core.dml.NamedDelete;
 import rabbit.open.orm.core.dml.NamedQuery;
+import rabbit.open.orm.core.dml.NamedUpdate;
 import rabbit.open.orm.core.dml.Query;
 import rabbit.open.orm.core.dml.SQLCallBack;
 import rabbit.open.orm.core.dml.SQLQuery;
@@ -125,6 +127,25 @@ public abstract class SpringDaoAdapter<T> {
 	public Update<T> createUpdate(){
 		return new Update<>(sessionFactory, clz);
 	}
+	
+	/**
+	 * <b>@description  创建一个命名更新 </b>
+	 * @param updateName  命名更新的名字
+	 * @return
+	 */
+	public NamedUpdate<T> createNamedUpdate(String updateName) {
+		return new NamedUpdate<>(sessionFactory, clz, updateName);
+	}
+	
+	/**
+	 * <b>@description  创建一个命名删除</b>
+	 * @param deleteName  命名删除的名字
+	 * @return
+	 */
+	public NamedDelete<T> createNamedDelete(String deleteName) {
+		return new NamedDelete<>(sessionFactory, clz, deleteName);
+	}
+	
 	
 	/**
 	 * 

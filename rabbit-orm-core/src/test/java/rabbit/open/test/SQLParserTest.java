@@ -16,6 +16,7 @@ public class SQLParserTest {
     public void wrongPathTest() {
         try {
             new SQLParser("user").doXmlParsing();
+            throw new RuntimeException("wrongPathTest error");
         } catch (Exception e) {
             TestCase.assertSame(e.getClass(), WrongMappingFilePathException.class);
         }

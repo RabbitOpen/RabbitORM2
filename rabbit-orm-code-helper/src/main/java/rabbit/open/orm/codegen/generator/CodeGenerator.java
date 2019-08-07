@@ -198,7 +198,7 @@ public class CodeGenerator {
 	 * @throws SQLException
 	 */
 	private FieldElement createFieldElement(ResultSet rows, String annoValueStartStr, String pkName) throws SQLException {
-		String columnName = rows.getString(COLUMN_NAME);
+		String columnName = rows.getString(COLUMN_NAME).toUpperCase();
 		String type = rows.getString("TYPE_NAME").toUpperCase();
 		String size = rows.getString("COLUMN_SIZE");
 		boolean isAutoIncrement = "YES".equalsIgnoreCase(rows.getString("IS_AUTOINCREMENT"));

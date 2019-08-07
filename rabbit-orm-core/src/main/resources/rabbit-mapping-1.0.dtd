@@ -6,7 +6,9 @@
 
 <!ELEMENT rabbit-mapping (
 	select*,
-	jdbc*
+	jdbc*,
+	update*,
+	delete*
 )>	
 	<!ATTLIST rabbit-mapping entity CDATA #REQUIRED>
 
@@ -31,3 +33,13 @@
 	#PCDATA
 )>
 	<!ATTLIST jdbc name CDATA #REQUIRED>
+	
+<!ELEMENT update (
+	#PCDATA
+)>
+	<!ATTLIST update name CDATA #REQUIRED>
+
+<!ELEMENT delete (
+	#PCDATA
+)>
+	<!ATTLIST delete name CDATA #REQUIRED>

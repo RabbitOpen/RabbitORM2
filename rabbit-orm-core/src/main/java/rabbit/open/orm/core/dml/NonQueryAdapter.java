@@ -111,7 +111,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
 	 * @return
 	 * 
 	 */
-	public long execute(){
+	public long execute() {
         Connection conn = null;
         try {
             conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), dmlType);

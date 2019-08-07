@@ -23,18 +23,6 @@ class SessionHolderInfo {
 		threadId = Thread.currentThread().getId();
 	}
 
-	public String getFetchMoment() {
-		return fetchMoment;
-	}
-
-	public String getThreadName() {
-		return threadName;
-	}
-
-	public long getThreadId() {
-		return threadId;
-	}
-
 	@Override
 	public String toString() {
 		return "SessionHolderInfo [fetchMoment=" + fetchMoment

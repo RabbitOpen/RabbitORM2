@@ -45,8 +45,9 @@ public class DeleteTest {
      */
     @Test
     public void clear() {
+    	long before = us.createQuery().count();
         addInitUser();
-        TestCase.assertEquals(1, us.createQuery().count());
+        TestCase.assertEquals(before + 1, us.createQuery().count());
         us.clearAll();
         TestCase.assertEquals(0, us.createQuery().count());
     }
@@ -115,6 +116,16 @@ public class DeleteTest {
     					User.class).execute();
     	TestCase.assertTrue(result >= 1);
     	
+    }
+    
+    @Test
+    public void namedDeleteTest() {
+    	User user = new User();
+    	user.setName("wangwuxxx");
+    	us.add(user);
+    	TestCase.assertNotNull(us.getByID(user.getId()));
+    	us.createNamedDelete("namedDelete").set("userId", user.getId()).execute();
+    	TestCase.assertNull(us.getByID(user.getId()));
     }
 
 }

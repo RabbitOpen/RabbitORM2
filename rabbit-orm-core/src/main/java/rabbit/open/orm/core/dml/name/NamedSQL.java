@@ -51,7 +51,7 @@ public class NamedSQL extends SQLObject {
     private List<JoinFetcherDescriptor> readJoinFetchers(Element element) {
         List<JoinFetcherDescriptor> joinFetchers = new ArrayList<>();
         Iterator<Element> iterator = element.elementIterator(JOIN_FETCH);
-        while(iterator.hasNext()){
+		while (iterator.hasNext()) {
             Element jf = iterator.next();
             JoinFetcherDescriptor fetcher = new JoinFetcherDescriptor(jf.attributeValue(ENTITY), 
                     jf.attributeValue(ALIAS));
@@ -70,7 +70,7 @@ public class NamedSQL extends SQLObject {
         List<FetcherDescriptor> fetchers = new ArrayList<>();
         Iterator<Element> iterator;
         iterator = element.elementIterator(FETCH);
-        while(iterator.hasNext()){
+		while (iterator.hasNext()) {
             Element jf = iterator.next();
             FetcherDescriptor fetcher = new FetcherDescriptor(jf.attributeValue(ENTITY), jf.attributeValue(ALIAS));
             fetcher.setFetchDescriptors(readFetchers(jf));

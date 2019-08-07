@@ -20,9 +20,6 @@ public class DomainClassElement {
 
 	private DocElement doc;
 	
-	// 生成get/set方法
-	private boolean generateGetSet = true;
-
 	// class元素的注解信息
 	private List<AnnotationElement> annos = new ArrayList<>();
 
@@ -34,9 +31,7 @@ public class DomainClassElement {
 		super();
 		this.className = className;
 		this.packageName = packageName;
-		if (null != annos) {
-			this.annos = annos;
-		}
+		this.annos = annos;
 	}
 
 	public DomainClassElement(String className, List<AnnotationElement> annos) {
@@ -75,12 +70,10 @@ public class DomainClassElement {
 			sb.append(fe.toString());
 		}
 		
-		if (isGenerateGetSet()) {
-			// 生成get/set方法
-			for (FieldElement fe : this.fieldElements) {
-				sb.append(fe.getGetter().toString());
-				sb.append(fe.getSetter().toString());
-			}
+		// 生成get/set方法
+		for (FieldElement fe : this.fieldElements) {
+			sb.append(fe.getGetter().toString());
+			sb.append(fe.getSetter().toString());
 		}
 
 		// 生成字段常量信息
@@ -169,11 +162,4 @@ public class DomainClassElement {
 		this.fieldElements.add(fieldElement);
 	}
 	
-	public void setGenerateGetSet(boolean generateGetSet) {
-		this.generateGetSet = generateGetSet;
-	}
-	
-	public boolean isGenerateGetSet() {
-		return generateGetSet;
-	}
 }
