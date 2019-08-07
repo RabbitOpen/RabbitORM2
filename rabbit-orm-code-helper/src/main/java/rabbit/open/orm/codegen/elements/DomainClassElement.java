@@ -82,6 +82,11 @@ public class DomainClassElement {
 				sb.append(fe.getSetter().toString());
 			}
 		}
+
+		// 生成字段常量信息
+		for (FieldElement fe : this.fieldElements) {
+			sb.append(fe.getConstantFieldElement().toString());
+		}
 		
 		sb.append("}\n");
 		return sb;

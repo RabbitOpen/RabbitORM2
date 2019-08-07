@@ -52,4 +52,8 @@ public class DocElement {
 	public void setLinePrefix(String linePrefix) {
 		this.linePrefix = linePrefix;
 	}
+
+	public String getLinePrefix() {
+		return linePrefix;
+	}
 }

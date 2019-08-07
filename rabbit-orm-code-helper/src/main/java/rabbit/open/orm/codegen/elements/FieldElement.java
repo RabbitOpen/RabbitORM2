@@ -13,6 +13,9 @@ public class FieldElement extends JavaElement {
 	private List<AnnotationElement> annos = new ArrayList<>();
 	
 	private DocElement doc;
+
+	// 常量字段
+	private ConstantFieldElement constantFieldElement;
 	
 	// 需要导入的包信息
 	private String packageString;
@@ -30,13 +33,14 @@ public class FieldElement extends JavaElement {
 	private String varName;
 	
 	public FieldElement(AnnotationElement anno, DocElement doc,
-			String packageString, String fieldType, String varName) {
+			String packageString, String fieldType, String varName, ConstantFieldElement constantFieldElement) {
 		super();
 		this.annos.add(anno);
 		this.doc = doc;
 		this.packageString = packageString;
 		this.fieldType = fieldType;
 		this.varName = varName;
+		this.constantFieldElement = constantFieldElement;
 		this.getter = new MethodElement(varName, fieldType, fieldType, true);
 		this.setter = new MethodElement(varName, "void", fieldType, false);
 	}
@@ -81,4 +85,7 @@ public class FieldElement extends JavaElement {
 		this.annos.add(0, anno);
 	}
 
+	public ConstantFieldElement getConstantFieldElement() {
+		return constantFieldElement;
+	}
 }

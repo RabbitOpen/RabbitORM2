@@ -12,13 +12,7 @@ import java.util.Arrays;
 import rabbit.open.orm.codegen.DBFieldDescriptor;
 import rabbit.open.orm.codegen.JavaElement;
 import rabbit.open.orm.codegen.MappingRegistry;
-import rabbit.open.orm.codegen.elements.AbstractDaoCodeElement;
-import rabbit.open.orm.codegen.elements.AnnotationElement;
-import rabbit.open.orm.codegen.elements.CommonDaoCodeElement;
-import rabbit.open.orm.codegen.elements.DocElement;
-import rabbit.open.orm.codegen.elements.DomainClassElement;
-import rabbit.open.orm.codegen.elements.FieldElement;
-import rabbit.open.orm.codegen.elements.ServiceCodeElement;
+import rabbit.open.orm.codegen.elements.*;
 import rabbit.open.orm.codegen.filter.GeneratorFilter;
 import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.annotation.Entity;
@@ -217,14 +211,17 @@ public class CodeGenerator {
 		} else {
 			an.setContent(annoValueStartStr + columnName + "\"");
 		}
-		
+
 		DocElement doc = new DocElement(COMMON_MSG, "@desc:  " + remark);
 		
 		FieldElement fe = new FieldElement(an, doc, 
 				// java.lang的就不用导入了
 				fieldDescriptor.getJavaType().getName().startsWith("java.lang") ? "" 
 						: fieldDescriptor.getJavaType().getName(), 
-				fieldDescriptor.getJavaType().getSimpleName(), name);
+				fieldDescriptor.getJavaType().getSimpleName(), name,
+				new ConstantFieldElement(
+						new DocElement(COMMON_MSG, "@desc:  mapping with class field \"" + name + "\""),
+						columnName, name));
 		
 		if (columnName.equals(pkName)) {
 			String content = isAutoIncrement ? "policy = Policy.AUTOINCREMENT" : "";
