@@ -28,8 +28,8 @@ public class Result<T>{
 	 * 取回唯一的那个结果集
 	 * @return
 	 */
-	public T unique(){
-		if(resultList.isEmpty()){
+	public T unique() {
+		if (resultList.isEmpty()) {
 			return null;
 		}
 		return resultList.get(0);

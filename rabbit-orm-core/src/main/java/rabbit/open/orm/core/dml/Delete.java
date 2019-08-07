@@ -80,7 +80,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 	 * @return
 	 * 
 	 */
-	public long deleteById(Serializable id){
+	public long deleteById(Serializable id) {
 		if(null == id){
 			throw new RabbitDMLException("id can't be null");
 		}
@@ -93,11 +93,11 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(id, fmd), fmd.getField()));
 			sql.append(getColumnName(fmd.getColumn()) + " = " + PLACE_HOLDER);
 		}
-		sqlOperation = new SQLOperation(){
+		sqlOperation = new SQLOperation() {
 			@Override
 			public long executeSQL(Connection conn) throws SQLException {
 			    PreparedStatement stmt = null;
-				try{
+				try {
 	                stmt = conn.prepareStatement(sql.toString());
 	                setPreparedStatementValue(stmt, DMLType.DELETE);
 	                showSql();
@@ -123,7 +123,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 	 */
 	@Override
 	public Delete<T> addFilter(String fieldReg, Object value, FilterType ft, 
-			Class<?>... depsPath){
+			Class<?>... depsPath) {
 		super.addFilter(fieldReg, value, ft, depsPath);
 		return this;
 	}

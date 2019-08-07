@@ -22,7 +22,7 @@ import rabbit.open.orm.core.dml.policy.UUIDPolicy;
  * @param <T>
  * 
  */
-public class Insert<T> extends NonQueryAdapter<T>{
+public class Insert<T> extends NonQueryAdapter<T> {
 
     //需要插入的对象
 	protected T data;
@@ -64,7 +64,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	 * @return	
 	 * 
 	 */
-	private long doExecute(Connection conn) throws SQLException{
+	private long doExecute(Connection conn) throws SQLException {
 		FieldMetaData fmd = MetaData.getPrimaryKeyFieldMeta(getEntityClz());
         Policy policy = fmd.getPrimaryKey().policy();
         PolicyInsert insertPolicy = PolicyInsert.getInsertPolicy(policy);
@@ -80,7 +80,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	 * @return
 	 * 
 	 */
-	private Insert<T> createInsertSql(T data){
+	private Insert<T> createInsertSql(T data) {
 		StringBuilder fields = createFieldsSql(data);
 		sql = new StringBuilder();
 		sql.append("INSERT INTO " +  TARGET_TABLE_NAME + "" );
@@ -141,7 +141,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 		values.append(PLACE_HOLDER);
 	}
 
-	private Object getPrimaryKeyValueByPolicy(FieldMetaData fmd){
+	private Object getPrimaryKeyValueByPolicy(FieldMetaData fmd) {
         Object value = null;
         if (fmd.getPrimaryKey().policy().equals(Policy.UUID)) {
             value = UUIDPolicy.getID();
@@ -155,7 +155,7 @@ public class Insert<T> extends NonQueryAdapter<T>{
 	}
 	
 	//创建需要插入的字段sql片段
-	private StringBuilder createFieldsSql(T obj){
+	private StringBuilder createFieldsSql(T obj) {
 		StringBuilder fields = new StringBuilder("(");
 		long nonEmptyFields = 0;
 		for (FieldMetaData fmd : metaData.getFieldMetas()) {
