@@ -539,7 +539,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	protected void setValue2EntityField(Object target, Field field, Object value) {
 	    Object gettedValue = value;
 	    if (isEnableGetFilter()) {
-	        gettedValue = sessionFactory.onValueGetted(value, field);
+	        gettedValue = sessionFactory.onValueGot(value, field);
 	    }
         getTransformer().setValue2EntityField(target, field, gettedValue);
 	}

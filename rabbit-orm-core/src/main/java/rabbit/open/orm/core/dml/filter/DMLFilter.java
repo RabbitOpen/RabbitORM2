@@ -16,7 +16,7 @@ public interface DMLFilter {
      * @param type      dml操作类型
      * @return          需要设置的值
      */
-    public Object onValueSetted(Object value, Field field, DMLType type);
+    public Object onValueSet(Object value, Field field, DMLType type);
     
     /**
      * <b>Description   查询结果设值前置事件</b>
@@ -24,5 +24,5 @@ public interface DMLFilter {
      * @param field     对应的字段
      * @return          需要设置的值
      */
-    public Object onValueGetted(Object value, Field field); 
+    public Object onValueGot(Object value, Field field);
 }

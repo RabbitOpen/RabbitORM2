@@ -16,7 +16,7 @@ public class MyDMLFilter implements DMLFilter {
     Logger logger = Logger.getLogger(getClass());
     
     @Override
-    public Object onValueSetted(Object value, Field field, DMLType type) {
+    public Object onValueSet(Object value, Field field, DMLType type) {
         logger.info(field.getDeclaringClass().getSimpleName() + "." + field.getName() + ":\t" + value + ":\t" + type);
         if (UUIDPolicyEntity.class.equals(field.getDeclaringClass())) {
             try {
@@ -31,7 +31,7 @@ public class MyDMLFilter implements DMLFilter {
     }
 
     @Override
-    public Object onValueGetted(Object value, Field field) {
+    public Object onValueGot(Object value, Field field) {
         return value;
     }
 

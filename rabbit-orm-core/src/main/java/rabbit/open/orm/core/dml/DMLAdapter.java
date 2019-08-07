@@ -241,7 +241,7 @@ public abstract class DMLAdapter<T> {
 	protected void setPreparedStatementValue(PreparedStatement stmt, DMLType dmlType) throws SQLException{
         for (int i = 1; i <= preparedValues.size(); i++) {
             PreparedValue pv = (PreparedValue) preparedValues.get(i - 1);
-            Object value = sessionFactory.onValueSetted(pv, dmlType);
+            Object value = sessionFactory.onValueSet(pv, dmlType);
             pv.setValue(value);
             if (value instanceof Date) {
                 setDate(stmt, i, (Date) value);

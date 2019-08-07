@@ -519,7 +519,7 @@ public class SessionFactory {
         this.filter = filter;
     }
     
-    public Object onValueSetted(PreparedValue pv, DMLType dmlType) {
+    public Object onValueSet(PreparedValue pv, DMLType dmlType) {
         if (null == pv) {
             return null;
         }
@@ -530,14 +530,14 @@ public class SessionFactory {
             return pv.getValue();
         }
         if (null != filter) {
-            return filter.onValueSetted(pv.getValue(), pv.getField(), dmlType);
+            return filter.onValueSet(pv.getValue(), pv.getField(), dmlType);
         }
         return pv.getValue();
     }
 
-    public Object onValueGetted(Object value, Field field) {
+    public Object onValueGot(Object value, Field field) {
         if (null != filter) {
-            return filter.onValueGetted(value, field);
+            return filter.onValueGot(value, field);
         }
         return value;
     }

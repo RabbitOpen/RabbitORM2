@@ -19,19 +19,17 @@ import org.apache.log4j.Logger;
 import rabbit.open.orm.common.exception.RabbitDDLException;
 
 @SuppressWarnings("serial")
-public class PackageScanner implements Serializable{
-	
+public class PackageScanner implements Serializable {
+
     static Logger logger = Logger.getLogger(PackageScanner.class);
-	
+
     /**
-	 * 
-	 * 过滤包含特定注解的类
-	 * @param anno
-	 * @return
-	 * 
-	 */
+     * 过滤包含特定注解的类
+     * @param anno
+     * @return
+     */
     public static Set<String> filterByAnnotation(String[] roots,
-            Class<? extends Annotation> anno, boolean scanJar) {
+                 Class<? extends Annotation> anno, boolean scanJar) {
         HashSet<String> targets = new HashSet<>();
         for (String root : roots) {
             List<String> list = scanPackageClasses(root);
@@ -42,13 +40,13 @@ public class PackageScanner implements Serializable{
             }
         }
         if (scanJar) {
-        	targets.addAll(scanJarFileByAnnotation(roots, anno));
+            targets.addAll(scanJarFileByAnnotation(roots, anno));
         }
         return targets;
     }
 
-    private static boolean hasAnnotation(Class<? extends Annotation> annotation, 
-            String name) {
+    private static boolean hasAnnotation(Class<? extends Annotation> annotation,
+                                         String name) {
         try {
             Class<?> clz = Class.forName(name);
             if (null != clz.getAnnotation(annotation)) {
@@ -60,15 +58,13 @@ public class PackageScanner implements Serializable{
         return false;
     }
 
-	/**
-	 * 
-	 * 过滤实现了特定接口的类
-	 * @param interfaceClz
-	 * @return
-	 * 
-	 */
+    /**
+     * 过滤实现了特定接口的类
+     * @param interfaceClz
+     * @return
+     */
     public static Set<String> filterByInterface(String[] roots,
-            Class<?> interfaceClz, boolean scanJar) {
+                                                Class<?> interfaceClz, boolean scanJar) {
         HashSet<String> targets = new HashSet<>();
         for (String root : roots) {
             List<String> list = scanPackageClasses(root);
@@ -79,7 +75,7 @@ public class PackageScanner implements Serializable{
             }
         }
         if (scanJar) {
-        	targets.addAll(scanJarFileByInterface(roots, interfaceClz));
+            targets.addAll(scanJarFileByInterface(roots, interfaceClz));
         }
         return targets;
     }
@@ -96,12 +92,11 @@ public class PackageScanner implements Serializable{
         return false;
     }
 
-	/**
-	 * 
-	 * 扫描包下所有class文件
-	 * @return
-	 * 
-	 */
+    /**
+     * 扫描包下所有class文件
+     *
+     * @return
+     */
     private static List<String> scanPackageClasses(String rootPath) {
         List<String> files = new ArrayList<>();
         URL base = PackageScanner.class.getClassLoader().getResource("");
@@ -149,7 +144,7 @@ public class PackageScanner implements Serializable{
         }
         return files;
     }
-    
+
     /**
      * <b>Description  读取war中/WEB-INF/classes/目录下的class文件</b>
      * @param war
@@ -173,7 +168,7 @@ public class PackageScanner implements Serializable{
         jar.close();
         return classes;
     }
-	
+
     private static List<String> scanFile(String parent, File file)
             throws Exception {
         while (parent.startsWith(".")) {
@@ -192,33 +187,31 @@ public class PackageScanner implements Serializable{
         return files;
     }
 
-	/**
-	 * 
-	 * <b>Description:    扫描依赖的jar</b><br>.
-	 * @param roots
-	 * @param interfaceClz
-	 * @return	
-	 * 
-	 */
-	private static HashSet<String> scanJarFileByInterface(String[] roots, Class<?> interfaceClz){
-		HashSet<String> files = new HashSet<>();
-		try {
-			List<String> jars = getClassPathJars();
-			jars.addAll(getLibJarFiles());
-			for(String jar : jars){
-				if(!jar.endsWith("jar")){
-					continue;
-				}
-				files.addAll(scanJarFile4Interfaces(roots, interfaceClz, jar));
-			}
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
-		return files;
-	}
+    /**
+     * <b>Description:    扫描依赖的jar</b><br>.
+     * @param roots
+     * @param interfaceClz
+     * @return
+     */
+    private static HashSet<String> scanJarFileByInterface(String[] roots, Class<?> interfaceClz) {
+        HashSet<String> files = new HashSet<>();
+        try {
+            List<String> jars = getClassPathJars();
+            jars.addAll(getLibJarFiles());
+            for (String jar : jars) {
+                if (!jar.endsWith("jar")) {
+                    continue;
+                }
+                files.addAll(scanJarFile4Interfaces(roots, interfaceClz, jar));
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return files;
+    }
 
     private static HashSet<String> scanJarFile4Interfaces(String[] roots,
-            Class<?> interfaceClz, String jarFileName) throws IOException{
+                  Class<?> interfaceClz, String jarFileName) throws IOException {
         JarFile jf = null;
         try {
             jf = new JarFile(jarFileName);
@@ -235,7 +228,7 @@ public class PackageScanner implements Serializable{
     }
 
     private static HashSet<String> scanInterfacesByEntry(String[] roots,
-            Class<?> interfaceClz, JarEntry entry) {
+                     Class<?> interfaceClz, JarEntry entry) {
         HashSet<String> files = new HashSet<>();
         if (!entry.getName().endsWith("class")) {
             return files;
@@ -253,13 +246,11 @@ public class PackageScanner implements Serializable{
     }
 
     /**
-     * 
      * <b>Description: 判断是否是指定接口的基类 </b><br>.
      * @param root
      * @param interfaceClz
      * @param fileName
-     * @return	
-     * 
+     * @return
      */
     private static boolean isTargetInterfaceClass(String root, Class<?> interfaceClz, String fileName) {
         String className = fileName.substring(0, fileName.length() - 6)
@@ -288,7 +279,7 @@ public class PackageScanner implements Serializable{
         }
     }
 
-	private static HashSet<String> scanJarFileByAnnotation(String[] roots, Class<? extends Annotation> anno){
+    private static HashSet<String> scanJarFileByAnnotation(String[] roots, Class<? extends Annotation> anno) {
         HashSet<String> files = new HashSet<>();
         try {
             List<String> jars = getClassPathJars();
@@ -302,11 +293,11 @@ public class PackageScanner implements Serializable{
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-		return files;
-	}
+        return files;
+    }
 
     private static HashSet<String> scanJars4Annotation(String[] roots,
-            Class<? extends Annotation> anno, String jarFileName) throws IOException {
+                   Class<? extends Annotation> anno, String jarFileName) throws IOException {
         JarFile jf = null;
         try {
             jf = new JarFile(jarFileName);
@@ -323,7 +314,7 @@ public class PackageScanner implements Serializable{
     }
 
     private static HashSet<String> scanAnnotationByEntry(String[] roots,
-            Class<? extends Annotation> anno, JarEntry entry) {
+                         Class<? extends Annotation> anno, JarEntry entry) {
         HashSet<String> files = new HashSet<>();
         String name = entry.getName();
         if (!name.endsWith("class")) {
@@ -341,15 +332,14 @@ public class PackageScanner implements Serializable{
     }
 
     /**
-     * 
      * <b>Description:    判断类{fileName}是否含有注解{anno}</b><br>.
+     *
      * @param rootPath
      * @param anno
-     * @param fileName	
-     * 
+     * @param fileName
      */
     private static boolean isTargetAnnoInterface(String rootPath,
-            Class<? extends Annotation> anno, String fileName) {
+                     Class<? extends Annotation> anno, String fileName) {
         if (fileName.startsWith(rootPath.trim())) {
             try {
                 Class<?> clz = Class.forName(fileName);
@@ -375,12 +365,11 @@ public class PackageScanner implements Serializable{
         return list;
     }
 
-	/**
-	 * 
-	 * 获取web项目的lib目录下jar包
-	 * @return
-	 * 
-	 */
+    /**
+     * 获取web项目的lib目录下jar包
+     *
+     * @return
+     */
     private static List<String> getLibJarFiles() {
         String path = PackageScanner.class.getResource("/").getPath();
         File f = new File(path);
@@ -400,6 +389,6 @@ public class PackageScanner implements Serializable{
         }
         return new ArrayList<>();
     }
-	
+
 }
  

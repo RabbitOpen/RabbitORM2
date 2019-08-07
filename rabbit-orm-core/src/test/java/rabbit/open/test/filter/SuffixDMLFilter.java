@@ -11,7 +11,7 @@ public class SuffixDMLFilter implements DMLFilter {
     public static String suffix = "@@encrypt";
 
     @Override
-    public Object onValueSetted(Object value, Field field, DMLType type) {
+    public Object onValueSet(Object value, Field field, DMLType type) {
         if (field.getDeclaringClass().equals(User.class)
         && field.getName().equals("name") && null != value) {
             return value + suffix;
@@ -20,7 +20,7 @@ public class SuffixDMLFilter implements DMLFilter {
     }
 
     @Override
-    public Object onValueGetted(Object value, Field field) {
+    public Object onValueGot(Object value, Field field) {
         if (isTargetField(value, field)) {
             return value.toString().replaceAll(suffix, "");
         }
