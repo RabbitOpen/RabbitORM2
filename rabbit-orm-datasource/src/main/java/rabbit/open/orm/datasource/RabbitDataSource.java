@@ -227,7 +227,7 @@ public class RabbitDataSource extends AbstractDataSource {
         if (driverClass.toLowerCase().contains("sqlite")) {
             return DBType.SQLITE;
         }
-		throw new RabbitDMLException("unkown driver type[" + driverClass + "]");
+		throw new RabbitDMLException("unknown driver type[" + driverClass + "]");
 	}
 	
 	/**
