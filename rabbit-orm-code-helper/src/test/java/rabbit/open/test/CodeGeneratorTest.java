@@ -17,7 +17,7 @@ public class CodeGeneratorTest {
 		CodeGenerator cg = new CodeGenerator(
 				"jdbc:mysql://localhost:3306/cas?useUnicode=true&characterEncoding=UTF-8&useServerPrepStmts=true",
 				"com.mysql.jdbc.Driver", "root", "123",
-				"C:/Users/xiaoqianbin/Desktop/java", "com.org");
+				"C:/Users/admin/Desktop/java", "com.org");
 		
 		MappingRegistry.regist("VARCHAR", new DBFieldDescriptor(String.class, true));
 		
@@ -36,6 +36,14 @@ public class CodeGeneratorTest {
 				}
 				System.out.println("generate code for table[" + tableName + "]");
 				return true;
+			}
+
+			@Override
+			public String convertTableName2EntityName(String expectedEntityName, String tableName) {
+				if (tableName.toLowerCase().startsWith("t_")) {
+					return expectedEntityName.substring(1, expectedEntityName.length());
+				}
+				return expectedEntityName;
 			}
 		});
 		try {

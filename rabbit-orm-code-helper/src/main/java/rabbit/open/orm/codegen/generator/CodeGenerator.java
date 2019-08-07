@@ -65,6 +65,11 @@ public class CodeGenerator {
 		public boolean filterTable(String tableName) {
 			return true;
 		}
+
+		@Override
+		public String convertTableName2EntityName(String expectedEntityName, String tableName) {
+			return expectedEntityName;
+		}
 	};
 	
 	/**
@@ -108,7 +113,8 @@ public class CodeGenerator {
 				break;
 			}
 		}
-		return name.toString().replaceAll("_", "");
+		String expectedEntityName = name.toString().replaceAll("_", "");
+		return filter.convertTableName2EntityName(expectedEntityName, dbName);
 	}
 	
 	/**
