@@ -292,7 +292,7 @@ public abstract class DMLAdapter<T> {
 	 * 
 	 * 获取条件对象中有值的字段映射信息
 	 * @param 	data
-	 * @param 	entityClz
+	 * @param 	clz
 	 * 
 	 */
 	protected final List<FieldMetaData> getNonEmptyFieldMetas(Object data, Class<?> clz) {
