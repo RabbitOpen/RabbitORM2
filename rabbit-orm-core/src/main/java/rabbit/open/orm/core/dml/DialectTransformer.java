@@ -35,7 +35,7 @@ public abstract class DialectTransformer {
 	 * @return	
 	 * 
 	 */
-	public StringBuilder completeFieldsSql(AbstractQuery<?> query){
+	public StringBuilder completeFieldsSql(AbstractQuery<?> query) {
 	    StringBuilder sql = getSql(query);
         sql.insert(0, "SELECT ");
         return sql;
@@ -92,7 +92,7 @@ public abstract class DialectTransformer {
 	 * @param transformer	
 	 * 
 	 */
-	private static void registTransformer(DialectType dialect, DialectTransformer transformer){
+	private static void registTransformer(DialectType dialect, DialectTransformer transformer) {
 		cache.put(dialect, transformer);
 	}
 
@@ -103,7 +103,7 @@ public abstract class DialectTransformer {
 	 * @return	
 	 * 
 	 */
-	public static DialectTransformer getTransformer(DialectType dialect){
+	public static DialectTransformer getTransformer(DialectType dialect) {
         if (!cache.containsKey(dialect)) {
             throw new RabbitDMLException("unkown dialect[" + dialect + "] is found!");
         }
