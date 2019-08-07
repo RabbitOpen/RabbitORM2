@@ -218,9 +218,10 @@
 	<distributionManagement>
 		<repository>
 			<id>rabbit-open</id>
-			<url>http://www.rabbit-open.top/nexus/content/repositories/thirdparty</url>
+			<url>http://www.rabbit-open.top:8081/nexus/content/repositories/thirdparty</url>
 		</repository>
 	</distributionManagement>
+	
 
 	<build>
 		<plugins>
@@ -266,12 +267,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>default-deploy</id> <!-- 忽略pom类型的工程 -->
-						<phase>none</phase>
-					</execution>
-				</executions>
+				<version>2.4</version>
 			</plugin>
 
 			<plugin>

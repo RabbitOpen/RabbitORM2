@@ -22,12 +22,12 @@
 		<dependency>
 			<groupId>rabbit.open</groupId>
 			<artifactId>rabbit-orm-common</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>rabbit.open</groupId>
 			<artifactId>rabbit-orm-core</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 	</dependencies>
 	
