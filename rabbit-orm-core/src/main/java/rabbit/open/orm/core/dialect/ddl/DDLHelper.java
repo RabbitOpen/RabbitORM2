@@ -24,10 +24,8 @@ import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.annotation.ManyToMany;
 import rabbit.open.orm.common.ddl.DDLType;
 import rabbit.open.orm.common.ddl.JoinTableDescriptor;
-import rabbit.open.orm.common.ddl.PackageScanner;
 import rabbit.open.orm.common.dialect.DialectType;
 import rabbit.open.orm.common.dml.Policy;
-import rabbit.open.orm.common.dml.SQLFormater;
 import rabbit.open.orm.common.exception.RabbitDDLException;
 import rabbit.open.orm.common.exception.RepeatedEntityMapping;
 import rabbit.open.orm.core.dialect.ddl.impl.DB2DDLHelper;
@@ -39,6 +37,8 @@ import rabbit.open.orm.core.dml.DMLAdapter;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
+import rabbit.open.orm.core.utils.PackageScanner;
+import rabbit.open.orm.core.utils.SQLFormater;
 
 /**
  * <b>Description: ddl助手</b><br>

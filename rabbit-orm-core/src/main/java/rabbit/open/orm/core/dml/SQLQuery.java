@@ -6,9 +6,9 @@ import java.sql.PreparedStatement;
 import org.apache.log4j.Logger;
 
 import rabbit.open.orm.common.dml.DMLType;
-import rabbit.open.orm.common.dml.SQLFormater;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.name.SQLObject;
+import rabbit.open.orm.core.utils.SQLFormater;
 import rabbit.open.orm.datasource.Session;
 
 public class SQLQuery<T> {

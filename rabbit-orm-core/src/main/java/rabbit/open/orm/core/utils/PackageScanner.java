@@ -1,10 +1,9 @@
-package rabbit.open.orm.common.ddl;
+package rabbit.open.orm.core.utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -18,6 +17,9 @@ import org.apache.log4j.Logger;
 
 import rabbit.open.orm.common.exception.RabbitDDLException;
 
+/**
+ * <b>@description 包扫描工具 </b>
+ */
 @SuppressWarnings("serial")
 public class PackageScanner implements Serializable {
 
@@ -78,27 +80,12 @@ public class PackageScanner implements Serializable {
         return false;
     }
 
-
     /**
      * 扫描包下所有class文件
      * @param rootPath  包路径
      * @param base      class文件路径
      * @return
      */
-    private static List<String> scanPackageClasses(String rootPath, URL base) {
-        List<String> files = new ArrayList<>();
-        files.addAll(scanURI(rootPath.trim(), base));
-        if (base.getPath().contains("test-classes")) {
-            try {
-                files.addAll(scanURI(rootPath.trim(), new URL("file:"
-                        + base.getPath().replace("test-classes", "classes"))));
-            } catch (MalformedURLException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-        return files;
-    }
-
     private static List<String> scanURI(String rootPath, URL base) {
         List<String> files = new ArrayList<>();
         try {
@@ -296,7 +283,7 @@ public class PackageScanner implements Serializable {
     private static Set<String> scanDirectory(String[] roots, Class<? extends Annotation> anno, URL base) {
         Set<String> files = new HashSet<>();
         for (String root : roots) {
-            List<String> classes = scanPackageClasses(root, base);
+            List<String> classes = scanURI(root.trim(), base);
             for (String name : classes) {
                 if (hasAnnotation(anno, name)) {
                     files.add(name);
@@ -316,7 +303,7 @@ public class PackageScanner implements Serializable {
     private static Set<String> scanDirectory(String[] roots, URL base, Class<?> interfaceClz) {
         Set<String> files = new HashSet<>();
         for (String root : roots) {
-            List<String> classes = scanPackageClasses(root, base);
+            List<String> classes = scanURI(root, base);
             for (String name : classes) {
                 if (isTargetClass(interfaceClz, name)) {
                     files.add(name);

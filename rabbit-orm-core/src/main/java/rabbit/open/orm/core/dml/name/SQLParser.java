@@ -2,7 +2,6 @@ package rabbit.open.orm.core.dml.name;
 
 import java.io.File;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -20,9 +19,9 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.xml.sax.SAXException;
 
-import rabbit.open.orm.common.ddl.PackageScanner;
 import rabbit.open.orm.common.exception.*;
 import rabbit.open.orm.core.dml.SessionFactory;
+import rabbit.open.orm.core.utils.PackageScanner;
 
 public class SQLParser {
 

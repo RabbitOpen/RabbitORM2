@@ -1,4 +1,4 @@
-package rabbit.open.orm.common.dml;
+package rabbit.open.orm.core.utils;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 /**
- * sql格式化
+ * sql格式化工具
  * @author 肖乾斌
  *
  */

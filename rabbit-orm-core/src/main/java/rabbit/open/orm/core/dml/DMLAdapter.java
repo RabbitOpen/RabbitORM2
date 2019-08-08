@@ -24,7 +24,6 @@ import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.annotation.FilterType;
 import rabbit.open.orm.common.dml.DMLType;
-import rabbit.open.orm.common.dml.SQLFormater;
 import rabbit.open.orm.common.exception.AmbiguousDependencyException;
 import rabbit.open.orm.common.exception.CycleDependencyException;
 import rabbit.open.orm.common.exception.InvalidFetchOperationException;
@@ -42,6 +41,7 @@ import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.core.dml.meta.JoinFilter;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
+import rabbit.open.orm.core.utils.SQLFormater;
 
 /**
  * <b>Description: 	所有dml操作的基类</b><br>

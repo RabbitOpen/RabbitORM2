@@ -15,7 +15,6 @@ import rabbit.open.orm.common.annotation.FilterType;
 import rabbit.open.orm.common.annotation.ManyToMany;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.dml.Policy;
-import rabbit.open.orm.common.dml.SQLFormater;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.common.shard.ShardFactor;
@@ -27,6 +26,7 @@ import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.PreparedSqlDescriptor;
 import rabbit.open.orm.core.dml.policy.UUIDPolicy;
+import rabbit.open.orm.core.utils.SQLFormater;
 import rabbit.open.orm.datasource.Session;
 
 /**

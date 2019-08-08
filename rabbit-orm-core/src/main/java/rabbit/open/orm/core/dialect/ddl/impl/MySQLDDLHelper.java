@@ -11,9 +11,9 @@ import java.util.Map.Entry;
 
 import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.ddl.JoinTableDescriptor;
-import rabbit.open.orm.common.dml.SQLFormater;
 import rabbit.open.orm.common.exception.RabbitDDLException;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
+import rabbit.open.orm.core.utils.SQLFormater;
 
 /**
  * <b>Description: mysql ddl助手</b><br>
