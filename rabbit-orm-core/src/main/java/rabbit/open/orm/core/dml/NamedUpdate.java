@@ -23,7 +23,7 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 		this(fatory, clz, name, DMLType.UPDATE);
 	}
 
-	public NamedUpdate(SessionFactory fatory, Class<T> clz, String name, DMLType dmlType) {
+	protected NamedUpdate(SessionFactory fatory, Class<T> clz, String name, DMLType dmlType) {
 		super(fatory, clz);
 		setDmlType(dmlType);
 		this.sessionFactory = fatory;
