@@ -30,15 +30,8 @@ public class PackageScanner implements Serializable {
      */
     public static Set<String> filterByAnnotation(String[] roots,
                  Class<? extends Annotation> anno, boolean scanJar) {
-        HashSet<String> targets = new HashSet<>();
-        for (String root : roots) {
-            List<String> list = scanPackageClasses(root);
-            for (String name : list) {
-                if (hasAnnotation(anno, name)) {
-                    targets.add(name);
-                }
-            }
-        }
+        URL base = PackageScanner.class.getClassLoader().getResource("");
+        Set<String> targets = scanDirectory(roots, anno, base);
         if (scanJar) {
             targets.addAll(scanJarFileByAnnotation(roots, anno));
         }
@@ -65,15 +58,8 @@ public class PackageScanner implements Serializable {
      */
     public static Set<String> filterByInterface(String[] roots,
                                                 Class<?> interfaceClz, boolean scanJar) {
-        HashSet<String> targets = new HashSet<>();
-        for (String root : roots) {
-            List<String> list = scanPackageClasses(root);
-            for (String name : list) {
-                if (isTargetClass(interfaceClz, name)) {
-                    targets.add(name);
-                }
-            }
-        }
+        URL base = PackageScanner.class.getClassLoader().getResource("");
+        Set<String> targets = scanDirectory(roots, base, interfaceClz);
         if (scanJar) {
             targets.addAll(scanJarFileByInterface(roots, interfaceClz));
         }
@@ -92,14 +78,15 @@ public class PackageScanner implements Serializable {
         return false;
     }
 
+
     /**
      * 扫描包下所有class文件
-     *
+     * @param rootPath  包路径
+     * @param base      class文件路径
      * @return
      */
-    private static List<String> scanPackageClasses(String rootPath) {
+    private static List<String> scanPackageClasses(String rootPath, URL base) {
         List<String> files = new ArrayList<>();
-        URL base = PackageScanner.class.getClassLoader().getResource("");
         files.addAll(scanURI(rootPath.trim(), base));
         if (base.getPath().contains("test-classes")) {
             try {
@@ -200,6 +187,11 @@ public class PackageScanner implements Serializable {
             jars.addAll(getLibJarFiles());
             for (String jar : jars) {
                 if (!jar.endsWith("jar")) {
+                    if (new File(jar).isDirectory()) {
+                        URL base = new URL(new File(jar).toURI().toString());
+                        logger.info("scan directory [" + jar + "] for interface");
+                        files.addAll(scanDirectory(roots, base, interfaceClz));
+                    }
                     continue;
                 }
                 files.addAll(scanJarFile4Interfaces(roots, interfaceClz, jar));
@@ -286,12 +278,50 @@ public class PackageScanner implements Serializable {
             jars.addAll(getLibJarFiles());
             for (String jar : jars) {
                 if (!jar.endsWith("jar")) {
+                    if (new File(jar).isDirectory()) {
+                        URL base = new URL(new File(jar).toURI().toString());
+                        logger.info("scan directory " + jar);
+                        files.addAll(scanDirectory(roots, anno, base));
+                    }
                     continue;
                 }
                 files.addAll(scanJars4Annotation(roots, anno, jar));
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+        }
+        return files;
+    }
+
+    private static Set<String> scanDirectory(String[] roots, Class<? extends Annotation> anno, URL base) {
+        Set<String> files = new HashSet<>();
+        for (String root : roots) {
+            List<String> classes = scanPackageClasses(root, base);
+            for (String name : classes) {
+                if (hasAnnotation(anno, name)) {
+                    files.add(name);
+                }
+            }
+        }
+        return files;
+    }
+
+    /**
+     * 扫描包下的接口
+     * @param roots
+     * @param base
+     * @param interfaceClz
+     * @return
+     */
+    private static Set<String> scanDirectory(String[] roots, URL base, Class<?> interfaceClz) {
+        Set<String> files = new HashSet<>();
+        for (String root : roots) {
+            List<String> classes = scanPackageClasses(root, base);
+            for (String name : classes) {
+                if (isTargetClass(interfaceClz, name)) {
+                    files.add(name);
+                }
+            }
         }
         return files;
     }
