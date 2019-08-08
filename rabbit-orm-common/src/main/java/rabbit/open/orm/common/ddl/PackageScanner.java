@@ -383,7 +383,11 @@ public class PackageScanner implements Serializable {
         return false;
     }
 
-    private static List<String> getClassPathJars() {
+    /**
+     * 扫描项目的依赖包 即java.class.path的值
+     * @return
+     */
+    public static List<String> getClassPathJars() {
         String jars = System.getProperty("java.class.path");
         ArrayList<String> list = new ArrayList<>();
         if (null == jars || "".equals(jars.trim())) {

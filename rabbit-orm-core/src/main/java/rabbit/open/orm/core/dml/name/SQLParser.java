@@ -2,6 +2,7 @@ package rabbit.open.orm.core.dml.name;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -20,10 +21,7 @@ import org.dom4j.io.SAXReader;
 import org.xml.sax.SAXException;
 
 import rabbit.open.orm.common.ddl.PackageScanner;
-import rabbit.open.orm.common.exception.MappingFileParsingException;
-import rabbit.open.orm.common.exception.NoNamedSQLDefinedException;
-import rabbit.open.orm.common.exception.UnExistedNamedSQLException;
-import rabbit.open.orm.common.exception.WrongMappingFilePathException;
+import rabbit.open.orm.common.exception.*;
 import rabbit.open.orm.core.dml.SessionFactory;
 
 public class SQLParser {
@@ -210,14 +208,19 @@ public class SQLParser {
 	 * 
 	 */
 	private List<String> readFiles() {
-		URL url = getClass().getClassLoader().getResource(sqlPath);
-        if (null == url) {
-			throw new WrongMappingFilePathException("mapping file path[" + sqlPath + "] is not found!");
-		}
+		List<String> classPathJars = PackageScanner.getClassPathJars();
 		List<String> xmls = new ArrayList<>();
-		xmls.addAll(scanMappingPath(url.getPath()));
-		if (url.getPath().contains("/test-classes")) {
-		    xmls.addAll(scanMappingPath(url.getPath().replace("test-classes", "classes")));
+		for (String jar : classPathJars) {
+			if (!jar.endsWith("jar") && new File(jar).isDirectory()) {
+				URL url = null;
+				try {
+					url = new URL(new File(jar).toURI().toString() + sqlPath);
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+					continue;
+				}
+				xmls.addAll(scanMappingPath(url.getPath()));
+			}
 		}
 		return xmls;
 	}
@@ -225,6 +228,9 @@ public class SQLParser {
 	private List<String> scanMappingPath(String url) {
 	    List<String> xmls = new ArrayList<>();
 		File path = new File(url);
+		if (!path.exists()) {
+			return xmls;
+		}
         if (!path.isDirectory()) {
 			logger.warn("mapping file path[" + sqlPath + "] is not a directory!");
 			if (url.contains(".war!") || url.contains(".jar!")) {
