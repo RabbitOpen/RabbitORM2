@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
-    "http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd"> 
+<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN"
+        "http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd">
 
 <rabbit-mapping entity="rabbit.open.test.entity.User">
     <!-- 根据用户名查询用户 -->
@@ -8,10 +8,10 @@
         <join-fetch entity="rabbit.open.test.entity.Role" alias="R"  join-table-alias="" />
         <join-fetch entity="rabbit.open.test.entity.Car" alias="C"  join-table-alias="" />
         <fetch entity="rabbit.open.test.entity.Organization" alias="O">
-           <fetch entity="rabbit.open.test.entity.Zone" alias="Z"/>
-           <join-fetch entity="rabbit.open.test.entity.Property" alias="P"  join-table-alias="" />
+            <fetch entity="rabbit.open.test.entity.Zone" alias="Z"/>
+            <join-fetch entity="rabbit.open.test.entity.Property" alias="P"  join-table-alias="" />
         </fetch>
-        
+
         <![CDATA[
             SELECT 
                 #{FILEDS}
@@ -79,50 +79,50 @@
                 U.ID = ${userId}  
         ]]>
     </select>
-    
+
     <!-- jdbc操作 -->
     <jdbc name="misMatchedNamedQueryExceptionTest">
         SELECT
-            COUNT(1)
-        FROM T_USER 
+        COUNT(1)
+        FROM T_USER
     </jdbc>
 
     <!-- jdbc操作 -->
     <jdbc name="countUser">
         SELECT
-            COUNT(1)
-        FROM T_USER 
+        COUNT(1)
+        FROM T_USER
     </jdbc>
     <jdbc name="countUser4Exception">
         SELECT
-            COUNT(abc)
-        FROM T_USER 
+        COUNT(abc)
+        FROM T_USER
     </jdbc>
-    
+
     <!-- 命名删除 -->
     <delete name="namedDelete">
-    	DELETE FROM T_USER WHERE ID = ${userId}
+        DELETE FROM T_USER WHERE ID = ${userId}
     </delete>
-    
+
     <!-- 命名更新 -->
     <update name="namedUpdate">
-    	UPDATE T_USER
-			SET T_USER.NAME = ${name}
-			WHERE
-				T_USER.ID IN (
-					SELECT
-						*
-					FROM
-						(
-							SELECT
-								T_USER.ID
-							FROM
-								T_USER
-							INNER JOIN T_ORG T_ORG ON T_USER.ORG_ID = T_ORG.ID
-							WHERE
-								T_USER.ID = ${userId}
-						) t
-				)
+        UPDATE T_USER
+        SET T_USER.NAME = ${name}
+        WHERE
+        T_USER.ID IN (
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        T_USER.ID
+        FROM
+        T_USER
+        INNER JOIN T_ORG T_ORG ON T_USER.ORG_ID = T_ORG.ID
+        WHERE
+        T_USER.ID = ${userId}
+        ) t
+        )
     </update>
-    
+
 </rabbit-mapping>   
