@@ -55,14 +55,6 @@ public class Session extends AbstractConnection {
 	public Session() {
 	}
 	
-	public static Throwable getRootCause(Exception e) {
-        Throwable cause = e;
-        while(null != cause.getCause()) {
-            cause = cause.getCause();
-        }
-        return cause;
-    }
-
 	public static boolean hasSQLException() {
 		return null != sqlExceptionContext.get();
 	}

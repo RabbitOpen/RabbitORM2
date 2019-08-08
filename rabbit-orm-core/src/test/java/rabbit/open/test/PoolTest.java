@@ -6,16 +6,14 @@ import java.util.Date;
 
 import javax.sql.DataSource;
 
-import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import junit.framework.TestCase;
 import rabbit.open.orm.datasource.RabbitDataSource;
-import rabbit.open.orm.datasource.Session;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.service.UserService;
 
@@ -51,9 +49,18 @@ public class PoolTest {
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertTrue(SQLException.class
-                    .isAssignableFrom(Session.getRootCause(e).getClass()));
+                    .isAssignableFrom(getRootCause(e).getClass()));
             TestCase.assertEquals(rds.getCounter(), counter - 1);
         }
 
     }
+    
+    public static Throwable getRootCause(Exception e) {
+        Throwable cause = e;
+        while(null != cause.getCause()) {
+            cause = cause.getCause();
+        }
+        return cause;
+    }
+
 }

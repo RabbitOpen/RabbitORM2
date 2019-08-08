@@ -4,16 +4,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import junit.framework.TestCase;
 import rabbit.open.orm.core.dml.SQLCallBack;
-import rabbit.open.orm.datasource.Session;
 import rabbit.open.test.service.UserService;
 
 /**
@@ -81,7 +79,7 @@ public class SQLQueryTest {
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertTrue(SQLException.class
-                    .isAssignableFrom(Session.getRootCause(e).getClass()));
+                    .isAssignableFrom(PoolTest.getRootCause(e).getClass()));
         }
     }
 

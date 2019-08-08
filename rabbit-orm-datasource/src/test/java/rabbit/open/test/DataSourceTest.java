@@ -1,17 +1,21 @@
 package rabbit.open.test;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
-import junit.framework.TestCase;
-import rabbit.open.orm.datasource.RabbitDataSource;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import com.mysql.jdbc.Statement;
+
+import junit.framework.TestCase;
+import rabbit.open.orm.datasource.RabbitDataSource;
 
 /**
  * <b>Description: 数据源测试</b><br>
@@ -34,6 +38,9 @@ public class DataSourceTest {
         rds.setUrl("jdbc:mysql://localhost:3306/cas?useUnicode=true&characterEncoding=UTF-8&useServerPrepStmts=true");
         rds.setUsername("root");
         rds.setPassword("123");
+        rds.setShowSlowSql(true);
+        rds.setThreshold(1);
+        rds.setFetchTimeOut(100);
         rds.init();
     }
 
@@ -73,8 +80,15 @@ public class DataSourceTest {
     }
 
     @Test
-    public void restartTest() {
+    public void restartTest() throws SQLException {
         rds.restart();
+        Connection connection = rds.getConnection();
+        connection.getMetaData();
+        connection.setReadOnly(true);
+        TestCase.assertEquals(true, connection.isReadOnly());
+        connection.setTransactionIsolation(connection.getTransactionIsolation());
+        TestCase.assertEquals(false, connection.isClosed());
+        connection.close();
         rds.shutdown();
         TestCase.assertEquals(0, rds.getConnectors().size());
     }
@@ -89,5 +103,58 @@ public class DataSourceTest {
     	rds.shutdown();
     	TestCase.assertEquals(0, rds.getConnectors().size());
     }
+    
+    @Test
+    public void testPreparedStatement() throws SQLException {
+    	Connection conn = rds.getConnection();
+    	conn.setAutoCommit(true);
+    	PreparedStatement stmt = conn.prepareStatement("insert into morg(NAME) values (?)", Statement.RETURN_GENERATED_KEYS);
+    	stmt.setString(1, "abc");
+    	stmt.executeUpdate();
+    	//无效的rollback
+    	conn.rollback();
+        ResultSet rs = stmt.getGeneratedKeys();
+        int id = 0;
+        if (rs.next()) {
+        	id = rs.getBigDecimal(1).intValue();
+        }
+        TestCase.assertEquals(true, 0 != id);
+    	conn.close();
+    	rds.shutdown();
+    	
+    }
+
+    @Test
+    public void testTransaction() throws SQLException {
+    	Connection conn = rds.getConnection();
+    	int count = getcount(conn);
+    	conn.setAutoCommit(false);
+    	conn.setAutoCommit(false);
+    	TestCase.assertEquals(false, conn.getAutoCommit());
+    	java.sql.Statement stmt = conn.createStatement();
+    	stmt.execute("insert into morg(NAME) values ('abcd')");
+    	conn.commit();
+    	stmt.close();
+    	TestCase.assertEquals(count + 1, getcount(conn));
+    	
+    	stmt = conn.createStatement();
+    	stmt.execute("insert into morg(NAME) values ('abcd')");
+    	conn.rollback();
+    	
+    	TestCase.assertEquals(count + 1, getcount(conn));
+    	conn.close();
+    	rds.shutdown();
+    	
+    }
+
+	protected int getcount(Connection conn) throws SQLException {
+		java.sql.Statement stmt = conn.createStatement();
+    	ResultSet rs = stmt.executeQuery("select count(1) from morg");
+    	rs.next();
+    	int count = rs.getInt(1);
+    	rs.close();
+    	stmt.close();
+    	return count;
+	}
 
 }
