@@ -17,7 +17,6 @@ import rabbit.open.orm.core.dml.NamedDelete;
 import rabbit.open.orm.core.dml.NamedQuery;
 import rabbit.open.orm.core.dml.NamedUpdate;
 import rabbit.open.orm.core.dml.Query;
-import rabbit.open.orm.core.dml.SQLCallBack;
 import rabbit.open.orm.core.dml.SQLQuery;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.Update;
@@ -151,12 +150,11 @@ public abstract class SpringDaoAdapter<T> {
 	 * 
 	 * <b>Description:	创建一个sql查询</b><br>
 	 * @param queryName
-	 * @param callBack
 	 * @return	
 	 * 
 	 */
-	public <D> SQLQuery<D> createSQLQuery(String queryName, SQLCallBack<D> callBack){
-		return new SQLQuery<>(sessionFactory, queryName, clz, callBack);
+	public SQLQuery<T> createSQLQuery(String queryName) {
+		return new SQLQuery<>(sessionFactory, clz, queryName);
 	}
 
 	/**

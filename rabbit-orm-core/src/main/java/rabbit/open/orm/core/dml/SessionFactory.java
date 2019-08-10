@@ -17,6 +17,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import rabbit.open.orm.common.annotation.Column;
+import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.ddl.DDLType;
 import rabbit.open.orm.common.dialect.DialectType;
 import rabbit.open.orm.common.dml.DMLType;
@@ -26,8 +27,9 @@ import rabbit.open.orm.core.dialect.dml.DeleteDialectAdapter;
 import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
 import rabbit.open.orm.core.dml.name.NamedSQL;
-import rabbit.open.orm.core.dml.name.XmlMapperParser;
 import rabbit.open.orm.core.spring.TransactionObject;
+import rabbit.open.orm.core.utils.PackageScanner;
+import rabbit.open.orm.core.utils.XmlMapperParser;
 
 public class SessionFactory {
 
@@ -75,6 +77,9 @@ public class SessionFactory {
     private Set<DataSource> sources = new HashSet<>();
     
     private XmlMapperParser sqlParser;
+    
+    // 实体类的包名路径
+    private HashSet<String> entities;
     
     public Connection getConnection() throws SQLException {
         return getConnection(null, null, null);
@@ -405,12 +410,12 @@ public class SessionFactory {
         DialectTransformer.init();
         DeleteDialectAdapter.init();
         PolicyInsert.init();
-        DDLHelper.checkMapping(this, getPackages2Scan());
+        DDLHelper.checkMapping(this);
         DDLHelper.init();
         cacheDefaultIsolationLevel();
         //组合数据源不支持ddl
         if (null == combinedDataSource) {
-            DDLHelper.executeDDL(this, getPackages2Scan());
+            DDLHelper.executeDDL(this);
         }
         if (!isEmpty(mappingFiles)) {
             sqlParser = new XmlMapperParser(mappingFiles);
@@ -548,5 +553,18 @@ public class SessionFactory {
 	
 	public Map<DataSource, Integer> getDefaultIsolationLevelHolder() {
 		return defaultIsolationLevelHolder;
+	}
+	
+	/**
+	 * <b>@description 获取映射的实体类 </b>
+	 * @return
+	 */
+	public HashSet<String> getEntities() {
+		if (null == entities) {
+			entities = new HashSet<>();
+			entities.addAll(PackageScanner.filterByAnnotation(getPackages2Scan().split(","), 
+					Entity.class, isScanJar()));
+		}
+		return entities;
 	}
 }

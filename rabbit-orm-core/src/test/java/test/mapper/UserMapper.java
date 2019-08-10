@@ -1,5 +1,7 @@
 package test.mapper;
 
+import java.util.List;
+
 import rabbit.open.orm.common.annotation.FieldMapper;
 import rabbit.open.orm.common.annotation.Mapper;
 import rabbit.open.orm.common.annotation.SQLMapper;
@@ -26,5 +28,11 @@ public interface UserMapper {
 	 */
 	public long updateNameById(@FieldMapper("userId")long userId, @FieldMapper("name")String name);
 	
+	public MappingUser getUserByJdbc(@FieldMapper("userId")long userId);
+
+	@SQLMapper("getUserByJdbc")
+	public List<MappingUser> getUserByJdbcs(@FieldMapper("userId")long userId);
+
+	// update 、add、delete 测试
 	
 }

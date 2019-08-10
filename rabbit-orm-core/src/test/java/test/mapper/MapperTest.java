@@ -1,5 +1,7 @@
 package test.mapper;
 
+import java.util.List;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +43,20 @@ public class MapperTest {
 		userMapper.updateNameById(u.getId(), newName);
 		TestCase.assertEquals(us.getByID(u.getId()).getName(), newName);
 		
+		
+		MappingUser userByJdbc = userMapper.getUserByJdbc(u.getId());
+		TestCase.assertEquals(userByJdbc.getName(), newName);
+		TestCase.assertEquals(userByJdbc.getUsername(), newName);
+		
+		List<MappingUser> users = userMapper.getUserByJdbcs(u.getId());
+		TestCase.assertEquals(1, users.size());
+		TestCase.assertEquals(users.get(0).getName(), newName);
+		TestCase.assertEquals(users.get(0).getUsername(), newName);
+
+		
 		//删除
 		userMapper.namedDelete(u.getId());
 		TestCase.assertNull(us.getByID(u.getId()));
 	}
+	
 }

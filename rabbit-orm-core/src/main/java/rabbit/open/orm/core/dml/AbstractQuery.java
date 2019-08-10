@@ -1567,15 +1567,15 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	    return execute().unique();
 	}
 	
-    private void closeResultSet(ResultSet rs){
+	private void closeResultSet(ResultSet rs) {
 		if (null != rs) {
-            try {
-                rs.close();
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-    }
+			try {
+				rs.close();
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+	}
 	
     protected void createCountSql() {
         reset2PreparedStatus();

@@ -1,68 +1,271 @@
 package rabbit.open.orm.core.dml;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.common.exception.UnKnownFieldException;
+import rabbit.open.orm.common.shard.ShardFactor;
+import rabbit.open.orm.core.dml.filter.PreparedValue;
+import rabbit.open.orm.core.dml.meta.FieldMetaData;
+import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.name.NamedSQL;
-import rabbit.open.orm.core.utils.SQLFormater;
 import rabbit.open.orm.datasource.Session;
 
 /**
- * <b>@description 原生sql查询 </b>
+ * 
+ * jdbc命名sql是原生sql，查询出来的数据通过字段名和对象属性进行匹配 
+ * <b>@description jdbc命名sql查询对象 </b>
  * @param <T>
  */
-public class SQLQuery<T> {
+public class SQLQuery<T> extends DMLAdapter<T> {
 
-    Logger logger = Logger.getLogger(getClass());
-    
-	private SessionFactory sessionFactory;
-	
-	private NamedSQL query;
-	
-	private Class<?> clz;
-	
-	private SQLCallBack<T> callBack;
-	
-	public SQLQuery(SessionFactory sessionFactory, String queryName, Class<?> clz, SQLCallBack<T> callBack) {
-		super();
+	Logger logger = Logger.getLogger(getClass());
+
+	protected SessionFactory sessionFactory;
+
+	protected NamedSQL namedObject;
+
+	// 当前查询涉及的表名
+	private String tableName;
+
+	private DMLType dmlType;
+
+	private SQLOperation sqlOperation;
+
+	protected NamedSQL nameObject;
+
+	private TreeMap<Integer, PreparedValue> fieldsValues = new TreeMap<>();
+
+	/**
+	 * @param sessionFactory
+	 * @param clz			 需要返回的对象
+	 * @param queryName
+	 */
+	public SQLQuery(SessionFactory sessionFactory, Class<T> clz, String queryName) {
+		super(sessionFactory, clz);
 		this.sessionFactory = sessionFactory;
-		query = sessionFactory.getQueryByNameAndClass(queryName, clz);
-		this.clz = clz;
-		this.callBack = callBack;
+		this.namedObject = sessionFactory.getQueryByNameAndClass(queryName, clz);
 	}
 
 	/**
+	 * <b>@description 设置当前查询的表名， 在选择数据源的时候会将该表名传递给数据源 </b>
 	 * 
-	 * <b>Description:	执行原生sql语句</b><br>
+	 * @param tableName
 	 * @return
-	 * 
 	 */
-	public T execute() {
+	public SQLQuery<T> setTableName(String tableName) {
+		this.tableName = tableName;
+		return this;
+	}
+
+	private Object execute() {
+		sql = new StringBuilder(namedObject.getSql());
 		Connection conn = null;
-		PreparedStatement stmt = null;
 		try {
-			conn = sessionFactory.getConnection(clz, null, DMLType.SELECT);
-			showSQL(query.getSql());
-			stmt = conn.prepareStatement(query.getSql());
-            return callBack.execute(stmt);
+			conn = sessionFactory.getConnection(getEntityClz(), tableName, dmlType);
+			return sqlOperation.executeSQL(conn);
+		} catch (UnKnownFieldException e) {
+			throw e;
 		} catch (Exception e) {
-		    Session.flagException();
+			showUnMaskedSql(false);
+			Session.flagException();
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
-		    DMLAdapter.closeStmt(stmt);
-		    DMLAdapter.closeConnection(conn);
-		    Session.clearException();
-		}
-	}
-	
-	public void showSQL(String sql) {
-		if (sessionFactory.isShowSql()) {
-			logger.info("\n" + (sessionFactory.isFormatSql() ? SQLFormater.format(sql) : sql));
+			closeConnection(conn);
+			Session.clearException();
 		}
 	}
 
+	/**
+	 * <b>@description 准备预编译sql的值 </b>
+	 */
+	protected void setPreparedValues() {
+		for (PreparedValue v : fieldsValues.values()) {
+			preparedValues.add(v);
+		}
+	}
+
+	/**
+	 * <b>@description 给变量设值</b>
+	 * 
+	 * @param fieldAlias 变量别名
+	 * @param value      变量的值
+	 * @return
+	 */
+	public SQLQuery<T> set(String fieldAlias, Object value) {
+		List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
+		for (int index : indexes) {
+			fieldsValues.put(index, new PreparedValue(value));
+		}
+		return this;
+	}
+
+	/**
+	 * <b>@description 读一行数据 </b>
+	 * @return
+	 */
+	public T unique() {
+		List<T> list = list();
+		return list.isEmpty() ? null : list.get(0);
+	}
+
+	/**
+	 * <b>@description 查询列表 </b>
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<T> list() {
+		this.dmlType = DMLType.SELECT;
+		sqlOperation = createQueryOperation();
+		return (List<T>)execute();
+	}
+
+	/**
+	 * <b>@description 读取结果集 </b>
+	 * @param rs
+	 * @throws SQLException
+	 */
+	private List<T> readResults(ResultSet rs) throws SQLException {
+		List<T> list = new ArrayList<>();
+		while (rs.next()) {
+			T targetObj = DMLAdapter.newInstance(getEntityClz());
+			for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+				Object colValue = rs.getObject(i);
+				if (sessionFactory.getDialectType().isOracle() && colValue instanceof Date) {
+					colValue = rs.getTimestamp(i);
+				}
+				// 列名和对象字段名一致
+				String colName = rs.getMetaData().getColumnLabel(i);
+				FieldMetaData fmd = null;
+				Field field = null;
+				try {
+					fmd = MetaData.getCachedFieldsMeta(getEntityClz(), colName);
+					field = fmd.getField();
+				} catch (UnKnownFieldException e) {
+					try {
+						field = getEntityClz().getDeclaredField(colName);
+					} catch (NoSuchFieldException nfe) {
+						continue;
+					}
+				}
+				colValue = sessionFactory.onValueGot(colValue, field);
+				DialectTransformer.getTransformer(sessionFactory.getDialectType()).setValue2EntityField(targetObj,
+						field, colValue);
+			}
+			list.add(targetObj);
+		}
+		return list;
+	}
+
+	/**
+	 * <b>@description 执行update操作 </b>
+	 * @return
+	 */
+	public Long update() {
+		this.dmlType = DMLType.UPDATE;
+		sqlOperation = createNonQueryOperation();
+		return (Long) execute();
+	}
+
+	/**
+	 * <b>@description 执行删除操作 </b>
+	 * @return
+	 */
+	public Long delete() {
+		this.dmlType = DMLType.DELETE;
+		sqlOperation = createNonQueryOperation();
+		return (Long) execute();
+	}
+
+	/**
+	 * <b>@description 执行insert操作 </b>
+	 * @return
+	 */
+	public Long add() {
+		this.dmlType = DMLType.INSERT;
+		sqlOperation = createNonQueryOperation();
+		return (Long) execute();
+	}
+
+	/**
+	 * <b>@description 创建非查询操作 </b>
+	 * @return
+	 */
+	private SQLOperation createNonQueryOperation() {
+		return new SQLOperation() {
+			@Override
+			public Object executeSQL(Connection conn) throws SQLException {
+				PreparedStatement stmt = null;
+				try {
+					setPreparedValues();
+					sql = new StringBuilder(namedObject.getSql());
+					stmt = conn.prepareStatement(sql.toString());
+					setPreparedStatementValue(stmt, dmlType);
+					showSql();
+					return stmt.executeUpdate();
+				} finally {
+					closeStmt(stmt);
+				}
+			}
+		};
+	}
+	
+	/**
+	 * <b>@description 创建查询操作  </b>
+	 * @return
+	 */
+	private SQLOperation createQueryOperation() {
+		return new SQLOperation() {
+			@Override
+			public Object executeSQL(Connection conn) throws SQLException {
+				PreparedStatement stmt = null;
+				try {
+					setPreparedValues();
+					sql = new StringBuilder(namedObject.getSql());
+					stmt = conn.prepareStatement(sql.toString());
+					setPreparedStatementValue(stmt, dmlType);
+					showSql();
+					ResultSet rs = stmt.executeQuery();
+					List<T> list = readResults(rs);
+					rs.close();
+					return list;
+				} finally {
+					closeStmt(stmt);
+				}
+			}
+		};
+	}
+	
+	@Override
+	protected List<ShardFactor> getFactors() {
+		return factors;
+	}
+
+	@Override
+	protected String getAliasByTableName(String tableName) {
+		return tableName;
+	}
+
+	protected interface SQLOperation {
+
+		/**
+		 * 
+		 * <b>Description: 执行sql操作</b><br>
+		 * @param conn
+		 * @throws Exception
+		 * 
+		 */
+		public Object executeSQL(Connection conn) throws SQLException;
+	}
 }

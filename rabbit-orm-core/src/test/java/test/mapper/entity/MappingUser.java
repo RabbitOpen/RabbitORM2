@@ -15,6 +15,8 @@ public class MappingUser {
     //名字
 	@Column("NAME")
 	private String name;
+	
+	private String username;
 
 	public Long getId() {
 		return id;
@@ -32,5 +34,12 @@ public class MappingUser {
 		this.name = name;
 	}
 	
+	public void setUsername(String username) {
+		this.username = username;
+	}
+	
+	public String getUsername() {
+		return username;
+	}
 	
 }

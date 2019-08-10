@@ -5,16 +5,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import junit.framework.TestCase;
 import rabbit.open.orm.common.exception.EmptyAliasException;
-import rabbit.open.orm.common.exception.MisMatchedNamedQueryException;
 import rabbit.open.orm.common.exception.NoNamedSQLDefinedException;
 import rabbit.open.orm.common.exception.RepeatedAliasException;
 import rabbit.open.orm.common.exception.UnExistedNamedSQLException;
@@ -156,18 +154,6 @@ public class NamedQueryTest {
                 .count();
         // 角色个数 * 车辆个数 * 属性个数【 笛卡尔积】
         TestCase.assertEquals(2 * 3 * 2, count);
-    }
-
-    @Test
-    public void misMatchedNamedQueryExceptionTest() {
-        try {
-            us.createNamedQuery("misMatchedNamedQueryExceptionTest").execute()
-                    .unique();
-            throw new RuntimeException();
-        } catch (Exception e) {
-            TestCase.assertEquals(e.getClass(),
-                    MisMatchedNamedQueryException.class);
-        }
     }
 
     @Test

@@ -135,14 +135,14 @@ public abstract class DMLAdapter<T> {
 	 * <b>Description:	打印sql</b><br>	
 	 * 
 	 */
-	public void showSql(){
-	    if(null == sql || 0 == sql.length() || !sessionFactory.isShowSql()){
-            return;
-        }
-		if(sessionFactory.isMaskPreparedSql()){
-		    showMaskedPreparedSql();
-		}else{
-		    showUnMaskedSql();
+	public void showSql() {
+		if (null == sql || 0 == sql.length() || !sessionFactory.isShowSql()) {
+			return;
+		}
+		if (sessionFactory.isMaskPreparedSql()) {
+			showMaskedPreparedSql();
+		} else {
+			showUnMaskedSql();
 		}
 	}
 

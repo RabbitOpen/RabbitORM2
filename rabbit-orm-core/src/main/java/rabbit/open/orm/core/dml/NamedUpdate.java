@@ -27,7 +27,7 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 		super(fatory, clz);
 		setDmlType(dmlType);
 		this.sessionFactory = fatory;
-		nameObject = (NamedSQL) sessionFactory.getQueryByNameAndClass(name, clz);
+		nameObject = sessionFactory.getQueryByNameAndClass(name, clz);
 		fieldsValues = new TreeMap<>();
 		sqlOperation = new SQLOperation() {
 			@Override

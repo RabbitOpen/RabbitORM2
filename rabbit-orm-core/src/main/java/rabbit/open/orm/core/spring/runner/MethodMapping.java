@@ -1,5 +1,6 @@
 package rabbit.open.orm.core.spring.runner;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,10 @@ public class MethodMapping {
 	private String sqlName;
 
 	private List<String> paraNames = new ArrayList<>();
+	
+	private Class<?> returnType;
+	
+	private Type genericalResultType;
 
 	public MethodMapping(String sqlName) {
 		super();
@@ -27,6 +32,22 @@ public class MethodMapping {
 
 	public void addParaName(String name) {
 		paraNames.add(name);
+	}
+
+	public void setReturnType(Class<?> returnType) {
+		this.returnType = returnType;
+	}
+	
+	public Class<?> getReturnType() {
+		return returnType;
+	}
+
+	public Type getGenericalResultType() {
+		return genericalResultType;
+	}
+
+	public void setGenericalResultType(Type genericalResultType) {
+		this.genericalResultType = genericalResultType;
 	}
 
 }

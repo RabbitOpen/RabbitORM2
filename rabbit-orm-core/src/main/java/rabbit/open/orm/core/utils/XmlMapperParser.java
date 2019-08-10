@@ -1,4 +1,4 @@
-package rabbit.open.orm.core.dml.name;
+package rabbit.open.orm.core.utils;
 
 import java.io.File;
 import java.io.InputStream;
@@ -21,7 +21,7 @@ import org.xml.sax.SAXException;
 
 import rabbit.open.orm.common.exception.*;
 import rabbit.open.orm.core.dml.SessionFactory;
-import rabbit.open.orm.core.utils.PackageScanner;
+import rabbit.open.orm.core.dml.name.NamedSQL;
 
 /**
  * <b>@description xml文件解析器 </b>

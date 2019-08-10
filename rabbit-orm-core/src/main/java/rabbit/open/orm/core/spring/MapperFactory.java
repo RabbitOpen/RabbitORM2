@@ -73,12 +73,11 @@ public class MapperFactory<T> implements FactoryBean<T>, InvocationHandler {
 		Method[] methods = interfaceClz.getDeclaredMethods();
 		for (Method m : methods) {
 			String name = m.getName();
-			SQLMapper ann = m.getAnnotation(SQLMapper.class);
-			if (null != ann) {
-				name = ann.value();
+			SQLMapper mapper = m.getAnnotation(SQLMapper.class);
+			if (null != mapper) {
+				name = mapper.value();
 			}
 			MethodMapping mapping = new MethodMapping(name);
-			proxy.cacheMapping(m, mapping);
 			//缓存参数
 			for (Parameter p : m.getParameters()) {
 				FieldMapper fm = p.getAnnotation(FieldMapper.class);
@@ -87,6 +86,9 @@ public class MapperFactory<T> implements FactoryBean<T>, InvocationHandler {
 				}
 				mapping.addParaName(fm.value());
 			}
+			mapping.setReturnType(m.getReturnType());
+			mapping.setGenericalResultType(m.getGenericReturnType());
+			proxy.cacheMapping(m, mapping);
 		}
 	}
 	

@@ -16,6 +16,9 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.dml.SessionFactory;
 
+/**
+ * <b>@description 命名sql对象  </b>
+ */
 public class NamedSQL {
 	
 	protected String sql;

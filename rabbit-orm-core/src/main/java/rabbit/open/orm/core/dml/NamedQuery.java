@@ -9,7 +9,6 @@ import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
-import rabbit.open.orm.common.exception.MisMatchedNamedQueryException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
@@ -50,10 +49,6 @@ public class NamedQuery<T> {
 				generateNameCountSql();
 			}
 		};
-		if (!query.getSessionFactory().getQueryByNameAndClass(name, clz).getClass()
-				.equals(NamedSQL.class)) {
-			throw new MisMatchedNamedQueryException(name);
-		}
 		nameObject = query.getSessionFactory().getQueryByNameAndClass(name, clz);
 		fieldsValues = new TreeMap<>(new Comparator<Integer>() {
 			@Override

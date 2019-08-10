@@ -16,7 +16,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
-
 import org.springframework.util.StringUtils;
 
 import rabbit.open.orm.common.annotation.Column;
@@ -37,7 +36,6 @@ import rabbit.open.orm.core.dml.DMLAdapter;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
-import rabbit.open.orm.core.utils.PackageScanner;
 import rabbit.open.orm.core.utils.SQLFormater;
 
 /**
@@ -78,11 +76,10 @@ public abstract class DDLHelper {
 
     /**
      * @description 检查包和类的映射关系
-     * @param basePackages
+     * @param factory
      */
-    public static void checkMapping(SessionFactory factory, String basePackages) {
-    	HashSet<String> entities = (HashSet<String>) PackageScanner
-                .filterByAnnotation(basePackages.split(","), Entity.class, factory.isScanJar());
+    public static void checkMapping(SessionFactory factory) {
+    	HashSet<String> entities = factory.getEntities();
     	Map<String, Class<?>> map = new HashMap<>();
     	for (String clzName : entities) {
     		try {
@@ -220,10 +217,9 @@ public abstract class DDLHelper {
      * <b>Description: 执行dll</b><br>
      * 
      * @param factory
-     * @param basePackages
      * 
      */
-    public static void executeDDL(SessionFactory factory, String basePackages) {
+    public static void executeDDL(SessionFactory factory) {
         if (!requireDDL(factory)) {
             return;
         }
@@ -235,9 +231,9 @@ public abstract class DDLHelper {
             logger.info("DDLType[" + factory.getDialectType().name() + "]: "
                     + factory.getDdl().toUpperCase());
             if (DDLType.CREATE.name().equalsIgnoreCase(factory.getDdl())) {
-                doCreate(factory, ddlHelper, basePackages);
+                doCreate(factory, ddlHelper);
             } else {
-                doUpdate(factory, ddlHelper, basePackages);
+                doUpdate(factory, ddlHelper);
             }
         } catch (Exception e) {
             throw new RabbitDDLException(e);
@@ -279,32 +275,22 @@ public abstract class DDLHelper {
     }
 
     /**
-     * 
-     * <b>Description: 执行重建表行为</b><br>
-     * 
+     * <b>@description 执行重建表行为 </b>
+     * @param factory
      * @param helper
-     * @param packages
-     * 
      */
-    private static void doCreate(SessionFactory factory, DDLHelper helper, String packages) {
-        HashSet<String> entities = (HashSet<String>) PackageScanner
-                .filterByAnnotation(packages.split(","), Entity.class, factory.isScanJar());
-        helper.dropTables(entities);
-        helper.createTables(entities);
+    private static void doCreate(SessionFactory factory, DDLHelper helper) {
+        helper.dropTables(factory.getEntities());
+        helper.createTables(factory.getEntities());
     }
 
     /**
-     * 
-     * <b>Description: 执行更新表行为</b><br>
-     * 
+     * <b>@description  执行更新表行为</b>
+     * @param factory
      * @param helper
-     * @param packages
-     * 
      */
-    private static void doUpdate(SessionFactory factory, DDLHelper helper, String packages) {
-        HashSet<String> entities = (HashSet<String>) PackageScanner
-                .filterByAnnotation(packages.split(","), Entity.class, factory.isScanJar());
-        helper.updateTables(entities);
+    private static void doUpdate(SessionFactory factory, DDLHelper helper) {
+        helper.updateTables(factory.getEntities());
     }
 
     private static boolean requireDDL(SessionFactory factory) {
