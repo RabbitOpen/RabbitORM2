@@ -10,8 +10,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.log4j.Logger;
-
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
@@ -30,9 +28,6 @@ import rabbit.open.orm.datasource.Session;
  */
 public class SQLQuery<T> extends DMLAdapter<T> {
 
-	Logger logger = Logger.getLogger(getClass());
-
-	protected SessionFactory sessionFactory;
 
 	protected NamedSQL namedObject;
 
@@ -41,7 +36,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 
 	private DMLType dmlType;
 
-	private SQLOperation sqlOperation;
+	private SQLOperation sqlOpr;
 
 	protected NamedSQL nameObject;
 
@@ -74,7 +69,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 		Connection conn = null;
 		try {
 			conn = sessionFactory.getConnection(getEntityClz(), tableName, dmlType);
-			return sqlOperation.executeSQL(conn);
+			return sqlOpr.executeSQL(conn);
 		} catch (UnKnownFieldException e) {
 			throw e;
 		} catch (Exception e) {
@@ -127,7 +122,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 	@SuppressWarnings("unchecked")
 	public List<T> list() {
 		this.dmlType = DMLType.SELECT;
-		sqlOperation = createQueryOperation();
+		sqlOpr = createQueryOperation();
 		return (List<T>)execute();
 	}
 
@@ -174,7 +169,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 	 */
 	public Long update() {
 		this.dmlType = DMLType.UPDATE;
-		sqlOperation = createNonQueryOperation();
+		sqlOpr = createNonQueryOperation();
 		return (Long) execute();
 	}
 
@@ -184,7 +179,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 	 */
 	public Long delete() {
 		this.dmlType = DMLType.DELETE;
-		sqlOperation = createNonQueryOperation();
+		sqlOpr = createNonQueryOperation();
 		return (Long) execute();
 	}
 
@@ -194,10 +189,18 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 	 */
 	public Long add() {
 		this.dmlType = DMLType.INSERT;
-		sqlOperation = createNonQueryOperation();
+		sqlOpr = createNonQueryOperation();
 		return (Long) execute();
 	}
 
+	private PreparedStatement prepareStatement(Connection conn) throws SQLException {
+		sql = new StringBuilder(namedObject.getSql());
+		PreparedStatement stmt = conn.prepareStatement(sql.toString());
+		setPreparedStatementValue(stmt, dmlType);
+		showSql();
+		return stmt;
+	}
+	
 	/**
 	 * <b>@description 创建非查询操作 </b>
 	 * @return
@@ -209,15 +212,13 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 				PreparedStatement stmt = null;
 				try {
 					setPreparedValues();
-					sql = new StringBuilder(namedObject.getSql());
-					stmt = conn.prepareStatement(sql.toString());
-					setPreparedStatementValue(stmt, dmlType);
-					showSql();
+					stmt = prepareStatement(conn);
 					return stmt.executeUpdate();
 				} finally {
 					closeStmt(stmt);
 				}
 			}
+			
 		};
 	}
 	
@@ -232,10 +233,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 				PreparedStatement stmt = null;
 				try {
 					setPreparedValues();
-					sql = new StringBuilder(namedObject.getSql());
-					stmt = conn.prepareStatement(sql.toString());
-					setPreparedStatementValue(stmt, dmlType);
-					showSql();
+					stmt = prepareStatement(conn);
 					ResultSet rs = stmt.executeQuery();
 					List<T> list = readResults(rs);
 					rs.close();
@@ -246,6 +244,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 			}
 		};
 	}
+	
 	
 	@Override
 	protected List<ShardFactor> getFactors() {

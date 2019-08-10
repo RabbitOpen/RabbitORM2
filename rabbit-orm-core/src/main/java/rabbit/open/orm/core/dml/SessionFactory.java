@@ -79,7 +79,7 @@ public class SessionFactory {
     private XmlMapperParser sqlParser;
     
     // 实体类的包名路径
-    private HashSet<String> entities;
+    private Set<String> entities;
     
     public Connection getConnection() throws SQLException {
         return getConnection(null, null, null);
@@ -559,11 +559,10 @@ public class SessionFactory {
 	 * <b>@description 获取映射的实体类 </b>
 	 * @return
 	 */
-	public HashSet<String> getEntities() {
+	public Set<String> getEntities() {
 		if (null == entities) {
-			entities = new HashSet<>();
-			entities.addAll(PackageScanner.filterByAnnotation(getPackages2Scan().split(","), 
-					Entity.class, isScanJar()));
+			entities = PackageScanner.filterByAnnotation(getPackages2Scan().split(","), 
+					Entity.class, isScanJar());
 		}
 		return entities;
 	}

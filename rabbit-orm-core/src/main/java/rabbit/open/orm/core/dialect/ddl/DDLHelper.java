@@ -79,7 +79,7 @@ public abstract class DDLHelper {
      * @param factory
      */
     public static void checkMapping(SessionFactory factory) {
-    	HashSet<String> entities = factory.getEntities();
+    	HashSet<String> entities = (HashSet<String>) factory.getEntities();
     	Map<String, Class<?>> map = new HashMap<>();
     	for (String clzName : entities) {
     		try {
@@ -280,8 +280,8 @@ public abstract class DDLHelper {
      * @param helper
      */
     private static void doCreate(SessionFactory factory, DDLHelper helper) {
-        helper.dropTables(factory.getEntities());
-        helper.createTables(factory.getEntities());
+        helper.dropTables((HashSet<String>) factory.getEntities());
+        helper.createTables((HashSet<String>) factory.getEntities());
     }
 
     /**
@@ -290,7 +290,7 @@ public abstract class DDLHelper {
      * @param helper
      */
     private static void doUpdate(SessionFactory factory, DDLHelper helper) {
-        helper.updateTables(factory.getEntities());
+        helper.updateTables((HashSet<String>) factory.getEntities());
     }
 
     private static boolean requireDDL(SessionFactory factory) {
