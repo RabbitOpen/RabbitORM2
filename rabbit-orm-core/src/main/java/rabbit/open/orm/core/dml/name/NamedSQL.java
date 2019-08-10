@@ -1,8 +1,11 @@
 package rabbit.open.orm.core.dml.name;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,9 +13,19 @@ import org.dom4j.Element;
 
 import rabbit.open.orm.common.exception.EmptyAliasException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.dml.SessionFactory;
 
-public class NamedSQL extends SQLObject {
+public class NamedSQL {
+	
+	protected String sql;
+	
+	protected String name;
+	
+	// sql类型
+	protected String sqlType;
+	
+	protected Map<Integer, String> fieldsMapping = new HashMap<>();
 
     private static final String FETCH = "fetch";
 
@@ -34,8 +47,10 @@ public class NamedSQL extends SQLObject {
 
     private List<JoinFetcherDescriptor> joinFetchDescriptors;
     
-    public NamedSQL(String sql, String queryName, Element element) {
-        super(sql, queryName);
+    public NamedSQL(String sql, String queryName, Element element, String sqlType) {
+    	this.sql = sql.trim();
+		this.name = queryName;
+		this.sqlType = sqlType;
         analyseNameSQL(sql);
         targetAlias = element.attributeValue(ALIAS);
         joinFetchDescriptors = readJoinFetchers(element);
@@ -127,4 +142,32 @@ public class NamedSQL extends SQLObject {
     public List<FetcherDescriptor> getFetchDescriptors() {
         return fetchDescriptors;
     }
+    
+    public String getSql() {
+		return sql;
+	}
+	
+	/**
+	 * 
+	 * <b>Description:  根据字段名查找数序号</b><br>.
+	 * @param fieldName
+	 * @return	
+	 * 
+	 */
+	public List<Integer> getFieldIndexes(String fieldName) {
+	    List<Integer> indexes = new ArrayList<>();
+        if (!fieldsMapping.containsValue(fieldName)) {
+	        throw new UnKnownFieldException("field[" + fieldName + "] is not existed in query[" + name + "]!");
+	    }
+        for (Entry<Integer, String> entry : fieldsMapping.entrySet()) {
+            if (entry.getValue().equals(fieldName)) {
+                indexes.add(entry.getKey());
+            }
+        }
+	    return indexes;
+	}
+	
+	public String getSqlType() {
+		return sqlType;
+	}
 }

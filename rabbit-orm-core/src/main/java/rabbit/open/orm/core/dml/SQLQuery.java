@@ -7,17 +7,21 @@ import org.apache.log4j.Logger;
 
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.core.dml.name.SQLObject;
+import rabbit.open.orm.core.dml.name.NamedSQL;
 import rabbit.open.orm.core.utils.SQLFormater;
 import rabbit.open.orm.datasource.Session;
 
+/**
+ * <b>@description 原生sql查询 </b>
+ * @param <T>
+ */
 public class SQLQuery<T> {
 
     Logger logger = Logger.getLogger(getClass());
     
 	private SessionFactory sessionFactory;
 	
-	private SQLObject query;
+	private NamedSQL query;
 	
 	private Class<?> clz;
 	
@@ -26,7 +30,7 @@ public class SQLQuery<T> {
 	public SQLQuery(SessionFactory sessionFactory, String queryName, Class<?> clz, SQLCallBack<T> callBack) {
 		super();
 		this.sessionFactory = sessionFactory;
-		query = sessionFactory.getNamedJdbcQuery(queryName, clz);
+		query = sessionFactory.getQueryByNameAndClass(queryName, clz);
 		this.clz = clz;
 		this.callBack = callBack;
 	}
@@ -57,9 +61,7 @@ public class SQLQuery<T> {
 	
 	public void showSQL(String sql) {
 		if (sessionFactory.isShowSql()) {
-			logger.info("\n"
-					+ (sessionFactory.isFormatSql() ? SQLFormater.format(sql)
-							: sql));
+			logger.info("\n" + (sessionFactory.isFormatSql() ? SQLFormater.format(sql) : sql));
 		}
 	}
 

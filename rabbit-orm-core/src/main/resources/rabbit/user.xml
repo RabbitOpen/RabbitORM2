@@ -47,6 +47,18 @@
         ]]>
     </select>
 
+    <select name="getUserByNameAndId" alias="U">
+        <![CDATA[
+            SELECT 
+                #{FILEDS}
+            FROM 
+                T_USER U
+            WHERE 
+                U.ID = ${userId} 
+                AND U.NAME = ${username} 
+        ]]>
+    </select>
+
     <select name="emptyAliasExceptionTest" alias="">
         <fetch entity="rabbit.open.test.entity.Organization" alias="O"/>
         <![CDATA[
@@ -123,6 +135,14 @@
         T_USER.ID = ${userId}
         ) t
         )
+    </update>
+
+    <!-- 命名更新 -->
+    <update name="updateNameById">
+        UPDATE T_USER
+        SET T_USER.NAME = ${name}
+        WHERE
+        T_USER.ID = ${userId}
     </update>
 
 </rabbit-mapping>   

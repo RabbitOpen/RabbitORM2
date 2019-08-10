@@ -23,24 +23,27 @@ import rabbit.open.orm.common.exception.*;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.utils.PackageScanner;
 
-public class SQLParser {
+/**
+ * <b>@description xml文件解析器 </b>
+ */
+public class XmlMapperParser {
 
-	private static final String JDBC = "jdbc";
+	public static final String JDBC = "jdbc";
 
-	private static final String SELECT = "select";
+	public static final String SELECT = "select";
 
-	private static final String UPDATE = "update";
+	public static final String UPDATE = "update";
 
-	private static final String DELETE = "delete";
+	public static final String DELETE = "delete";
 
 	private Logger logger = Logger.getLogger(getClass());
 	
 	private String sqlPath;
 	
 	//缓存的命名查询对象
-	private Map<Class<?>, Map<String, SQLObject>> nameQueries = new ConcurrentHashMap<>();
+	private Map<Class<?>, Map<String, NamedSQL>> nameQueries = new ConcurrentHashMap<>();
 
-	public SQLParser(String path) {
+	public XmlMapperParser(String path) {
 		super();
 		this.sqlPath = path;
 		if (sqlPath.startsWith("/")) {
@@ -56,35 +59,15 @@ public class SQLParser {
 	 * @return	
 	 * 
 	 */
-	public SQLObject getQueryByNameAndClass(String name, Class<?> clz) {
-		Map<String, SQLObject> map = nameQueries.get(clz);
+	public NamedSQL getQueryByNameAndClass(String name, Class<?> clz) {
+		Map<String, NamedSQL> map = nameQueries.get(clz);
         if (null == map) {
             throw new NoNamedSQLDefinedException(clz);
         }
-        SQLObject namedSql = map.get(name);
+        NamedSQL namedSql = map.get(name);
         if (null == namedSql) {
             throw new UnExistedNamedSQLException(name);
         }
-		return namedSql;
-	}
-
-	/**
-	 * 
-	 * <b>Description:	根据查询的名字和类信息获取jdbc命名查询对象</b><br>
-	 * @param name
-	 * @param clz
-	 * @return	
-	 * 
-	 */
-	public SQLObject getNamedJdbcQuery(String name, Class<?> clz) {
-		Map<String, SQLObject> map = nameQueries.get(clz);
-        if (null == map) {
-            throw new NoNamedSQLDefinedException(clz);
-		}
-		SQLObject namedSql = map.get(name);
-        if (null == namedSql) {
-			throw new UnExistedNamedSQLException(name);
-		}
 		return namedSql;
 	}
 	
@@ -124,7 +107,7 @@ public class SQLParser {
 			scan(root, clz, SELECT);
 			scan(root, clz, UPDATE);
 			scan(root, clz, DELETE);
-			scanJdbc(root, clz);
+			scan(root, clz, JDBC);
 		} catch (DocumentException e) {
 			throw new MappingFileParsingException(e.getMessage());
 		} finally {
@@ -137,23 +120,6 @@ public class SQLParser {
 	}
 
 	/**
-	 * <b>@description 扫描jdbc语句 </b>
-	 * @param root
-	 * @param clz
-	 */
-	@SuppressWarnings("unchecked")
-	private void scanJdbc(Element root, Class<?> clz) {
-		Iterator<Element> iterator = root.elementIterator(JDBC);
-		while (iterator.hasNext()) {
-		    Element select = iterator.next();
-		    String name = select.attributeValue("name");
-		    String sql = select.getText();
-		    checkNameQuery(clz, name, sql);
-		    nameQueries.get(clz).put(name.trim(), new SQLObject(sql, name));
-		}
-	}
-
-	/**
 	 * <b>@description 扫描select/update/delete语句 </b>
 	 * @param root
 	 * @param clz
@@ -162,11 +128,11 @@ public class SQLParser {
 	private void scan(Element root, Class<?> clz, String type) {
 		Iterator<Element> iterator = root.elementIterator(type);
 		while (iterator.hasNext()) {
-		    Element select = iterator.next();
-		    String name = select.attributeValue("name");
-		    String sql = select.getText();
+		    Element element = iterator.next();
+		    String name = element.attributeValue("name");
+		    String sql = element.getText();
 		    checkNameQuery(clz, name, sql);
-		    nameQueries.get(clz).put(name.trim(), new NamedSQL(sql, name, select));
+		    nameQueries.get(clz).put(name.trim(), new NamedSQL(sql, name, element, type));
 		}
 	}
 
@@ -195,7 +161,7 @@ public class SQLParser {
         if (nameQueries.containsKey(clz)) {
 			throw new MappingFileParsingException("repeated class name[" + className + "] is found!");
         } else {
-			nameQueries.put(clz, new ConcurrentHashMap<String, SQLObject>());
+			nameQueries.put(clz, new ConcurrentHashMap<String, NamedSQL>());
 		}
 		return clz;
 	}

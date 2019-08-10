@@ -25,8 +25,8 @@ import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dialect.dml.DeleteDialectAdapter;
 import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
-import rabbit.open.orm.core.dml.name.SQLObject;
-import rabbit.open.orm.core.dml.name.SQLParser;
+import rabbit.open.orm.core.dml.name.NamedSQL;
+import rabbit.open.orm.core.dml.name.XmlMapperParser;
 import rabbit.open.orm.core.spring.TransactionObject;
 
 public class SessionFactory {
@@ -74,7 +74,7 @@ public class SessionFactory {
 
     private Set<DataSource> sources = new HashSet<>();
     
-    private SQLParser sqlParser;
+    private XmlMapperParser sqlParser;
     
     public Connection getConnection() throws SQLException {
         return getConnection(null, null, null);
@@ -413,7 +413,7 @@ public class SessionFactory {
             DDLHelper.executeDDL(this, getPackages2Scan());
         }
         if (!isEmpty(mappingFiles)) {
-            sqlParser = new SQLParser(mappingFiles);
+            sqlParser = new XmlMapperParser(mappingFiles);
 			sqlParser.doXmlParsing();
         }
     }
@@ -426,20 +426,8 @@ public class SessionFactory {
 	 * @return	
 	 * 
 	 */
-	public SQLObject getQueryByNameAndClass(String name, Class<?> clz) {
+	public NamedSQL getQueryByNameAndClass(String name, Class<?> clz) {
 		return sqlParser.getQueryByNameAndClass(name, clz);
-	}
-
-	/**
-	 * 
-	 * <b>Description:	根据查询的名字和类信息获取jdbc命名查询对象</b><br>
-	 * @param name
-	 * @param clz
-	 * @return	
-	 * 
-	 */
-	public SQLObject getNamedJdbcQuery(String name, Class<?> clz) {
-		return sqlParser.getNamedJdbcQuery(name, clz);
 	}
 
 	/**

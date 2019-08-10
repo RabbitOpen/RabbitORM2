@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN"
+        "http://www.rabbit-open.top/dtd/rabbit-mapping-3.0.dtd">
+
+<rabbit-mapping entity="test.mapper.entity.MappingUser">
+
+    <select name="getUserByNameAndId" alias="U">
+        <![CDATA[
+            SELECT 
+                #{FILEDS}
+            FROM 
+                MAPPING_USER U
+            WHERE 
+                U.ID = ${userId} 
+                AND U.NAME = ${username} 
+        ]]>
+    </select>
+
+    <!-- 命名删除 -->
+    <delete name="namedDelete">
+        DELETE FROM MAPPING_USER WHERE ID = ${userId}
+    </delete>
+
+    <!-- 命名更新 -->
+    <update name="updateNameById">
+        UPDATE MAPPING_USER
+        SET MAPPING_USER.NAME = ${name}
+        WHERE
+        MAPPING_USER.ID = ${userId}
+    </update>
+
+</rabbit-mapping>   

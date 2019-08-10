@@ -54,7 +54,7 @@ public class NamedQuery<T> {
 				.equals(NamedSQL.class)) {
 			throw new MisMatchedNamedQueryException(name);
 		}
-		nameObject = (NamedSQL) query.getSessionFactory().getQueryByNameAndClass(name, clz);
+		nameObject = query.getSessionFactory().getQueryByNameAndClass(name, clz);
 		fieldsValues = new TreeMap<>(new Comparator<Integer>() {
 			@Override
 			public int compare(Integer o1, Integer o2) {

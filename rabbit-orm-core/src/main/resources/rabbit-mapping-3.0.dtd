@@ -1,0 +1,42 @@
+<!-- rabbit-mapping DTD.
+
+<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
+	"http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd" >
+-->
+<!-- 用"空格"分割， 元素出现的顺序就没有要求，","就必须严格按照顺序 , *代表子元素可以出现任意次-->
+<!ELEMENT rabbit-mapping (
+	select* jdbc* update* delete*
+)>
+	<!ATTLIST rabbit-mapping entity CDATA #REQUIRED>
+
+<!ELEMENT join-fetch EMPTY>
+    <!ATTLIST join-fetch entity CDATA #REQUIRED>
+    <!ATTLIST join-fetch alias CDATA #REQUIRED>
+
+<!ELEMENT fetch (
+    fetch*,
+    join-fetch*
+)>
+    <!ATTLIST fetch entity CDATA #REQUIRED>
+    <!ATTLIST fetch alias CDATA #REQUIRED>
+	
+<!ELEMENT select (
+    #PCDATA|fetch|join-fetch
+)*>
+	<!ATTLIST select name CDATA #REQUIRED>
+	<!ATTLIST select alias CDATA #REQUIRED>
+
+<!ELEMENT jdbc (
+	#PCDATA
+)>
+	<!ATTLIST jdbc name CDATA #REQUIRED>
+	
+<!ELEMENT update (
+	#PCDATA
+)>
+	<!ATTLIST update name CDATA #REQUIRED>
+
+<!ELEMENT delete (
+	#PCDATA
+)>
+	<!ATTLIST delete name CDATA #REQUIRED>
