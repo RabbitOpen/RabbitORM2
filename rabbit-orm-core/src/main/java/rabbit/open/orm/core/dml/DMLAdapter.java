@@ -1018,7 +1018,7 @@ public abstract class DMLAdapter<T> {
         try {
             conn.close();
         } catch (Exception e) {
-            
+        	// TODO nothing
         }
     }
     
@@ -1035,7 +1035,7 @@ public abstract class DMLAdapter<T> {
         try {
             stmt.close();
         } catch (Exception e) {
-            
+        	// TODO nothing
         }
     }
 
