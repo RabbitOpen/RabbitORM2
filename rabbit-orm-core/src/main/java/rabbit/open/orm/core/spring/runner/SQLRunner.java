@@ -5,9 +5,9 @@ import java.util.Map;
 
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.spring.runner.impl.NamedDeleteRunner;
-import rabbit.open.orm.core.spring.runner.impl.NamedJdbcRunner;
 import rabbit.open.orm.core.spring.runner.impl.NamedQueryRunner;
 import rabbit.open.orm.core.spring.runner.impl.NamedUpdateRunner;
+import rabbit.open.orm.core.spring.runner.impl.SQLQueryRunner;
 import rabbit.open.orm.core.utils.XmlMapperParser;
 
 public abstract class SQLRunner {
@@ -34,7 +34,7 @@ public abstract class SQLRunner {
 		runnerMapping.put(XmlMapperParser.SELECT, new NamedQueryRunner());
 		runnerMapping.put(XmlMapperParser.UPDATE, new NamedUpdateRunner());
 		runnerMapping.put(XmlMapperParser.DELETE, new NamedDeleteRunner());
-		runnerMapping.put(XmlMapperParser.JDBC, new NamedJdbcRunner());
+		runnerMapping.put(XmlMapperParser.JDBC, new SQLQueryRunner());
 	}
 	
 	public static SQLRunner getRunner(String type) {

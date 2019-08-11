@@ -13,11 +13,11 @@ public class NamedQueryRunner extends SQLRunner {
 
 	@Override
 	public Object run(Object[] args, MethodMapping mapping, Class<?> namespaceClz, SessionFactory factory) {
-		NamedQuery namedQuery = new NamedQuery(factory, namespaceClz, mapping.getSqlName());
+		NamedQuery query = new NamedQuery(factory, namespaceClz, mapping.getSqlName());
 		for (int i = 0; i < mapping.getParaNames().size(); i++) {
-			namedQuery.set(mapping.getParaNames().get(i), args[i]);
+			query.set(mapping.getParaNames().get(i), args[i]);
 		}
-		return namedQuery.unique();
+		return query.unique();
 	}
 
 }

@@ -33,6 +33,4 @@ public interface UserMapper {
 	@SQLMapper("getUserByJdbc")
 	public List<MappingUser> getUserByJdbcs(@FieldMapper("userId")long userId);
 
-	// update 、add、delete 测试
-	
 }

@@ -55,7 +55,6 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 
 	/**
 	 * <b>@description 设置当前查询的表名， 在选择数据源的时候会将该表名传递给数据源 </b>
-	 * 
 	 * @param tableName
 	 * @return
 	 */
@@ -163,63 +162,12 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 		return list;
 	}
 
-	/**
-	 * <b>@description 执行update操作 </b>
-	 * @return
-	 */
-	public Long update() {
-		this.dmlType = DMLType.UPDATE;
-		sqlOpr = createNonQueryOperation();
-		return (Long) execute();
-	}
-
-	/**
-	 * <b>@description 执行删除操作 </b>
-	 * @return
-	 */
-	public Long delete() {
-		this.dmlType = DMLType.DELETE;
-		sqlOpr = createNonQueryOperation();
-		return (Long) execute();
-	}
-
-	/**
-	 * <b>@description 执行insert操作 </b>
-	 * @return
-	 */
-	public Long add() {
-		this.dmlType = DMLType.INSERT;
-		sqlOpr = createNonQueryOperation();
-		return (Long) execute();
-	}
-
 	private PreparedStatement prepareStatement(Connection conn) throws SQLException {
 		sql = new StringBuilder(namedObject.getSql());
 		PreparedStatement stmt = conn.prepareStatement(sql.toString());
 		setPreparedStatementValue(stmt, dmlType);
 		showSql();
 		return stmt;
-	}
-	
-	/**
-	 * <b>@description 创建非查询操作 </b>
-	 * @return
-	 */
-	private SQLOperation createNonQueryOperation() {
-		return new SQLOperation() {
-			@Override
-			public Object executeSQL(Connection conn) throws SQLException {
-				PreparedStatement stmt = null;
-				try {
-					setPreparedValues();
-					stmt = prepareStatement(conn);
-					return stmt.executeUpdate();
-				} finally {
-					closeStmt(stmt);
-				}
-			}
-			
-		};
 	}
 	
 	/**

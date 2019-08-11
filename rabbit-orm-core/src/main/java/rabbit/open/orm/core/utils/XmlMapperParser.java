@@ -36,6 +36,8 @@ public class XmlMapperParser {
 
 	public static final String DELETE = "delete";
 
+	public static final String INSERT = "insert";
+
 	private Logger logger = Logger.getLogger(getClass());
 	
 	private String sqlPath;
@@ -66,7 +68,7 @@ public class XmlMapperParser {
         }
         NamedSQL namedSql = map.get(name);
         if (null == namedSql) {
-            throw new UnExistedNamedSQLException(name);
+            throw new NamedSQLNotExistedException(name);
         }
 		return namedSql;
 	}
@@ -107,6 +109,7 @@ public class XmlMapperParser {
 			scan(root, clz, SELECT);
 			scan(root, clz, UPDATE);
 			scan(root, clz, DELETE);
+			scan(root, clz, INSERT);
 			scan(root, clz, JDBC);
 		} catch (DocumentException e) {
 			throw new MappingFileParsingException(e.getMessage());

@@ -13,11 +13,11 @@ public class NamedUpdateRunner extends SQLRunner {
 
 	@Override
 	public Object run(Object[] args, MethodMapping mapping, Class<?> namespaceClz, SessionFactory factory) {
-		NamedUpdate namedUpdate = new NamedUpdate(factory, namespaceClz, mapping.getSqlName());
+		NamedUpdate update = new NamedUpdate(factory, namespaceClz, mapping.getSqlName());
 		for (int i = 0; i < mapping.getParaNames().size(); i++) {
-			namedUpdate.set(mapping.getParaNames().get(i), args[i]);
+			update.set(mapping.getParaNames().get(i), args[i]);
 		}
-		return namedUpdate.execute();
+		return update.execute();
 	}
 
 }

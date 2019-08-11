@@ -13,11 +13,11 @@ public class NamedDeleteRunner extends SQLRunner {
 
 	@Override
 	public Object run(Object[] args, MethodMapping mapping, Class<?> namespaceClz, SessionFactory factory) {
-		NamedDelete namedDelete = new NamedDelete(factory, namespaceClz, mapping.getSqlName());
+		NamedDelete delete = new NamedDelete(factory, namespaceClz, mapping.getSqlName());
 		for (int i = 0; i < mapping.getParaNames().size(); i++) {
-			namedDelete.set(mapping.getParaNames().get(i), args[i]);
+			delete.set(mapping.getParaNames().get(i), args[i]);
 		}
-		return namedDelete.execute();
+		return delete.execute();
 	}
 
 }

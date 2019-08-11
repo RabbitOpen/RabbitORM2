@@ -15,7 +15,7 @@ import junit.framework.TestCase;
 import rabbit.open.orm.common.exception.EmptyAliasException;
 import rabbit.open.orm.common.exception.NoNamedSQLDefinedException;
 import rabbit.open.orm.common.exception.RepeatedAliasException;
-import rabbit.open.orm.common.exception.UnExistedNamedSQLException;
+import rabbit.open.orm.common.exception.NamedSQLNotExistedException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.dml.NamedQuery;
 import rabbit.open.test.entity.Car;
@@ -195,7 +195,7 @@ public class NamedQueryTest {
             us.createNamedQuery("xx").execute();
             throw new RuntimeException();
         } catch (Exception e) {
-            TestCase.assertEquals(UnExistedNamedSQLException.class,
+            TestCase.assertEquals(NamedSQLNotExistedException.class,
                     e.getClass());
         }
     }

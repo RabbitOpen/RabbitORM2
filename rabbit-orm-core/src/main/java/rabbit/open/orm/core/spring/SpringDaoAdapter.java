@@ -109,12 +109,53 @@ public abstract class SpringDaoAdapter<T> {
 	/**
 	 * 
 	 * <b>Description:	创建一个sql查询对象</b><br>
-	 * @param queryName	查询的name信息
+	 * @param sqlName	查询的name信息
 	 * @return	
 	 * 
 	 */
-	public NamedQuery<T> createNamedQuery(String queryName){
-		return new NamedQuery<>(sessionFactory, clz, queryName);
+	public NamedQuery<T> createNamedQuery(String sqlName){
+		return new NamedQuery<>(sessionFactory, clz, sqlName);
+	}
+
+	/**
+	 * <b>@description  创建一个命名更新 </b>
+	 * @param sqlName  命名更新的名字
+	 * @return
+	 */
+	public NamedUpdate<T> createNamedUpdate(String sqlName) {
+		return new NamedUpdate<>(sessionFactory, clz, sqlName);
+	}
+	
+	/**
+	 * <b>@description  创建一个命名删除</b>
+	 * @param sqlName  命名删除的名字
+	 * @return
+	 */
+	public NamedDelete<T> createNamedDelete(String sqlName) {
+		return new NamedDelete<>(sessionFactory, clz, sqlName);
+	}
+	
+	
+	/**
+	 * 
+	 * <b>Description:	创建一个sql查询</b><br>
+	 * @param sqlName
+	 * @return	
+	 * 
+	 */
+	public SQLQuery<T> createSQLQuery(String sqlName) {
+		return new SQLQuery<>(sessionFactory, clz, sqlName);
+	}
+	
+	/**
+	 * 
+	 * <b>Description:	创建一个带过滤条件的更新对象</b><br>
+	 * @param filterData
+	 * @return	
+	 * 
+	 */
+	public Update<T> createUpdate(T filterData){
+		return new Update<>(sessionFactory, filterData, clz);
 	}
 
 	/**
@@ -127,47 +168,6 @@ public abstract class SpringDaoAdapter<T> {
 		return new Update<>(sessionFactory, clz);
 	}
 	
-	/**
-	 * <b>@description  创建一个命名更新 </b>
-	 * @param updateName  命名更新的名字
-	 * @return
-	 */
-	public NamedUpdate<T> createNamedUpdate(String updateName) {
-		return new NamedUpdate<>(sessionFactory, clz, updateName);
-	}
-	
-	/**
-	 * <b>@description  创建一个命名删除</b>
-	 * @param deleteName  命名删除的名字
-	 * @return
-	 */
-	public NamedDelete<T> createNamedDelete(String deleteName) {
-		return new NamedDelete<>(sessionFactory, clz, deleteName);
-	}
-	
-	
-	/**
-	 * 
-	 * <b>Description:	创建一个sql查询</b><br>
-	 * @param queryName
-	 * @return	
-	 * 
-	 */
-	public SQLQuery<T> createSQLQuery(String queryName) {
-		return new SQLQuery<>(sessionFactory, clz, queryName);
-	}
-
-	/**
-	 * 
-	 * <b>Description:	创建一个带过滤条件的更新对象</b><br>
-	 * @param filterData
-	 * @return	
-	 * 
-	 */
-	public Update<T> createUpdate(T filterData){
-		return new Update<>(sessionFactory, filterData, clz);
-	}
-
 	/**
 	 * 
 	 * <b>Description:	根据主键进行更新</b><br>
