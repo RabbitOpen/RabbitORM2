@@ -1,24 +1,23 @@
 package rabbit.open.orm.core.spring;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.Proxy;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
-
-import rabbit.open.orm.common.annotation.FieldMapper;
-import rabbit.open.orm.common.annotation.Mapper;
-import rabbit.open.orm.common.annotation.SQLMapper;
+import rabbit.open.orm.common.annotation.NameSpace;
+import rabbit.open.orm.common.annotation.Param;
+import rabbit.open.orm.common.annotation.SQLName;
 import rabbit.open.orm.common.exception.EmptyFieldMappingException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.name.NamedSQL;
 import rabbit.open.orm.core.spring.runner.MethodMapping;
 import rabbit.open.orm.core.spring.runner.SQLRunner;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <b>@description 接口实现工厂 </b>
@@ -62,7 +61,7 @@ public class MapperFactory<T> implements FactoryBean<T>, InvocationHandler {
 		proxyObject = (T) Proxy.newProxyInstance(getClass().getClassLoader(), 
 				new Class<?>[] {interfaceClz}, proxy);
 		proxy.setProxyObject(proxyObject);
-		namespaceClz = interfaceClz.getAnnotation(Mapper.class).value();
+		namespaceClz = interfaceClz.getAnnotation(NameSpace.class).value();
 		proxy.setNamespaceClz(namespaceClz);
 		// 缓存方法关系
 		doMethodMappingCache(proxy);
@@ -73,14 +72,14 @@ public class MapperFactory<T> implements FactoryBean<T>, InvocationHandler {
 		Method[] methods = interfaceClz.getDeclaredMethods();
 		for (Method m : methods) {
 			String name = m.getName();
-			SQLMapper mapper = m.getAnnotation(SQLMapper.class);
+			SQLName mapper = m.getAnnotation(SQLName.class);
 			if (null != mapper) {
 				name = mapper.value();
 			}
 			MethodMapping mapping = new MethodMapping(name);
 			//缓存参数
 			for (Parameter p : m.getParameters()) {
-				FieldMapper fm = p.getAnnotation(FieldMapper.class);
+				Param fm = p.getAnnotation(Param.class);
 				if (null == fm) {
 					throw new EmptyFieldMappingException(interfaceClz, m);
 				}
