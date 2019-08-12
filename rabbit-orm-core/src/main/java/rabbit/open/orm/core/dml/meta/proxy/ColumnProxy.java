@@ -28,6 +28,9 @@ public class ColumnProxy implements MethodInterceptor {
     
     // 是否是动态字段
     private boolean dynamic;
+
+    // 字段注释
+    private String comment;
     
     public void setRealObject(Column column) {
         this.value = column.value();
@@ -35,6 +38,7 @@ public class ColumnProxy implements MethodInterceptor {
         this.length = column.length();
         this.keyWord = column.keyWord();
         this.dynamic = column.dynamic();
+        this.comment = column.comment();
     }
     
     /**
@@ -76,6 +80,9 @@ public class ColumnProxy implements MethodInterceptor {
         }
         if ("dynamic".equals(method.getName())) {
         	return dynamic;
+        }
+        if ("comment".equals(method.getName())) {
+        	return comment;
         }
         return null;
     }

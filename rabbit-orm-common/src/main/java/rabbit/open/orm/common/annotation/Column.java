@@ -28,4 +28,8 @@ public @interface Column {
 
 	// 标识该字段为动态字段(数据库中不存在的， 典型的count(1) as num)
 	public boolean dynamic() default false;
+
+	// 字段注释
+	public String comment() default "";
+
 }

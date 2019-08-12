@@ -542,6 +542,9 @@ public abstract class DDLHelper {
                 sql.append(getSqlTypeByJavaType(fmd.getField().getType(), fmd
                         .getColumn().length()));
             }
+            if (!"".equals(fmd.getColumn().comment())) {
+                sql.append(" comment '" + fmd.getColumn().comment() + "'");
+            }
             sqls.add(sql);
         }
         return sqls;
@@ -653,6 +656,9 @@ public abstract class DDLHelper {
                 sql.append(" NOT NULL ");
                 sql.append(createSqlByPolicy(fmd.getPrimaryKey().policy()));
             }
+        }
+        if (!"".equals(fmd.getColumn().comment())) {
+            sql.append(" comment '" + fmd.getColumn().comment() + "'");
         }
         sql.append(",");
         return sql;
