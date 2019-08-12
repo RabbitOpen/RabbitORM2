@@ -1,5 +1,6 @@
 package test.mapper.entity;
 
+import oracle.test.entity.Organization;
 import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.annotation.PrimaryKey;
@@ -15,6 +16,12 @@ public class MappingUser {
     //名字
 	@Column("NAME")
 	private String name;
+	
+	@Column(value = "AGE", comment = "年龄")
+	private Integer age;
+	
+	@Column(value = "ORG", comment = "组织")
+	private Organization org;
 	
 	private String username;
 

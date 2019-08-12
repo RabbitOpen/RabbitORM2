@@ -16,8 +16,8 @@ public class CodeGeneratorTest {
     public void genCodeTest() {
         CodeGenerator cg = new CodeGenerator(
                 "jdbc:mysql://localhost:3306/cas?useUnicode=true&characterEncoding=UTF-8&useServerPrepStmts=true",
-                "com.mysql.jdbc.Driver", "root", "123456",
-                "C:/Users/xiaoqianbin/Desktop/java", "com.org");
+                "com.mysql.jdbc.Driver", "root", "123",
+                "C:/Users/admin/Desktop/java", "test.mapper");
 
         MappingRegistry.regist("VARCHAR", new DBFieldDescriptor(String.class, true));
 
@@ -30,7 +30,7 @@ public class CodeGeneratorTest {
 
             @Override
             public boolean filterTable(String tableName) {
-                if (tableName.equalsIgnoreCase("t_user_ux")) {
+                if (tableName.equalsIgnoreCase("MAPPING_USER")) {
                     // 过滤掉hello这张表
                     System.out.println("generate code for table[" + tableName + "]");
                     return true;

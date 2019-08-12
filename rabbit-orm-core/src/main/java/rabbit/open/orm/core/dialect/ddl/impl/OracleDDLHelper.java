@@ -270,5 +270,10 @@ public class OracleDDLHelper extends DDLHelper{
         }
         return "\"" + column.value().toUpperCase() + "\"";
     }
+
+	@Override
+	protected void appendComment(StringBuilder sql, String comment) {
+		// TO DO Auto-generated method stub
+	}
 	
 }

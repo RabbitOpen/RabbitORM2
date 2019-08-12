@@ -179,4 +179,12 @@ public class MySQLDDLHelper extends DDLHelper {
         return "`" + column.value() + "`";
     }
 
+	// 添加注解
+	@Override
+	protected void appendComment(StringBuilder sql, String comment) {
+		if (!"".equals(comment)) {
+		    sql.append(" comment '" + comment + "'");
+		}
+	}
+
 }
