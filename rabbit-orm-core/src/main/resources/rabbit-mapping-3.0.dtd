@@ -1,7 +1,7 @@
 <!-- rabbit-mapping DTD.
 
 <!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
-	"http://www.rabbit-open.top/dtd/rabbit-mapping-1.0.dtd" >
+	"http://www.rabbit-open.top/dtd/rabbit-mapping-3.0.dtd" >
 -->
 <!-- 用"空格"分割， 元素出现的顺序就没有要求，","就必须严格按照顺序 , *代表子元素可以出现任意次-->
 <!ELEMENT rabbit-mapping (
