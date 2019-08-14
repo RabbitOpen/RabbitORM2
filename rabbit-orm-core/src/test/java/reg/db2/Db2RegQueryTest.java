@@ -60,7 +60,7 @@ public class Db2RegQueryTest {
 		r2.setEnd(end);
 		r2.setUser(user);
 		rrs.add(r2);
-		
+		TestCase.assertEquals(1, rus.createQuery().page(0, 10).list().size());
 		TestCase.assertEquals(0, rus.createQuery().addFilter("${to} - ${from}", 
 				user.getTo() - user.getFrom(), FilterType.GT).count());
 		TestCase.assertEquals(1, rus.createQuery().addFilter("${to} - ${from}", 

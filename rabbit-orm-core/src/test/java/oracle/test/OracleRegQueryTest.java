@@ -61,6 +61,9 @@ public class OracleRegQueryTest {
 		r2.setUser(user);
 		rrs.add(r2);
 		
+		
+		TestCase.assertEquals(rus.createQuery().page(0, 10).asc("id").list().size(), 1);
+		
 		TestCase.assertEquals(0, rus.createQuery().addFilter("${to} - ${from}", 
 				user.getTo() - user.getFrom(), FilterType.GT).count());
 		TestCase.assertEquals(1, rus.createQuery().addFilter("${to} - ${from}", 
