@@ -29,6 +29,10 @@ public class AnnotationElement {
 		this.content = content;
 	}
 
+	public String getContent() {
+		return content;
+	}
+
 	@Override
 	public String toString() {
 		return annoName + "(" + content + ")\n";

@@ -217,6 +217,9 @@ public class CodeGenerator {
 		} else {
 			an.setContent(annoValueStartStr + columnName + "\"");
 		}
+		if (null != remark && !"".equals(remark.trim())) {
+			an.setContent(an.getContent() + ", comment = \"" + remark + "\"");
+		}
 
 		DocElement doc = new DocElement(COMMON_MSG, "@desc:  " + remark);
 		
