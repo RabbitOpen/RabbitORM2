@@ -63,7 +63,6 @@ public class SQLServerDDLHelper extends OracleDDLHelper {
 			comments.add(new StringBuilder("exec sp_addextendedproperty N'MS_Description', N'" + comment 
 					+ "', N'user', N'dbo', N'table', N'" + tableName + "', N'column', N'" + columnName + "'"));
 		}
-		
 	}
 
 }
