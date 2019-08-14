@@ -65,10 +65,5 @@ public class SQLServerDDLHelper extends OracleDDLHelper {
 		}
 		
 	}
-	
-	@Override
-	protected List<StringBuilder> getCommentSqls() {
-		return super.getCommentSqls();
-	}
 
 }
