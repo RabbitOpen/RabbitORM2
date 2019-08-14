@@ -13,7 +13,7 @@ import rabbit.open.orm.common.dml.Policy;
 public class RegUser {
 
 	@PrimaryKey(policy = Policy.AUTOINCREMENT)
-	@Column("ID")
+	@Column(value = "ID", comment = "主键ID")
 	private Integer id;
 
 	@Column("START_")
@@ -115,5 +115,4 @@ public class RegUser {
 		this.sumOfFrom = sumOfFrom;
 	}
 
-	
 }

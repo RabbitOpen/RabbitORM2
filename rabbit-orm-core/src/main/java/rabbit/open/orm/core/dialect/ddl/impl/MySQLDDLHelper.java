@@ -3,6 +3,7 @@ package rabbit.open.orm.core.dialect.ddl.impl;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -160,7 +161,7 @@ public class MySQLDDLHelper extends DDLHelper {
             closeStmt(stmt);
         }
     }
-
+    
     @Override
     protected String getAutoIncrement() {
         return " AUTO_INCREMENT";
@@ -179,12 +180,16 @@ public class MySQLDDLHelper extends DDLHelper {
         return "`" + column.value() + "`";
     }
 
-	// 添加注解
 	@Override
-	protected void appendComment(StringBuilder sql, String comment) {
+	protected void generateComment(StringBuilder sql, String comment, String tableName, String columnName) {
 		if (!"".equals(comment)) {
 		    sql.append(" comment '" + comment + "'");
 		}
+	}
+
+	@Override
+	protected List<StringBuilder> getCommentSqls() {
+		return new ArrayList<>();
 	}
 
 }

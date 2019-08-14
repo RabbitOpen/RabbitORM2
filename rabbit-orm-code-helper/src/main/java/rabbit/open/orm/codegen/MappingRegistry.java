@@ -16,11 +16,13 @@ public class MappingRegistry {
 	static {
 		// 字符串类型
 		registry.put("VARCHAR", new DBFieldDescriptor(String.class, true));
+        registry.put("BIGINT IDENTITY", new DBFieldDescriptor(Long.class, true));
 		registry.put("VARCHAR2", new DBFieldDescriptor(String.class, true));
 		registry.put("CHAR", new DBFieldDescriptor(String.class, true));
 		registry.put("MEDIUMTEXT", new DBFieldDescriptor(String.class, true));
 		// 日期类型
 		registry.put("DATETIME", new DBFieldDescriptor(Date.class, false));
+		registry.put("DATE", new DBFieldDescriptor(Date.class, false));
 		registry.put("TIMESTAMP", new DBFieldDescriptor(Date.class, false));
 		// 数据类型
 		registry.put("INT", new DBFieldDescriptor(Integer.class, false));
@@ -30,6 +32,7 @@ public class MappingRegistry {
 		registry.put("FLOAT", new DBFieldDescriptor(Float.class, false));
 		registry.put("DOUBLE", new DBFieldDescriptor(Double.class, false));
 		registry.put("BIT", new DBFieldDescriptor(Boolean.class, false));
+		registry.put("NUMBER", new DBFieldDescriptor(Long.class, false));
 	}
 	
 	public static void regist(String key, DBFieldDescriptor value) {

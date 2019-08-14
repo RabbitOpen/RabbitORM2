@@ -51,7 +51,7 @@ public class SQLiteUser {
 	private String name;
 	
 	//年龄
-	@Column(value="AGE")
+	@Column(value="AGE", comment = "年龄")
 	private Integer age;
 	
 	@Column(value="SHORT_FIELD")

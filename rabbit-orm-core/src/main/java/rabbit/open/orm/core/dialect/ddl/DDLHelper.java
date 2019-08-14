@@ -160,6 +160,12 @@ public abstract class DDLHelper {
      */
 
     protected abstract void createEntityTables(HashSet<String> entities);
+    
+    /**
+     * <b>@description 建表时的注释sql  </b>
+     * @return
+     */
+    protected abstract List<StringBuilder> getCommentSqls();
 
     /**
      * 
@@ -481,6 +487,7 @@ public abstract class DDLHelper {
 
     protected void alterTable(HashSet<String> entities) {
         List<StringBuilder> sql = createAlterSqls(entities, getExistedTables());
+        sql.addAll(getCommentSqls());
         if (!sql.isEmpty()) {
             executeSQL(sql);
         }
@@ -542,13 +549,20 @@ public abstract class DDLHelper {
                 sql.append(getSqlTypeByJavaType(fmd.getField().getType(), fmd
                         .getColumn().length()));
             }
-            appendComment(sql, fmd.getColumn().comment());
+            generateComment(sql, fmd.getColumn().comment(), tableName, fmd.getColumn().value());
             sqls.add(sql);
         }
         return sqls;
     }
 
-	protected abstract void appendComment(StringBuilder sql, String comment);
+	/**
+	 * <b>@description  生成注释部分的sql </b>
+	 * @param sql
+	 * @param comment		注释
+	 * @param tableName		表名
+	 * @param columnName	字段名
+	 */
+	protected abstract void generateComment(StringBuilder sql, String comment, String tableName, String columnName);
 		
 
     /**
@@ -625,7 +639,7 @@ public abstract class DDLHelper {
         	if (fmd.getColumn().dynamic()) {
         		continue;
         	}
-            sql.append(createFieldSqlByMeta(fmd));
+            sql.append(createFieldSqlByMeta(fmd, clz.getAnnotation(Entity.class).value()));
             if (fmd.isPrimaryKey()) {
                 pkm = fmd;
             }
@@ -641,9 +655,10 @@ public abstract class DDLHelper {
      * 
      * <b>Description: 根据字段信息创建sql</b><br>
      * @param fmd
+     * @param tableName 表名
      * 
      */
-    protected StringBuilder createFieldSqlByMeta(FieldMetaData fmd) {
+    protected StringBuilder createFieldSqlByMeta(FieldMetaData fmd, String tableName) {
         StringBuilder sql = new StringBuilder();
         sql.append(getColumnName(fmd.getColumn()).toUpperCase() + " ");
         if (fmd.isForeignKey()) {
@@ -658,7 +673,7 @@ public abstract class DDLHelper {
                 sql.append(createSqlByPolicy(fmd.getPrimaryKey().policy()));
             }
         }
-        appendComment(sql, fmd.getColumn().comment());
+        generateComment(sql, fmd.getColumn().comment(), tableName, fmd.getColumn().value());
         sql.append(",");
         return sql;
     }

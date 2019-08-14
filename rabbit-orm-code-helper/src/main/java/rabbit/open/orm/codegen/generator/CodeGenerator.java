@@ -8,11 +8,19 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Properties;
 
 import rabbit.open.orm.codegen.DBFieldDescriptor;
 import rabbit.open.orm.codegen.JavaElement;
 import rabbit.open.orm.codegen.MappingRegistry;
-import rabbit.open.orm.codegen.elements.*;
+import rabbit.open.orm.codegen.elements.AbstractDaoCodeElement;
+import rabbit.open.orm.codegen.elements.AnnotationElement;
+import rabbit.open.orm.codegen.elements.CommonDaoCodeElement;
+import rabbit.open.orm.codegen.elements.ConstantFieldElement;
+import rabbit.open.orm.codegen.elements.DocElement;
+import rabbit.open.orm.codegen.elements.DomainClassElement;
+import rabbit.open.orm.codegen.elements.FieldElement;
+import rabbit.open.orm.codegen.elements.ServiceCodeElement;
 import rabbit.open.orm.codegen.filter.GeneratorFilter;
 import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.annotation.Entity;
@@ -125,8 +133,11 @@ public class CodeGenerator {
 	 */
 	public void generateClassFile() throws ClassNotFoundException, SQLException, IOException {
 		Class.forName(driverName);
-		Connection conn = DriverManager.getConnection(this.url, this.username,
-				this.password);
+		Properties props = new Properties();
+		props.put("user", username);
+		props.put("password", password);
+		props.put("remarksReporting", "true");		//oracle
+		Connection conn = DriverManager.getConnection(this.url, props);
 		try {
 			generateGenericalDaoClassFile();
 			ResultSet tables = conn.getMetaData().getTables(null, null, null, null);
@@ -201,7 +212,13 @@ public class CodeGenerator {
 		String columnName = rows.getString(COLUMN_NAME).toUpperCase();
 		String type = rows.getString("TYPE_NAME").toUpperCase();
 		String size = rows.getString("COLUMN_SIZE");
-		boolean isAutoIncrement = "YES".equalsIgnoreCase(rows.getString("IS_AUTOINCREMENT"));
+		boolean isAutoIncrement = false;
+		try {
+			isAutoIncrement = "YES".equalsIgnoreCase(rows.getString("IS_AUTOINCREMENT"));
+		} catch (Exception e) {
+			// TO DO: oracle数据库没有这个字段
+		}
+		
 		String remark = rows.getString("REMARKS");
 		String name = convertDbName2Java(columnName);
 		
@@ -220,7 +237,6 @@ public class CodeGenerator {
 		if (null != remark && !"".equals(remark.trim())) {
 			an.setContent(an.getContent() + ", comment = \"" + remark + "\"");
 		}
-
 		DocElement doc = new DocElement(COMMON_MSG, "@desc:  " + remark);
 		
 		FieldElement fe = new FieldElement(an, doc, 

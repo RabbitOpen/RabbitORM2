@@ -39,4 +39,11 @@ public class DB2DDLHelper extends SQLServerDDLHelper{
 		return " GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1 )";
 	}
 	
+	@Override
+	protected void generateComment(StringBuilder sql, String comment, String tableName, String columnName) {
+		if (null != comment && !"".equals(comment.trim())) {
+			comments.add(new StringBuilder("comment  on  column " + tableName + "." + columnName + " is '" + comment + "'"));
+		}
+	}
+	
 }

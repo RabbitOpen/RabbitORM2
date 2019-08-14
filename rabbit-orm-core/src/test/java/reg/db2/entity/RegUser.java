@@ -22,7 +22,7 @@ public class RegUser {
 	@Column("END_")
 	private Date end;
 
-	@Column("FROM_")
+	@Column(value = "FROM_", comment = "开始")
 	private Integer from;
 
 	@Column("TO_")

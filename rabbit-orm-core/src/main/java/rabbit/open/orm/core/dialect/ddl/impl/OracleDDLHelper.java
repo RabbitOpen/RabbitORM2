@@ -22,10 +22,12 @@ import rabbit.open.orm.core.utils.SQLFormater;
  * <b>@author</b>	肖乾斌
  * 
  */
-public class OracleDDLHelper extends DDLHelper{
+public class OracleDDLHelper extends DDLHelper {
 
 	private static final String GET_FOREIGN_KEY_TABLE_SQL = "SELECT TABLE_NAME, A.CONSTRAINT_NAME AS FK_NAME FROM USER_CONSTRAINTS A WHERE A.CONSTRAINT_TYPE = 'R'";
 
+	protected List<StringBuilder> comments = new ArrayList<>();
+	  
 	public OracleDDLHelper() {
         typeStringCache.put(Date.class, DATE);
         typeStringCache.put(String.class, VARCHAR2);
@@ -235,13 +237,18 @@ public class OracleDDLHelper extends DDLHelper{
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
-			for(String name : entities){
+			for (String name : entities) {
 				StringBuilder sql = createSqlByClass(name);
-				if(null == sql){
+				if (null == sql) {
 					continue;
 				}
 				logger.info(SQLFormater.format(sql.toString()).toUpperCase());
 				stmt.execute(sql.toString());
+			}
+			//注释
+			for (StringBuilder cmt : getCommentSqls()) {
+				logger.info(cmt.toString().toUpperCase());
+				stmt.execute(cmt.toString());
 			}
 		} catch (SQLException e) {
 			throw new RabbitDDLException(e);
@@ -272,8 +279,14 @@ public class OracleDDLHelper extends DDLHelper{
     }
 
 	@Override
-	protected void appendComment(StringBuilder sql, String comment) {
-		// TO DO Auto-generated method stub
+	protected void generateComment(StringBuilder sql, String comment, String tableName, String columnName) {
+		if (null != comment && !"".equals(comment.trim())) {
+			comments.add(new StringBuilder("comment  on  column " + tableName + "." + columnName + " is '" + comment + "'"));
+		}
+	}
+
+	protected List<StringBuilder> getCommentSqls() {
+		return comments;
 	}
 	
 }
