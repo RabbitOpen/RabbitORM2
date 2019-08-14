@@ -1,6 +1,6 @@
 package rabbit.open.orm.core.dml.meta;
 
-import rabbit.open.orm.common.annotation.FilterType;
+import rabbit.open.orm.common.dml.FilterType;
 
 /**
  * 

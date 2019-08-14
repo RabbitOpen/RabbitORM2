@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import rabbit.open.orm.common.annotation.FilterType;
+import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.InvalidGroupByFieldException;
 import rabbit.open.test.entity.RegRoom;
 import rabbit.open.test.entity.RegUser;

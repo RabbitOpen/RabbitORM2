@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import rabbit.open.orm.common.annotation.FilterType;
+import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dml.CallBackTask;
 import rabbit.open.orm.core.dml.DMLAdapter;
 

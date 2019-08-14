@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.FilterType;
+import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.common.exception.NoField2InsertException;

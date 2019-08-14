@@ -1,6 +1,6 @@
 package rabbit.open.orm.core.dml;
 
-import rabbit.open.orm.common.annotation.FilterType;
+import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dialect.dml.DeleteDialectAdapter;
 import rabbit.open.orm.core.dml.meta.FilterDescriptor;
 

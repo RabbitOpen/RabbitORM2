@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import rabbit.open.orm.common.annotation.FilterType;
+import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.common.exception.RepeatedJoinFetchOperationException;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
