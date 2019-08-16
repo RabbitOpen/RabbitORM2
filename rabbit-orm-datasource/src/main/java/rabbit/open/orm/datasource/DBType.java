@@ -5,6 +5,6 @@ package rabbit.open.orm.datasource;
  * @author	肖乾斌
  * 
  */
-public enum DBType{
+public enum DBType {
 	ORACLE, MYSQL, SQLSERVER, DB2, SQLITE
 }
