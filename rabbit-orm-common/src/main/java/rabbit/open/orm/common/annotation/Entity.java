@@ -13,7 +13,7 @@ import rabbit.open.orm.common.shard.ShardingPolicy;
  * 
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value=ElementType.TYPE)
+@Target(value = ElementType.TYPE)
 public @interface Entity {
 	
 	//表名

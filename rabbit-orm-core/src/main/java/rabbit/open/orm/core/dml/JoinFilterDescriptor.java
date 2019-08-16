@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.annotation.ManyToMany;
+import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.InvalidJoinFilterException;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;

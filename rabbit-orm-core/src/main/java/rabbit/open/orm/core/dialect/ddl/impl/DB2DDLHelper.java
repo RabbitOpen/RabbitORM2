@@ -10,7 +10,7 @@ import java.util.Date;
  * <b>@author</b>	肖乾斌
  * 
  */
-public class DB2DDLHelper extends SQLServerDDLHelper{
+public class DB2DDLHelper extends SQLServerDDLHelper {
 
     public DB2DDLHelper() {
         typeStringCache.put(Date.class, TIMESTAMP);

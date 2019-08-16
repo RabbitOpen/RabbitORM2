@@ -14,7 +14,7 @@ import rabbit.open.orm.common.dml.Policy;
  * 
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value=ElementType.FIELD)
+@Target(value = ElementType.FIELD)
 public @interface ManyToMany {
 
 	//一端对象在中间表中的外键名

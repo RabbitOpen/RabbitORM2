@@ -19,7 +19,9 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.xml.sax.SAXException;
 
-import rabbit.open.orm.common.exception.*;
+import rabbit.open.orm.common.exception.MappingFileParsingException;
+import rabbit.open.orm.common.exception.NamedSQLNotExistedException;
+import rabbit.open.orm.common.exception.NoNamedSQLDefinedException;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.name.NamedSQL;
 

@@ -10,15 +10,15 @@ import rabbit.open.orm.common.dml.Policy;
 /**
  * 
  * 标记主键字段
- * @author	肖乾斌
+ * @author 肖乾斌
  * 
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value=ElementType.FIELD)
+@Target(value = ElementType.FIELD)
 public @interface PrimaryKey {
 
 	public Policy policy() default Policy.NONE;
-	
-	//策略为sequence时的sequence的名字
+
+	// 策略为sequence时的sequence的名字
 	public String sequence() default "";
 }

@@ -6,13 +6,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.mysql.jdbc.Statement;
+
 import rabbit.open.orm.core.dml.DMLAdapter;
 import rabbit.open.orm.core.dml.NonQueryAdapter;
 import rabbit.open.orm.core.dml.PolicyInsert;
 import rabbit.open.orm.core.dml.RabbitValueConverter;
 import rabbit.open.orm.core.dml.meta.MetaData;
-
-import com.mysql.jdbc.Statement;
 
 /**
  * <b>Description:   自增长插入策略实现</b>.
