@@ -1,20 +1,15 @@
 package rabbit.open.orm.core.dml.name;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.dom4j.Element;
-
 import rabbit.open.orm.common.exception.EmptyAliasException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.dml.SessionFactory;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * <b>@description 命名sql对象  </b>
@@ -24,6 +19,8 @@ public class NamedSQL {
 	protected String sql;
 	
 	protected String name;
+
+	protected String targetTableName;
 	
 	// sql类型
 	protected String sqlType;
@@ -50,10 +47,11 @@ public class NamedSQL {
 
     private List<JoinFetcherDescriptor> joinFetchDescriptors;
     
-    public NamedSQL(String sql, String queryName, Element element, String sqlType) {
+    public NamedSQL(String sql, String queryName, Element element, String sqlType, String targetTableName) {
     	this.sql = sql.trim();
 		this.name = queryName;
 		this.sqlType = sqlType;
+		this.targetTableName = targetTableName;
         analyseNameSQL(sql);
         targetAlias = element.attributeValue(ALIAS);
         joinFetchDescriptors = readJoinFetchers(element);

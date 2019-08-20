@@ -1,29 +1,24 @@
 package rabbit.open.orm.core.utils;
 
-import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.xml.sax.SAXException;
-
 import rabbit.open.orm.common.exception.MappingFileParsingException;
 import rabbit.open.orm.common.exception.NamedSQLNotExistedException;
 import rabbit.open.orm.common.exception.NoNamedSQLDefinedException;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.name.NamedSQL;
+
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * <b>@description xml文件解析器 </b>
@@ -135,9 +130,10 @@ public class XmlMapperParser {
 		while (iterator.hasNext()) {
 		    Element element = iterator.next();
 		    String name = element.attributeValue("name");
+		    String targetTableName = element.attributeValue("targetTableName");
 		    String sql = element.getText();
 		    checkNameQuery(clz, name, sql);
-		    nameQueries.get(clz).put(name.trim(), new NamedSQL(sql, name, element, type));
+		    nameQueries.get(clz).put(name.trim(), new NamedSQL(sql, name, element, type, targetTableName));
 		}
 	}
 
