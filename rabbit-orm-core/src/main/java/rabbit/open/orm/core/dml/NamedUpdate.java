@@ -15,7 +15,7 @@ import java.util.TreeMap;
  */
 public class NamedUpdate<T> extends NonQueryAdapter<T> {
 
-	protected NamedSQL nameObject;
+	protected NamedSQL namedObject;
 	
 	private TreeMap<Integer, PreparedValue> fieldsValues;
 	
@@ -27,7 +27,7 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 		super(factory, clz);
 		setDmlType(dmlType);
 		this.sessionFactory = factory;
-		nameObject = sessionFactory.getQueryByNameAndClass(name, clz);
+		namedObject = sessionFactory.getQueryByNameAndClass(name, clz);
 		fieldsValues = new TreeMap<>();
 		sqlOperation = new SQLOperation() {
 			@Override
@@ -36,7 +36,7 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 				try {
 					setPreparedValues();
 					sql = new StringBuilder();
-					sql.append(nameObject.getSql());
+					sql.append(namedObject.getSql());
 	                stmt = conn.prepareStatement(sql.toString());
 	                setPreparedStatementValue(stmt, dmlType);
 	                showSql();
@@ -49,12 +49,12 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 	}
 
 	/**
-	 * 如果sql中指定了，就使用sql指定的表名，否则使用entity对应的表名
+	 * 如果命名sql指定了查询的主表名，就使用sql指定的，否则使用entity注解声明的表名
 	 * @return
 	 */
 	@Override
 	protected String getCurrentTableName() {
-		return super.getCurrentTableName();
+		return getCurrentTableNameByNamedObject(namedObject);
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 	 * @return
 	 */
 	public NamedUpdate<T> set(String fieldAlias, Object value){
-	    List<Integer> indexes = nameObject.getFieldIndexes(fieldAlias);
+	    List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
 	    for (int index : indexes) {
 	    	fieldsValues.put(index, new PreparedValue(value));
 	    }

@@ -21,7 +21,7 @@ public class NamedQuery<T> {
     
     Logger logger = Logger.getLogger(getClass());
 
-	private NamedSQL nameObject;
+	private NamedSQL namedObject;
 	
 	private Query<T> query;
 	
@@ -43,8 +43,17 @@ public class NamedQuery<T> {
 			protected void createCountSql() {
 				generateNameCountSql();
 			}
+
+			/**
+			 * 如果命名sql指定了查询的主表名，就使用sql指定的，否则使用entity注解声明的表名
+			 * @return
+			 */
+			@Override
+			protected String getCurrentTableName() {
+				return getCurrentTableNameByNamedObject(namedObject);
+			}
 		};
-		nameObject = query.getSessionFactory().getQueryByNameAndClass(name, clz);
+		namedObject = query.getSessionFactory().getQueryByNameAndClass(name, clz);
 		fieldsValues = new TreeMap<>(new Comparator<Integer>() {
 			@Override
 			public int compare(Integer o1, Integer o2) {
@@ -57,22 +66,22 @@ public class NamedQuery<T> {
 	    setEntityAlias();
 	    recursivelyFetchEntities();
 	    joinFetchEntities();
-	    recursivelyJoinFetchEntities(new ArrayList<>(), nameObject.getFetchDescriptors());
+	    recursivelyJoinFetchEntities(new ArrayList<>(), namedObject.getFetchDescriptors());
 	    query.prepareMany2oneFilters();
 	    query.createFieldsSql();
-	    query.sql = new StringBuilder(nameObject.replaceFields(query.sql.toString()));
+	    query.sql = new StringBuilder(namedObject.replaceFields(query.sql.toString()));
 		setPreparedValues();
 	}
 	
 	private void generateNameCountSql() {
-		query.sql = new StringBuilder(nameObject.replaceFields("COUNT(1)"));
+		query.sql = new StringBuilder(namedObject.replaceFields("COUNT(1)"));
 		setPreparedValues();
 	}
 	
 
     private void joinFetchEntities() {
 		FetchDescriptor<T> buildFetch = query.buildFetch();
-		for (JoinFetcherDescriptor jfd : nameObject.getJoinFetchDescriptors()) {
+		for (JoinFetcherDescriptor jfd : namedObject.getJoinFetchDescriptors()) {
 			buildFetch.joinFetch(jfd.getEntityClass());
 		}
     }
@@ -99,7 +108,7 @@ public class NamedQuery<T> {
     private void recursivelyFetchEntities() {
         List<Class<?>> deps = new ArrayList<>();
 	    deps.add(query.getMetaData().getEntityClz());
-	    fetch(nameObject.getFetchDescriptors(), deps);
+	    fetch(namedObject.getFetchDescriptors(), deps);
     }
 
 	private void fetch(List<FetcherDescriptor> fetchDescriptors, List<Class<?>> deps) {
@@ -124,9 +133,9 @@ public class NamedQuery<T> {
      * <b>Description  设置别名</b>
      */
     private void setEntityAlias() {
-        query.alias(query.getMetaData().getEntityClz(), nameObject.getAlias());
-	    setFetchTableAlias(nameObject.getFetchDescriptors());
-	    setJoinFetchTableAlias(nameObject.getJoinFetchDescriptors());
+        query.alias(query.getMetaData().getEntityClz(), namedObject.getAlias());
+	    setFetchTableAlias(namedObject.getFetchDescriptors());
+	    setJoinFetchTableAlias(namedObject.getJoinFetchDescriptors());
     }
 
     private void setFetchTableAlias(List<FetcherDescriptor> fetchers) {
@@ -228,7 +237,7 @@ public class NamedQuery<T> {
 	 * @return
 	 */
 	public NamedQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz){
-	    List<Integer> indexes = nameObject.getFieldIndexes(fieldAlias);
+	    List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
 	    for (int index : indexes) {
 	        if (null != entityClz && !SessionFactory.isEmpty(fieldName)) {
 	            try {

@@ -31,9 +31,6 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 
 	protected NamedSQL namedObject;
 
-	// 当前查询涉及的表名
-	private String tableName;
-
 	private DMLType dmlType;
 
 	private SQLOperation sqlOpr;
@@ -49,6 +46,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 	 */
 	public SQLQuery(SessionFactory sessionFactory, Class<T> clz, String queryName) {
 		super(sessionFactory, clz);
+		this.dmlType = DMLType.SELECT;
 		this.sessionFactory = sessionFactory;
 		this.namedObject = sessionFactory.getQueryByNameAndClass(queryName, clz);
 	}
@@ -59,7 +57,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 	 */
 	@Override
 	protected String getCurrentTableName() {
-		return tableName;
+		return getCurrentTableNameByNamedObject(namedObject);
 	}
 
 	private Object execute() {
@@ -119,7 +117,6 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public List<T> list() {
-		this.dmlType = DMLType.SELECT;
 		sqlOpr = createQueryOperation();
 		return (List<T>)execute();
 	}

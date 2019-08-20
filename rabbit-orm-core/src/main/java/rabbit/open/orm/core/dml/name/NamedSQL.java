@@ -171,4 +171,8 @@ public class NamedSQL {
 	public String getSqlType() {
 		return sqlType;
 	}
+
+    public String getTargetTableName() {
+        return targetTableName;
+    }
 }
