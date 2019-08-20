@@ -30,7 +30,8 @@
 	#PCDATA
 )>
 	<!ATTLIST jdbc name CDATA #REQUIRED>
-	
+	<!ATTLIST jdbc targetTableName CDATA #IMPLIED>
+
 <!ELEMENT update (
 	#PCDATA
 )>
