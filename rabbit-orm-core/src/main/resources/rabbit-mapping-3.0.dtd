@@ -25,6 +25,7 @@
 )*>
 	<!ATTLIST select name CDATA #REQUIRED>
 	<!ATTLIST select alias CDATA #REQUIRED>
+	<!ATTLIST jdbc targetTableName CDATA #IMPLIED>
 
 <!ELEMENT jdbc (
 	#PCDATA
@@ -36,10 +37,12 @@
 	#PCDATA
 )>
 	<!ATTLIST update name CDATA #REQUIRED>
+	<!ATTLIST jdbc targetTableName CDATA #IMPLIED>
 
 <!ELEMENT delete (
 	#PCDATA
 )>
 	<!ATTLIST delete name CDATA #REQUIRED>
+	<!ATTLIST jdbc targetTableName CDATA #IMPLIED>
 
 	
