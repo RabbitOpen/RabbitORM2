@@ -22,7 +22,7 @@
     </delete>
 
     <!-- 命名更新 -->
-    <update name="updateNameById">
+    <update name="updateNameById" targetTableName="MAPPING_USER">
         UPDATE MAPPING_USER
         SET MAPPING_USER.NAME = ${name}
         WHERE
@@ -31,7 +31,7 @@
     
     <!-- jdbc查询出来映射的实体可以不是数据库中实体 -->
     <!-- 通过jdbc sql 查询出user对象 -->
-    <jdbc name="getUserByJdbc" >
+    <jdbc name="getUserByJdbc" targetTableName="MAPPING_USER">
         <![CDATA[
             SELECT 
                 ID as id,

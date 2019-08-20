@@ -4,7 +4,7 @@
 
 <rabbit-mapping entity="rabbit.open.test.entity.Role">
 
-	<select name="getRoleByID" alias="R">
+	<select name="getRoleByID" alias="R"  targetTableName="T_ROLE">
 		<![CDATA[
 		    SELECT 
 		        #{FIELDS}

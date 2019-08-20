@@ -1,15 +1,20 @@
 package rabbit.open.orm.core.dml.name;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.dom4j.Element;
+
 import rabbit.open.orm.common.exception.EmptyAliasException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.dml.SessionFactory;
-
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * <b>@description 命名sql对象  </b>

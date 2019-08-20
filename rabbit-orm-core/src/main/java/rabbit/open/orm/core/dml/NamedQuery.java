@@ -1,15 +1,20 @@
 package rabbit.open.orm.core.dml;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.TreeMap;
+
 import org.apache.log4j.Logger;
+
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
 import rabbit.open.orm.core.dml.name.FetcherDescriptor;
 import rabbit.open.orm.core.dml.name.JoinFetcherDescriptor;
 import rabbit.open.orm.core.dml.name.NamedSQL;
-
-import java.lang.reflect.Field;
-import java.util.*;
 
 /**
  * <b>Description: 	命名查询对象</b><br>
