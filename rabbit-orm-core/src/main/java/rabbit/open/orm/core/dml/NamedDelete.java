@@ -8,8 +8,8 @@ import rabbit.open.orm.common.dml.DMLType;
  */
 public class NamedDelete<T> extends NamedUpdate<T> {
 
-	public NamedDelete(SessionFactory fatory, Class<T> clz, String name) {
-		super(fatory, clz, name, DMLType.DELETE);
+	public NamedDelete(SessionFactory factory, Class<T> clz, String name) {
+		super(factory, clz, name, DMLType.DELETE);
 	}
 
 }

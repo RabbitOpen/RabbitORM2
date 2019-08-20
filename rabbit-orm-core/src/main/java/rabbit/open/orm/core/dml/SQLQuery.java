@@ -1,15 +1,5 @@
 package rabbit.open.orm.core.dml;
 
-import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TreeMap;
-
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
@@ -19,6 +9,16 @@ import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.name.NamedSQL;
 import rabbit.open.orm.datasource.Session;
+
+import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.TreeMap;
 
 /**
  * 
@@ -54,20 +54,19 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 	}
 
 	/**
-	 * <b>@description 设置当前查询的表名， 在选择数据源的时候会将该表名传递给数据源 </b>
-	 * @param tableName
+	 * 如果命名sql指定了查询的主表名，就使用sql指定的，否则使用entity注解声明的表名
 	 * @return
 	 */
-	public SQLQuery<T> setTableName(String tableName) {
-		this.tableName = tableName;
-		return this;
+	@Override
+	protected String getCurrentTableName() {
+		return tableName;
 	}
 
 	private Object execute() {
 		sql = new StringBuilder(namedObject.getSql());
 		Connection conn = null;
 		try {
-			conn = sessionFactory.getConnection(getEntityClz(), tableName, dmlType);
+			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), dmlType);
 			return sqlOpr.executeSQL(conn);
 		} catch (UnKnownFieldException e) {
 			throw e;

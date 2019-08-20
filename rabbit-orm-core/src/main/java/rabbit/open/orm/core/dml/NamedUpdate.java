@@ -1,14 +1,14 @@
 package rabbit.open.orm.core.dml;
 
+import rabbit.open.orm.common.dml.DMLType;
+import rabbit.open.orm.core.dml.filter.PreparedValue;
+import rabbit.open.orm.core.dml.name.NamedSQL;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.TreeMap;
-
-import rabbit.open.orm.common.dml.DMLType;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
-import rabbit.open.orm.core.dml.name.NamedSQL;
 
 /**
  * <b>@description 命名更新对象 </b>
@@ -23,10 +23,10 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 		this(fatory, clz, name, DMLType.UPDATE);
 	}
 
-	protected NamedUpdate(SessionFactory fatory, Class<T> clz, String name, DMLType dmlType) {
-		super(fatory, clz);
+	protected NamedUpdate(SessionFactory factory, Class<T> clz, String name, DMLType dmlType) {
+		super(factory, clz);
 		setDmlType(dmlType);
-		this.sessionFactory = fatory;
+		this.sessionFactory = factory;
 		nameObject = sessionFactory.getQueryByNameAndClass(name, clz);
 		fieldsValues = new TreeMap<>();
 		sqlOperation = new SQLOperation() {
@@ -47,7 +47,16 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 			}
 		};
 	}
-	
+
+	/**
+	 * 如果sql中指定了，就使用sql指定的表名，否则使用entity对应的表名
+	 * @return
+	 */
+	@Override
+	protected String getCurrentTableName() {
+		return super.getCurrentTableName();
+	}
+
 	/**
 	 * <b>@description 准备预编译sql的值 </b>
 	 */
