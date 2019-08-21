@@ -8,7 +8,7 @@ import rabbit.open.orm.core.dialect.dml.DeleteDialectAdapter;
  * <b>@author</b>	肖乾斌
  * 
  */
-public class OracleDeleteGenerator extends DeleteDialectAdapter{
+public class OracleDeleteGenerator extends DeleteDialectAdapter {
 
 	@Override
 	public StringBuilder createDeleteSql(Delete<?> delete) {

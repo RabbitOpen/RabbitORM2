@@ -145,7 +145,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         runned = true;
     }
 
-	private AbstractQuery<T> setPageIndex(int pageIndex){
+	private AbstractQuery<T> setPageIndex(int pageIndex) {
 		this.pageIndex = pageIndex;
 		page = true;
 		return this;
@@ -250,13 +250,13 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public AbstractQuery<T> page(int pageIndex, int pageSize){
+	public AbstractQuery<T> page(int pageIndex, int pageSize) {
 		setPageIndex(pageIndex);
 		setPageSize(pageSize);
 		return this;
 	}
 	
-	private AbstractQuery<T> setPageSize(int pageSize){
+	private AbstractQuery<T> setPageSize(int pageSize) {
 		this.pageSize = pageSize;
 		page = true;
 		return this;
@@ -525,7 +525,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         }
 	}
 
-	protected Field getFieldByName(String tableName, String fieldName){
+	protected Field getFieldByName(String tableName, String fieldName) {
 		Class<?> clz = MetaData.getClassByTableName(tableName);
 		return checkField(clz, fieldName);
 	}
@@ -558,7 +558,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * <b>Description:	生成sql语句</b><br>	
 	 * 
 	 */
-	protected void createQuerySql(){
+	protected void createQuerySql() {
         reset2PreparedStatus();
         runCallBackTask();
         // 分析并准备查询条件
@@ -612,8 +612,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
      * <b>Description  分区表检查</b>
      */
     private void doShardingCheck() {
-        if(!isShardingOperation()){
-		    return;
+		if (!isShardingOperation()) {
+			return;
 		}
         metaData.updateTableName(getCurrentShardedTableName(getFactors()));
         filterDescriptors.clear();
@@ -710,7 +710,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	protected void createPageSql() {
-		if(!page){
+		if (!page) {
 			return;
 		}
 		DialectTransformer transformer = getTransformer();
@@ -737,7 +737,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * <b>Description:	生成过滤条件sql</b><br>	
 	 * 
 	 */
-	private void createFilterSql(){
+	private void createFilterSql() {
 		sql.append(generateFilterSql());
 	}
 		
@@ -746,7 +746,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * <b>Description:	创建inner join 和 left join的sql片段</b><br>	
 	 * 
 	 */
-	protected void createJoinSql(){
+	protected void createJoinSql() {
 		
 		//创建过滤条件内连接的sql
 		createInnerJoinsql();
@@ -763,24 +763,24 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		
 	}
 	
-	private void createInnerJoinsql(){
+	private void createInnerJoinsql() {
 		sql.append(generateInnerJoinsql());
 	}
 	
-	private void createJoinFetchSql(){
+	private void createJoinFetchSql() {
 		sql.append(" ");
-		for(JoinFieldMetaData<?> jfm : joinFieldMetas){
-		    if(joinFilters.containsKey(jfm.getJoinClass())){
-		        //如果包含了动态innerJoinFilter 就忽略左连接
-		        continue;
-		    }
-	        if(jfm.getAnnotation() instanceof OneToMany){
-	            sql.append(createOTMJoinSql(jfm));
-	        }else if(jfm.getAnnotation() instanceof ManyToMany){
-	            sql.append(createMTMJoinSql(jfm));
-	        }
-	        //动态添加的join条件
-	        sql.append(addDynFilterSql(jfm));
+		for (JoinFieldMetaData<?> jfm : joinFieldMetas) {
+			if (joinFilters.containsKey(jfm.getJoinClass())) {
+				// 如果包含了动态innerJoinFilter 就忽略左连接
+				continue;
+			}
+			if (jfm.getAnnotation() instanceof OneToMany) {
+				sql.append(createOTMJoinSql(jfm));
+			} else if (jfm.getAnnotation() instanceof ManyToMany) {
+				sql.append(createMTMJoinSql(jfm));
+			}
+			// 动态添加的join条件
+			sql.append(addDynFilterSql(jfm));
 		}
 	}
 	
@@ -828,23 +828,21 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		}
 	}
 
-    private String getTableAlias(FilterDescriptor fd) {
-        String alias = getAliasByTableName(fd.getFilterTable());
-        if(fd.isMultiFetchField()){
-            return alias + UNDERLINE + fd.getIndex();
-        }
-        return alias;
-    }
-	
+	private String getTableAlias(FilterDescriptor fd) {
+		String alias = getAliasByTableName(fd.getFilterTable());
+		if (fd.isMultiFetchField()) {
+			return alias + UNDERLINE + fd.getIndex();
+		}
+		return alias;
+	}
+
 	/**
 	 * 创建Many2Many/One2Many的innerJoin sql
-	 * @throws Exception
-	 * @throws SQLException
 	 */
-	private void createDynamicInnerJoinSql(){
-	    for(JoinFilter jf : joinFilters.values()){
-	        sql.append(jf.getInnerJoinSQL());
-	    }
+	private void createDynamicInnerJoinSql() {
+		for (JoinFilter jf : joinFilters.values()) {
+			sql.append(jf.getInnerJoinSQL());
+		}
 	}
 	
 	/**
@@ -896,7 +894,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return
 	 * 
 	 */
-	protected StringBuilder createMTMJoinSql(JoinFieldMetaData<?> jfm, boolean leftJoin){
+	protected StringBuilder createMTMJoinSql(JoinFieldMetaData<?> jfm, boolean leftJoin) {
 		StringBuilder sb = new StringBuilder();
 		ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 		// 中间表别名
@@ -927,7 +925,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	protected StringBuilder createOTMJoinSql(JoinFieldMetaData<?> jfm, boolean leftJoin){
+	protected StringBuilder createOTMJoinSql(JoinFieldMetaData<?> jfm, boolean leftJoin) {
 		StringBuilder sb = new StringBuilder();
 		OneToMany otm = (OneToMany) jfm.getAnnotation();
 		String lj = leftJoin ? LEFT_JOIN : INNER_JOIN;
@@ -992,7 +990,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @throws SQLException 
 	 * 
 	 */
-	protected void createFromSql(){
+	protected void createFromSql() {
 		sql.append(" FROM " + metaData.getTableName() + " " + getAliasByTableName(metaData.getTableName()));
 	}
 	/**
@@ -1030,14 +1028,14 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
         }
     }
 
-    private boolean isExistsJoinFieldMeta(Class<?> enc) {
-        for(JoinFieldMetaData<?> jfme : joinFieldMetas){
-        	if(jfme.getJoinClass().equals(enc)){
-        		return true;
-        	}
-        }
-        return false;
-    }
+	private boolean isExistsJoinFieldMeta(Class<?> enc) {
+		for (JoinFieldMetaData<?> jfme : joinFieldMetas) {
+			if (jfme.getJoinClass().equals(enc)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public AbstractQuery<T> distinct() {
 		this.distinct = true;
@@ -1193,10 +1191,10 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * </b>
 	 * 
 	 */
-	protected void prepareMany2oneFilters(){
+	protected void prepareMany2oneFilters() {
 		removeInvalidFetch();
 		Iterator<Class<?>> it = fetchClzes.keySet().iterator();
-		while(it.hasNext()){
+		while (it.hasNext()) {
 			prepareByClass(it.next());
 		}
 	}
@@ -1252,29 +1250,29 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	private List<FilterDescriptor> getFilterDescriptorsByClzAndDep(Class<?> clz, Class<?> dep){
+	private List<FilterDescriptor> getFilterDescriptorsByClzAndDep(Class<?> clz, Class<?> dep) {
 	    Map<Class<?>, List<FilterDescriptor>> clzesEnabled2Join = getClzesEnabled2Join();
-	    if(!clzesEnabled2Join.containsKey(clz)){
-	        throw new InvalidFetchOperationException("class[" + clz.getName() + "] can't be fetched from class[" 
-	                + getEntityClz().getName() + "]");
-	    }
-	    List<FilterDescriptor> filters = new ArrayList<>();
-	    for(FilterDescriptor fd : clzesEnabled2Join.get(clz)){
-	        if(fd.getJoinDependency().equals(dep)){
-	            filters.add(fd);
-	        }
-	    }
+		if (!clzesEnabled2Join.containsKey(clz)) {
+			throw new InvalidFetchOperationException(
+					"class[" + clz.getName() + "] can't be fetched from class[" + getEntityClz().getName() + "]");
+		}
+		List<FilterDescriptor> filters = new ArrayList<>();
+		for (FilterDescriptor fd : clzesEnabled2Join.get(clz)) {
+			if (fd.getJoinDependency().equals(dep)) {
+				filters.add(fd);
+			}
+		}
 	    return filters;
 	}
 	
 	private void putDescriptor2Head(FilterDescriptor fd) {
-		for(FilterDescriptor f : many2oneFilterDescripters){
-			if(f.getFilterTable().equals(fd.getFilterTable()) && f.getJoinField().equals(fd.getJoinField())){
+		for (FilterDescriptor f : many2oneFilterDescripters) {
+			if (f.getFilterTable().equals(fd.getFilterTable()) && f.getJoinField().equals(fd.getJoinField())) {
 				many2oneFilterDescripters.remove(f);
 				break;
 			}
 		}
-		many2oneFilterDescripters.add(0,fd);
+		many2oneFilterDescripters.add(0, fd);
 	}
 	
 	/**
@@ -1311,7 +1309,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	@Override
-	public String getAliasByTableName(String tableName){
+	public String getAliasByTableName(String tableName) {
         if (SessionFactory.isEmpty(aliasMapping.get(tableName))) {
             String alias = generateTableAlias();
             aliasMapping.put(tableName, alias);
@@ -1424,7 +1422,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
      * @return  
      * 
      */
-    public AbstractQuery<T> addInnerJoinFilter(JoinFilter filter){
+	public AbstractQuery<T> addInnerJoinFilter(JoinFilter filter) {
         joinFilters.put(filter.getJoinClass(), filter);
         return this;
     }
@@ -1459,7 +1457,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public AbstractQuery<T> asc(String fieldName){
+	public AbstractQuery<T> asc(String fieldName) {
 		return asc(fieldName, getEntityClz());
 	}
 	
@@ -1471,8 +1469,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public AbstractQuery<T> asc(String fieldName, Class<?> targetClz){
-		if(null ==  asc.get(targetClz)){
+	public AbstractQuery<T> asc(String fieldName, Class<?> targetClz) {
+		if (null == asc.get(targetClz)) {
 			asc.put(targetClz, new HashSet<>());
 		}
 		String columnName = getColumnNameByFieldAndClz(fieldName, targetClz);
@@ -1505,7 +1503,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public AbstractQuery<T> desc(String fieldName){
+	public AbstractQuery<T> desc(String fieldName) {
 		return desc(fieldName, getEntityClz());
 	}
 	
@@ -1517,7 +1515,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public AbstractQuery<T> desc(String fieldName, Class<?> targetClz){
+	public AbstractQuery<T> desc(String fieldName, Class<?> targetClz) {
 		if (null == desc.get(targetClz)) {
 			desc.put(targetClz, new HashSet<>());
 		}
@@ -1603,7 +1601,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public AbstractQuery<T> fetch(Class<?> clz, Class<?>... dependency){
+	public AbstractQuery<T> fetch(Class<?> clz, Class<?>... dependency) {
 	    doShardedFetchChecking(clz, dependency);
 		if (0 == dependency.length) {
 			fetchEntity(clz);
@@ -1646,7 +1644,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	private AbstractQuery<T> fetchEntity(Class<?> clz, Class<?> dependency){
+	private AbstractQuery<T> fetchEntity(Class<?> clz, Class<?> dependency) {
 		if (null == clz) {
 			return this;
 		}
@@ -1773,7 +1771,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @return
 	 */
 	public AbstractQuery<T> alias(Class<?> entityClz, String alias) {
-	    if(aliasMapping.containsValue(alias.toUpperCase())){
+		if (aliasMapping.containsValue(alias.toUpperCase())) {
 	        throw new RepeatedAliasException(alias);
 	    }
 		aliasMapping.put(getTableNameByClass(entityClz), alias.toUpperCase());

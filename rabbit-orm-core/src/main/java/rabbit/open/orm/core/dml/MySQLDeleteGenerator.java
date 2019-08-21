@@ -9,7 +9,7 @@ import rabbit.open.orm.core.dml.meta.FilterDescriptor;
  * <b>@author</b>	肖乾斌
  * 
  */
-public class MySQLDeleteGenerator extends DeleteDialectAdapter{
+public class MySQLDeleteGenerator extends DeleteDialectAdapter {
 
 	@Override
 	public StringBuilder createDeleteSql(Delete<?> delete) {

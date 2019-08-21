@@ -7,14 +7,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import junit.framework.TestCase;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.CycleDependencyException;
 import rabbit.open.orm.common.exception.EmptyListFilterException;
@@ -28,6 +27,10 @@ import rabbit.open.orm.common.exception.WrongJavaTypeException;
 import rabbit.open.orm.core.dml.Query;
 import rabbit.open.orm.core.dml.meta.JoinFilterBuilder;
 import rabbit.open.test.entity.Car;
+import rabbit.open.test.entity.EnumComponent;
+import rabbit.open.test.entity.EnumComponent.ComponentCodeEnum;
+import rabbit.open.test.entity.EnumRole.EnumRoleEnum;
+import rabbit.open.test.entity.EnumRole;
 import rabbit.open.test.entity.Leader;
 import rabbit.open.test.entity.Master;
 import rabbit.open.test.entity.Organization;
@@ -41,6 +44,8 @@ import rabbit.open.test.entity.User;
 import rabbit.open.test.entity.ZProperty;
 import rabbit.open.test.entity.Zone;
 import rabbit.open.test.service.CarService;
+import rabbit.open.test.service.EnumComponentService;
+import rabbit.open.test.service.EnumRoleService;
 import rabbit.open.test.service.LeaderService;
 import rabbit.open.test.service.MasterService;
 import rabbit.open.test.service.MasterSlaveService;
@@ -888,8 +893,44 @@ public class QueryTest {
 
         TestCase.assertNull(queriedMaster.getSlaves());
 
-
-
+    }
+    
+    
+    @Autowired
+    private EnumComponentService ecs;
+    
+    @Autowired
+    private EnumRoleService ers;
+    
+    /**
+     * <b>@description 枚举字段测试 </b>
+     */
+    @Test
+    public void enumFieldTest() {
+    	EnumRole er = new EnumRole();
+    	er.setRoleCode(EnumRoleEnum.World);
+    	er.setAge(10);
+    	ers.add(er);
+    	
+    	EnumComponent ec = new EnumComponent();
+    	ec.setComponentCode(ComponentCodeEnum.Hello);
+    	ec.setRole(er);
+    	ecs.add(ec);
+    	
+    	EnumComponent c = ecs.getByID(ec.getComponentCode());
+    	
+    	TestCase.assertEquals(c.getComponentCode(), ec.getComponentCode());
+    	TestCase.assertEquals(c.getRole().getRoleCode(), ec.getRole().getRoleCode());
+    	
+    	List<EnumComponent> list = ecs.createQuery()
+    			.addFilter("componentCode", new ComponentCodeEnum[] {ComponentCodeEnum.Hello, ComponentCodeEnum.World },
+    					FilterType.IN)
+    			.fetch(EnumRole.class)
+    			.list();
+    	
+    	TestCase.assertEquals(list.size(), 1);
+    	TestCase.assertEquals(list.get(0).getRole().getAge(), er.getAge());
+    	
     }
     
 }

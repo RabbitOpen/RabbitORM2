@@ -206,25 +206,28 @@ public abstract class DMLAdapter<T> {
      * @return	
      * 
      */
-    private Object convert2Str(PreparedValue v) {
-        if(null == v || null == v.getValue()){
-        	return "null";
-        }
-    	if(v.getValue() instanceof String){
-    		return "'" + v.getValue().toString().replaceAll("'", "\\\\'") + "'";
-    	}
-    	if(v.getValue() instanceof Date){
-    		String ds = new SimpleDateFormat(DEFAULT_DATE_PATTERN).format(v.getValue());
-    		if(sessionFactory.getDialectType().isOracle()){
-    			return "to_date('" + ds + "','YYYY-MM-DD HH24:MI:SS')";
-    		}else{
-    			return "'" + ds + "'";
-    		}
-        }
-        return v.getValue();
-    }
+	private Object convert2Str(PreparedValue v) {
+		if (null == v || null == v.getValue()) {
+			return "null";
+		}
+		if (v.getValue() instanceof String) {
+			return "'" + v.getValue().toString().replaceAll("'", "\\\\'") + "'";
+		}
+		if (v.getValue() instanceof Enum) {
+			return "'" + v.getValue().toString().replaceAll("'", "\\\\'") + "'";
+		}
+		if (v.getValue() instanceof Date) {
+			String ds = new SimpleDateFormat(DEFAULT_DATE_PATTERN).format(v.getValue());
+			if (sessionFactory.getDialectType().isOracle()) {
+				return "to_date('" + ds + "','YYYY-MM-DD HH24:MI:SS')";
+			} else {
+				return "'" + ds + "'";
+			}
+		}
+		return v.getValue();
+	}
 	
-	private String replace(String src, String replace){
+	private String replace(String src, String replace) {
 		StringBuilder sb = new StringBuilder(src);
 		int index = sb.indexOf("?");
 		sb.deleteCharAt(index);
@@ -239,23 +242,24 @@ public abstract class DMLAdapter<T> {
 	 * @throws 	SQLException	
 	 * 
 	 */
-	protected void setPreparedStatementValue(PreparedStatement stmt, DMLType dmlType) throws SQLException{
-        for (int i = 1; i <= preparedValues.size(); i++) {
-            PreparedValue pv = (PreparedValue) preparedValues.get(i - 1);
-            Object value = sessionFactory.onValueSet(pv, dmlType);
-            pv.setValue(value);
-            if (value instanceof Date) {
-                setDate(stmt, i, (Date) value);
-            } else if (value instanceof Double){ 
-                stmt.setDouble(i, (double) value);
-            } else if (value instanceof Float){ 
-                stmt.setFloat(i, (float) value);
-            } else if (value instanceof Enum){
-                stmt.setString(i, ((Enum) value).name());
-            } else {
-                stmt.setObject(i, value);
-            }
-        }
+	@SuppressWarnings("rawtypes")
+	protected void setPreparedStatementValue(PreparedStatement stmt, DMLType dmlType) throws SQLException {
+		for (int i = 1; i <= preparedValues.size(); i++) {
+			PreparedValue pv = (PreparedValue) preparedValues.get(i - 1);
+			Object value = sessionFactory.onValueSet(pv, dmlType);
+			pv.setValue(value);
+			if (value instanceof Date) {
+				setDate(stmt, i, (Date) value);
+			} else if (value instanceof Double) {
+				stmt.setDouble(i, (double) value);
+			} else if (value instanceof Float) {
+				stmt.setFloat(i, (float) value);
+			} else if (value instanceof Enum) {
+				stmt.setString(i, ((Enum) value).name());
+			} else {
+				stmt.setObject(i, value);
+			}
+		}
 	}
 
     private void setDate(PreparedStatement stmt, int i, Date date)
@@ -271,8 +275,8 @@ public abstract class DMLAdapter<T> {
 	 * 
 	 * 准备过滤的filterDescriptors信息
 	 */
-	protected void prepareFilterMetas(){
-		if(this.filterData != null){
+	protected void prepareFilterMetas() {
+		if (this.filterData != null) {
 			generateFilters(getNonEmptyFieldMetas(this.filterData, getEntityClz()));
 		}
 	}
@@ -282,11 +286,11 @@ public abstract class DMLAdapter<T> {
 	 * <b>Description:	执行动态回调任务</b><br>	
 	 * 
 	 */
-	protected void runCallBackTask(){
-		if(filterTasks.isEmpty()){
+	protected void runCallBackTask() {
+		if (filterTasks.isEmpty()) {
 			return;
 		}
-		for(CallBackTask dft : filterTasks){
+		for (CallBackTask dft : filterTasks) {
 			dft.run();
 		}
 	}
@@ -327,14 +331,14 @@ public abstract class DMLAdapter<T> {
      * @return  
      * 
      */
-    protected Object getValue(Field field, Object target){
-        try {
-            field.setAccessible(true);
-            return field.get(target);
-        } catch (Exception e) {
-            throw new RabbitDMLException(e.getMessage());
-        }
-    }
+	protected Object getValue(Field field, Object target) {
+		try {
+			field.setAccessible(true);
+			return field.get(target);
+		} catch (Exception e) {
+			throw new RabbitDMLException(e.getMessage());
+		}
+	}
 	
 	//生成过滤条件
 	protected void generateFilters(List<FieldMetaData> fieldMetas) {
@@ -605,7 +609,7 @@ public abstract class DMLAdapter<T> {
     }
 	
 	//找出该实体下所有能够被关联查询的类
-	private void findOutEnable2JoinClzes(Class<?> clz){
+	private void findOutEnable2JoinClzes(Class<?> clz) {
         for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(clz).values()) {
             if (!fmd.isForeignKey()) {
                 continue;
@@ -615,9 +619,9 @@ public abstract class DMLAdapter<T> {
             String fkName = getColumnName(column);
             String fkTable = getTableNameByClass(fmd.getField().getType());
             String tableAlias = getAliasByTableName(fkTable);
-            if(fmd.isMutiFetchField()){
-                tableAlias = tableAlias + UNDERLINE + fmd.getIndex();
-            }
+			if (fmd.isMutiFetchField()) {
+				tableAlias = tableAlias + UNDERLINE + fmd.getIndex();
+			}
             FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(getTableNameByClass(clz))
                             + "." + getColumnName(fmd.getColumn()), tableAlias + "." + fkName);
             desc.setField(fmd.getField());
@@ -976,10 +980,10 @@ public abstract class DMLAdapter<T> {
      * @param factors
      * @return
      */
-    protected String getCurrentShardedTableName(List<ShardFactor> factors){
-        String tableName = getDeclaredTableName();
-        return getShardingPolicy().getShardingTable(getEntityClz(), tableName, factors);
-    }
+	protected String getCurrentShardedTableName(List<ShardFactor> factors) {
+		String tableName = getDeclaredTableName();
+		return getShardingPolicy().getShardingTable(getEntityClz(), tableName, factors);
+	}
     
     protected String getCurrentTableName() {
         if (isShardingOperation()) {
@@ -1047,11 +1051,11 @@ public abstract class DMLAdapter<T> {
         this.multiDropFilters.add(multiDropFilter);
     }
     
+    
     protected void setValue2Field(Object target, Field field, Object value) {
         try {
             if (Enum.class.isAssignableFrom(field.getType())) {
-                Class clz = field.getType();
-                value = Enum.valueOf(clz, value.toString());
+                value = convertString2Enum(field, value);
             }
             field.setAccessible(true);
             field.set(target, value);
@@ -1059,6 +1063,18 @@ public abstract class DMLAdapter<T> {
             throw new RabbitDMLException(e.getMessage(), e);
         }
     }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+	private Object convertString2Enum(Field field, Object value) {
+		Class clz = field.getType();
+		try {
+			value = Enum.valueOf(clz, value.toString());
+		} catch (Exception e) {
+			value = null;
+			logger.warn(e.getMessage(), e);
+		}
+		return value;
+	}
     
     public static <T> T newInstance(Class<T> clz) {
         try {
