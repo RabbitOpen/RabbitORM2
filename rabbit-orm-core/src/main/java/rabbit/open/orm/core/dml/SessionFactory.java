@@ -1,21 +1,8 @@
 package rabbit.open.orm.core.dml;
 
-import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.annotation.PostConstruct;
-import javax.sql.DataSource;
-
 import org.apache.log4j.Logger;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-
 import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.ddl.DDLType;
@@ -30,6 +17,17 @@ import rabbit.open.orm.core.dml.name.NamedSQL;
 import rabbit.open.orm.core.spring.TransactionObject;
 import rabbit.open.orm.core.utils.PackageScanner;
 import rabbit.open.orm.core.utils.XmlMapperParser;
+
+import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
+import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionFactory {
 
@@ -254,18 +252,12 @@ public class SessionFactory {
      * @param factory 
      * 
      */
-    /**
-     * <b>@description  </b>
-     * @param transactionObject
-     * @param factory
-     */
     public static void commit(Object transactionObject, SessionFactory factory) {
         if (null == transObjHolder.get() || !transObjHolder.get().equals(transactionObject)) {
             return;
         }
         TransactionObject tObj = (TransactionObject) transObjHolder.get();
 		int requiredIsolationLevel = tObj.getTransactionIsolationLevel();
-        transObjHolder.remove();
         for (DataSource ds : factory.getAllDataSources()) {
         	RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager
 					.getResource(ds);
@@ -286,6 +278,7 @@ public class SessionFactory {
 			}
         	TransactionSynchronizationManager.unbindResource(ds);
 		}
+		transObjHolder.remove();
     }
 
 	/**
