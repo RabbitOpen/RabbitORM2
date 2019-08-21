@@ -250,6 +250,8 @@ public abstract class DMLAdapter<T> {
                 stmt.setDouble(i, (double) value);
             } else if (value instanceof Float){ 
                 stmt.setFloat(i, (float) value);
+            } else if (value instanceof Enum){
+                stmt.setString(i, ((Enum) value).name());
             } else {
                 stmt.setObject(i, value);
             }
@@ -1047,6 +1049,10 @@ public abstract class DMLAdapter<T> {
     
     protected void setValue2Field(Object target, Field field, Object value) {
         try {
+            if (Enum.class.isAssignableFrom(field.getType())) {
+                Class clz = field.getType();
+                value = Enum.valueOf(clz, value.toString());
+            }
             field.setAccessible(true);
             field.set(target, value);
         } catch (Exception e) {

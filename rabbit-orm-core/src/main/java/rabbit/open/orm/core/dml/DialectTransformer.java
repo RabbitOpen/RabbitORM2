@@ -124,6 +124,10 @@ public abstract class DialectTransformer {
                                 new BigDecimal(value.toString()),
                                 field.getType()));
             } else {
+				if (Enum.class.isAssignableFrom(field.getType())) {
+					Class clz = field.getType();
+					value = Enum.valueOf(clz, value.toString());
+				}
                 field.set(target, value);
             }
         } catch (Exception e) {
