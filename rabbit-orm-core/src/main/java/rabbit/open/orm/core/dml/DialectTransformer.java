@@ -113,24 +113,25 @@ public abstract class DialectTransformer {
 	/**
      * <b>Description  给指定对象的字段设值</b>
      * @param target
-     * @param field
+     * @param f
      * @param value
      */
-    public void setValue2EntityField(Object target, Field field, Object value) {
+    public void setValue2EntityField(Object target, Field f, Object value) {
         try {
-            field.setAccessible(true);
+            f.setAccessible(true);
             if (value instanceof Number) {
-                field.set(target, RabbitValueConverter.cast(
+                f.set(target, RabbitValueConverter.cast(
                                 new BigDecimal(value.toString()),
-                                field.getType()));
+                                f.getType()));
             } else {
-				if (Enum.class.isAssignableFrom(field.getType())) {
-					 value = convertString2Enum(field, value);
+				if (Enum.class.isAssignableFrom(f.getType())) {
+					f.set(target, convertString2Enum(f, value));
+				} else {
+					f.set(target, value);
 				}
-                field.set(target, value);
             }
         } catch (Exception e) {
-        	logger.error("[" + target.getClass() + " -> " + field.getName() 
+        	logger.error("[" + target.getClass() + " -> " + f.getName() 
         			+ "] value type error! value[" + value + "]");
             throw new RabbitDMLException(e.getMessage(), e);
         }

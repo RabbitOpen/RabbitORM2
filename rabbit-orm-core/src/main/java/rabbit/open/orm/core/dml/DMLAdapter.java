@@ -1054,11 +1054,12 @@ public abstract class DMLAdapter<T> {
     
     protected void setValue2Field(Object target, Field field, Object value) {
         try {
+        	field.setAccessible(true);
             if (Enum.class.isAssignableFrom(field.getType())) {
-                value = convertString2Enum(field, value);
+                field.set(target, convertString2Enum(field, value));
+            } else {
+            	field.set(target, value);
             }
-            field.setAccessible(true);
-            field.set(target, value);
         } catch (Exception e) {
             throw new RabbitDMLException(e.getMessage(), e);
         }
@@ -1068,12 +1069,11 @@ public abstract class DMLAdapter<T> {
 	private Object convertString2Enum(Field field, Object value) {
 		Class clz = field.getType();
 		try {
-			value = Enum.valueOf(clz, value.toString());
+			return Enum.valueOf(clz, value.toString());
 		} catch (Exception e) {
-			value = null;
 			logger.warn(e.getMessage(), e);
+			return null;
 		}
-		return value;
 	}
     
     public static <T> T newInstance(Class<T> clz) {

@@ -457,7 +457,7 @@ public abstract class DDLHelper {
 
     protected String getSqlTypeByJavaType(Class<?> type, int length) {
         if (Enum.class.isAssignableFrom(type)) {
-            type = String.class;
+        	return getTypeString(String.class) + "(" + length + ")";
         }
         if (type.equals(String.class)) {
             return getTypeString(type) + "(" + length + ")";
