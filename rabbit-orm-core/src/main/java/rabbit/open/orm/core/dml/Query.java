@@ -79,19 +79,17 @@ public class Query<T> extends AbstractQuery<T> {
 	 * 
 	 */
 	@Override
-	public AbstractQuery<T> addJoinFilter(String reg, FilterType ft,
-			Object value, Class<?> target) {
+	public AbstractQuery<T> addJoinFilter(String reg, FilterType ft, Object value, Class<?> target) {
 		String field = getFieldByReg(reg);
 		checkJoinFilterClass(target);
 		checkField(target, field);
-		if(!addedJoinFilters.containsKey(target)){
+		if (!addedJoinFilters.containsKey(target)) {
 			addedJoinFilters.put(target, new HashMap<String, List<DynamicFilterDescriptor>>());
 		}
-		if(!addedJoinFilters.get(target).containsKey(field)){
+		if (!addedJoinFilters.get(target).containsKey(field)) {
 			addedJoinFilters.get(target).put(field, new ArrayList<DynamicFilterDescriptor>());
 		}
-		addedJoinFilters.get(target).get(field).add(new DynamicFilterDescriptor(reg, ft, 
-				value, !field.equals(reg)));
+		addedJoinFilters.get(target).get(field).add(new DynamicFilterDescriptor(reg, ft, value, !field.equals(reg)));
 		return this;
 	}
 
@@ -113,13 +111,12 @@ public class Query<T> extends AbstractQuery<T> {
 	 * 
 	 */
 	@Override
-	public AbstractQuery<T> addInnerJoinFilter(String reg, FilterType ft,
-			Object value, Class<?> target) {
-	    if(!joinFilters.containsKey(target)) {
-	        addInnerJoinFilter(JoinFilterBuilder.prepare(this).join(target).on(reg, value, ft).build());
-	    } else {
-	        joinFilters.get(target).getFilterDescriptor().on(reg, value, ft);
-	    }
+	public AbstractQuery<T> addInnerJoinFilter(String reg, FilterType ft, Object value, Class<?> target) {
+		if (!joinFilters.containsKey(target)) {
+			addInnerJoinFilter(JoinFilterBuilder.prepare(this).join(target).on(reg, value, ft).build());
+		} else {
+			joinFilters.get(target).getFilterDescriptor().on(reg, value, ft);
+		}
 		return this;
 	}
 

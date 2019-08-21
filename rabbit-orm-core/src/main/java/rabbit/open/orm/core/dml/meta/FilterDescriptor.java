@@ -100,7 +100,7 @@ public class FilterDescriptor {
         return filter;
     }
     
-    public boolean isEqual(FilterDescriptor fd){
+	public boolean isEqual(FilterDescriptor fd) {
         return this.key.equals(fd.getKey()) 
             && ((null == filter && null == fd.getFilter()) || (null != filter && null != fd.getFilter() && filter.equals(fd.getFilter())))
             && ((null == value && null == fd.getValue()) || (null != value && null != fd.getValue() && value.equals(fd.getValue())))

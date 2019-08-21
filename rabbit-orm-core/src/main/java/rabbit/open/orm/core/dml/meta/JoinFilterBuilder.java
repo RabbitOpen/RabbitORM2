@@ -25,9 +25,9 @@ public class JoinFilterBuilder {
      * @return	
      * 
      */
-    public static JoinFilterBuilder prepare(AbstractQuery<?> query){
-        return new JoinFilterBuilder(query);
-    }
+	public static JoinFilterBuilder prepare(AbstractQuery<?> query) {
+		return new JoinFilterBuilder(query);
+	}
     
     /**
      * 
@@ -36,18 +36,18 @@ public class JoinFilterBuilder {
      * @return	
      * 
      */
-    public JoinFilterBuilder join(Class<?> joinClz){
-        if(null == filterDesc){
-            filterDesc = new JoinFilterDescriptor(joinClz, query);
-            filter = new JoinFilter();
-            filter.setDescriptor(filterDesc);
-        }else{
-            JoinFilterDescriptor subDecriptor = new JoinFilterDescriptor(joinClz, filterDesc.getTargetClzQuery());
-            filterDesc.setSubJoinFilterDescriptor(subDecriptor);
-            filterDesc = subDecriptor;
-        }
-        return this;
-    }
+	public JoinFilterBuilder join(Class<?> joinClz) {
+		if (null == filterDesc) {
+			filterDesc = new JoinFilterDescriptor(joinClz, query);
+			filter = new JoinFilter();
+			filter.setDescriptor(filterDesc);
+		} else {
+			JoinFilterDescriptor subDecriptor = new JoinFilterDescriptor(joinClz, filterDesc.getTargetClzQuery());
+			filterDesc.setSubJoinFilterDescriptor(subDecriptor);
+			filterDesc = subDecriptor;
+		}
+		return this;
+	}
     
     /**
      * 
@@ -58,10 +58,10 @@ public class JoinFilterBuilder {
      * @return  
      * 
      */
-    public JoinFilterBuilder on(String fieldReg, Object value, FilterType ft){
-        filterDesc.on(fieldReg, value, ft);
-        return this;
-    }
+	public JoinFilterBuilder on(String fieldReg, Object value, FilterType ft) {
+		filterDesc.on(fieldReg, value, ft);
+		return this;
+	}
 
     /**
      * 
@@ -71,10 +71,10 @@ public class JoinFilterBuilder {
      * @return	
      * 
      */
-    public JoinFilterBuilder on(String fieldReg, Object value){
-        on(fieldReg, value, FilterType.EQUAL);
-        return this;
-    }
+	public JoinFilterBuilder on(String fieldReg, Object value) {
+		on(fieldReg, value, FilterType.EQUAL);
+		return this;
+	}
     
     /**
      * 
@@ -82,8 +82,8 @@ public class JoinFilterBuilder {
      * @return	
      * 
      */
-    public JoinFilter build(){
-        return filter;
-    }
+	public JoinFilter build() {
+		return filter;
+	}
     
 }
