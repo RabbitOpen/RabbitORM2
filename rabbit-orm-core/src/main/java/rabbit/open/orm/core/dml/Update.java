@@ -560,7 +560,7 @@ public class Update<T> extends NonQueryAdapter<T> {
         		+ key + "(" + fmd.getField().getType().getName() + ")] of " 
         		+ data.getClass().getName());
         Object bean = DMLAdapter.newInstance(fmd.getField().getType());
-        if(value instanceof Number){
+		if (value instanceof Number) {
             setValue2Field(bean, pk, RabbitValueConverter.cast(
                     new BigDecimal(value.toString()), pk.getType()));
         } else {

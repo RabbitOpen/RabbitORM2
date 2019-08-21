@@ -1051,12 +1051,13 @@ public abstract class DMLAdapter<T> {
         this.multiDropFilters.add(multiDropFilter);
     }
     
-    
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected void setValue2Field(Object target, Field field, Object value) {
         try {
         	field.setAccessible(true);
             if (Enum.class.isAssignableFrom(field.getType())) {
-                field.set(target, convertString2Enum(field, value));
+            	Class clz = field.getType();
+                field.set(target, Enum.valueOf(clz, value.toString()));
             } else {
             	field.set(target, value);
             }
@@ -1065,17 +1066,6 @@ public abstract class DMLAdapter<T> {
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-	private Object convertString2Enum(Field field, Object value) {
-		Class clz = field.getType();
-		try {
-			return Enum.valueOf(clz, value.toString());
-		} catch (Exception e) {
-			logger.warn(e.getMessage(), e);
-			return null;
-		}
-	}
-    
     public static <T> T newInstance(Class<T> clz) {
         try {
             return clz.getDeclaredConstructor().newInstance();

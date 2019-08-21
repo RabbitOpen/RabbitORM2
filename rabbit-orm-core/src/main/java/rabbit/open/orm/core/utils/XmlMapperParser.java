@@ -82,16 +82,16 @@ public class XmlMapperParser {
 	 */
 	public void doXmlParsing() {
 		List<String> xmls = readFiles();
-		if(xmls.isEmpty()){
+		if (xmls.isEmpty()) {
 			return;
 		}
 		readXmls(xmls);
 	}
 
 	private void readXmls(List<String> xmls) {
-		for(String xml : xmls){
+		for (String xml : xmls) {
 			logger.info("parsing " + xml);
-			parseOneByOne(xml);   
+			parseOneByOne(xml);
 		}
 	}
 
@@ -229,7 +229,7 @@ public class XmlMapperParser {
             Enumeration<JarEntry> entries = jf.entries();
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
-                if (entry.getName().endsWith("xml") && entry.getName().contains("classes/" + sqlPath)){
+				if (entry.getName().endsWith("xml") && entry.getName().contains("classes/" + sqlPath)) {
                     xmls.add(entry.getName().substring(entry.getName().indexOf("/" + sqlPath)));
                 }
             }

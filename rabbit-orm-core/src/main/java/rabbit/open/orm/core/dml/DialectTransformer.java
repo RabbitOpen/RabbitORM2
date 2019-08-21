@@ -116,45 +116,26 @@ public abstract class DialectTransformer {
      * @param f
      * @param value
      */
-    public void setValue2EntityField(Object target, Field f, Object value) {
-        try {
-            f.setAccessible(true);
-            if (value instanceof Number) {
-                f.set(target, RabbitValueConverter.cast(
-                                new BigDecimal(value.toString()),
-                                f.getType()));
-            } else {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void setValue2EntityField(Object target, Field f, Object value) {
+		try {
+			f.setAccessible(true);
+			if (value instanceof Number) {
+				f.set(target, RabbitValueConverter.cast(new BigDecimal(value.toString()), f.getType()));
+			} else {
 				if (Enum.class.isAssignableFrom(f.getType())) {
-					f.set(target, convertString2Enum(f, value));
+					Class clz = f.getType();
+					f.set(target, Enum.valueOf(clz, value.toString()));
 				} else {
 					f.set(target, value);
 				}
-            }
-        } catch (Exception e) {
-        	logger.error("[" + target.getClass() + " -> " + f.getName() 
-        			+ "] value type error! value[" + value + "]");
-            throw new RabbitDMLException(e.getMessage(), e);
-        }
-    }
-    
-    /**
-     * <b>@description 字符串转枚举 </b>
-     * @param field
-     * @param value
-     * @return
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-	private Object convertString2Enum(Field field, Object value) {
-		Class clz = field.getType();
-		try {
-			value = Enum.valueOf(clz, value.toString());
+			}
 		} catch (Exception e) {
-			value = null;
-			logger.warn(e.getMessage(), e);
+			logger.error("[" + target.getClass() + " -> " + f.getName() + "] value type error! value[" + value + "]");
+			throw new RabbitDMLException(e.getMessage(), e);
 		}
-		return value;
 	}
-	
+    
 	public static void init() {
 		registTransformer(DialectType.MYSQL, new MySQLTransformer());
 		registTransformer(DialectType.ORACLE, new OracleTransformer());
