@@ -60,12 +60,18 @@ public class Query<T> extends AbstractQuery<T> {
 		filterTasks.add(new DynamicFilterTask<T>(this, reg, value, ft, depsPath));
 		return this;
 	}
-	
+
+	/**
+	 * 添加过滤条件
+	 * @param reg
+	 * @param value
+	 * @param depsPath
+	 * @return
+	 */
 	@Override
 	public AbstractQuery<T> addFilter(String reg, Object value,
 			Class<?>... depsPath) {
-		addFilter(reg, value, FilterType.EQUAL, depsPath);
-		return this;
+		return addFilter(reg, value, FilterType.EQUAL, depsPath);
 	}
 
 	/**
@@ -93,19 +99,27 @@ public class Query<T> extends AbstractQuery<T> {
 		return this;
 	}
 
+	/**
+	 *
+	 * <b>Description:	添加【一对多/多对多】多端左链接过滤条件，相同target的左链接过滤条件和合并</b><br>
+	 * @param reg		字段在正则
+	 * @param value		条件值
+	 * @param target   多端实体的class对象
+	 * @return
+	 *
+	 */
 	@Override
 	public AbstractQuery<T> addJoinFilter(String reg, Object value,
 			Class<?> target) {
-		addJoinFilter(reg, FilterType.EQUAL, value, target);
-		return this;
+		return addJoinFilter(reg, FilterType.EQUAL, value, target);
 	}
 
 	/**
 	 * 
-	 * <b>Description:	添加内链接过滤条件，相同target的内链接过滤条件和合并</b><br>
-	 * @param reg
-	 * @param ft
-	 * @param value
+	 * <b>Description:	添加【一对多/多对多】多端内链接过滤条件，相同target的内链接过滤条件和合并</b><br>
+	 * @param reg		字段在正则
+	 * @param ft		过滤条件
+	 * @param value		条件值
 	 * @param target   多端实体的class对象
 	 * @return	
 	 * 
@@ -120,11 +134,19 @@ public class Query<T> extends AbstractQuery<T> {
 		return this;
 	}
 
+	/**
+	 *
+	 * <b>Description:	添加【一对多/多对多】多端内链接过滤条件，相同target的内链接过滤条件和合并</b><br>
+	 * @param reg		字段在正则
+	 * @param value		条件值
+	 * @param target   多端实体的class对象
+	 * @return
+	 *
+	 */
 	@Override
 	public AbstractQuery<T> addInnerJoinFilter(String reg, Object value,
 			Class<?> target) {
-		addInnerJoinFilter(reg, FilterType.EQUAL, value, target);
-		return this;
+		return addInnerJoinFilter(reg, FilterType.EQUAL, value, target);
 	}
 
 	/**
@@ -138,8 +160,7 @@ public class Query<T> extends AbstractQuery<T> {
 	 */
 	@Override
 	public AbstractQuery<T> addNullFilter(String reg, boolean isNull, Class<?>... depsPath) {
-		addFilter(reg, null, isNull ? FilterType.IS : FilterType.IS_NOT, depsPath);
-		return this;
+		return addFilter(reg, null, isNull ? FilterType.IS : FilterType.IS_NOT, depsPath);
 	}
 
 	/**
