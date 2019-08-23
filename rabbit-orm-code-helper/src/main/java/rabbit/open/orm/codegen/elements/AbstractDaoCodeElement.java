@@ -17,7 +17,7 @@ public class AbstractDaoCodeElement {
 	protected String packageName;
 	
 	// 通用dao基类名字
-	public static final String GENERICAL_DAO_CLASS_NAME = "GenericalDao";
+	public static final String PRIMARY_DAO_CLASS_NAME = "PrimaryDao";
 	
 	public AbstractDaoCodeElement(String packageName) {
 		super();
@@ -33,7 +33,7 @@ public class AbstractDaoCodeElement {
 		sb.append(IMPORT + SessionFactory.class.getName() + ";\n");
 		sb.append(IMPORT + SpringDaoAdapter.class.getName() + ";\n\n");
 		sb.append(new DocElement(CodeGenerator.COMMON_MSG, "@desc:  通用Dao泛型基类"));
-		sb.append("public abstract class " + GENERICAL_DAO_CLASS_NAME + "<T> extends SpringDaoAdapter<T> {\n\n");
+		sb.append("public abstract class " + PRIMARY_DAO_CLASS_NAME + "<T> extends SpringDaoAdapter<T> {\n\n");
 		DocElement sfDoc = new DocElement(CodeGenerator.COMMON_MSG, 
 				"@desc:  sessionFactory对象，请确保注入的名字和xml配置中一致");
 		sfDoc.setLinePrefix("\t");

@@ -333,7 +333,7 @@ public class CodeGenerator {
 	 */
 	private void generateGenericalDaoClassFile() throws IOException {
 		FileWriter fw = new FileWriter(genericalDaoFile.getAbsoluteFile() + "\\"
-				+ AbstractDaoCodeElement.GENERICAL_DAO_CLASS_NAME + ".java");
+				+ AbstractDaoCodeElement.PRIMARY_DAO_CLASS_NAME + ".java");
 		try {
 			fw.write(new AbstractDaoCodeElement(basePackageName + ".dao.base").toString());
 		} finally {
