@@ -1,19 +1,14 @@
 package rabbit.open.orm.datasource;
 
-import java.lang.reflect.Method;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
-
 import rabbit.open.orm.common.exception.RabbitDMLException;
+
+import java.lang.reflect.Method;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class PreparedStatementProxy implements MethodInterceptor {
 
@@ -21,8 +16,6 @@ public class PreparedStatementProxy implements MethodInterceptor {
     private PreparedStatement stmt;
     
     static Class<?> oraclePreparedStatementClz = null;
-    
-    private List<Object> parameters = new ArrayList<>();
     
     private StringBuilder preparedSql;
     
@@ -80,36 +73,17 @@ public class PreparedStatementProxy implements MethodInterceptor {
 		if ("close".equals(method.getName())) {
 			return null;
 		}
-		if (showSlowSql()) {
-			if (method.getName().startsWith("set")) {
-				parameters.add((int)args[0] - 1, args[1]);
+		if (showSlowSql() && method.getName().startsWith("execute")) {
+			long start = System.currentTimeMillis();
+			Object ret = method.invoke(stmt, args);
+			long cost = System.currentTimeMillis() - start;
+			if (cost >= getSlowSqlThreshold()) {
+				logger.debug("cost: " + cost + "ms, " + preparedSql.toString());
 			}
-			if (method.getName().startsWith("execute")) {
-				long start = System.currentTimeMillis();
-				Object ret = method.invoke(stmt, args);
-				long cost = System.currentTimeMillis() - start;
-				if (cost >= getSlowSqlThreshold()) {
-					logger.debug("cost: " + cost + "ms, " + getSqlText());
-				}
-				parameters.clear();
-				return ret;
-			}
+			return ret;
 		}
         return method.invoke(stmt, args);
     }
-
-	/**
-	 * <b>Description 获取慢sql文本  </b>
-	 * @return
-	 * @author 肖乾斌
-	 */
-	private String getSqlText() {
-		String sql = preparedSql.toString(); 
-		for (int i = 0; i < parameters.size(); i++) {
-			sql = sql.replaceFirst("\\?", getString(parameters.get(i)));
-		}
-		return sql;
-	}
 
 	/**
 	 * <b>Description 获取慢sql阈值 </b>
@@ -128,14 +102,5 @@ public class PreparedStatementProxy implements MethodInterceptor {
 	private boolean showSlowSql() {
 		return dataSource.isShowSlowSql();
 	}
-    
-    private String getString(Object o) {
-    	if (null == o) {
-    		return "null";
-    	}
-    	if (o instanceof Date) {
-    		return "'" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(o) + "'";
-    	}
-    	return "'" + o.toString() + "'";
-    }
+
 }
