@@ -15,7 +15,7 @@ public class JoinFilter {
     //过滤条件描述对象
     private JoinFilterDescriptor descriptor;
     
-    protected JoinFilter(){
+    protected JoinFilter() {
         
     }
 
@@ -29,7 +29,7 @@ public class JoinFilter {
      * @return	
      * 
      */
-    public StringBuilder getInnerJoinSQL(){
+    public StringBuilder getInnerJoinSQL() {
         return descriptor.getInnerJoinSQL();
     }
     
@@ -39,7 +39,7 @@ public class JoinFilter {
      * @return	
      * 
      */
-    public Class<?> getJoinClass(){
+    public Class<?> getJoinClass() {
         return descriptor.getClz();
     }
     
@@ -49,8 +49,8 @@ public class JoinFilter {
      * @return  
      * 
      */
-    public List<Class<?>> getAssocicatedClass(){
-        return descriptor.getAssocicatedClass();
+    public List<Class<?>> getAssociatedClass() {
+        return descriptor.getAssociatedClass();
     }
 
     public JoinFilterDescriptor getFilterDescriptor() {

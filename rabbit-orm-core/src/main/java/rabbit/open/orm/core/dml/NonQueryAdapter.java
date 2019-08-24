@@ -54,7 +54,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
 		super(sessionFactory, filterData, clz);
 	}
 
-	protected interface SQLOperation{
+    protected interface SQLOperation {
 		
 		/**
 		 * 
@@ -247,8 +247,8 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
         return (List) getValue(jfm.getField(), data);
     }
 
-	private PreparedSqlDescriptor createAddJoinRecordsSql(Object value, JoinFieldMetaData<?> jfm, List<?> jrs){
-	    PreparedSqlDescriptor psd = new PreparedSqlDescriptor(jrs.size());
+    private PreparedSqlDescriptor createAddJoinRecordsSql(Object value, JoinFieldMetaData<?> jfm, List<?> jrs) {
+        PreparedSqlDescriptor psd = new PreparedSqlDescriptor(jrs.size());
         for (Object o : jrs) {
             StringBuilder rsql = new StringBuilder();
             List<PreparedValue> values = new ArrayList<>();
@@ -265,15 +265,15 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
             } else {
                 if (mtm.policy().equals(Policy.UUID) || mtm.policy().equals(Policy.SEQUENCE)) {
                     throw new RabbitDMLException("ManyToMany id must be specified when policy is ["
-                                    + mtm.policy() + "]");
+                            + mtm.policy() + "]");
                 }
             }
-			FieldMetaData pkfmd = getPrimayKeyFieldMeta(getEntityClz());
+            FieldMetaData pkfmd = getPrimayKeyFieldMeta(getEntityClz());
             values.add(new PreparedValue(RabbitValueConverter.convert(value, pkfmd), pkfmd.getField()));
-			FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
+            FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
             values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
-			rsql.append(")VALUES(" + PLACE_HOLDER);
-			rsql.append("," + PLACE_HOLDER);
+            rsql.append(")VALUES(" + PLACE_HOLDER);
+            rsql.append("," + PLACE_HOLDER);
             if (!SessionFactory.isEmpty(mtm.id())) {
                 if (mtm.policy().equals(Policy.UUID)) {
                     values.add(new PreparedValue(UUIDPolicy.getID(), jfm.getField()));
@@ -289,11 +289,11 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
             } else {
                 rsql.append(")");
             }
-			psd.setSql(rsql);
-			preparedValues.add(values);
-		}
+            psd.setSql(rsql);
+            preparedValues.add(values);
+        }
         return psd;
-	}
+    }
 
 	/**
 	 * 
@@ -385,7 +385,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
 	 * @return
 	 * 
 	 */
-	protected List<PreparedSqlDescriptor> createRemoveJoinRecordsSql(T data, Object value){
+	protected List<PreparedSqlDescriptor> createRemoveJoinRecordsSql(T data, Object value) {
 		List<PreparedSqlDescriptor> des = new ArrayList<>();
         for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
             List<?> jrs = getM2MJoinFieldValue(data, jfm);

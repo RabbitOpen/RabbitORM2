@@ -155,24 +155,24 @@ public class Insert<T> extends NonQueryAdapter<T> {
 	}
 	
 	//创建需要插入的字段sql片段
-	private StringBuilder createFieldsSql(T obj) {
-		StringBuilder fields = new StringBuilder("(");
-		long nonEmptyFields = 0;
-		for (FieldMetaData fmd : metaData.getFieldMetas()) {
-			Object value = getValue(fmd.getField(), obj);
-			if (null == value && isIgnoreField(fmd)) {
-				continue;
-			}
-			nonEmptyFields++;
-			fields.append(getColumnName(fmd.getColumn()) + ",");
-		}
-		if(0 == nonEmptyFields){
-		    throw new NoField2InsertException();
-		}
-		fields.deleteCharAt(fields.length() - 1);
-		fields.append(")");
-		return fields;
-	}
+    private StringBuilder createFieldsSql(T obj) {
+        StringBuilder fields = new StringBuilder("(");
+        long nonEmptyFields = 0;
+        for (FieldMetaData fmd : metaData.getFieldMetas()) {
+            Object value = getValue(fmd.getField(), obj);
+            if (null == value && isIgnoreField(fmd)) {
+                continue;
+            }
+            nonEmptyFields++;
+            fields.append(getColumnName(fmd.getColumn()) + ",");
+        }
+        if (0 == nonEmptyFields) {
+            throw new NoField2InsertException();
+        }
+        fields.deleteCharAt(fields.length() - 1);
+        fields.append(")");
+        return fields;
+    }
 
 	//非主键，或者自增长类型的主键
     private boolean isIgnoreField(FieldMetaData fmd) {

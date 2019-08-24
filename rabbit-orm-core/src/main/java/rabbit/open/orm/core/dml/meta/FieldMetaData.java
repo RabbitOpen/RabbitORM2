@@ -58,7 +58,7 @@ public class FieldMetaData {
 	private int index = 0;
 	
 	//标识是否是拥有同类型字段
-	private boolean mutiFetchField = false;
+	private boolean multiFetchField = false;
 	
 	//简单数据类型
     private String baseDataType = int.class.getName() + "|"
@@ -78,20 +78,20 @@ public class FieldMetaData {
 		super();
 		this.field = field;
 		this.column = ColumnProxy.proxy(column);
-		if(baseDataType.contains(field.getType().getSimpleName())){
-			throw new RabbitDMLException("data type[" + field.getType().getSimpleName() 
+		if (baseDataType.contains(field.getType().getSimpleName())) {
+			throw new RabbitDMLException("data type[" + field.getType().getSimpleName()
 					+ "] is not supported by rabbit entity!");
 		}
 		setPrimaryKey(PrimaryKeyProxy.proxy(field.getAnnotation(PrimaryKey.class)));
 		//判断是否是外键类型
-		if(!MetaData.isEntityClass(field.getType())){
+		if (!MetaData.isEntityClass(field.getType())) {
 			return;
 		}
 		this.isForeignKey = true;
 		foreignField = MetaData.getPrimaryKeyField(field.getType());
 	}
 	
-	public FieldMetaData(Field field, Column column, Object value, String tableName){
+	public FieldMetaData(Field field, Column column, Object value, String tableName) {
 		this(field, column);
 		this.fieldValue = value;
 		this.fieldTableName = tableName;
@@ -105,12 +105,12 @@ public class FieldMetaData {
         return column;
     }
 	
-	public boolean isMutiFetchField() {
-        return mutiFetchField;
+	public boolean isMultiFetchField() {
+        return multiFetchField;
     }
 
-    public void setMutiFetchField(boolean mutiFetchField) {
-        this.mutiFetchField = mutiFetchField;
+    public void setMultiFetchField(boolean multiFetchField) {
+        this.multiFetchField = multiFetchField;
     }
 
     public int getIndex() {
@@ -122,11 +122,11 @@ public class FieldMetaData {
     }
 
 	//数字字段
-	public boolean isNumerical(){
+	public boolean isNumerical() {
 		return (Integer.class.getName() + "|" + Float.class.getName() + "|" + Double.class.getName() + "|"
-		+ Short.class.getName() + "|" + Long.class.getName()).contains(field.getType().getName()) || 
-		(int.class.getName() + "|" + float.class.getName() + "|" + double.class.getName() + "|"
-				+ short.class.getName() + "|" + long.class.getName()).contains(field.getType().getName());
+				+ Short.class.getName() + "|" + Long.class.getName()).contains(field.getType().getName()) ||
+				(int.class.getName() + "|" + float.class.getName() + "|" + double.class.getName() + "|"
+						+ short.class.getName() + "|" + long.class.getName()).contains(field.getType().getName());
 	}
 
 	public boolean isForeignKey() {
@@ -163,16 +163,16 @@ public class FieldMetaData {
 	}
 	
 	//字符类型字段varchar
-	public boolean isString(){
+	public boolean isString() {
 		return field.getType().equals(String.class);
 	}
 
-	public boolean isBoolean(){
+	public boolean isBoolean() {
 		return field.getType().equals(boolean.class) || field.getType().equals(Boolean.class);
 	}
 
 	//日期类型字段
-	public boolean isDate(){
+	public boolean isDate() {
 		return field.getType().equals(Date.class);
 	}
 	

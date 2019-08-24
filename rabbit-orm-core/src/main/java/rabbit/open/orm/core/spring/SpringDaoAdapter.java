@@ -59,7 +59,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public Query<T> createQuery(){
+	public Query<T> createQuery() {
 		return new Query<>(sessionFactory, clz);
 	}
 
@@ -70,7 +70,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public Query<T> createQuery(T filter){
+	public Query<T> createQuery(T filter) {
 		return new Query<>(sessionFactory, filter, clz);
 	}
 	
@@ -80,7 +80,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public Query<T> createDynamicQuery(){
+	public Query<T> createDynamicQuery() {
 		return new DynamicQuery<>(sessionFactory, clz);
 	}
 	
@@ -91,7 +91,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public Query<T> createDynamicQuery(T filter){
+	public Query<T> createDynamicQuery(T filter) {
 		return new DynamicQuery<>(sessionFactory, filter, clz);
 	}
 	
@@ -102,7 +102,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public long add(T data){
+	public long add(T data) {
 		return new Insert<>(sessionFactory, clz, data).execute();
 	}
 
@@ -113,7 +113,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public NamedQuery<T> createNamedQuery(String sqlName){
+	public NamedQuery<T> createNamedQuery(String sqlName) {
 		return new NamedQuery<>(sessionFactory, clz, sqlName);
 	}
 
@@ -154,7 +154,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public Update<T> createUpdate(T filterData){
+	public Update<T> createUpdate(T filterData) {
 		return new Update<>(sessionFactory, filterData, clz);
 	}
 
@@ -164,7 +164,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public Update<T> createUpdate(){
+	public Update<T> createUpdate() {
 		return new Update<>(sessionFactory, clz);
 	}
 	
@@ -175,7 +175,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return
 	 * 
 	 */
-	public long updateByID(T data){
+	public long updateByID(T data) {
 		return new Update<>(sessionFactory, clz).updateByID(data);
 	}
 
@@ -184,7 +184,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @param data
 	 * @return
 	 */
-	public long replaceByID(T data){
+	public long replaceByID(T data) {
 		return new Update<>(sessionFactory, clz).replaceByID(data);
 	}
 	
@@ -194,7 +194,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @param data	
 	 * 
 	 */
-	public void addJoinRecords(T data){
+	public void addJoinRecords(T data) {
 		new JoinTableManager<>(sessionFactory, clz).addJoinRecords(data);
 	}
 	
@@ -204,7 +204,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @param data	
 	 * 
 	 */
-	public void removeJoinRecords(T data){
+	public void removeJoinRecords(T data) {
 		new JoinTableManager<>(sessionFactory, clz).removeJoinRecords(data);
 	}
 	
@@ -215,7 +215,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @param joinClass	
 	 * 
 	 */
-	public void clearJoinRecords(T data, Class<?> joinClass){
+	public void clearJoinRecords(T data, Class<?> joinClass) {
 		new JoinTableManager<>(sessionFactory, clz).clearJoinRecords(data, joinClass);
 	}
 	
@@ -225,7 +225,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @param data	
 	 * 
 	 */
-	public void replaceJoinRecords(T data){
+	public void replaceJoinRecords(T data) {
 		new JoinTableManager<>(sessionFactory, clz).replaceJoinRecords(data);
 	}
 	
@@ -236,7 +236,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public T getByID(Serializable id){
+	public T getByID(Serializable id) {
 		Query<T> query = new Query<>(sessionFactory, clz);
 		return query.addFilter(MetaData.getPrimaryKeyFieldMeta(clz).getField().getName(), id).execute().unique();
 	}
@@ -250,7 +250,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public List<T> query(T filterData, int pageIndex, int pageSize){
+	public List<T> query(T filterData, int pageIndex, int pageSize) {
 		return createQuery(filterData).page(pageIndex, pageSize).execute().list();
 	}
 
@@ -262,7 +262,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public List<T> query(int pageIndex, int pageSize){
+	public List<T> query(int pageIndex, int pageSize) {
 		return createQuery().page(pageIndex, pageSize).execute().list();
 	}
 	
@@ -273,7 +273,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return 				删除的条数
 	 * 
 	 */
-	public long delete(T filterData){
+	public long delete(T filterData) {
 		Delete<T> delete = new Delete<>(sessionFactory, filterData, clz);
 		return delete.execute();
 	}
@@ -285,7 +285,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public Delete<T> createDelete(T filterData){
+	public Delete<T> createDelete(T filterData) {
 		return new Delete<>(sessionFactory, filterData, clz);
 	}
 
@@ -295,7 +295,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public Delete<T> createDelete(){
+	public Delete<T> createDelete() {
 		return new Delete<>(sessionFactory, clz);
 	}
 	
@@ -305,7 +305,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return 			删除的条数
 	 * 
 	 */
-	public long clearAll(){
+	public long clearAll() {
 		Delete<T> delete = new Delete<>(sessionFactory, clz);
 		return delete.execute();
 	}
@@ -317,7 +317,7 @@ public abstract class SpringDaoAdapter<T> {
 	 * @return	
 	 * 
 	 */
-	public long deleteByID(Serializable id){
+	public long deleteByID(Serializable id) {
 		Delete<T> delete = new Delete<>(sessionFactory, clz);
 		return delete.deleteById(id);
 	}
@@ -346,10 +346,10 @@ public abstract class SpringDaoAdapter<T> {
 	 * @param dest	
 	 * 
 	 */
-	private final void cloneValueByFieldName(Object src, Object dest){
-		for(Field f : src.getClass().getDeclaredFields()) {
+	private final void cloneValueByFieldName(Object src, Object dest) {
+		for (Field f : src.getClass().getDeclaredFields()) {
 			Object fv = getValue(src, f);
-			if(null == fv){
+			if (null == fv) {
 				continue;
 			}
 			cloneFieldValue(dest, f, fv);
@@ -357,22 +357,22 @@ public abstract class SpringDaoAdapter<T> {
 	}
 
     private void cloneFieldValue(Object dest, Field field, Object fieldValue) {
-        try {
-            Field df = dest.getClass().getDeclaredField(field.getName());
-            df.setAccessible(true);
-            if (df.getType().equals(field.getType())) {
-                df.set(dest, fieldValue);
-                return;
-            }
-            // 类型不匹配
-            if (df.getType().getName().startsWith("java")
-                    || field.getType().getName().startsWith("java")) {
-                return;
-            }
-            cloneBeanField(dest, fieldValue, df);
-        } catch (Exception e) {
+		try {
+			Field df = dest.getClass().getDeclaredField(field.getName());
+			df.setAccessible(true);
+			if (df.getType().equals(field.getType())) {
+				df.set(dest, fieldValue);
+				return;
+			}
+			// 类型不匹配
+			if (df.getType().getName().startsWith("java")
+					|| field.getType().getName().startsWith("java")) {
+				return;
+			}
+			cloneBeanField(dest, fieldValue, df);
+		} catch (Exception e) {
 
-        }
+		}
     }
 
     private void cloneBeanField(Object dest, Object value, Field field) {

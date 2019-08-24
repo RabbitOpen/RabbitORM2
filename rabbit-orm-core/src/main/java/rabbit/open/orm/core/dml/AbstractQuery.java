@@ -369,30 +369,30 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	@SuppressWarnings("unchecked")
-	private T readRowData(ResultSet rs) throws SQLException{
-        // 缓存【表别名】和实体对象
-        Map<String, Object> fetchEntity = new HashMap<>();
-        // 缓存缓存【表名】和joinFetch的实体
-        Map<String, Object> joinFetcEntity = new HashMap<>();
-        readEntity(rs, fetchEntity, joinFetcEntity);
-        if (null == fetchEntity.get(getAliasByTableName(metaData.getTableName()))) {
-        	fetchEntity.put(getAliasByTableName(metaData.getTableName()), 
-        			DMLAdapter.newInstance(metaData.getEntityClz()));
-        }
-        T target = (T) fetchEntity.get(getAliasByTableName(metaData.getTableName()));
-        for (Object entity : fetchEntity.values()) {
-            if (entity == target) {
-                continue;
-            }
-            injectFetchDependency(fetchEntity, entity);
-        }
-        for (Object entity : joinFetcEntity.values()) {
-            if (entity == target) {
-                continue;
-            }
-            injectJoinDependency(fetchEntity, entity);
-        }
-        return target;
+	private T readRowData(ResultSet rs) throws SQLException {
+		// 缓存【表别名】和实体对象
+		Map<String, Object> fetchEntity = new HashMap<>();
+		// 缓存缓存【表名】和joinFetch的实体
+		Map<String, Object> joinFetcEntity = new HashMap<>();
+		readEntity(rs, fetchEntity, joinFetcEntity);
+		if (null == fetchEntity.get(getAliasByTableName(metaData.getTableName()))) {
+			fetchEntity.put(getAliasByTableName(metaData.getTableName()),
+					DMLAdapter.newInstance(metaData.getEntityClz()));
+		}
+		T target = (T) fetchEntity.get(getAliasByTableName(metaData.getTableName()));
+		for (Object entity : fetchEntity.values()) {
+			if (entity == target) {
+				continue;
+			}
+			injectFetchDependency(fetchEntity, entity);
+		}
+		for (Object entity : joinFetcEntity.values()) {
+			if (entity == target) {
+				continue;
+			}
+			injectJoinDependency(fetchEntity, entity);
+		}
+		return target;
 	}
 	
 	private void injectJoinDependency(Map<String, Object> fetchEntity, Object entity) {
@@ -697,7 +697,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			}
 		}
 		for (JoinFilter jf : joinFilters.values()) {
-			if (jf.getAssocicatedClass().contains(clz)) {
+			if (jf.getAssociatedClass().contains(clz)) {
 				return true;
 			}
 		}

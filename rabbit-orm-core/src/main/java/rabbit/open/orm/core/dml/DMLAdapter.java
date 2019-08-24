@@ -619,13 +619,13 @@ public abstract class DMLAdapter<T> {
             String fkName = getColumnName(column);
             String fkTable = getTableNameByClass(fmd.getField().getType());
             String tableAlias = getAliasByTableName(fkTable);
-			if (fmd.isMutiFetchField()) {
+			if (fmd.isMultiFetchField()) {
 				tableAlias = tableAlias + UNDERLINE + fmd.getIndex();
 			}
             FilterDescriptor desc = new FilterDescriptor(getAliasByTableName(getTableNameByClass(clz))
                             + "." + getColumnName(fmd.getColumn()), tableAlias + "." + fkName);
             desc.setField(fmd.getField());
-            desc.setMultiFetchField(fmd.isMutiFetchField());
+            desc.setMultiFetchField(fmd.isMultiFetchField());
             desc.setIndex(fmd.getIndex());
             desc.setFilterTable(fkTable);
             desc.setJoinOn(true);
@@ -647,7 +647,7 @@ public abstract class DMLAdapter<T> {
 	}
 
     private void recusiveFindOutEnable2JoinClzes(FieldMetaData fmd) {
-        if (fmd.isMutiFetchField() && fmd.getIndex() != 1) {
+        if (fmd.isMultiFetchField() && fmd.getIndex() != 1) {
             return;
         }
         findOutEnable2JoinClzes(fmd.getField().getType());

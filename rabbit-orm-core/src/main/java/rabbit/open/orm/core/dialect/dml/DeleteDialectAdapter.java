@@ -37,7 +37,7 @@ public abstract class DeleteDialectAdapter {
 	 * @param generator	
 	 * 
 	 */
-	private static void registDialectGenerator(DialectType dialect, DeleteDialectAdapter generator){
+	private static void registDialectGenerator(DialectType dialect, DeleteDialectAdapter generator) {
 		cache.put(dialect, generator);
 	}
 	
@@ -48,9 +48,9 @@ public abstract class DeleteDialectAdapter {
 	 * @return	
 	 * 
 	 */
-	public static DeleteDialectAdapter getDialectGenerator(DialectType dialect){
-		if(!cache.containsKey(dialect)){
-			throw new RabbitDMLException("unkown dialect[" + dialect + "] is found!");
+	public static DeleteDialectAdapter getDialectGenerator(DialectType dialect) {
+		if (!cache.containsKey(dialect)) {
+			throw new RabbitDMLException("unknown dialect[" + dialect + "] is found!");
 		}
 		return cache.get(dialect);
 	}
@@ -62,6 +62,5 @@ public abstract class DeleteDialectAdapter {
 		registDialectGenerator(DialectType.SQLITE3, new DB2DeleteGenerator());
 		registDialectGenerator(DialectType.SQLSERVER, new SqlServerDeleteGenerator());
 	}
-	
-	
+
 }

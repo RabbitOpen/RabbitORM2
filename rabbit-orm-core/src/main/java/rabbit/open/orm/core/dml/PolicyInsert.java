@@ -39,9 +39,9 @@ public class PolicyInsert {
      * @return	
      * 
      */
-    public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) throws SQLException{
+    public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) throws SQLException {
         PreparedStatement stmt = null;
-        try{
+        try {
             stmt = conn.prepareStatement(adapter.sql.toString());
             adapter.setPreparedStatementValue(stmt, DMLType.INSERT);
             stmt.executeUpdate();
@@ -58,7 +58,7 @@ public class PolicyInsert {
      * @return	
      * 
      */
-    public <T> Class<T> getEntityClass(NonQueryAdapter<T> adapter){
+    public <T> Class<T> getEntityClass(NonQueryAdapter<T> adapter) {
         return adapter.getEntityClz();
     }
     
@@ -69,16 +69,16 @@ public class PolicyInsert {
      * @return	
      * 
      */
-    public <T> StringBuilder getSql(NonQueryAdapter<T> adapter){
+    public <T> StringBuilder getSql(NonQueryAdapter<T> adapter) {
         return adapter.sql;
     }
-    
-    public <T> void setPreparedStatementValue(NonQueryAdapter<T> adapter, PreparedStatement stmt) throws SQLException{
+
+    public <T> void setPreparedStatementValue(NonQueryAdapter<T> adapter, PreparedStatement stmt) throws SQLException {
         adapter.setPreparedStatementValue(stmt, DMLType.INSERT);
     }
-    
-    public static PolicyInsert getInsertPolicy(Policy p){
-        if(!policies.containsKey(p)){
+
+    public static PolicyInsert getInsertPolicy(Policy p) {
+        if (!policies.containsKey(p)) {
             throw new RabbitDMLException("policy[" + p + "] is not registed!");
         }
         return policies.get(p);

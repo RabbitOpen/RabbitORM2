@@ -45,10 +45,10 @@ public class DynamicFilterTask<T> implements CallBackTask{
 	 * 
 	 */
 	@Override
-	public void run(){
+	public void run() {
 		addFilter(reg, value, ft, depsPath);
 	}
-	
+
 	private void addFilter(String reg, Object value, FilterType ft, Class<?>... depsPath) {
 		if (depsPath.length == 0) {
 			addFilter(reg, value, ft, dmlAdapter.getMetaData().getEntityClz());

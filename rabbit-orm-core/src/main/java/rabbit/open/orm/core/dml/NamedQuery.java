@@ -169,7 +169,7 @@ public class NamedQuery<T> {
 	    return execute().unique();
 	}
 	
-	public long count(){
+	public long count() {
 	    return query.count();
 	}
 
@@ -212,7 +212,7 @@ public class NamedQuery<T> {
         return this;
     }
     
-    private Object getValue(Field field, Object target){
+    private Object getValue(Field field, Object target) {
         try {
             field.setAccessible(true);
             return field.get(target);
@@ -229,7 +229,7 @@ public class NamedQuery<T> {
 	 * @return	
 	 * 
 	 */
-	public NamedQuery<T> set(String fieldAlias, Object value){
+	public NamedQuery<T> set(String fieldAlias, Object value) {
 	    return set(fieldAlias, value, null, null);
 	}
 
@@ -241,7 +241,7 @@ public class NamedQuery<T> {
 	 * @param entityClz    字段所属的实体
 	 * @return
 	 */
-	public NamedQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz){
+	public NamedQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz) {
 	    List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
 	    for (int index : indexes) {
 	        if (null != entityClz && !SessionFactory.isEmpty(fieldName)) {

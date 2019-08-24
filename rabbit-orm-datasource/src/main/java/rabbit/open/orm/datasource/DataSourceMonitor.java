@@ -156,34 +156,34 @@ public class DataSourceMonitor extends Thread {
 	 * <b>Description: 释放空闲连接</b><br>
 	 * 
 	 */
-    private void releaseIdleSession() {
-        if (!tooManyIdleSessions()) {
-            return;
-        }
-        try {
-            Session tail = dataSource.getConnectors().peekLast();
-            if (null == tail) {
-                return;
-            }
-            long idle = System.currentTimeMillis() - tail.getActiveTime();
-            if (idle < getMaxIdle()) {
-                return;
-            }
-            tail = dataSource.getConnectors().pollLast();
-            if (null == tail) {
-                return;
-            }
-            idle = System.currentTimeMillis() - tail.getActiveTime();
-            if (idle < getMaxIdle()) {
-                dataSource.getConnectors().addLast(tail);
-            } else {
-                tail.destroy();
-                releaseIdleSession();
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
+	private void releaseIdleSession() {
+		if (!tooManyIdleSessions()) {
+			return;
+		}
+		try {
+			Session tail = dataSource.getConnectors().peekLast();
+			if (null == tail) {
+				return;
+			}
+			long idle = System.currentTimeMillis() - tail.getActiveTime();
+			if (idle < getMaxIdle()) {
+				return;
+			}
+			tail = dataSource.getConnectors().pollLast();
+			if (null == tail) {
+				return;
+			}
+			idle = System.currentTimeMillis() - tail.getActiveTime();
+			if (idle < getMaxIdle()) {
+				dataSource.getConnectors().addLast(tail);
+			} else {
+				tail.destroy();
+				releaseIdleSession();
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
 
     protected long getMaxIdle() {
         return 60L * 1000 * dataSource.getMaxIdle();
@@ -215,7 +215,7 @@ public class DataSourceMonitor extends Thread {
 	 * @return			true:正常；false:异常
 	 * 
 	 */
-	private boolean ping(Session session){
+	private boolean ping(Session session) {
 	    PreparedStatement stmt = null;
 		try {
 			stmt = session.prepareStatement(createPingSql());
@@ -264,8 +264,8 @@ public class DataSourceMonitor extends Thread {
 			logger.error("database monitor is interrupted");
 		}
 	}
-	
-	public void shutdown(){
+
+	public void shutdown() {
 		logger.info("datasource monitor is stopping....");
 		run = false;
 		try {

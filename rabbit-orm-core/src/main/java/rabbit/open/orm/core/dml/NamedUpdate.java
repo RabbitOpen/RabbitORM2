@@ -72,12 +72,12 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 	 * @param value			变量的值
 	 * @return
 	 */
-	public NamedUpdate<T> set(String fieldAlias, Object value){
-	    List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
-	    for (int index : indexes) {
-	    	fieldsValues.put(index, new PreparedValue(value));
-	    }
-	    return this;
+	public NamedUpdate<T> set(String fieldAlias, Object value) {
+		List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
+		for (int index : indexes) {
+			fieldsValues.put(index, new PreparedValue(value));
+		}
+		return this;
 	}
 	
 }

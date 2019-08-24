@@ -118,8 +118,8 @@ public class FetchDescriptor<T> {
                 value, !field.equals(reg)));
         return this;
     }
-    
-    public AbstractQuery<T> build(){
+
+    public AbstractQuery<T> build() {
         return this.query;
     }
     

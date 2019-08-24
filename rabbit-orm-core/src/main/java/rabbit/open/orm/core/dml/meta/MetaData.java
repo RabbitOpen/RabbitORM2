@@ -174,19 +174,19 @@ public class MetaData<T> {
             FieldMetaData fmd = new FieldMetaData(f, col);
             fmd.setIndex(counter.get(f.getType()));
             if (fmd.getIndex() > 1) {
-                fmd.setMutiFetchField(true);
-                flagMutiFetchFieldByType(fields, f.getType());
+                fmd.setMultiFetchField(true);
+                flagMultiFetchFieldByType(fields, f.getType());
             }
             fields.put(f.getName(), fmd);
         }
     }
 
 	//标识type对应的字段为mutiFetchField
-    private static void flagMutiFetchFieldByType(Map<String, FieldMetaData> fields,
-            Class<?> type) {
+    private static void flagMultiFetchFieldByType(Map<String, FieldMetaData> fields,
+												  Class<?> type) {
         for (FieldMetaData fmd : fields.values()) {
             if (fmd.getField().getType().equals(type)) {
-                fmd.setMutiFetchField(true);
+                fmd.setMultiFetchField(true);
             }
         }
     }
@@ -212,8 +212,8 @@ public class MetaData<T> {
 	    throw new RabbitDMLException("no primary key was found in [" + clz.getName() + "]");
 	}
 	
-	public static Field getPrimaryKeyField(Class<?> clzz) {
-		Class<?> clz = clzz;
+	public static Field getPrimaryKeyField(Class<?> objClz) {
+		Class<?> clz = objClz;
 		if (null != primaryKeyMapping.get(clz)) {
 			return primaryKeyMapping.get(clz);
 		}
@@ -356,9 +356,8 @@ public class MetaData<T> {
 	public static Map<String, String> getFieldsAliasMapping(Class<?> clz) {
 		return fieldsAlias.get(clz);
 	}
-	
-	public static void setFieldsAliasMapping(Class<?> clz,
-			Map<String, String> mapping) {
+
+	public static void setFieldsAliasMapping(Class<?> clz, Map<String, String> mapping) {
 		fieldsAlias.put(clz, mapping);
 	}
 		
@@ -375,7 +374,7 @@ public class MetaData<T> {
         while (!Object.class.equals(c)) {
             for (Field field : c.getDeclaredFields()) {
                 JoinFieldMetaData<?> meta = getJoinMetaByField(clz, field);
-                if (null != meta){
+                if (null != meta) {
                     list.add(meta);
                 }
             }

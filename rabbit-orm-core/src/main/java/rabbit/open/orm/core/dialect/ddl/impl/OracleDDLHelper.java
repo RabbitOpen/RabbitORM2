@@ -47,7 +47,7 @@ public class OracleDDLHelper extends DDLHelper {
 	 */
 	@Override
 	protected void dropTables(HashSet<String> entities) {
-		if(entities.isEmpty()){
+		if (entities.isEmpty()) {
 			return;
 		}
 		removeForeignKeys();
@@ -67,10 +67,10 @@ public class OracleDDLHelper extends DDLHelper {
             stmt = conn.createStatement();
             tables = stmt.executeQuery("SELECT * FROM ALL_TABLES WHERE OWNER IN(SELECT USERNAME FROM USER_USERS)");
             HashSet<String> existsTables = new HashSet<>();
-            while(tables.next()){
-                existsTables.add(tables.getString("TABLE_NAME"));
-            }
-            return existsTables;
+			while (tables.next()) {
+				existsTables.add(tables.getString("TABLE_NAME"));
+			}
+			return existsTables;
         } catch (SQLException e) {
             throw new RabbitDDLException(e);
         } finally {
@@ -80,9 +80,9 @@ public class OracleDDLHelper extends DDLHelper {
     }
 
     private void closeResultSet(ResultSet tables) {
-        if(null == tables){
-            return;
-        }
+		if (null == tables) {
+			return;
+		}
         try {
             tables.close();
         } catch (SQLException e) {
@@ -98,22 +98,22 @@ public class OracleDDLHelper extends DDLHelper {
     private void removeForeignKeys() {
         Statement stmt = null;
         ResultSet rs = null;
-        try {
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery(getForeignKeyTableSql());
-            List<String> fks = new ArrayList<>();
-            while(rs.next()){
-                String tbName = rs.getString("TABLE_NAME");
-                String fkName = rs.getString("FK_NAME");
-                fks.add(tbName + "," + fkName);
-            }
-            rs.close();
-            for(String d : fks){
-                StringBuilder sql = new StringBuilder("ALTER TABLE ").append(d.split(",")[0])
-                        .append(" DROP CONSTRAINT ").append(d.split(",")[1]);
-                logger.info(sql);
-                stmt.executeUpdate(sql.toString());
-            }
+		try {
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(getForeignKeyTableSql());
+			List<String> fks = new ArrayList<>();
+			while (rs.next()) {
+				String tbName = rs.getString("TABLE_NAME");
+				String fkName = rs.getString("FK_NAME");
+				fks.add(tbName + "," + fkName);
+			}
+			rs.close();
+			for (String d : fks) {
+				StringBuilder sql = new StringBuilder("ALTER TABLE ").append(d.split(",")[0])
+						.append(" DROP CONSTRAINT ").append(d.split(",")[1]);
+				logger.info(sql);
+				stmt.executeUpdate(sql.toString());
+			}
         } catch (Exception e) {
             throw new RabbitDDLException(e);
         } finally {
@@ -136,24 +136,24 @@ public class OracleDDLHelper extends DDLHelper {
      */
     @Override
     protected StringBuilder createJoinTableSql(String tb, List<JoinTableDescriptor> list) {
-        StringBuilder sql = new StringBuilder("CREATE TABLE " + tb.toUpperCase() + "(");
-        String pkName = "";
-        for(JoinTableDescriptor jtd : list){
-            sql.append(getColumnName(jtd.getColumnName()) + " ");
-            sql.append(getSqlTypeByJavaType(jtd.getType(), jtd.getColumnLength()));
-            if(null != jtd.getPolicy()){
-                sql.append(" NOT NULL, ");
-                pkName = jtd.getColumnName();
-            }else{
-                sql.append(", ");
-            }
-        }
-        if(!"".equals(pkName)){
-            sql.append("PRIMARY KEY(" + getColumnName(pkName) + "),");
-        }
-        sql.deleteCharAt(sql.lastIndexOf(","));
-        sql.append(")");
-        return sql;
+		StringBuilder sql = new StringBuilder("CREATE TABLE " + tb.toUpperCase() + "(");
+		String pkName = "";
+		for (JoinTableDescriptor jtd : list) {
+			sql.append(getColumnName(jtd.getColumnName()) + " ");
+			sql.append(getSqlTypeByJavaType(jtd.getType(), jtd.getColumnLength()));
+			if (null != jtd.getPolicy()) {
+				sql.append(" NOT NULL, ");
+				pkName = jtd.getColumnName();
+			} else {
+				sql.append(", ");
+			}
+		}
+		if (!"".equals(pkName)) {
+			sql.append("PRIMARY KEY(" + getColumnName(pkName) + "),");
+		}
+		sql.deleteCharAt(sql.lastIndexOf(","));
+		sql.append(")");
+		return sql;
     }
     
     /**
@@ -171,8 +171,8 @@ public class OracleDDLHelper extends DDLHelper {
 		try {
 			stmt = conn.createStatement();
 			HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
-			for(String table : joinTables.keySet()){
-				if(!isTableExists(getExistedTables(), table)){
+			for (String table : joinTables.keySet()) {
+				if (!isTableExists(getExistedTables(), table)) {
 					continue;
 				}
 				String drop = "drop table " + table;
@@ -196,9 +196,9 @@ public class OracleDDLHelper extends DDLHelper {
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
-			for(String name : entities){
+			for (String name : entities) {
 				String drop = createDropSqlByClass(name);
-				if(null == drop){
+				if (null == drop) {
 					continue;
 				}
 				logger.info(SQLFormater.format(drop).toUpperCase());
@@ -217,8 +217,8 @@ public class OracleDDLHelper extends DDLHelper {
 		try {
 			stmt = conn.createStatement();
 			HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
-			for(Entry<String, List<JoinTableDescriptor>> entry : joinTables.entrySet()){
-				if(isTableExists(getExistedTables(), entry.getKey())){
+			for (Entry<String, List<JoinTableDescriptor>> entry : joinTables.entrySet()) {
+				if (isTableExists(getExistedTables(), entry.getKey())) {
 					continue;
 				}
 				StringBuilder sql = createJoinTableSql(entry.getKey(), entry.getValue());
