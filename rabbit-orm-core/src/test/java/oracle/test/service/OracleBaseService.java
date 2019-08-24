@@ -6,17 +6,17 @@ import javax.annotation.Resource;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.spring.SpringDaoAdapter;
 
-public class OracleBaseService<T> extends SpringDaoAdapter<T>{
+public class OracleBaseService<T> extends SpringDaoAdapter<T> {
 
-    @Resource(name="sessionFactory-oracle")
-    protected SessionFactory factory;
-	
+	@Resource(name = "sessionFactory-oracle")
+	protected SessionFactory factory;
+
 	@PostConstruct
-	public void setUp(){
+	public void setUp() {
 		setSessionFactory(factory);
 	}
-	
+
 	public SessionFactory getFactory() {
-        return factory;
-    }
+		return factory;
+	}
 }

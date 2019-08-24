@@ -9,19 +9,19 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import sqlite.test.entity.SQLiteUser;
 
 @Service
-public class SQLiteUserService extends BaseService<SQLiteUser>{
+public class SQLiteUserService extends BaseService<SQLiteUser> {
 
-    @Transactional(transactionManager="transactionManager-sqlite")
-    public void rollBakcTest(){
-        add(new SQLiteUser("lisi", 10, new Date()));
-        add(new SQLiteUser("lisi", 11, new Date()));
-        add(new SQLiteUser("lisi", 12, new Date()));
-        throw new RabbitDMLException("rollback");
-    }
+	@Transactional(transactionManager = "transactionManager-sqlite")
+	public void rollBakcTest() {
+		add(new SQLiteUser("lisi", 10, new Date()));
+		add(new SQLiteUser("lisi", 11, new Date()));
+		add(new SQLiteUser("lisi", 12, new Date()));
+		throw new RabbitDMLException("rollback");
+	}
 
-    @Transactional(transactionManager="transactionManager-sqlite")
-    public void springTransactionTest(){
-        add(new SQLiteUser("lisi", 10, new Date()));
-        add(new SQLiteUser("lisi", 10, new Date()));
-    }
+	@Transactional(transactionManager = "transactionManager-sqlite")
+	public void springTransactionTest() {
+		add(new SQLiteUser("lisi", 10, new Date()));
+		add(new SQLiteUser("lisi", 10, new Date()));
+	}
 }

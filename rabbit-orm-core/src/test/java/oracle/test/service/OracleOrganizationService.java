@@ -11,14 +11,14 @@ import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.spring.SpringDaoAdapter;
 
 @Service
-public class OracleOrganizationService extends SpringDaoAdapter<Organization>{
+public class OracleOrganizationService extends SpringDaoAdapter<Organization> {
 
-    @Resource(name="sessionFactory-oracle")
-    protected SessionFactory factory;
-    
-    @PostConstruct
-    public void setUp(){
-        setSessionFactory(factory);
-    }
-    
+	@Resource(name = "sessionFactory-oracle")
+	protected SessionFactory factory;
+
+	@PostConstruct
+	public void setUp() {
+		setSessionFactory(factory);
+	}
+
 }
