@@ -10,20 +10,20 @@ import rabbit.open.orm.core.spring.SpringDaoAdapter;
 import sharding.test.db.entity.RWUser;
 
 /**
- * <b>Description  只操作写的数据源的服务</b>
+ * <b>Description 只操作写的数据源的服务</b>
  */
 @Service
 public class WriteOnlyUserService extends SpringDaoAdapter<RWUser> {
 
-    @Resource(name="writeSessionFactory")
-    protected SessionFactory factory;
-    
-    @PostConstruct
-    public void setUp(){
-        setSessionFactory(factory);
-    }
-    
-    public SessionFactory getFactory() {
-        return factory;
-    }
+	@Resource(name = "writeSessionFactory")
+	protected SessionFactory factory;
+
+	@PostConstruct
+	public void setUp() {
+		setSessionFactory(factory);
+	}
+
+	public SessionFactory getFactory() {
+		return factory;
+	}
 }

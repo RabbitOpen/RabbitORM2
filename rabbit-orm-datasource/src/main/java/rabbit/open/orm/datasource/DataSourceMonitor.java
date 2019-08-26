@@ -15,8 +15,8 @@ import org.apache.log4j.Logger;
 import rabbit.open.orm.common.exception.SessionHoldOverTimeException;
 
 /**
- * <b>Description: 	数据源监控线程</b><br>
- * <b>@author</b>	肖乾斌
+ * <b>Description: 数据源监控线程</b><br>
+ * <b>@author</b> 肖乾斌
  * 
  */
 public class DataSourceMonitor extends Thread {
@@ -28,7 +28,7 @@ public class DataSourceMonitor extends Thread {
 	protected RabbitDataSource dataSource;
 
 	private Semaphore semaphore = new Semaphore(0);
-	
+
 	private Map<Session, SessionHolderInfo> sessionHolder = new ConcurrentHashMap<>();
 
 	private Map<Connection, ConnectionContext> connCtx = new ConcurrentHashMap<>();
@@ -65,18 +65,16 @@ public class DataSourceMonitor extends Thread {
 	}
 
 	private void assertTimeout(Entry<Connection, ConnectionContext> entry) {
-		if (System.currentTimeMillis()
-				- entry.getValue().getFetchMoment() > dataSource
-				.getMaxSessionHoldingSeconds() * 1000) {
-			throw new SessionHoldOverTimeException(entry.getKey(), dataSource
-					.getMaxSessionHoldingSeconds());
+		if (System.currentTimeMillis() - entry.getValue().getFetchMoment() > dataSource.getMaxSessionHoldingSeconds()
+				* 1000) {
+			throw new SessionHoldOverTimeException(entry.getKey(), dataSource.getMaxSessionHoldingSeconds());
 		}
 	}
-	
+
 	public void fetchSession(Session session) {
 		sessionHolder.put(session, new SessionHolderInfo());
 	}
-	
+
 	public void releaseSession(Session session) {
 		sessionHolder.remove(session);
 	}
@@ -90,60 +88,62 @@ public class DataSourceMonitor extends Thread {
 			entry.getKey().destroy();
 		}
 	}
-	
-	/**
-	 * 
-	 * <b>Description:	监控数据源</b><br>
-	 * 
-	 */
-    private void monitorDataSource() {
-        try {
-            if (tooManyIdleSessions()) {
-                releaseIdleSession();
-                checkNetWork();
-            } else {
-                doKeepAlive();
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-    
-    /**
-     * <b>@description 记录连接获取时的信息 </b>
-     * @param conn
-     * @param ctx
-     */
-    public void snapshot(Connection conn, ConnectionContext ctx) {
-    	connCtx.put(conn, ctx);
-    }
-    
-    public void removeSnapshot(Connection conn) {
-    	connCtx.remove(conn);
-    }
 
 	/**
 	 * 
-	 * <b>Description:	保持心跳</b><br>
+	 * <b>Description: 监控数据源</b><br>
 	 * 
 	 */
-    private void doKeepAlive() {
-        Session last = dataSource.getConnectors().pollLast();
-        if (null == last) {
-            dataSource.initSessions();
-            return;
-        }
-        if (ping(last)) {
-            last.close();
-        } else {
-            last.destroy();
-            dataSource.restart();
-        }
-    }
+	private void monitorDataSource() {
+		try {
+			if (tooManyIdleSessions()) {
+				releaseIdleSession();
+				checkNetWork();
+			} else {
+				doKeepAlive();
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * <b>@description 记录连接获取时的信息 </b>
+	 * 
+	 * @param conn
+	 * @param ctx
+	 */
+	public void snapshot(Connection conn, ConnectionContext ctx) {
+		connCtx.put(conn, ctx);
+	}
+
+	public void removeSnapshot(Connection conn) {
+		connCtx.remove(conn);
+	}
+
+	/**
+	 * 
+	 * <b>Description: 保持心跳</b><br>
+	 * 
+	 */
+	private void doKeepAlive() {
+		Session last = dataSource.getConnectors().pollLast();
+		if (null == last) {
+			dataSource.initSessions();
+			return;
+		}
+		if (ping(last)) {
+			last.close();
+		} else {
+			last.destroy();
+			dataSource.restart();
+		}
+	}
 
 	/**
 	 * 
 	 * <b>Description: session个数大于最小连接数</b><br>
+	 * 
 	 * @return
 	 * 
 	 */
@@ -185,38 +185,40 @@ public class DataSourceMonitor extends Thread {
 		}
 	}
 
-    protected long getMaxIdle() {
-        return 60L * 1000 * dataSource.getMaxIdle();
-    }
-	
-	/**
-	 * 
-	 * <b>Description: 	检查网络连接 , 连续从尾部检测连接，发现失效的直接关闭</b><br>
-	 * @return
-	 * 
-	 */
-    private void checkNetWork() {
-        Session tail = dataSource.getConnectors().pollLast();
-        if (null == tail) {
-            return;
-        }
-        if (ping(tail)) {
-            dataSource.getConnectors().addLast(tail);
-        } else {
-            tail.destroy();
-            dataSource.restart();
-        }
-    }
+	protected long getMaxIdle() {
+		return 60L * 1000 * dataSource.getMaxIdle();
+	}
 
 	/**
 	 * 
-	 * <b>Description: 	测试当前session的网络连接状况</b><br>
+	 * <b>Description: 检查网络连接 , 连续从尾部检测连接，发现失效的直接关闭</b><br>
+	 * 
+	 * @return
+	 * 
+	 */
+	private void checkNetWork() {
+		Session tail = dataSource.getConnectors().pollLast();
+		if (null == tail) {
+			return;
+		}
+		if (ping(tail)) {
+			dataSource.getConnectors().addLast(tail);
+		} else {
+			tail.destroy();
+			dataSource.restart();
+		}
+	}
+
+	/**
+	 * 
+	 * <b>Description: 测试当前session的网络连接状况</b><br>
+	 * 
 	 * @param session
-	 * @return			true:正常；false:异常
+	 * @return true:正常；false:异常
 	 * 
 	 */
 	private boolean ping(Session session) {
-	    PreparedStatement stmt = null;
+		PreparedStatement stmt = null;
 		try {
 			stmt = session.prepareStatement(createPingSql());
 			ResultSet rs = stmt.executeQuery();
@@ -226,31 +228,30 @@ public class DataSourceMonitor extends Thread {
 			logger.warn("network exception occurred for[" + e.getMessage() + "]");
 			return false;
 		} finally {
-		    closeStmt(stmt);
+			closeStmt(stmt);
 		}
 	}
 
-    public void closeStmt(PreparedStatement stmt) {
-        try {
-            if (null != stmt) {
-                stmt.close();
-            }
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
+	public void closeStmt(PreparedStatement stmt) {
+		try {
+			if (null != stmt) {
+				stmt.close();
+			}
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
 
-    private String createPingSql() {
-        String pingSql = " select 1 ";
-        if (DBType.ORACLE.equals(dataSource.getDBType())) {
-            pingSql = " select 1 from dual ";
-        } 
-        if (DBType.DB2.equals(dataSource.getDBType())) {
-            pingSql = " values 1 ";
-        }
-        return pingSql;
-    }
-	
+	private String createPingSql() {
+		String pingSql = " select 1 ";
+		if (DBType.ORACLE.equals(dataSource.getDBType())) {
+			pingSql = " select 1 from dual ";
+		}
+		if (DBType.DB2.equals(dataSource.getDBType())) {
+			pingSql = " values 1 ";
+		}
+		return pingSql;
+	}
 
 	/**
 	 * 
