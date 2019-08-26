@@ -7,7 +7,7 @@ import javax.sql.DataSource;
 import rabbit.open.orm.common.dml.DMLType;
 
 /**
- * <b>Description  复合数据源接口，主要对分表分库进行支撑，暂不支持命名查询</b>
+ * <b>Description  复合数据源接口，主要对分表分库进行支撑</b>
  */
 public interface CombinedDataSource {
 
