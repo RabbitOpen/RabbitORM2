@@ -95,7 +95,7 @@ public abstract class DialectTransformer {
      */
     public static DialectTransformer getTransformer(DialectType dialect) {
         if (!cache.containsKey(dialect)) {
-            throw new RabbitDMLException("unkown dialect[" + dialect + "] is found!");
+            throw new RabbitDMLException("unknown dialect[" + dialect + "] is found!");
         }
         return cache.get(dialect);
     }

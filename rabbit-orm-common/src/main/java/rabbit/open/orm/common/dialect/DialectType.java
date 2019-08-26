@@ -17,7 +17,7 @@ public enum DialectType {
 				return dt;
 			}
 		}
-		throw new RabbitDMLException("unkown dialect[" + name + "] is found!");
+		throw new RabbitDMLException("unknown dialect[" + name + "] is found!");
 	}
 
 	public boolean isOracle() {

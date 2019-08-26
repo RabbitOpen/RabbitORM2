@@ -206,7 +206,7 @@ public class NamedQuery<T> {
             try {
                 set(f.getName(), fv);
             } catch (UnKnownFieldException e) {
-                logger.debug("ignore unkown field");
+                logger.debug("ignore unknown field");
             }
         }
         return this;
