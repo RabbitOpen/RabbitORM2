@@ -1,10 +1,7 @@
 package rabbit.open.orm.core.dialect.dml.impl;
 
-import java.util.List;
-
 import rabbit.open.orm.core.dml.AbstractQuery;
 import rabbit.open.orm.core.dml.DialectTransformer;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
 
 public class OracleTransformer extends DialectTransformer {
 
@@ -32,14 +29,8 @@ public class OracleTransformer extends DialectTransformer {
      */
     @Override
     public StringBuilder createPageSql(AbstractQuery<?> query) {
-        int pageSize = getPageSize(query);
-        int pageIndex = getPageIndex(query);
-        List<Object> preparedValues = getPreparedValues(query);
+        setStartAndEndPreparedValues(query);
         StringBuilder sql = getSql(query);
-        long start = 1L + pageIndex * pageSize;
-        long end = (1L + pageIndex) * pageSize;
-        preparedValues.add(new PreparedValue(start));
-        preparedValues.add(new PreparedValue(end));
         if (!doOrder(query)) {
             sql = new StringBuilder("SELECT * FROM (")
                 .append(sql)

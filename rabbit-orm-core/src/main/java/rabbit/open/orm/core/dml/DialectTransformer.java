@@ -17,6 +17,7 @@ import rabbit.open.orm.core.dialect.dml.impl.MySQLTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.OracleTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.SQLServerTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.SQLite3Transformer;
+import rabbit.open.orm.core.dml.filter.PreparedValue;
 
 /**
  * <b>Description: 	sql方言转换器</b><br>
@@ -100,6 +101,21 @@ public abstract class DialectTransformer {
         return cache.get(dialect);
     }
 
+    /**
+     * 设置分页的起始截止标识
+     * <b>@description  </b>
+     * @param query
+     */
+	protected void setStartAndEndPreparedValues(AbstractQuery<?> query) {
+		int pageSize = getPageSize(query);
+        int pageIndex = getPageIndex(query);
+        List<Object> preparedValues = getPreparedValues(query);
+        long start = 1L + pageIndex * pageSize;
+        long end = (1L + pageIndex) * pageSize;
+        preparedValues.add(new PreparedValue(start));
+        preparedValues.add(new PreparedValue(end));
+	}
+	
     /**
      * <b>Description  给指定对象的字段设值</b>
      * @param target

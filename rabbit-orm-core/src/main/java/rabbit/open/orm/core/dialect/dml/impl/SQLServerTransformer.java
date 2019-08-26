@@ -1,10 +1,7 @@
 package rabbit.open.orm.core.dialect.dml.impl;
 
-import java.util.List;
-
 import rabbit.open.orm.core.dml.AbstractQuery;
 import rabbit.open.orm.core.dml.DialectTransformer;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
 
 public class SQLServerTransformer extends DialectTransformer {
 
@@ -68,13 +65,7 @@ public class SQLServerTransformer extends DialectTransformer {
      */
     @Override
 	public StringBuilder createPageSql(AbstractQuery<?> query) {
-		int pageSize = getPageSize(query);
-		int pageIndex = getPageIndex(query);
-		List<Object> preparedValues = getPreparedValues(query);
-        long start = 1L + pageIndex * pageSize;
-        long end = (1L + pageIndex) * pageSize;
-        preparedValues.add(new PreparedValue(start));
-        preparedValues.add(new PreparedValue(end));
+    	setStartAndEndPreparedValues(query);
         return new StringBuilder("WITH T AS (" + getSql(query) + ") SELECT * FROM T WHERE RN BETWEEN ? AND ?");
     }
     
