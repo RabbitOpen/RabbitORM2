@@ -1470,11 +1470,22 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	public AbstractQuery<T> asc(String fieldName, Class<?> targetClz) {
-		if (null == asc.get(targetClz)) {
-			asc.put(targetClz, new HashSet<>());
+		return orderBy(fieldName, targetClz, asc);
+	}
+
+	/**
+	 * <b>@description 	排序 </b>
+	 * @param fieldName	排序的字段
+	 * @param targetClz	排序的表对象
+	 * @param order		缓存排序数据的map
+	 * @return
+	 */
+	private AbstractQuery<T> orderBy(String fieldName, Class<?> targetClz, Map<Class<?>, HashSet<String>> order) {
+		if (null == order.get(targetClz)) {
+			order.put(targetClz, new HashSet<>());
 		}
 		String columnName = getColumnNameByFieldAndClz(fieldName, targetClz);
-		asc.get(targetClz).add(columnName);
+		order.get(targetClz).add(columnName);
 		return this;
 	}
 	
@@ -1516,12 +1527,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	public AbstractQuery<T> desc(String fieldName, Class<?> targetClz) {
-		if (null == desc.get(targetClz)) {
-			desc.put(targetClz, new HashSet<>());
-		}
-		String columnName = getColumnNameByFieldAndClz(fieldName, targetClz);
-		desc.get(targetClz).add(columnName);
-		return this;
+		return orderBy(fieldName, targetClz, desc);
 	}
 	
 	/**
