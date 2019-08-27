@@ -56,7 +56,7 @@ public class RabbitTransactionManager extends
 
     @Override
     protected void doSetRollbackOnly(DefaultTransactionStatus status) {
-    	
+    	// TO DO
     }
     
     @Override
@@ -79,7 +79,7 @@ public class RabbitTransactionManager extends
     
     @Override
     protected void doResume(Object transaction, Object suspendedResources) {
-    	
+    	// TO DO
     }
     
 }
