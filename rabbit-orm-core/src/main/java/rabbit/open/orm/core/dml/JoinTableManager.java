@@ -39,7 +39,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      * 
      */
     public long addJoinRecords(T data) {
-        Field pk = MetaData.getPrimaryKeyFieldMeta(getEntityClz()).getField();
+        Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         Object value;
         value = getValue(pk, data);
         assertEmptyPKValue(value);
@@ -84,7 +84,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      * 
      */
     public long removeJoinRecords(T data) {
-        Field pk = MetaData.getPrimaryKeyFieldMeta(getEntityClz()).getField();
+        Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         Object value = getValue(pk, data);
         assertEmptyPKValue(value);
         this.sqlOperation = new SQLOperation() {
@@ -111,7 +111,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      * 
      */
     public void clearJoinRecords(T data, Class<?> join) {
-        Field pk = MetaData.getPrimaryKeyFieldMeta(getEntityClz()).getField();
+        Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         Object value;
         value = getValue(pk, data);
         assertEmptyPKValue(value);
@@ -157,7 +157,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      * 
      */
     public void replaceJoinRecords(T data) {
-        Field pk = MetaData.getPrimaryKeyFieldMeta(getEntityClz()).getField();
+        Field pk = MetaData.getPrimaryKeyField(getEntityClz());
         Object value = getValue(pk, data);
         assertEmptyPKValue(value);
         this.sqlOperation = new SQLOperation() {

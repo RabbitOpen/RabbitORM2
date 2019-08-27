@@ -759,11 +759,12 @@ public abstract class DMLAdapter<T> {
 	 */
     public static Field checkField(Class<?> target, String field) {
         Map<String, FieldMetaData> cachedFieldsMetas = MetaData.getCachedFieldsMetas(target);
-		if (cachedFieldsMetas.containsKey(field)) {
-			return cachedFieldsMetas.get(field).getField();
+		FieldMetaData fieldMetaData = cachedFieldsMetas.get(field);
+		if (null != fieldMetaData) {
+			return fieldMetaData.getField();
+		} else {
+	        throw new UnKnownFieldException("field[" + field + "] does not belong to " + target);
 		}
-        throw new UnKnownFieldException("field[" + field
-                + "] does not belong to " + target);
     }
 	
 	/**

@@ -555,7 +555,7 @@ public class Update<T> extends NonQueryAdapter<T> {
      */
     private void setEntityFiled(Object data, String key, FieldMetaData fmd,
             Object value) {
-        Field pk = MetaData.getPrimaryKeyFieldMeta(fmd.getField().getType()).getField();
+        Field pk = MetaData.getPrimaryKeyField(fmd.getField().getType());
         logger.warn("value[" + value + "] is not compatible with field[" 
         		+ key + "(" + fmd.getField().getType().getName() + ")] of " 
         		+ data.getClass().getName());
