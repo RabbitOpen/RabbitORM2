@@ -267,9 +267,8 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 
 	private List<T> readDataFromResultSets(ResultSet rs) throws SQLException {
 		List<T> resultList = new ArrayList<>();
-		colHeaders.clear();
+		cacheResultColumns(rs);
 		while (rs.next()) {
-			cacheResultColumns(rs);
 			T rowData = readRowData(rs);
 			boolean exist = false;
 			for (int i = 0; i < resultList.size(); i++) {
@@ -293,10 +292,9 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 * @throws SQLException
 	 */
 	private void cacheResultColumns(ResultSet rs) throws SQLException {
-		if (colHeaders.isEmpty()) {
-			for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-				colHeaders.add(rs.getMetaData().getColumnLabel(i).split("\\" + SEPARATOR));
-			}
+		colHeaders.clear();
+		for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+			colHeaders.add(rs.getMetaData().getColumnLabel(i).split("\\" + SEPARATOR));
 		}
 	}
 

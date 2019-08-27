@@ -128,6 +128,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 	 */
 	private List<T> readResults(ResultSet rs) throws SQLException {
 		List<T> list = new ArrayList<>();
+		List<String> headers = getColumnNames(rs);
 		while (rs.next()) {
 			T targetObj = DMLAdapter.newInstance(getEntityClz());
 			for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
@@ -139,7 +140,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 					colValue = rs.getTimestamp(i);
 				}
 				// 列名和对象字段名一致
-				String colName = rs.getMetaData().getColumnLabel(i);
+				String colName = headers.get(i - 1);
 				FieldMetaData fmd = null;
 				Field field = null;
 				try {
@@ -159,6 +160,20 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 			list.add(targetObj);
 		}
 		return list;
+	}
+
+	/**
+	 * <b>@description 根据结果集获取列名信息 </b>
+	 * @param rs
+	 * @return
+	 * @throws SQLException
+	 */
+	private List<String> getColumnNames(ResultSet rs) throws SQLException {
+		List<String> headers = new ArrayList<>();
+		for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+			headers.add(rs.getMetaData().getColumnLabel(i));
+		}
+		return headers;
 	}
 
 	private PreparedStatement prepareStatement(Connection conn) throws SQLException {
