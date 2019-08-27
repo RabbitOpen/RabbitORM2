@@ -15,7 +15,6 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.common.shard.ShardFactor;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
-import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.name.NamedSQL;
 import rabbit.open.orm.datasource.Session;
@@ -139,27 +138,34 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 				if (sessionFactory.getDialectType().isOracle() && colValue instanceof Date) {
 					colValue = rs.getTimestamp(i);
 				}
-				// 列名和对象字段名一致
-				String colName = headers.get(i - 1);
-				FieldMetaData fmd = null;
-				Field field = null;
-				try {
-					fmd = MetaData.getCachedFieldsMeta(getEntityClz(), colName);
-					field = fmd.getField();
-				} catch (UnKnownFieldException e) {
-					try {
-						field = getEntityClz().getDeclaredField(colName);
-					} catch (NoSuchFieldException nfe) {
-						continue;
-					}
+				Field field = getFieldByColumnName(headers.get(i - 1));
+				if (null != field) {
+					colValue = sessionFactory.onValueGot(colValue, field);
+					DialectTransformer.getTransformer(sessionFactory.getDialectType()).setValue2EntityField(targetObj,
+							field, colValue);
 				}
-				colValue = sessionFactory.onValueGot(colValue, field);
-				DialectTransformer.getTransformer(sessionFactory.getDialectType()).setValue2EntityField(targetObj,
-						field, colValue);
 			}
 			list.add(targetObj);
 		}
 		return list;
+	}
+
+	/**
+	 * 根据数据库列名获取字段对象
+	 * <b>@description  </b>
+	 * @param colName
+	 * @return
+	 */
+	private Field getFieldByColumnName(String colName) {
+		try {
+			return MetaData.getCachedFieldsMeta(getEntityClz(), colName).getField();
+		} catch (UnKnownFieldException e) {
+			try {
+				return getEntityClz().getDeclaredField(colName);
+			} catch (NoSuchFieldException nfe) {
+				return null;
+			}
+		}
 	}
 
 	/**
