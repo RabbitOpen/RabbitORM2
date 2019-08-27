@@ -438,12 +438,12 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
             Map<String, Object> joinFetchEntity) throws SQLException {
         for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
             Object colValue = rs.getObject(i);
-            if (sessionFactory.getDialectType().isOracle() && colValue instanceof Date ) {
-            	colValue = rs.getTimestamp(i);
-            }
             if (null == colValue) {
                 continue;
             }
+			if (sessionFactory.getDialectType().isOracle() && colValue instanceof Date ) {
+				colValue = rs.getTimestamp(i);
+			}
             String colName = rs.getMetaData().getColumnLabel(i);
             if (colName.split("\\" + SEPARATOR).length == 2) {
                 readFetchEntity(fetchEntity, colValue, colName);
