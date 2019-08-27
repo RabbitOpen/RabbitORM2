@@ -22,7 +22,8 @@
 		<module>rabbit-orm-code-helper</module>
 		<module>rabbit-orm-core</module>
 		<module>rabbit-orm-datasource</module>
-	</modules>
+        <module>rabbit-agent</module>
+    </modules>
 
 	<dependencies>
 		<dependency>
