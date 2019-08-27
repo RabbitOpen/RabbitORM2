@@ -132,6 +132,9 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 			T targetObj = DMLAdapter.newInstance(getEntityClz());
 			for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
 				Object colValue = rs.getObject(i);
+				if (null == colValue) {
+					continue;
+				}
 				if (sessionFactory.getDialectType().isOracle() && colValue instanceof Date) {
 					colValue = rs.getTimestamp(i);
 				}
