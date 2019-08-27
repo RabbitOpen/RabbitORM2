@@ -18,12 +18,12 @@ public class DynamicQuery<T> extends Query<T> {
 
 	private HashSet<String> groupBy = new HashSet<>();
 	
-	public DynamicQuery(SessionFactory fatory, Class<T> clz) {
-		this(fatory, null, clz);
+	public DynamicQuery(SessionFactory factory, Class<T> clz) {
+		this(factory, null, clz);
 	}
 	
-	public DynamicQuery(SessionFactory fatory, T filterData, Class<T> clz) {
-		super(fatory, filterData, clz);
+	public DynamicQuery(SessionFactory factory, T filterData, Class<T> clz) {
+		super(factory, filterData, clz);
 		forbiddenDynamic = false;
 	}
 
@@ -33,8 +33,8 @@ public class DynamicQuery<T> extends Query<T> {
 			sql.append(" GROUP BY ");
 			String tableNameAlias = getAliasByTableName(getMetaData().getTableName());
 			for (String f : groupBy) {
-				String columName = getColumnNameByFieldName(f);
-				sql.append(tableNameAlias).append(".").append(columName).append(", ");
+				String columnName = getColumnNameByFieldName(f);
+				sql.append(tableNameAlias).append(".").append(columnName).append(", ");
 			}
 			sql.deleteCharAt(sql.lastIndexOf(","));
 		}
@@ -46,8 +46,7 @@ public class DynamicQuery<T> extends Query<T> {
 	 * @return
 	 */
 	private String getColumnNameByFieldName(String f) {
-		Map<String, FieldMetaData> cachedFieldsMetas = MetaData
-		        .getCachedFieldsMetas(getEntityClz());
+		Map<String, FieldMetaData> cachedFieldsMetas = MetaData.getCachedFieldsMetas(getEntityClz());
 		if (cachedFieldsMetas.containsKey(f)) {
 			return getColumnName(cachedFieldsMetas.get(f).getColumn());
 		}

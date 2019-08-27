@@ -18,12 +18,12 @@ import rabbit.open.orm.core.dml.meta.JoinFilterBuilder;
  */
 public class Query<T> extends AbstractQuery<T> {
 
-	public Query(SessionFactory fatory, Class<T> clz) {
-		super(fatory, clz);
+	public Query(SessionFactory factory, Class<T> clz) {
+		super(factory, clz);
 	}
 
-	public Query(SessionFactory fatory, T filterData, Class<T> clz) {
-		super(fatory, filterData, clz);
+	public Query(SessionFactory factory, T filterData, Class<T> clz) {
+		super(factory, filterData, clz);
 	}
 
 	/**

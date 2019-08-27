@@ -19,8 +19,8 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 	
 	private TreeMap<Integer, PreparedValue> fieldsValues;
 	
-	public NamedUpdate(SessionFactory fatory, Class<T> clz, String name) {
-		this(fatory, clz, name, DMLType.UPDATE);
+	public NamedUpdate(SessionFactory factory, Class<T> clz, String name) {
+		this(factory, clz, name, DMLType.UPDATE);
 	}
 
 	protected NamedUpdate(SessionFactory factory, Class<T> clz, String name, DMLType dmlType) {
