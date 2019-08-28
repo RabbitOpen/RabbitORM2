@@ -1,20 +1,6 @@
 package rabbit.open.orm.core.dml.meta;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.Entity;
-import rabbit.open.orm.common.annotation.ManyToMany;
-import rabbit.open.orm.common.annotation.OneToMany;
-import rabbit.open.orm.common.annotation.PrimaryKey;
+import rabbit.open.orm.common.annotation.*;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.common.shard.ShardingPolicy;
@@ -22,6 +8,12 @@ import rabbit.open.orm.core.dml.DMLAdapter;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.proxy.ManyToManyProxy;
 import rabbit.open.orm.core.dml.meta.proxy.OneToManyProxy;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -67,6 +59,9 @@ public class MetaData<T> {
 		
 	//实体对应的类的class信息
 	protected Class<T> entityClz;
+
+	// 缓存实体类的clz
+	private static Map<Class<?>, Boolean> entityClassCache = new ConcurrentHashMap<>();
 	
     private MetaData(Class<T> entityClz) {
         this.entityClz = entityClz;
@@ -270,7 +265,14 @@ public class MetaData<T> {
 	 * 
 	 */
 	public static boolean isEntityClass(Class<?> clz) {
-		return metaMapping.containsKey(clz);
+		if (entityClassCache.containsKey(clz)) {
+			return true;
+		}
+		if (null != clz.getAnnotation(Entity.class)) {
+			entityClassCache.put(clz, Boolean.TRUE);
+			return true;
+		}
+		return false;
 	}
 	
 	/**
