@@ -31,8 +31,7 @@ public class Insert<T> extends NonQueryAdapter<T> {
         super(sessionFactory, clz);
         this.data = data;
         if (null == data) {
-            throw new RabbitDMLException("empty data[" + data
-                    + "] can't be inserted!");
+            throw new RabbitDMLException("empty data[" + data + "] can't be inserted!");
         }
         setDmlType(DMLType.INSERT);
         createInsertSql(data);
@@ -176,16 +175,12 @@ public class Insert<T> extends NonQueryAdapter<T> {
 
 	//非主键，或者自增长类型的主键
     private boolean isIgnoreField(FieldMetaData fmd) {
-        if (!fmd.isPrimaryKey()) {
+        if (!fmd.isPrimaryKey() || fmd.getPrimaryKey().policy().equals(Policy.NONE)
+        		|| fmd.getPrimaryKey().policy().equals(Policy.AUTOINCREMENT)) {
             return true;
+        } else {
+        	return false;
         }
-        if (fmd.getPrimaryKey().policy().equals(Policy.NONE)) {
-            return true;
-        }
-        if (fmd.getPrimaryKey().policy().equals(Policy.AUTOINCREMENT)) {
-            return true;
-        }
-        return false;
     }
 
 }

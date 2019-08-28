@@ -112,22 +112,22 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
 	 * 
 	 */
 	public long execute() {
-        Connection conn = null;
-        try {
-            conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), dmlType);
-            return sqlOperation.executeSQL(conn);
-        } catch (UnKnownFieldException e) {
-            throw e;
-        } catch (Exception e) {
-        	showUnMaskedSql(false);
-        	Session.flagException();
-            throw new RabbitDMLException(e.getMessage(), e);
-        } finally {
-            closeConnection(conn);
-            Session.clearException();
-        }
+		Connection conn = null;
+		try {
+			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), dmlType);
+			return sqlOperation.executeSQL(conn);
+		} catch (UnKnownFieldException e) {
+			throw e;
+		} catch (Exception e) {
+			showUnMaskedSql(false);
+			Session.flagException();
+			throw new RabbitDMLException(e.getMessage(), e);
+		} finally {
+			closeConnection(conn);
+			Session.clearException();
+		}
 	}
-	
+
 	/**
 	 * 
 	 * <b>Description:	动态新增一个过滤条件</b><br>
@@ -222,7 +222,7 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
 	 * 
 	 * <b>Description:	创建添加中间表数据的sql</b><br>
 	 * @param data
-	 * @param value
+	 * @param value		data的主键字段的值
 	 * @return
 	 * 
 	 */
@@ -247,6 +247,13 @@ public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
         return (List) getValue(jfm.getField(), data);
     }
 
+    /**
+     * <b>@description 创建添加中间表记录的sql </b>
+     * @param value	主表主键字段的值
+     * @param jfm	关联信息
+     * @param jrs	关联表对象值
+     * @return
+     */
     private PreparedSqlDescriptor createAddJoinRecordsSql(Object value, JoinFieldMetaData<?> jfm, List<?> jrs) {
         PreparedSqlDescriptor psd = new PreparedSqlDescriptor(jrs.size());
         for (Object o : jrs) {

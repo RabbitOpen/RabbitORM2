@@ -85,8 +85,6 @@ public abstract class DDLHelper {
     		try {
 				Class<?> clz = Class.forName(clzName);
 				Entity entity = clz.getAnnotation(Entity.class);
-				MetaData.getMetaByClass(clz);
-				MetaData.getCachedFieldsMetas(clz);
 				if (map.containsKey(entity.value())) {
 					throw new RepeatedEntityMapping(map.get(entity.value()), clz, entity.value());
 				} else {
@@ -119,8 +117,7 @@ public abstract class DDLHelper {
     protected HashSet<String> readTablesFromDB() throws SQLException {
         ResultSet tables = null;
         try {
-            tables = getConnection().getMetaData().getTables(null, null, null,
-                    null);
+            tables = getConnection().getMetaData().getTables(null, null, null, null);
             HashSet<String> existsTables = new HashSet<>();
             while (tables.next()) {
                 if ("TABLE".equalsIgnoreCase(tables.getString("TABLE_TYPE"))) {

@@ -88,7 +88,6 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 
 	/**
 	 * <b>@description 给变量设值</b>
-	 * 
 	 * @param fieldAlias 变量别名
 	 * @param value      变量的值
 	 * @return
@@ -151,8 +150,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 	}
 
 	/**
-	 * 根据数据库列名获取字段对象
-	 * <b>@description  </b>
+	 * <b>@description 根据数据库列名获取字段对象 </b>
 	 * @param colName
 	 * @return
 	 */
