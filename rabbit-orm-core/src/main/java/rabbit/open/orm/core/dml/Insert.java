@@ -175,12 +175,8 @@ public class Insert<T> extends NonQueryAdapter<T> {
 
 	//非主键，或者自增长类型的主键
     private boolean isIgnoreField(FieldMetaData fmd) {
-        if (!fmd.isPrimaryKey() || fmd.getPrimaryKey().policy().equals(Policy.NONE)
-        		|| fmd.getPrimaryKey().policy().equals(Policy.AUTOINCREMENT)) {
-            return true;
-        } else {
-        	return false;
-        }
+        return !fmd.isPrimaryKey() || fmd.getPrimaryKey().policy().equals(Policy.NONE)
+        		|| fmd.getPrimaryKey().policy().equals(Policy.AUTOINCREMENT);
     }
 
 }
