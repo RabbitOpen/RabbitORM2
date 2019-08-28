@@ -270,7 +270,7 @@ public class MetaData<T> {
 	 * 
 	 */
 	public static boolean isEntityClass(Class<?> clz) {
-		return null != clz.getAnnotation(Entity.class);
+		return metaMapping.containsKey(clz);
 	}
 	
 	/**

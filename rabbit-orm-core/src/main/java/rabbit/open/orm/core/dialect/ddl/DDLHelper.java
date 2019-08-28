@@ -85,6 +85,8 @@ public abstract class DDLHelper {
     		try {
 				Class<?> clz = Class.forName(clzName);
 				Entity entity = clz.getAnnotation(Entity.class);
+				MetaData.getMetaByClass(clz);
+				MetaData.getCachedFieldsMetas(clz);
 				if (map.containsKey(entity.value())) {
 					throw new RepeatedEntityMapping(map.get(entity.value()), clz, entity.value());
 				} else {
