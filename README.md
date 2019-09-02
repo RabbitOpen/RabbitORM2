@@ -12,6 +12,7 @@
     |   |--rabbit-orm-datasource		内置数据源
     |   |--rabbit-orm-core			核心功能包
     |   |--rabbit-orm-code-helper		逆向工程包
+    |   |--rabbit-agent                     代理增强包，用以辅助检测性能
     
     
     2、新增命名删除(NamedDelete)、命名更新(NamedUpdate)的sql语法支持
