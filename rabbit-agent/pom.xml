@@ -8,14 +8,11 @@
         <version>3.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-	<groupId>rabbit.open</groupId>
     <artifactId>rabbit-agent</artifactId>
-	<version>3.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>rabbit-agent-shade</module>
         <module>rabbit-agent-core</module>
         <module>rabbit-agent-test</module>
     </modules>
-
 </project>
