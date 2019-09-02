@@ -8,7 +8,6 @@
         <version>3.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>3.0.1</version>
     <artifactId>rabbit-agent-shade</artifactId>
 
     <dependencies>
