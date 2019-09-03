@@ -14,26 +14,23 @@ public class TestRunner {
     }
     public void h2() {
         h3();
+        sleep(10);
+    }
+
+    private void sleep(long mils) {
         try {
-            s.tryAcquire(1, 10, TimeUnit.MICROSECONDS);
+            s.tryAcquire(1, mils, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
+
     public void h3() {
         h4();
         h4();
-        try {
-        	s.tryAcquire(1, 10, TimeUnit.MICROSECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        sleep(10);
     }
     public void h4() {
-        try {
-        	s.tryAcquire(1, 10, TimeUnit.MICROSECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        sleep(10);
     }
 }
