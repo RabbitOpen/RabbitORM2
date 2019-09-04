@@ -32,11 +32,11 @@ public class RabbitAgentEntry {
 			packages = agentArgs.split(",");
 		}
 		logger.info("RabbitOrmAgent is running....");
-		logger.info("scan target package [{}]", packages[0]);
+		logger.info("scan target package [{}]\n", packages[0]);
 		ElementMatcher.Junction<NamedElement> matcher = ElementMatchers.nameStartsWith(packages[0]);
 		for (int i = 1; i < packages.length; i++) {
 			matcher.or(ElementMatchers.nameStartsWith(packages[i]));
-			logger.info("scan target package [{}]", packages[i]);
+			logger.info("scan target package [{}]\n", packages[i]);
 		}
 		new AgentBuilder.Default().type(matcher) // 指定需要拦截的类
 				.transform(transformer).with(getEmptyListener()).installOn(inst);
