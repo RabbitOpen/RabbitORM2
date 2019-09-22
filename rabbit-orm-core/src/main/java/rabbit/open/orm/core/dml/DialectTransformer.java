@@ -17,6 +17,7 @@ import rabbit.open.orm.core.dialect.dml.impl.MySQLTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.OracleTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.SQLServerTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.SQLite3Transformer;
+import rabbit.open.orm.core.dialect.pager.Pager;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
 
 /**
@@ -28,6 +29,18 @@ public abstract class DialectTransformer {
     private static Map<DialectType, DialectTransformer> cache = new ConcurrentHashMap<>();
 
     private Logger logger = Logger.getLogger(getClass());
+    
+    private Pager pager;
+    
+    // 获取pager
+    public final Pager getPager() {
+    	if (null == pager) {
+    		pager = createPager();
+    	}
+    	return pager;
+    }
+    
+    protected abstract Pager createPager();
 
     /**
      * <b>Description:  根据数据库的不同，将字段sql片段进行转换</b><br>.

@@ -2,6 +2,8 @@ package rabbit.open.orm.core.dialect.dml.impl;
 
 import java.util.List;
 
+import rabbit.open.orm.core.dialect.pager.Pager;
+import rabbit.open.orm.core.dialect.pager.impl.MySQLPager;
 import rabbit.open.orm.core.dml.AbstractQuery;
 import rabbit.open.orm.core.dml.DialectTransformer;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
@@ -27,7 +29,12 @@ public class MySQLTransformer extends DialectTransformer {
 	    List<Object> preparedValues = getPreparedValues(query);
 	    preparedValues.add(new PreparedValue(pageIndex * pageSize));
         preparedValues.add(new PreparedValue(pageSize));
-        return getSql(query).append(" LIMIT ?, ?");
+        return getPager().doPage(getSql(query));
     }
+
+	@Override
+	public Pager createPager() {
+		return new MySQLPager();
+	}
 	
 }

@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.List;
 
 import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.core.dialect.pager.Pager;
+import rabbit.open.orm.core.dialect.pager.impl.SQLite3Pager;
 import rabbit.open.orm.core.dml.AbstractQuery;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.DialectTransformer;
@@ -23,7 +25,7 @@ public class SQLite3Transformer extends DialectTransformer {
         List<Object> preparedValues = getPreparedValues(query);
         preparedValues.add(new PreparedValue(pageSize));
         preparedValues.add(new PreparedValue(pageIndex * pageSize));
-        return getSql(query).append(" LIMIT ? offset ?");
+        return getPager().doPage(getSql(query));
     }
 
     @Override
@@ -38,6 +40,10 @@ public class SQLite3Transformer extends DialectTransformer {
         } else {
             super.setValue2EntityField(target, field, value);
         }
-        
     }
+
+    @Override
+	public Pager createPager() {
+		return new SQLite3Pager();
+	}
 }

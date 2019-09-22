@@ -1,10 +1,12 @@
 package rabbit.open.orm.core.dialect.dml.impl;
 
+import rabbit.open.orm.core.dialect.pager.Pager;
+import rabbit.open.orm.core.dialect.pager.impl.SQLServerPager;
 import rabbit.open.orm.core.dml.AbstractQuery;
 import rabbit.open.orm.core.dml.DialectTransformer;
 
 public class SQLServerTransformer extends DialectTransformer {
-
+	
     /**
      * 
      * <b>Description:  根据数据库的不同，将字段sql片段进行转换</b><br>.
@@ -66,7 +68,12 @@ public class SQLServerTransformer extends DialectTransformer {
     @Override
 	public StringBuilder createPageSql(AbstractQuery<?> query) {
     	setStartAndEndPreparedValues(query);
-        return new StringBuilder("WITH T AS (" + getSql(query) + ") SELECT * FROM T WHERE RN BETWEEN ? AND ?");
+        return getPager().doPage(getSql(query));
     }
+
+	@Override
+	protected Pager createPager() {
+		return new SQLServerPager();
+	}
     
 }

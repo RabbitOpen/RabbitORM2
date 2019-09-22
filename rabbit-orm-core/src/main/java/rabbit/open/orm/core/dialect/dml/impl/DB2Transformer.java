@@ -1,5 +1,7 @@
 package rabbit.open.orm.core.dialect.dml.impl;
 
+import rabbit.open.orm.core.dialect.pager.Pager;
+import rabbit.open.orm.core.dialect.pager.impl.DB2Pager;
 import rabbit.open.orm.core.dml.AbstractQuery;
 import rabbit.open.orm.core.dml.DialectTransformer;
 
@@ -51,7 +53,12 @@ public class DB2Transformer extends DialectTransformer {
     @Override
 	public StringBuilder createPageSql(AbstractQuery<?> query) {
         setStartAndEndPreparedValues(query);
-        return new StringBuilder("SELECT * FROM (" + getSql(query) + ")T WHERE RN BETWEEN ? AND ?");
+        return getPager().doPage(getSql(query));
     }
 
+	@Override
+	public Pager createPager() {
+		return new DB2Pager();
+	}
+    
 }
