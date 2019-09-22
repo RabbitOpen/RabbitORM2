@@ -50,7 +50,7 @@ import rabbit.open.orm.core.utils.SQLFormater;
  * @param <T>
  * 
  */
-public abstract class DMLAdapter<T> {
+public abstract class DMLObject<T> {
 
     public static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
@@ -114,12 +114,12 @@ public abstract class DMLAdapter<T> {
 	//分片表分片时的因子
 	protected List<ShardFactor> factors = new ArrayList<>();
 
-	public DMLAdapter(SessionFactory sessionFactory, Class<T> clz) {
+	public DMLObject(SessionFactory sessionFactory, Class<T> clz) {
 		this(sessionFactory, null, clz);
 	}
 
 	@SuppressWarnings("unchecked")
-    public DMLAdapter(SessionFactory sessionFactory, T filterData, Class<T> clz) {
+    public DMLObject(SessionFactory sessionFactory, T filterData, Class<T> clz) {
 		this.sessionFactory = sessionFactory;
 		this.filterData = filterData;
 		metaData = (MetaData<T>) MetaData.getMetaByClass(clz);

@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.core.dml.DMLAdapter;
+import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.NonQueryAdapter;
 import rabbit.open.orm.core.dml.PolicyInsert;
 import rabbit.open.orm.core.dml.RabbitValueConverter;
@@ -56,7 +56,7 @@ public class SequencePolicy extends PolicyInsert {
             throw new RabbitDMLException(e);
         } finally {
             closeResultSet(rs);
-            DMLAdapter.closeStmt(stmt);
+            DMLObject.closeStmt(stmt);
         }
     }
 

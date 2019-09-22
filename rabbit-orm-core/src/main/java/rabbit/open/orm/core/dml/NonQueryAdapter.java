@@ -35,7 +35,7 @@ import rabbit.open.orm.datasource.Session;
  * @param <T>
  * 
  */
-public abstract class NonQueryAdapter<T> extends DMLAdapter<T> {
+public abstract class NonQueryAdapter<T> extends DMLObject<T> {
 
 	protected SQLOperation sqlOperation;
 	

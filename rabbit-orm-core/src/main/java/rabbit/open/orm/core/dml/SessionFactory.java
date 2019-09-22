@@ -439,7 +439,7 @@ public class SessionFactory {
 			} catch (Exception e) {
 				throw new RabbitDMLException(e);
 			} finally {
-				DMLAdapter.closeConnection(conn);
+				DMLObject.closeConnection(conn);
 			}
 		}
 	}

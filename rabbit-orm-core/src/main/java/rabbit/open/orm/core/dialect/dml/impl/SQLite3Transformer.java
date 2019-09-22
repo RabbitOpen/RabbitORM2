@@ -7,7 +7,7 @@ import java.util.List;
 
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.AbstractQuery;
-import rabbit.open.orm.core.dml.DMLAdapter;
+import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.DialectTransformer;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
 
@@ -31,7 +31,7 @@ public class SQLite3Transformer extends DialectTransformer {
         field.setAccessible(true);
         if (Date.class.equals(field.getType())) {
             try {
-                field.set(target, new SimpleDateFormat(DMLAdapter.DEFAULT_DATE_PATTERN).parse((String) value));
+                field.set(target, new SimpleDateFormat(DMLObject.DEFAULT_DATE_PATTERN).parse((String) value));
             } catch (Exception e) {
                 throw new RabbitDMLException(e.getMessage(), e);
             }

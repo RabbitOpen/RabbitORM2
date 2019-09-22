@@ -14,7 +14,7 @@ public class OracleDeleteGenerator extends DeleteDialectAdapter {
 	public StringBuilder createDeleteSql(Delete<?> delete) {
 		StringBuilder sql = new StringBuilder("DELETE FROM " + delete.metaData.getTableName());
 		String primaryKeyColumnName = delete.getColumnName(delete.metaData.getPrimaryKey());
-        sql.append(DMLAdapter.WHERE + delete.metaData.getTableName() + "." + primaryKeyColumnName + " IN (");
+        sql.append(DMLObject.WHERE + delete.metaData.getTableName() + "." + primaryKeyColumnName + " IN (");
 		sql.append("SELECT " + delete.metaData.getTableName() + "." + primaryKeyColumnName + " FROM " 
 					+ delete.metaData.getTableName());
 		sql.append(delete.generateInnerJoinsql());

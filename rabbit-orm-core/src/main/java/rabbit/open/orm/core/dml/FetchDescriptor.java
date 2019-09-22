@@ -107,7 +107,7 @@ public class FetchDescriptor<T> {
 
     protected FetchDescriptor<T> on(String reg, Object value, FilterType filterType) {
         String field = query.getFieldByReg(reg);
-        DMLAdapter.checkField(joinFetchClz, field);
+        DMLObject.checkField(joinFetchClz, field);
         if (!query.addedJoinFilters.containsKey(joinFetchClz)) {
             query.addedJoinFilters.put(joinFetchClz, new HashMap<String, List<DynamicFilterDescriptor>>());
         }

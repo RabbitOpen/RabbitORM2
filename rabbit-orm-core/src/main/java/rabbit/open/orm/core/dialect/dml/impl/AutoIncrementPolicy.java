@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 import com.mysql.jdbc.Statement;
 
-import rabbit.open.orm.core.dml.DMLAdapter;
+import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.NonQueryAdapter;
 import rabbit.open.orm.core.dml.PolicyInsert;
 import rabbit.open.orm.core.dml.RabbitValueConverter;
@@ -40,7 +40,7 @@ public class AutoIncrementPolicy extends PolicyInsert {
             return data;
         } finally {
             closeResultSet(rs);
-            DMLAdapter.closeStmt(stmt);
+            DMLObject.closeStmt(stmt);
         }
     }
 

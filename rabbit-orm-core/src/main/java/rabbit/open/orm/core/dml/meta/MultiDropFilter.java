@@ -6,7 +6,7 @@ import java.util.List;
 
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dml.CallBackTask;
-import rabbit.open.orm.core.dml.DMLAdapter;
+import rabbit.open.orm.core.dml.DMLObject;
 
 /**
  * <b>Description 多分支的过滤条件，即多个OR条件</b>
@@ -42,7 +42,7 @@ public class MultiDropFilter {
     	tasks.add(new CallBackTask() {
 			@Override
 			public void run() {
-				Field f = DMLAdapter.checkField(targetClz, field);
+				Field f = DMLObject.checkField(targetClz, field);
 				FilterDescriptor fd = new FilterDescriptor(field, value, filterType.value());
 				fd.setField(f);
 				filters.add(new MultiDropFilter(field, fd));

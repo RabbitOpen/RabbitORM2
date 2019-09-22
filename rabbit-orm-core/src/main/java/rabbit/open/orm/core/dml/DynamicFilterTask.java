@@ -20,7 +20,7 @@ import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
  */
 public class DynamicFilterTask<T> implements CallBackTask{
 	
-	private final DMLAdapter<T> dmlAdapter;
+	private final DMLObject<T> dmlAdapter;
 
 	private String reg;
 	
@@ -30,7 +30,7 @@ public class DynamicFilterTask<T> implements CallBackTask{
 	
 	private Class<?>[] depsPath;
 	
-	public DynamicFilterTask(DMLAdapter<T> adapter, String reg, Object value, FilterType ft,
+	public DynamicFilterTask(DMLObject<T> adapter, String reg, Object value, FilterType ft,
 			Class<?>[] depsPath) {
 		this.dmlAdapter = adapter;
 		this.reg = reg;
@@ -55,7 +55,7 @@ public class DynamicFilterTask<T> implements CallBackTask{
 			return;
 		}
 		String field = dmlAdapter.getFieldByReg(reg);
-		DMLAdapter.checkField(depsPath[0], field);
+		DMLObject.checkField(depsPath[0], field);
 		this.dmlAdapter.checkQueryPath(depsPath);
 		if (!dmlAdapter.addedFilters.containsKey(depsPath[0])) {
 			dmlAdapter.addedFilters.put(depsPath[0], new HashMap<String, List<DynamicFilterDescriptor>>());

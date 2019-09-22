@@ -4,7 +4,7 @@ import rabbit.open.orm.common.annotation.*;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.common.shard.ShardingPolicy;
-import rabbit.open.orm.core.dml.DMLAdapter;
+import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.proxy.ManyToManyProxy;
 import rabbit.open.orm.core.dml.meta.proxy.OneToManyProxy;
@@ -131,7 +131,7 @@ public class MetaData<T> {
             return policyMapping.get(entity.policy());
         }
         try {
-            policyMapping.put(entity.policy(), DMLAdapter.newInstance(entity.policy()));
+            policyMapping.put(entity.policy(), DMLObject.newInstance(entity.policy()));
         } catch (Exception e) {
             throw new RabbitDMLException(e);
         }

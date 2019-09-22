@@ -25,7 +25,7 @@ import rabbit.open.orm.datasource.Session;
  * <b>@description jdbc命名sql查询对象 </b>
  * @param <T>
  */
-public class SQLQuery<T> extends DMLAdapter<T> {
+public class SQLQuery<T> extends DMLObject<T> {
 
 
 	protected NamedSQL namedObject;
@@ -128,7 +128,7 @@ public class SQLQuery<T> extends DMLAdapter<T> {
 		List<T> list = new ArrayList<>();
 		List<String> headers = getColumnNames(rs);
 		while (rs.next()) {
-			T targetObj = DMLAdapter.newInstance(getEntityClz());
+			T targetObj = DMLObject.newInstance(getEntityClz());
 			for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
 				Object colValue = rs.getObject(i);
 				if (null == colValue) {

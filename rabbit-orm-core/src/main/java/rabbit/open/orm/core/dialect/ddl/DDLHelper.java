@@ -32,7 +32,7 @@ import rabbit.open.orm.core.dialect.ddl.impl.MySQLDDLHelper;
 import rabbit.open.orm.core.dialect.ddl.impl.OracleDDLHelper;
 import rabbit.open.orm.core.dialect.ddl.impl.SQLServerDDLHelper;
 import rabbit.open.orm.core.dialect.ddl.impl.SQLiteDDLHelper;
-import rabbit.open.orm.core.dml.DMLAdapter;
+import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
@@ -243,7 +243,7 @@ public abstract class DDLHelper {
         } catch (Exception e) {
             throw new RabbitDDLException(e);
         } finally {
-            DMLAdapter.closeConnection(connection);
+            DMLObject.closeConnection(connection);
         }
     }
 
@@ -275,7 +275,7 @@ public abstract class DDLHelper {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         } finally {
-            DMLAdapter.closeConnection(connection);
+            DMLObject.closeConnection(connection);
         }
     }
 

@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.core.dml.DMLAdapter;
+import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.Delete;
 import rabbit.open.orm.core.dml.DynamicQuery;
 import rabbit.open.orm.core.dml.Insert;
@@ -334,7 +334,7 @@ public abstract class SpringDaoAdapter<T> {
         if (null == filterData) {
             return createQuery();
         }
-        T tf = DMLAdapter.newInstance(clz);
+        T tf = DMLObject.newInstance(clz);
         cloneValueByFieldName(filterData, tf);
         return createQuery(tf);
     }
@@ -376,7 +376,7 @@ public abstract class SpringDaoAdapter<T> {
     }
 
     private void cloneBeanField(Object dest, Object value, Field field) {
-        Object clone = DMLAdapter.newInstance(field.getType());
+        Object clone = DMLObject.newInstance(field.getType());
         cloneValueByFieldName(value, clone);
         setValue(dest, field, clone);
     }

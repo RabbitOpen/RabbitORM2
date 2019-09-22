@@ -47,7 +47,7 @@ public class PolicyInsert {
             stmt.executeUpdate();
             return data;
         } finally {
-            DMLAdapter.closeStmt(stmt);
+            DMLObject.closeStmt(stmt);
         }
     }
     
@@ -100,7 +100,7 @@ public class PolicyInsert {
         }
     }
     
-    protected void setValue2Field(Object target, Field field, Object value, DMLAdapter<?> adapter) {
+    protected void setValue2Field(Object target, Field field, Object value, DMLObject<?> adapter) {
         adapter.setValue2Field(target, field, value);
     }
 }

@@ -203,7 +203,7 @@ public class Update<T> extends NonQueryAdapter<T> {
 	 */
 	public T getUpdater() {
 	    if (null == this.value2Update) {
-	        this.value2Update = DMLAdapter.newInstance(getEntityClz());
+	        this.value2Update = DMLObject.newInstance(getEntityClz());
 	    }
 	    return this.value2Update;
 	}
@@ -515,7 +515,7 @@ public class Update<T> extends NonQueryAdapter<T> {
             return data;
         }
         if (data == null) {
-            data = DMLAdapter.newInstance(getEntityClz());
+            data = DMLObject.newInstance(getEntityClz());
             clearDefaultValue(data);
         }
         Iterator<String> it = settedValue.keySet().iterator();
@@ -559,7 +559,7 @@ public class Update<T> extends NonQueryAdapter<T> {
         logger.warn("value[" + value + "] is not compatible with field[" 
         		+ key + "(" + fmd.getField().getType().getName() + ")] of " 
         		+ data.getClass().getName());
-        Object bean = DMLAdapter.newInstance(fmd.getField().getType());
+        Object bean = DMLObject.newInstance(fmd.getField().getType());
 		if (value instanceof Number) {
             setValue2Field(bean, pk, RabbitValueConverter.cast(
                     new BigDecimal(value.toString()), pk.getType()));

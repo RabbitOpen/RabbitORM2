@@ -17,7 +17,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
-import rabbit.open.orm.core.dml.DMLAdapter;
+import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SessionFactory;
 
 /**
@@ -224,7 +224,7 @@ public class OracleShardingTest {
         } catch (Exception e) {
             logger.error(e.getMessage());
         } finally {
-            DMLAdapter.closeConnection(connection);
+            DMLObject.closeConnection(connection);
         }
     }
 

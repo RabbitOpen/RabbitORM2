@@ -16,7 +16,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rabbit.open.orm.common.exception.FetchShardEntityException;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
-import rabbit.open.orm.core.dml.DMLAdapter;
+import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
 import sharding.test.table.entity.Region;
@@ -394,7 +394,7 @@ public class ShardingTableTest {
         } catch (Exception e) {
             logger.error(e.getMessage());
         } finally {
-            DMLAdapter.closeConnection(connection);
+            DMLObject.closeConnection(connection);
         }
     }
 

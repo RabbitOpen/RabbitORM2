@@ -49,7 +49,7 @@ import rabbit.open.orm.datasource.Session;
  * @param <T>
  *
  */
-public abstract class AbstractQuery<T> extends DMLAdapter<T> {
+public abstract class AbstractQuery<T> extends DMLObject<T> {
 
 	//标记当前查询对象是否已经执行过了
 	private boolean runned = false;
@@ -137,7 +137,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
 			closeResultSet(rs);
-			DMLAdapter.closeStmt(stmt);
+			DMLObject.closeStmt(stmt);
 			closeConnection(conn);
 			Session.clearException();
 			setRunned();
@@ -175,7 +175,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 */
 	public final AbstractQuery<T> queryFields(Class<?> clz, String... fields) {
 		for (String field : fields) {
-			DMLAdapter.checkField(clz, field);
+			DMLObject.checkField(clz, field);
 		}
 		if (!concernFields.containsKey(clz)) {
 			concernFields.put(clz, new HashSet<>());
@@ -213,7 +213,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 	 */
 	public final AbstractQuery<T> querySpecifiedFields(Class<?> clz, String... fields) {
 		for (String field : fields) {
-			DMLAdapter.checkField(clz, field);
+			DMLObject.checkField(clz, field);
 		}
 		if (!concernFields.containsKey(clz)) {
 			concernFields.put(clz, new HashSet<>());
@@ -393,7 +393,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		readEntity(rs, fetchEntity, joinFetchEntity);
 		if (null == fetchEntity.get(getAliasByTableName(metaData.getTableName()))) {
 			fetchEntity.put(getAliasByTableName(metaData.getTableName()),
-					DMLAdapter.newInstance(metaData.getEntityClz()));
+					DMLObject.newInstance(metaData.getEntityClz()));
 		}
 		T target = (T) fetchEntity.get(getAliasByTableName(metaData.getTableName()));
 		for (Object entity : fetchEntity.values()) {
@@ -477,12 +477,12 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		String fieldName = MetaData.getFieldsAliasMapping(
 				MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
 		if (null == joinFetchEntity.get(tableName)) {
-			Object entity = DMLAdapter.newInstance(MetaData.getClassByTableName(tableName));
+			Object entity = DMLObject.newInstance(MetaData.getClassByTableName(tableName));
 			joinFetchEntity.put(tableName, entity);
 		}
 		Field field = getFieldByName(tableName, fieldName);
 		if (MetaData.isEntityClass(field.getType())) {
-			Object newInstance = DMLAdapter.newInstance(field.getType());
+			Object newInstance = DMLObject.newInstance(field.getType());
 			Field pkField = MetaData.getPrimaryKeyField(field.getType());
 			setValue2EntityField(newInstance, pkField, colValue);
 			setValue2Field(joinFetchEntity.get(tableName), field, newInstance);
@@ -520,7 +520,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 		String fieldName = MetaData.getFieldsAliasMapping(
 				MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
 		if (null == fetchEntityMap.get(tableAlias)) {
-			Object entity = DMLAdapter.newInstance(MetaData.getClassByTableName(tableName));
+			Object entity = DMLObject.newInstance(MetaData.getClassByTableName(tableName));
 			fetchEntityMap.put(tableAlias, entity);
 		}
 		Field field;
@@ -530,7 +530,7 @@ public abstract class AbstractQuery<T> extends DMLAdapter<T> {
 			throw new RabbitDMLException(e);
 		}
 		if (MetaData.isEntityClass(field.getType())) {
-			Object newInstance = DMLAdapter.newInstance(field.getType());
+			Object newInstance = DMLObject.newInstance(field.getType());
 			Field pkField = MetaData.getPrimaryKeyField(field.getType());
 			setValue2EntityField(newInstance, pkField, colValue);
 			setValue2Field(fetchEntityMap.get(tableAlias), field,  newInstance);
