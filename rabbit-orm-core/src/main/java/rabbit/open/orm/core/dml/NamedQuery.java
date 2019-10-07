@@ -75,11 +75,14 @@ public class NamedQuery<T> {
 	    query.prepareMany2oneFilters();
 	    query.createFieldsSql();
 	    query.sql = new StringBuilder(namedObject.replaceFields(query.sql.toString()));
-		setPreparedValues();
+	    setPreparedValues();
+	    query.createPageSql();
 	}
 	
 	private void generateNameCountSql() {
-		query.sql = new StringBuilder(namedObject.replaceFields("COUNT(1)"));
+		String copySql = namedObject.getSql().toString().toLowerCase();
+    	String from = "from";
+    	query.sql = new StringBuilder("SELECT COUNT(1) " + namedObject.getSql().substring(copySql.indexOf(from)));
 		setPreparedValues();
 	}
 	
@@ -210,6 +213,18 @@ public class NamedQuery<T> {
             }
         }
         return this;
+    }
+    
+    /**
+     * 
+     * <b>@description 分页 </b>
+     * @param pageIndex
+     * @param pageSize
+     * @return
+     */
+    public NamedQuery<T> page(int pageIndex, int pageSize) {
+    	query.page(pageIndex, pageSize);
+    	return this;
     }
     
     private Object getValue(Field field, Object target) {

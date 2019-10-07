@@ -96,6 +96,35 @@ public abstract class DDLHelper {
     	}
     }
     
+    /**
+     * @description 缓存字段别名映射关系
+     * @param factory
+     */
+	public static void cacheFieldsAlias(SessionFactory factory) {
+		HashSet<String> entities = (HashSet<String>) factory.getEntities();
+		for (String clzName : entities) {
+			try {
+				Class<?> clz = Class.forName(clzName);
+				Map<String, String> aliasMappings = MetaData.getFieldsAliasMapping(clz);
+				if (null == aliasMappings) {
+					aliasMappings = new ConcurrentHashMap<>();
+					MetaData.setFieldsAliasMapping(clz, aliasMappings);
+				}
+				Collection<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(clz).values();
+				int i = 0;
+				for (FieldMetaData metaData : fieldsMetas) {
+					String fn = metaData.getField().getName();
+					String alias = Integer.toString(i);
+					aliasMappings.put(alias, fn);
+					aliasMappings.put(fn, alias);
+					i++;
+				}
+			} catch (ClassNotFoundException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+	}
+    
     protected Connection getConnection() {
         return conn;
     }

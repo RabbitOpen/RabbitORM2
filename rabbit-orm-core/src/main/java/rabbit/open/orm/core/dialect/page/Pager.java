@@ -1,4 +1,4 @@
-package rabbit.open.orm.core.dialect.pager;
+package rabbit.open.orm.core.dialect.page;
 
 /**
  * 分页包装

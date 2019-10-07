@@ -17,7 +17,7 @@ import rabbit.open.orm.core.dialect.dml.impl.MySQLTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.OracleTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.SQLServerTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.SQLite3Transformer;
-import rabbit.open.orm.core.dialect.pager.Pager;
+import rabbit.open.orm.core.dialect.page.Pager;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
 
 /**

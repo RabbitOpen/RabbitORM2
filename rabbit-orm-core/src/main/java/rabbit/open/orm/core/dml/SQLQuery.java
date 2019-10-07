@@ -27,10 +27,9 @@ import rabbit.open.orm.datasource.Session;
  */
 public class SQLQuery<T> extends DMLObject<T> {
 
-
 	protected NamedSQL namedObject;
 
-	private DMLType dmlType;
+	private final DMLType dmlType = DMLType.SELECT;
 
 	private SQLOperation sqlOpr;
 
@@ -45,7 +44,6 @@ public class SQLQuery<T> extends DMLObject<T> {
 	 */
 	public SQLQuery(SessionFactory sessionFactory, Class<T> clz, String queryName) {
 		super(sessionFactory, clz);
-		this.dmlType = DMLType.SELECT;
 		this.sessionFactory = sessionFactory;
 		this.namedObject = sessionFactory.getQueryByNameAndClass(queryName, clz);
 	}
@@ -93,11 +91,31 @@ public class SQLQuery<T> extends DMLObject<T> {
 	 * @return
 	 */
 	public SQLQuery<T> set(String fieldAlias, Object value) {
-		List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
-		for (int index : indexes) {
-			fieldsValues.put(index, new PreparedValue(value));
-		}
-		return this;
+		return set(fieldAlias, value, null, null);
+	}
+	
+	/**
+	 * <b>Description      单个设值</b>
+	 * @param fieldAlias   字段在sql中的别名
+	 * @param value        字段的值
+	 * @param fieldName    字段在对应实体中的名字  	 如果当前主表有分表时参数必传
+	 * @param entityClz    字段所属的实体   			 如果当前主表有分表时参数必传
+	 * @return
+	 */
+	public SQLQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz) {
+	    List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
+	    for (int index : indexes) {
+	        if (null != entityClz && !SessionFactory.isEmpty(fieldName)) {
+	            try {
+	                fieldsValues.put(index, new PreparedValue(value, entityClz.getDeclaredField(fieldName)));
+	            } catch (Exception e) {
+	                throw new UnKnownFieldException(e.getMessage());
+	            }
+	        } else {
+	            fieldsValues.put(index, new PreparedValue(value));
+	        }
+	    }
+	    return this;
 	}
 
 	/**
@@ -117,6 +135,26 @@ public class SQLQuery<T> extends DMLObject<T> {
 	public List<T> list() {
 		sqlOpr = createQueryOperation();
 		return (List<T>)execute();
+	}
+	
+	
+	/**
+	 * <b>@description 分页 </b>
+	 * @param pageIndex
+	 * @param pageSize
+	 * @return
+	 */
+	public SQLQuery<T> page(int pageIndex, int pageSize) {
+		
+		return this;
+	}
+	
+	/**
+	 * <b>@description 统计条数 </b>
+	 * @return
+	 */
+	public long count() {
+		return 0L;
 	}
 
 	/**

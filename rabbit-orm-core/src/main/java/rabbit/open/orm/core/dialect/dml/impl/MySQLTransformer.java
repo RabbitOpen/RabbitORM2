@@ -2,8 +2,8 @@ package rabbit.open.orm.core.dialect.dml.impl;
 
 import java.util.List;
 
-import rabbit.open.orm.core.dialect.pager.Pager;
-import rabbit.open.orm.core.dialect.pager.impl.MySQLPager;
+import rabbit.open.orm.core.dialect.page.Pager;
+import rabbit.open.orm.core.dialect.page.impl.MySQLPager;
 import rabbit.open.orm.core.dml.AbstractQuery;
 import rabbit.open.orm.core.dml.DialectTransformer;
 import rabbit.open.orm.core.dml.filter.PreparedValue;

@@ -1,7 +1,7 @@
 package rabbit.open.orm.core.dialect.dml.impl;
 
-import rabbit.open.orm.core.dialect.pager.Pager;
-import rabbit.open.orm.core.dialect.pager.impl.OraclePager;
+import rabbit.open.orm.core.dialect.page.Pager;
+import rabbit.open.orm.core.dialect.page.impl.OraclePager;
 import rabbit.open.orm.core.dml.AbstractQuery;
 import rabbit.open.orm.core.dml.DialectTransformer;
 

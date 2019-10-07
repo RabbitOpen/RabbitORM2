@@ -1,6 +1,6 @@
-package rabbit.open.orm.core.dialect.pager.impl;
+package rabbit.open.orm.core.dialect.page.impl;
 
-import rabbit.open.orm.core.dialect.pager.Pager;
+import rabbit.open.orm.core.dialect.page.Pager;
 
 public class MySQLPager implements Pager {
 

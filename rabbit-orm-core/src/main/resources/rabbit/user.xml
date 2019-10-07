@@ -91,6 +91,17 @@
                 U.ID = ${userId}  
         ]]>
     </select>
+    
+    
+    <select name="getUsers" alias="U">
+        <![CDATA[
+            SELECT 
+                #{FILEDS}
+            FROM 
+                T_USER U
+             WHERE U.NAME = ${username} 
+        ]]>
+    </select>
 
     <!-- jdbc操作 -->
     <jdbc name="misMatchedNamedQueryExceptionTest">

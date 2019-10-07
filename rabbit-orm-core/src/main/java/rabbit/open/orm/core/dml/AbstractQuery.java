@@ -1092,27 +1092,19 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		Collection<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(jfm.getJoinClass()).values();
 		StringBuilder sb = new StringBuilder();
 		Map<String, String> aliasMappings = MetaData.getFieldsAliasMapping(jfm.getJoinClass());
-		if (null == aliasMappings) {
-			aliasMappings = new ConcurrentHashMap<>();
-			MetaData.setFieldsAliasMapping(jfm.getJoinClass(), aliasMappings);
-		}
-		int i = 0;
 		for (FieldMetaData fmd : fieldsMetas) {
 			boolean dynamic = fmd.getColumn().dynamic();
 			if ((isForbiddenDynamic() && dynamic) ||
 					!isConcernedField(jfm.getJoinClass(), fmd)) {
-				i++;
 				continue;
 			}
 			String fn = fmd.getField().getName();
-			String alias = Integer.toString(i);
-			aliasMappings.put(alias, fn);
+			String alias = aliasMappings.get(fn);
 			String tableAlias = getAliasByTableName(jfm.getTableName());
-			appendColumnName(dynamic, tableAlias, getColumnName(fmd.getColumn()), jfm.getJoinClass());
-			sql.append(" AS ");
-			sql.append("J" + SEPARATOR + tableAlias + SEPARATOR + alias);
-			sql.append(", ");
-			i++;
+			sb.append(appendColumnName(dynamic, tableAlias, getColumnName(fmd.getColumn()), jfm.getJoinClass()));
+			sb.append(" AS ");
+			sb.append("J" + SEPARATOR + tableAlias + SEPARATOR + alias);
+			sb.append(", ");
 		}
 		return sb;
 	}
@@ -1128,37 +1120,29 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		StringBuilder sb = new StringBuilder();
 		Collection<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(clz).values();
 		Map<String, String> aliasMappings = MetaData.getFieldsAliasMapping(clz);
-		if (null == aliasMappings) {
-			aliasMappings = new ConcurrentHashMap<>();
-			MetaData.setFieldsAliasMapping(clz, aliasMappings);
-		}
-		int i = 0;
 		for (FieldMetaData fmd : fieldsMetas) {
 			boolean dynamic = fmd.getColumn().dynamic();
 			if ((isForbiddenDynamic() && dynamic) ||
 					!isConcernedField(clz, fmd)) {
-				i++;
 				continue;
 			}
 			String fn = fmd.getField().getName();
-			String alias = Integer.toString(i);
-			aliasMappings.put(alias, fn);
+			String alias = aliasMappings.get(fn);
 			String tableAlias = getAliasByTableName(getTableNameByClass(clz));
 			String columnName = getColumnName(fmd.getColumn());
 			if (fetchTimesMappingTable.containsKey(clz) && fetchTimesMappingTable.get(clz) > 1) {
 				for (int j = 1; j <= fetchTimesMappingTable.get(clz); j++) {
-					sql.append(tableAlias + UNDERLINE + j + "." + columnName);
-					sql.append(" AS ");
-					sql.append(tableAlias + UNDERLINE + j  + SEPARATOR + alias);
-					sql.append(", ");
+					sb.append(tableAlias + UNDERLINE + j + "." + columnName);
+					sb.append(" AS ");
+					sb.append(tableAlias + UNDERLINE + j  + SEPARATOR + alias);
+					sb.append(", ");
 				}
 			} else {
-				appendColumnName(dynamic, tableAlias, columnName, clz);
-				sql.append(" AS ");
-				sql.append(tableAlias + SEPARATOR + alias);
-				sql.append(", ");
+				sb.append(appendColumnName(dynamic, tableAlias, columnName, clz));
+				sb.append(" AS ");
+				sb.append(tableAlias + SEPARATOR + alias);
+				sb.append(", ");
 			}
-			i++;
 		}
 		return sb;
 	}
@@ -1170,19 +1154,21 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * @param columnName	字段名
 	 * @param fieldClz		字段所属的类的class信息
 	 */
-	private void appendColumnName(boolean dynamic, String tableAlias,
+	private StringBuilder appendColumnName(boolean dynamic, String tableAlias,
 								  String columnName, Class<?> fieldClz) {
+		StringBuilder sb = new StringBuilder();
 		if (dynamic) {
 			String field = getFieldByReg(columnName);
 			if (columnName.equals(field)) {
-				sql.append(columnName);
+				sb.append(columnName);
 			} else {
 				FieldMetaData fmd = getFieldMetaByFieldName(fieldClz, field);
-				sql.append(replaceRegByColumnName(columnName, fmd.getField(), tableAlias + "." + getColumnName(fmd.getColumn())));
+				sb.append(replaceRegByColumnName(columnName, fmd.getField(), tableAlias + "." + getColumnName(fmd.getColumn())));
 			}
 		} else {
-			sql.append(tableAlias + "." + columnName);
+			sb.append(tableAlias + "." + columnName);
 		}
+		return sb;
 	}
 
 	/**

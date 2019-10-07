@@ -403,6 +403,7 @@ public class SessionFactory {
 		DeleteDialectAdapter.init();
 		PolicyInsert.init();
 		DDLHelper.checkMapping(this);
+		DDLHelper.cacheFieldsAlias(this);
 		DDLHelper.init();
 		cacheDefaultIsolationLevel();
 		//组合数据源不支持ddl
