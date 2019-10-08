@@ -9,6 +9,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import junit.framework.TestCase;
+import rabbit.open.orm.core.dialect.page.PageHelper;
 import test.mapper.entity.MappingUser;
 
 /**
@@ -34,7 +35,10 @@ public class MapperTest {
 		MappingUser u = new MappingUser();
 		u.setName("leifeng");
 		us.add(u);
+		
+		PageHelper.page(0, 10);
 		MappingUser user = userMapper.getUser(u.getId(), "leifeng");
+		user = userMapper.getUser(u.getId(), "leifeng");
 		TestCase.assertEquals(u.getName(), user.getName());
 		TestCase.assertEquals(u.getId(), user.getId());
 
@@ -43,10 +47,13 @@ public class MapperTest {
 		userMapper.updateNameById(u.getId(), newName);
 		TestCase.assertEquals(us.getByID(u.getId()).getName(), newName);
 
+		PageHelper.page(0, 10);
 		MappingUser userByJdbc = userMapper.getUserByJdbc(u.getId());
+		userByJdbc = userMapper.getUserByJdbc(u.getId());
 		TestCase.assertEquals(userByJdbc.getName(), newName);
 		TestCase.assertEquals(userByJdbc.getUsername(), newName);
 
+		PageHelper.page(0, 10);
 		List<MappingUser> users = userMapper.getUserByJdbcs(u.getId());
 		TestCase.assertEquals(1, users.size());
 		TestCase.assertEquals(users.get(0).getName(), newName);
@@ -64,7 +71,7 @@ public class MapperTest {
 		u.setName("leifengxx");
 		us.add(u);
 		TestCase.assertEquals(1, us.createQuery().addFilter("name", u.getName()).count());
-		us.createNamedDelete("namedDelete").set("userId", u.getId()).execute();
+		us.createNamedDelete("namedDelete").set("userId", u.getId(), null, null).execute();
 		TestCase.assertEquals(0, us.createQuery().addFilter("name", u.getName()).count());
 	}
 
@@ -74,8 +81,8 @@ public class MapperTest {
 		u.setName("leifengxx");
 		us.add(u);
 		String newName = "nsx";
-		us.createNamedUpdate("updateNameById").set("name", newName)
-			.set("userId", u.getId()).execute();
+		us.createNamedUpdate("updateNameById").set("name", newName, null, null)
+			.set("userId", u.getId(), null, null).execute();
 		TestCase.assertEquals(newName, us.getByID(u.getId()).getName());
 	}
 
@@ -86,7 +93,7 @@ public class MapperTest {
 		us.add(u);
 		
 		MappingUser user = us.createSQLQuery("getUserByJdbc")
-				.set("userId", u.getId()).unique();
+				.set("userId", u.getId(), "id", MappingUser.class).unique();
 		
 		TestCase.assertEquals(u.getName(), user.getName());
 	}

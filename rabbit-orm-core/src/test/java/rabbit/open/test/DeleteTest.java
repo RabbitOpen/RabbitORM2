@@ -124,7 +124,7 @@ public class DeleteTest {
     	user.setName("wangwuxxx");
     	us.add(user);
     	TestCase.assertNotNull(us.getByID(user.getId()));
-    	us.createNamedDelete("namedDelete").set("userId", user.getId()).execute();
+    	us.createNamedDelete("namedDelete").set("userId", user.getId(), null, null).execute();
     	TestCase.assertNull(us.getByID(user.getId()));
     }
 

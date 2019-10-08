@@ -7,8 +7,7 @@ package rabbit.open.orm.core.dialect.page;
 public interface Pager {
 	
 	/**
-	 * 分页sql包装
-	 * <b>@description  </b>
+	 * <b>@description 分页sql包装 </b>
 	 * @param sql
 	 * @return
 	 */

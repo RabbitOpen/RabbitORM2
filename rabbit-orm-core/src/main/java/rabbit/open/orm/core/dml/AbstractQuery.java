@@ -100,6 +100,8 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	//默认允许查询时触发DMLFilter
 	private boolean enableGetFilter = true;
 
+	public AbstractQuery() {}
+	
 	public AbstractQuery(SessionFactory factory, Class<T> clz) {
 		super(factory, clz);
 	}
@@ -610,7 +612,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	/**
 	 * <b>Description  重置到执行sql之前的状态 </b>
 	 */
-	private void reset2PreparedStatus() {
+	protected void reset2PreparedStatus() {
 		if (runned) {
 			sql = new StringBuilder();
 			filterDescriptors.clear();
@@ -729,11 +731,6 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		}
 		DialectTransformer transformer = getTransformer();
 		sql = transformer.createPageSql(this);
-
-	}
-
-	protected DialectTransformer getTransformer() {
-		return DialectTransformer.getTransformer(sessionFactory.getDialectType());
 	}
 
 	/**

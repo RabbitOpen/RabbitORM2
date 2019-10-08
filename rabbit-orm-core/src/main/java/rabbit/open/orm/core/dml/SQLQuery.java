@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.TreeMap;
 
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
@@ -16,7 +15,6 @@ import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.common.shard.ShardFactor;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
 import rabbit.open.orm.core.dml.meta.MetaData;
-import rabbit.open.orm.core.dml.name.NamedSQL;
 import rabbit.open.orm.datasource.Session;
 
 /**
@@ -27,15 +25,9 @@ import rabbit.open.orm.datasource.Session;
  */
 public class SQLQuery<T> extends DMLObject<T> {
 
-	protected NamedSQL namedObject;
-
-	private final DMLType dmlType = DMLType.SELECT;
+	private static final DMLType DML_TYPE = DMLType.SELECT;
 
 	private SQLOperation sqlOpr;
-
-	protected NamedSQL nameObject;
-
-	private TreeMap<Integer, PreparedValue> fieldsValues = new TreeMap<>();
 
 	/**
 	 * @param sessionFactory
@@ -61,7 +53,7 @@ public class SQLQuery<T> extends DMLObject<T> {
 		sql = new StringBuilder(namedObject.getSql());
 		Connection conn = null;
 		try {
-			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), dmlType);
+			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), DML_TYPE);
 			return sqlOpr.executeSQL(conn);
 		} catch (UnKnownFieldException e) {
 			throw e;
@@ -85,16 +77,6 @@ public class SQLQuery<T> extends DMLObject<T> {
 	}
 
 	/**
-	 * <b>@description 给变量设值</b>
-	 * @param fieldAlias 变量别名
-	 * @param value      变量的值
-	 * @return
-	 */
-	public SQLQuery<T> set(String fieldAlias, Object value) {
-		return set(fieldAlias, value, null, null);
-	}
-	
-	/**
 	 * <b>Description      单个设值</b>
 	 * @param fieldAlias   字段在sql中的别名
 	 * @param value        字段的值
@@ -103,18 +85,7 @@ public class SQLQuery<T> extends DMLObject<T> {
 	 * @return
 	 */
 	public SQLQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz) {
-	    List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
-	    for (int index : indexes) {
-	        if (null != entityClz && !SessionFactory.isEmpty(fieldName)) {
-	            try {
-	                fieldsValues.put(index, new PreparedValue(value, entityClz.getDeclaredField(fieldName)));
-	            } catch (Exception e) {
-	                throw new UnKnownFieldException(e.getMessage());
-	            }
-	        } else {
-	            fieldsValues.put(index, new PreparedValue(value));
-	        }
-	    }
+	    setVariable(fieldAlias, value, fieldName, entityClz);
 	    return this;
 	}
 
@@ -221,7 +192,7 @@ public class SQLQuery<T> extends DMLObject<T> {
 	private PreparedStatement prepareStatement(Connection conn) throws SQLException {
 		sql = new StringBuilder(namedObject.getSql());
 		PreparedStatement stmt = conn.prepareStatement(sql.toString());
-		setPreparedStatementValue(stmt, dmlType);
+		setPreparedStatementValue(stmt, DML_TYPE);
 		showSql();
 		return stmt;
 	}

@@ -25,12 +25,8 @@ import rabbit.open.orm.core.dml.name.NamedSQL;
 public class NamedQuery<T> {
     
     Logger logger = Logger.getLogger(getClass());
-
-	private NamedSQL namedObject;
 	
-	private Query<T> query;
-	
-	private TreeMap<Integer, PreparedValue> fieldsValues;
+	private Query<T> query;	
 	
 	/**
 	 * @param factory
@@ -41,11 +37,15 @@ public class NamedQuery<T> {
 		query = new Query<T>(factory, clz) {
 			@Override
 			protected void createQuerySql() {
+				reset2PreparedStatus();
+				aliasMapping.clear();
 				generateQuerySql();
 			}
 
 			@Override
 			protected void createCountSql() {
+				reset2PreparedStatus();
+				aliasMapping.clear();
 				generateNameCountSql();
 			}
 
@@ -58,8 +58,8 @@ public class NamedQuery<T> {
 				return getCurrentTableNameByNamedObject(namedObject);
 			}
 		};
-		namedObject = query.getSessionFactory().getQueryByNameAndClass(name, clz);
-		fieldsValues = new TreeMap<>(new Comparator<Integer>() {
+		query.namedObject = query.getSessionFactory().getQueryByNameAndClass(name, clz);
+		query.fieldsValues = new TreeMap<>(new Comparator<Integer>() {
 			@Override
 			public int compare(Integer o1, Integer o2) {
 				return o1.compareTo(o2);
@@ -71,25 +71,28 @@ public class NamedQuery<T> {
 	    setEntityAlias();
 	    recursivelyFetchEntities();
 	    joinFetchEntities();
-	    recursivelyJoinFetchEntities(new ArrayList<>(), namedObject.getFetchDescriptors());
+	    recursivelyJoinFetchEntities(new ArrayList<>(), getNamedObject().getFetchDescriptors());
 	    query.prepareMany2oneFilters();
 	    query.createFieldsSql();
-	    query.sql = new StringBuilder(namedObject.replaceFields(query.sql.toString()));
+	    query.sql = new StringBuilder(getNamedObject().replaceFields(query.sql.toString()));
 	    setPreparedValues();
 	    query.createPageSql();
 	}
-	
-	private void generateNameCountSql() {
-		String copySql = namedObject.getSql().toString().toLowerCase();
-    	String from = "from";
-    	query.sql = new StringBuilder("SELECT COUNT(1) " + namedObject.getSql().substring(copySql.indexOf(from)));
-		setPreparedValues();
+
+	private NamedSQL getNamedObject() {
+		return query.namedObject;
 	}
 	
+	private void generateNameCountSql() {
+		String copySql = getNamedObject().getSql().toLowerCase();
+    	String from = "from";
+    	query.sql = new StringBuilder("SELECT COUNT(1) " + getNamedObject().getSql().substring(copySql.indexOf(from)));
+		setPreparedValues();
+	}
 
     private void joinFetchEntities() {
 		FetchDescriptor<T> buildFetch = query.buildFetch();
-		for (JoinFetcherDescriptor jfd : namedObject.getJoinFetchDescriptors()) {
+		for (JoinFetcherDescriptor jfd : getNamedObject().getJoinFetchDescriptors()) {
 			buildFetch.joinFetch(jfd.getEntityClass());
 		}
     }
@@ -116,7 +119,7 @@ public class NamedQuery<T> {
     private void recursivelyFetchEntities() {
         List<Class<?>> deps = new ArrayList<>();
 	    deps.add(query.getMetaData().getEntityClz());
-	    fetch(namedObject.getFetchDescriptors(), deps);
+	    fetch(getNamedObject().getFetchDescriptors(), deps);
     }
 
 	private void fetch(List<FetcherDescriptor> fetchDescriptors, List<Class<?>> deps) {
@@ -141,9 +144,9 @@ public class NamedQuery<T> {
      * <b>Description  设置别名</b>
      */
     private void setEntityAlias() {
-        query.alias(query.getMetaData().getEntityClz(), namedObject.getAlias());
-	    setFetchTableAlias(namedObject.getFetchDescriptors());
-	    setJoinFetchTableAlias(namedObject.getJoinFetchDescriptors());
+        query.alias(query.getMetaData().getEntityClz(), getNamedObject().getAlias());
+	    setFetchTableAlias(getNamedObject().getFetchDescriptors());
+	    setJoinFetchTableAlias(getNamedObject().getJoinFetchDescriptors());
     }
 
     private void setFetchTableAlias(List<FetcherDescriptor> fetchers) {
@@ -182,10 +185,10 @@ public class NamedQuery<T> {
      * 
      */
     private void setPreparedValues() {
-        if (fieldsValues.isEmpty()) {
+        if (getFieldsValues().isEmpty()) {
             return;
         }
-        Collection<PreparedValue> values = fieldsValues.values();
+        Collection<PreparedValue> values = getFieldsValues().values();
         for (PreparedValue v : values) {
             query.preparedValues.add(v);
         }
@@ -207,7 +210,7 @@ public class NamedQuery<T> {
                 continue;
             }
             try {
-                set(f.getName(), fv);
+                set(f.getName(), fv, f.getName(), filterObject.getClass());
             } catch (UnKnownFieldException e) {
                 logger.debug("ignore unknown field");
             }
@@ -237,18 +240,6 @@ public class NamedQuery<T> {
     }
 
 	/**
-	 * 
-	 * <b>Description:     单个设值</b><br>.
-	 * @param fieldAlias   字段在sql中的别名
-	 * @param value        字段的值
-	 * @return	
-	 * 
-	 */
-	public NamedQuery<T> set(String fieldAlias, Object value) {
-	    return set(fieldAlias, value, null, null);
-	}
-
-	/**
 	 * <b>Description      单个设值</b>
 	 * @param fieldAlias   字段在sql中的别名
 	 * @param value        字段的值
@@ -257,19 +248,12 @@ public class NamedQuery<T> {
 	 * @return
 	 */
 	public NamedQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz) {
-	    List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
-	    for (int index : indexes) {
-	        if (null != entityClz && !SessionFactory.isEmpty(fieldName)) {
-	            try {
-	                fieldsValues.put(index, new PreparedValue(value, entityClz.getDeclaredField(fieldName)));
-	            } catch (Exception e) {
-	                throw new UnKnownFieldException(e.getMessage());
-	            }
-	        } else {
-	            fieldsValues.put(index, new PreparedValue(value));
-	        }
-	    }
+		query.setVariable(fieldAlias, value, fieldName, entityClz);
 	    return this;
+	}
+
+	private TreeMap<Integer, PreparedValue> getFieldsValues() {
+		return query.fieldsValues;
 	}
 
 	public void showMaskedPreparedSql() {

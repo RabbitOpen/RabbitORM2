@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -81,6 +82,11 @@ public abstract class DMLObject<T> {
 	//字段替换符号"${}"的正则表达式
 	protected static final String REPLACE_WORD = "\\$\\{(.*?)\\}";
 	
+	// 命名sql对象
+	protected NamedSQL namedObject;
+
+	protected TreeMap<Integer, PreparedValue> fieldsValues = new TreeMap<>();
+	
 	//sql语句
 	protected StringBuilder sql = new StringBuilder();
 	
@@ -114,6 +120,8 @@ public abstract class DMLObject<T> {
 	//分片表分片时的因子
 	protected List<ShardFactor> factors = new ArrayList<>();
 
+	public DMLObject() {}
+	
 	public DMLObject(SessionFactory sessionFactory, Class<T> clz) {
 		this(sessionFactory, null, clz);
 	}
@@ -1089,4 +1097,32 @@ public abstract class DMLObject<T> {
         }
         return getMetaData().getTableName();
     }
+	
+	/**
+	 * <b>Description      单个设值</b>
+	 * @param fieldAlias   字段在sql中的别名
+	 * @param value        字段的值
+	 * @param fieldName    字段在对应实体中的名字  	 
+	 * @param entityClz    字段所属的实体   			 
+	 * @return
+	 */
+	protected void setVariable(String fieldAlias, Object value, String fieldName, Class<?> entityClz) {
+	    List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
+	    for (int index : indexes) {
+	        if (null != entityClz && !SessionFactory.isEmpty(fieldName)) {
+	            try {
+	                fieldsValues.put(index, new PreparedValue(value, entityClz.getDeclaredField(fieldName)));
+	            } catch (Exception e) {
+	                throw new UnKnownFieldException(e.getMessage());
+	            }
+	        } else {
+	            fieldsValues.put(index, new PreparedValue(value));
+	        }
+	    }
+	}
+	
+	protected DialectTransformer getTransformer() {
+		return DialectTransformer.getTransformer(sessionFactory.getDialectType());
+	}
+	
 }

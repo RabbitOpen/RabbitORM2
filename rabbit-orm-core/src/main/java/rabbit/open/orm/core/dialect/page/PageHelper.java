@@ -6,6 +6,8 @@ package rabbit.open.orm.core.dialect.page;
 public abstract class PageHelper {
 
 	private static ThreadLocal<PageInfo> context = new ThreadLocal<>();
+	
+	private PageHelper() {}
 
 	/**
 	 * <b>@description 分页 </b>
@@ -15,12 +17,15 @@ public abstract class PageHelper {
 	public static void page(int pageIndex, int pageSize) {
 		context.set(new PageInfo(pageIndex, pageSize));
 	}
-
+	
 	/**
-	 * <b>@description 清除分页信息 </b>
+	 * <b>@description 读取分页信息 </b>
+	 * @return
 	 */
-	public static void clear() {
+	public static PageInfo getPageInfo() {
+		PageInfo pageInfo = context.get();
 		context.remove();
+		return pageInfo;
 	}
 
 	/**

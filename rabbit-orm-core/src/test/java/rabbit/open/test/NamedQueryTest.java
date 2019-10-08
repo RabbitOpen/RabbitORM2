@@ -13,9 +13,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import junit.framework.TestCase;
 import rabbit.open.orm.common.exception.EmptyAliasException;
+import rabbit.open.orm.common.exception.NamedSQLNotExistedException;
 import rabbit.open.orm.common.exception.NoNamedSQLDefinedException;
 import rabbit.open.orm.common.exception.RepeatedAliasException;
-import rabbit.open.orm.common.exception.NamedSQLNotExistedException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.dml.NamedQuery;
 import rabbit.open.test.entity.Car;
@@ -76,22 +76,58 @@ public class NamedQueryTest {
     /**
      * 
      * <b>Description: 命名查询测试</b><br>
-     * 
      * @throws Exception
      * 
      */
     @Test
     public void namedQueryTest() {
-        User user = createTestData();
-        User u = us.createNamedQuery("getUserByName")
-                .set("username", "%leifeng%").set("userId", user.getId())
-                .unique();
-        System.out.println(u);
-        TestCase.assertEquals(user.getName(), u.getName());
-        TestCase.assertEquals(u.getCars().size(), 3);
-        TestCase.assertEquals(u.getRoles().size(), 2);
-        TestCase.assertEquals(u.getOrg().getZone().getName(), user.getOrg()
-                .getZone().getName());
+		User user = createTestData();
+		NamedQuery<User> query = us.createNamedQuery("getUserByName")
+				.set("username", "%leifeng%", null, null)
+				.set("userId", user.getId(), null, null);
+		long count = query.count();
+		TestCase.assertEquals(query.count(), count);
+		User u = query.unique();
+		u = query.unique();
+		
+		TestCase.assertEquals(user.getName(), u.getName());
+		TestCase.assertEquals(u.getCars().size(), 3);
+		TestCase.assertEquals(u.getRoles().size(), 2);
+		TestCase.assertEquals(u.getOrg().getZone().getName(), user.getOrg().getZone().getName());
+    }
+
+    /**
+     * 
+     * <b>@description  命名查询分页测试</b>
+     */
+    @Test
+    public void namedQueryPageTest() {
+    	String name = "pageUser";
+		addUser(name);
+		addUser(name);
+		addUser(name);
+		addUser(name);
+		addUser(name);
+		addUser(name);
+    	
+    	TestCase.assertEquals(4, us.createNamedQuery("getUsers")
+    			.set("username", name, "name", User.class).page(0, 4)
+    			.list().size());
+    	
+    	TestCase.assertEquals(2, us.createNamedQuery("getUsers")
+    			.set("username", name, null, null).page(1, 4)
+    			.list().size());
+    }
+    
+    private void addUser(String name) {
+    	User user = new User();
+        user.setBigField(new BigDecimal(1));
+        user.setShortField((short) 1);
+        user.setDoubleField(0.1);
+        user.setFloatField(0.1f);
+        user.setName(name);
+        user.setBirth(new Date());
+        us.add(user);
     }
 
     @Test
@@ -115,7 +151,7 @@ public class NamedQueryTest {
         Department d = new Department("成都研发中心", t);
         ds.add(d);
         Department dept = ds.createNamedQuery("multiFetchByXml")
-                .set("deptID", d.getId()).execute().unique();
+                .set("deptID", d.getId(), null, null).execute().unique();
         System.out.println(dept);
 
         TestCase.assertNotNull(dept.getTeam().getLeader());
@@ -150,7 +186,7 @@ public class NamedQueryTest {
     public void countTest() {
         User user = createTestData();
         long count = us.createNamedQuery("getUserByName")
-                .set("username", "%leifeng%").set("userId", user.getId())
+                .set("username", "%leifeng%", null, null).set("userId", user.getId(), null, null)
                 .count();
         // 角色个数 * 车辆个数 * 属性个数【 笛卡尔积】
         TestCase.assertEquals(2 * 3 * 2, count);
@@ -159,7 +195,7 @@ public class NamedQueryTest {
     @Test
     public void emptyAliasExceptionTest() {
         try {
-            us.createNamedQuery("emptyAliasExceptionTest").set("userId", 1)
+            us.createNamedQuery("emptyAliasExceptionTest").set("userId", 1, null, null)
                     .execute().unique();
             throw new RuntimeException();
         } catch (Exception e) {
@@ -170,7 +206,7 @@ public class NamedQueryTest {
     @Test
     public void repeatedAliasExceptionTest() {
         try {
-            us.createNamedQuery("repeatedAliasExceptionTest").set("userId", 1)
+            us.createNamedQuery("repeatedAliasExceptionTest").set("userId", 1, null, null)
                     .execute().unique();
             throw new RuntimeException();
         } catch (Exception e) {
@@ -203,7 +239,7 @@ public class NamedQueryTest {
     @Test
     public void unKnownFieldExceptionTest() {
         try {
-            ds.createNamedQuery("multiFetchAll").set("id", 1).execute()
+            ds.createNamedQuery("multiFetchAll").set("id", 1, null, null).execute()
                     .unique();
             throw new RuntimeException();
         } catch (Exception e) {

@@ -3,22 +3,15 @@ package rabbit.open.orm.core.dml;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.TreeMap;
 
 import rabbit.open.orm.common.dml.DMLType;
-import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
-import rabbit.open.orm.core.dml.name.NamedSQL;
 
 /**
  * <b>@description 命名更新对象 </b>
  */
 public class NamedUpdate<T> extends NonQueryAdapter<T> {
-
-	protected NamedSQL namedObject;
-	
-	private TreeMap<Integer, PreparedValue> fieldsValues;
 	
 	public NamedUpdate(SessionFactory factory, Class<T> clz, String name) {
 		this(factory, clz, name, DMLType.UPDATE);
@@ -68,40 +61,15 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 	}
 	
 	/**
-	 * <b>@description  给变量设值</b>
-	 * @param fieldAlias	变量别名
-	 * @param value			变量的值
-	 * @return
-	 */
-	public NamedUpdate<T> set(String fieldAlias, Object value) {
-		List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
-		for (int index : indexes) {
-			fieldsValues.put(index, new PreparedValue(value));
-		}
-		return this;
-	}
-	
-	/**
 	 * <b>Description      单个设值</b>
 	 * @param fieldAlias   字段在sql中的别名
 	 * @param value        字段的值
-	 * @param fieldName    字段在对应实体中的名字  	 如果当前主表有分表时参数必传
-	 * @param entityClz    字段所属的实体   			 如果当前主表有分表时参数必传
+	 * @param fieldName    字段在对应实体中的名字  	 
+	 * @param entityClz    字段所属的实体   			 
 	 * @return
 	 */
 	public NamedUpdate<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz) {
-	    List<Integer> indexes = namedObject.getFieldIndexes(fieldAlias);
-	    for (int index : indexes) {
-	        if (null != entityClz && !SessionFactory.isEmpty(fieldName)) {
-	            try {
-	                fieldsValues.put(index, new PreparedValue(value, entityClz.getDeclaredField(fieldName)));
-	            } catch (Exception e) {
-	                throw new UnKnownFieldException(e.getMessage());
-	            }
-	        } else {
-	            fieldsValues.put(index, new PreparedValue(value));
-	        }
-	    }
+	    setVariable(fieldAlias, value, fieldName, entityClz);
 	    return this;
 	}
 

@@ -304,8 +304,8 @@ public class UpdateTest {
         us.add(user);
     	String newName = "lisixx";
 		us.createNamedUpdate("namedUpdate")
-	    	.set("name", newName)
-	    	.set("userId", user.getId())
+	    	.set("name", newName, null, null)
+	    	.set("userId", user.getId(), null, null)
 	    	.execute();
     	TestCase.assertEquals(us.getByID(user.getId()).getName(), newName);
     }
