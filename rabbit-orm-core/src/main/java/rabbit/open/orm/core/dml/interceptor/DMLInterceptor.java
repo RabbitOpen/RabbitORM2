@@ -5,7 +5,7 @@ import java.lang.reflect.Field;
 import rabbit.open.orm.common.dml.DMLType;
 
 /**
- * <b>Description  dml操作前置过滤器</b>
+ * <b>Description  dml操作前置拦截器</b>
  */
 public interface DMLInterceptor {
 
