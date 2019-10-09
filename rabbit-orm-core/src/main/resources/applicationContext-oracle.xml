@@ -91,7 +91,7 @@
 			<value>true</value>
 		</property>
 		<property name="dataSource" ref="rabbit-oracle" />
-        <property name="filter" ref="myDMLFilter" />
+        <property name="interceptor" ref="myDMLInterceptor" />
 	</bean>
 
 </beans>	

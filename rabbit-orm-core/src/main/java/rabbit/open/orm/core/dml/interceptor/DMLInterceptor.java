@@ -1,4 +1,4 @@
-package rabbit.open.orm.core.dml.filter;
+package rabbit.open.orm.core.dml.interceptor;
 
 import java.lang.reflect.Field;
 
@@ -7,7 +7,7 @@ import rabbit.open.orm.common.dml.DMLType;
 /**
  * <b>Description  dml操作前置过滤器</b>
  */
-public interface DMLFilter {
+public interface DMLInterceptor {
 
     /**
      * <b>Description   jdbc存储过程设值前置事件</b>

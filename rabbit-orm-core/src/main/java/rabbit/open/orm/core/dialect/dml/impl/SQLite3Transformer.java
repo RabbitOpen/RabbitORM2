@@ -11,7 +11,7 @@ import rabbit.open.orm.core.dialect.page.impl.SQLite3Pager;
 import rabbit.open.orm.core.dml.AbstractQuery;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.DialectTransformer;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
+import rabbit.open.orm.core.dml.PreparedValue;
 
 /**
  * <b>Description  SQLite3方言转换器</b>

@@ -11,7 +11,6 @@ import org.apache.log4j.Logger;
 
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
 import rabbit.open.orm.core.dml.name.FetcherDescriptor;
 import rabbit.open.orm.core.dml.name.JoinFetcherDescriptor;
 import rabbit.open.orm.core.dml.name.NamedSQL;

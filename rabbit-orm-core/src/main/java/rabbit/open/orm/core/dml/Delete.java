@@ -10,7 +10,6 @@ import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.shard.ShardFactor;
 import rabbit.open.orm.core.dialect.dml.DeleteDialectAdapter;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
 

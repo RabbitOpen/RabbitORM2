@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.SQLQueryFieldMeta;
 import rabbit.open.orm.core.utils.ClassHelper;

@@ -6,7 +6,7 @@ import rabbit.open.orm.core.dialect.page.Pager;
 import rabbit.open.orm.core.dialect.page.impl.MySQLPager;
 import rabbit.open.orm.core.dml.AbstractQuery;
 import rabbit.open.orm.core.dml.DialectTransformer;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
+import rabbit.open.orm.core.dml.PreparedValue;
 
 /**
  * <b>Description: 	mysql方言转换器</b><br>

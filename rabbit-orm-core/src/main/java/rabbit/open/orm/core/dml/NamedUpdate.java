@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.util.TreeMap;
 
 import rabbit.open.orm.common.dml.DMLType;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
 
 /**
  * <b>@description 命名更新对象 </b>

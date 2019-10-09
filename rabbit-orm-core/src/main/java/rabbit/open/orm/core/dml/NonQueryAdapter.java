@@ -18,7 +18,6 @@ import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.common.shard.ShardFactor;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.FilterDescriptor;

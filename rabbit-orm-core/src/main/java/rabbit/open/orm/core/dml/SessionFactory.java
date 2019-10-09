@@ -24,8 +24,7 @@ import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dialect.dml.DeleteDialectAdapter;
-import rabbit.open.orm.core.dml.filter.DMLFilter;
-import rabbit.open.orm.core.dml.filter.PreparedValue;
+import rabbit.open.orm.core.dml.interceptor.DMLInterceptor;
 import rabbit.open.orm.core.dml.name.NamedSQL;
 import rabbit.open.orm.core.spring.TransactionObject;
 import rabbit.open.orm.core.utils.PackageScanner;
@@ -54,7 +53,7 @@ public class SessionFactory {
 	// ddl类型
 	protected String ddl = DDLType.NONE.name();
 
-	protected DMLFilter filter;
+	protected DMLInterceptor interceptor;
 
 	// 方言
 	protected String dialect;
@@ -501,8 +500,8 @@ public class SessionFactory {
 		this.maskPreparedSql = maskPreparedSql;
 	}
 
-	public void setFilter(DMLFilter filter) {
-		this.filter = filter;
+	public void setInterceptor(DMLInterceptor filter) {
+		this.interceptor = filter;
 	}
 
 	public Object onValueSet(PreparedValue pv, DMLType dmlType) {
@@ -515,15 +514,15 @@ public class SessionFactory {
 		if (null == pv.getField()) {
 			return pv.getValue();
 		}
-		if (null != filter) {
-			return filter.onValueSet(pv.getValue(), pv.getField(), dmlType);
+		if (null != interceptor) {
+			return interceptor.onValueSet(pv.getValue(), pv.getField(), dmlType);
 		}
 		return pv.getValue();
 	}
 
 	public Object onValueGot(Object value, Field field) {
-		if (null != filter) {
-			return filter.onValueGot(value, field);
+		if (null != interceptor) {
+			return interceptor.onValueGot(value, field);
 		}
 		return value;
 	}

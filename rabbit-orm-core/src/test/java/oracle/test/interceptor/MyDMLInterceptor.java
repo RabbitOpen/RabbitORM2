@@ -1,4 +1,4 @@
-package oracle.test.filter;
+package oracle.test.interceptor;
 
 import java.lang.reflect.Field;
 
@@ -8,10 +8,10 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import rabbit.open.orm.common.dml.DMLType;
-import rabbit.open.orm.core.dml.filter.DMLFilter;
+import rabbit.open.orm.core.dml.interceptor.DMLInterceptor;
 
 @Component
-public class MyDMLFilter implements DMLFilter {
+public class MyDMLInterceptor implements DMLInterceptor {
 
     Logger logger = Logger.getLogger(getClass());
     

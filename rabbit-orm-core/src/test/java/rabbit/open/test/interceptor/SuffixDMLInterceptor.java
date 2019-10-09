@@ -1,12 +1,12 @@
-package rabbit.open.test.filter;
+package rabbit.open.test.interceptor;
 
 import java.lang.reflect.Field;
 
 import rabbit.open.orm.common.dml.DMLType;
-import rabbit.open.orm.core.dml.filter.DMLFilter;
+import rabbit.open.orm.core.dml.interceptor.DMLInterceptor;
 import rabbit.open.test.entity.User;
 
-public class SuffixDMLFilter implements DMLFilter {
+public class SuffixDMLInterceptor implements DMLInterceptor {
 
     public static String suffix = "@@encrypt";
 
