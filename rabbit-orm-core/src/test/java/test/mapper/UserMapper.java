@@ -4,6 +4,7 @@ import rabbit.open.orm.common.annotation.NameSpace;
 import rabbit.open.orm.common.annotation.Param;
 import rabbit.open.orm.common.annotation.SQLName;
 import test.mapper.entity.MappingUser;
+import test.mapper.entity.MappingUserBean;
 
 import java.util.List;
 
@@ -32,6 +33,10 @@ public interface UserMapper {
 
 	@SQLName("getUserByJdbc")
 	public List<MappingUser> getUserByJdbcs(@Param("userId")long userId);
+	
+	@SQLName("getUserByJdbc")
+	public List<MappingUserBean> getUserByJdbc2Bean(@Param("userId")long userId);
+
 
 	// update 、add、delete 测试
 

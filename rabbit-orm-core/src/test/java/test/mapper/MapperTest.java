@@ -64,6 +64,12 @@ public class MapperTest {
 		TestCase.assertEquals(1, users.size());
 		TestCase.assertEquals(users.get(0).getName(), newName);
 		TestCase.assertEquals(users.get(0).getUsername(), newName);
+		
+		PageHelper.page(0, 10);
+		List<MappingUserBean> beans = userMapper.getUserByJdbc2Bean(u.getId());
+		TestCase.assertEquals(1, users.size());
+		TestCase.assertEquals(beans.get(0).getName(), newName);
+		TestCase.assertEquals(beans.get(0).getUsername(), newName);
 
 		// 删除
 		userMapper.namedDelete(u.getId());

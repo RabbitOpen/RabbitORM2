@@ -14,6 +14,10 @@ public abstract class SQLRunner {
 
 	private static Map<String, SQLRunner> runnerMapping = new HashMap<>();
 	
+	static {
+		regist();
+	}
+	
 	/**
 	 * <b>@description 运行sql object </b>
 	 * @param args			接口方法参数
@@ -24,11 +28,6 @@ public abstract class SQLRunner {
 	 */
 	public abstract Object run(Object[] args, MethodMapping mapping, 
 			Class<?> namespaceClz, SessionFactory factory);
-	
-	
-	static {
-		regist();
-	}
 
 	private static void regist() {
 		runnerMapping.put(XmlMapperParser.SELECT, new NamedQueryRunner());

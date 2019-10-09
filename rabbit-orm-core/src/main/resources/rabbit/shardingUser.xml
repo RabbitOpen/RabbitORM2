@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN"
+        "http://www.rabbit-open.top/dtd/rabbit-mapping-3.0.dtd">
+
+<rabbit-mapping entity="sharding.test.table.entity.ShardingUser">
+    
+	<jdbc name="getFromShardingTable" alias ="a" targetTableName="T_SHARD_USER">
+		SELECT 
+			#{FIELDS}
+		FROM 
+			@{T_SHARD_USER} a
+		WHERE 
+			ID = ${id}	
+	</jdbc>
+
+</rabbit-mapping>   

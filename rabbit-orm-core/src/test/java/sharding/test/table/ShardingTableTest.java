@@ -5,8 +5,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import junit.framework.TestCase;
 import rabbit.open.orm.common.exception.FetchShardEntityException;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.DMLObject;
@@ -76,8 +75,15 @@ public class ShardingTableTest {
         TestCase.assertEquals(user2.getName(), u2.getName());
 
         TestCase.assertEquals(sus.createQuery().addFilter("id", 11L).count(), 1);
+        
+        List<ShardingUser> list = sus.createSQLQuery("getFromShardingTable")
+        							.set("id", 11L, "id", ShardingUser.class)
+        							.list();
+        TestCase.assertEquals(1, list.size());
+        TestCase.assertEquals(user2.getId(), list.get(0).getId());
+        TestCase.assertEquals(user2.getName(), list.get(0).getName());
     }
-
+    
     /**
      * <b>Description 根据id删除分区表中的数据</b>
      */

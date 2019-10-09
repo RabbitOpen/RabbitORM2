@@ -1,6 +1,8 @@
 package rabbit.open.orm.core.spring.runner.impl;
 
-import java.util.List;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
 
 import rabbit.open.orm.common.exception.InvalidReturnTypeException;
 import rabbit.open.orm.core.dialect.page.PageHelper;
@@ -29,10 +31,11 @@ public class SQLQueryRunner extends SQLRunner {
 			PageInfo pageInfo = PageHelper.getPageInfo();
 			sqlQuery.page(pageInfo.getPageIndex(), pageInfo.getPageSize());
 		}
-		if (List.class.isAssignableFrom(mapping.getReturnType())) {
-			return sqlQuery.list();
+		if (Collection.class.isAssignableFrom(mapping.getReturnType())) {
+			Type type = mapping.getGenericalResultType();
+			return sqlQuery.list((Class<?>)((ParameterizedType) type).getActualTypeArguments()[0]);
 		} else {
-			return sqlQuery.unique();
+			return sqlQuery.unique(mapping.getReturnType());
 		}
 	}
 	

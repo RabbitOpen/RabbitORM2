@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeMap;
@@ -62,8 +61,18 @@ public class SQLQuery<T> {
 				}
 				sql = new StringBuilder(query.namedObject.getSql());
 				replaceFieldsSql();
+				replaceTableName();
 				setPreparedValues();
 				createPageSql();
+			}
+
+			// 用真实的分区表名替换表名占位符
+			private void replaceTableName() {
+				Pattern pattern = Pattern.compile(TABLE_REPLACE_WORD);
+		        Matcher matcher = pattern.matcher(sql.toString());
+		        if (matcher.find()) {
+		        	sql = new StringBuilder(sql.toString().replace(matcher.group(0), getCurrentTableName()));
+		        }
 			}
 
 			// 替换sql语句中的 #{fields}部分
@@ -92,12 +101,7 @@ public class SQLQuery<T> {
 			}
 		};
 		query.namedObject = query.getSessionFactory().getQueryByNameAndClass(queryName, clz);
-		query.fieldsValues = new TreeMap<>(new Comparator<Integer>() {
-			@Override
-			public int compare(Integer o1, Integer o2) {
-				return o1.compareTo(o2);
-			}
-		});
+		query.fieldsValues = new TreeMap<>((o1, o2) -> o1.compareTo(o2));
 	}
 
 	/***
@@ -270,7 +274,7 @@ public class SQLQuery<T> {
 	 * @param rs
 	 * @param clz
 	 */
-	private <D> List<D> readResults(ResultSet rs, Class<D> clz) throws Exception {
+	private <D> List<D> readResults(ResultSet rs, Class<D> clz) throws SQLException, ReflectiveOperationException {
 		List<D> list = new ArrayList<>();
 		List<String> headers = getColumnNames(rs);
 		while (rs.next()) {
@@ -301,17 +305,17 @@ public class SQLQuery<T> {
 	 * @param colValue		数据库中查询出来的值
 	 * @param field
 	 */
-	private <D> void setValue2Obj(D targetObj, Object colValue, Field field) throws Exception {
-		colValue = factory.onValueGot(colValue, field);
+	private <D> void setValue2Obj(D targetObj, Object colValue, Field field) throws ReflectiveOperationException {
+		Object value = factory.onValueGot(colValue, field);
 		if (MetaData.isEntityClass(field.getType())) {
 			field.setAccessible(true);
 			Object obj = DMLObject.newInstance(field.getType());
 			field.set(targetObj, obj);
 			DialectTransformer.getTransformer(factory.getDialectType()).setValue2EntityField(obj,
-					MetaData.getPrimaryKeyField(field.getType()), colValue);
+					MetaData.getPrimaryKeyField(field.getType()), value);
 		} else {
 			DialectTransformer.getTransformer(factory.getDialectType()).setValue2EntityField(targetObj,
-					field, colValue);
+					field, value);
 		}
 	}
 	
