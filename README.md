@@ -10,7 +10,7 @@
     
     3、新增多对多，一对多，多对一过滤条件api支持
 
-    4、强化SqlQuery，新增count函数
+    4、强化SqlQuery，新增count函数, 新增分区表支持
     
     5、删除原有命名查询对象中的set函数(该函数不支持DMLFilter)
     

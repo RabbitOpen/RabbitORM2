@@ -52,7 +52,7 @@ import rabbit.open.orm.datasource.Session;
 public abstract class AbstractQuery<T> extends DMLObject<T> {
 
 	//标记当前查询对象是否已经执行过了
-	private boolean runned = false;
+	private boolean run = false;
 
 	private static final String AND = " AND ";
 
@@ -142,12 +142,12 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 			DMLObject.closeStmt(stmt);
 			closeConnection(conn);
 			Session.clearException();
-			setRunned();
+			setRun();
 		}
 	}
 
-	private void setRunned() {
-		runned = true;
+	private void setRun() {
+		run = true;
 	}
 
 	private AbstractQuery<T> setPageIndex(int pageIndex) {
@@ -613,7 +613,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * <b>Description  重置到执行sql之前的状态 </b>
 	 */
 	protected void reset2PreparedStatus() {
-		if (runned) {
+		if (run) {
 			sql = new StringBuilder();
 			filterDescriptors.clear();
 			many2oneFilterDescriptors.clear();
@@ -1555,7 +1555,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 			closeStmt(stmt);
 			closeConnection(conn);
 			Session.clearException();
-			setRunned();
+			setRun();
 		}
 	}
 
@@ -1567,7 +1567,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		return execute().unique();
 	}
 
-	private void closeResultSet(ResultSet rs) {
+	protected void closeResultSet(ResultSet rs) {
 		if (null != rs) {
 			try {
 				rs.close();

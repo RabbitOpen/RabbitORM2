@@ -70,9 +70,7 @@ public class FieldMetaData {
                        + byte.class.getName() + "|"
                        + boolean.class.getName();
 	
-    public FieldMetaData() {
-    	
-    }
+    public FieldMetaData() {}
     
     public FieldMetaData(Field field, Column column) {
 		super();

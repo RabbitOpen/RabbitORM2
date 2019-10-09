@@ -53,7 +53,7 @@ public class NamedSQL {
     private List<JoinFetcherDescriptor> joinFetchDescriptors;
     
     public NamedSQL(String sql, String queryName, Element element, String sqlType, String targetTableName) {
-    	this.sql = sql.trim();
+    	this.sql = sql.trim().replaceAll("\\s+", " ");
 		this.name = queryName;
 		this.sqlType = sqlType;
 		this.targetTableName = targetTableName;

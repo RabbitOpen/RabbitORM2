@@ -44,5 +44,16 @@
                 U.ID = ${userId}
         ]]>
     </jdbc>
+    
+    <jdbc name="getUserByJdbc2" targetTableName="MAPPING_USER" alias="U">
+        <![CDATA[
+            SELECT 
+                #{fields}, NAME as username
+            FROM 
+                MAPPING_USER U
+            WHERE 
+                U.ID = ${userId}
+        ]]>
+    </jdbc>
 
 </rabbit-mapping>   

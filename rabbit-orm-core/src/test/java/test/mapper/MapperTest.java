@@ -10,7 +10,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import junit.framework.TestCase;
 import rabbit.open.orm.core.dialect.page.PageHelper;
+import rabbit.open.orm.core.dml.SQLQuery;
+import test.mapper.entity.MapperRole;
 import test.mapper.entity.MappingUser;
+import test.mapper.entity.MappingUserBean;
 
 /**
  * <b>@description mapper测试 </b>
@@ -24,6 +27,9 @@ public class MapperTest {
 
 	@Autowired
 	MapperUserService us;
+	
+	@Autowired
+	private MapperRoleService roleService;
 
 	@Test
 	public void mapperTest() {
@@ -88,13 +94,44 @@ public class MapperTest {
 
 	@Test
 	public void namedJdbcTest() {
+		
 		MappingUser u = new MappingUser();
-		u.setName("leifengxx");
+		u.setName("leifengxx222");
 		us.add(u);
 		
-		MappingUser user = us.createSQLQuery("getUserByJdbc")
+		SQLQuery<MappingUser> query = us.createSQLQuery("getUserByJdbc");
+		MappingUser user = query.page(0, 1)
 				.set("userId", u.getId(), "id", MappingUser.class).unique();
+		user = query.unique();
 		
 		TestCase.assertEquals(u.getName(), user.getName());
+	}
+
+	@Test
+	public void namedJdbcTest2() {
+		MapperRole role = new MapperRole();
+		role.setName("my-role");
+		roleService.add(role);
+		
+		MappingUser u = new MappingUser();
+		u.setName("leifengxx222");
+		u.setRole(role);
+		u.setAge(100);
+		us.add(u);
+		
+		SQLQuery<MappingUser> query = us.createSQLQuery("getUserByJdbc2");
+		MappingUser user = query.page(0, 1)
+				.set("userId", u.getId(), "id", MappingUser.class).unique();
+		user = query.unique();
+		
+		TestCase.assertEquals(u.getName(), user.getName());
+		TestCase.assertEquals(user.getRole().getId(), role.getId());
+		
+		MappingUserBean ub = query.unique(MappingUserBean.class);
+		TestCase.assertEquals(u.getName(), ub.getName());
+		TestCase.assertEquals(ub.getRole().getId(), role.getId());
+		
+		TestCase.assertEquals(1, query.count());
+		TestCase.assertEquals(1, query.count());
 	}
 }

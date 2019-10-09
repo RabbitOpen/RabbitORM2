@@ -6,15 +6,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.common.exception.UnKnownFieldException;
-import rabbit.open.orm.common.shard.ShardFactor;
 import rabbit.open.orm.core.dml.filter.PreparedValue;
 import rabbit.open.orm.core.dml.meta.MetaData;
+import rabbit.open.orm.core.dml.meta.SQLQueryFieldMeta;
+import rabbit.open.orm.core.utils.ClassHelper;
 import rabbit.open.orm.datasource.Session;
 
 /**
@@ -23,57 +28,146 @@ import rabbit.open.orm.datasource.Session;
  * <b>@description jdbc命名sql查询对象 </b>
  * @param <T>
  */
-public class SQLQuery<T> extends DMLObject<T> {
+public class SQLQuery<T> {
 
-	private static final DMLType DML_TYPE = DMLType.SELECT;
-
-	private SQLOperation sqlOpr;
-
+	private Query<T> query;
+	
+	private SessionFactory factory;
+	
+	// 字段变量
+	private static final String FIELDS_REPLACE_WORD = "\\#\\{(.*?)\\}";
+	
+	// 分区表变量
+	protected static final String TABLE_REPLACE_WORD = "\\@\\{(.*?)\\}";
+	
+	// 返回结果的clz
+	private Class<?> resultClz;
+	
 	/**
 	 * @param sessionFactory
 	 * @param clz			 需要返回的对象
 	 * @param queryName
 	 */
 	public SQLQuery(SessionFactory sessionFactory, Class<T> clz, String queryName) {
-		super(sessionFactory, clz);
-		this.sessionFactory = sessionFactory;
-		this.namedObject = sessionFactory.getQueryByNameAndClass(queryName, clz);
+		this.factory = sessionFactory;
+		query = new Query<T>(sessionFactory, clz) {
+			
+			// 重新创建sql语句
+			@Override
+			protected void createQuerySql() {
+				if (query.getMetaData().isShardingTable()) {
+					query.addedFilters.clear();
+					query.runCallBackTask();
+					query.combineFilters();
+				}
+				sql = new StringBuilder(query.namedObject.getSql());
+				replaceFieldsSql();
+				setPreparedValues();
+				createPageSql();
+			}
+
+			// 替换sql语句中的 #{fields}部分
+			private void replaceFieldsSql() {
+				Pattern pattern = Pattern.compile(FIELDS_REPLACE_WORD);
+		        Matcher matcher = pattern.matcher(sql.toString());
+		        if (matcher.find()) {
+		        	sql = new StringBuilder(sql.toString().replace(matcher.group(0), getFieldsSql().toString()));
+		        }
+			}
+
+			@Override
+			protected void createCountSql() {
+				String sqlStr = query.namedObject.getSql().toLowerCase().trim().replaceAll("\\s+", " ");
+				sqlStr = "SELECT COUNT(1) " + query.namedObject.getSql().substring(sqlStr.indexOf("from"));
+				sql = new StringBuilder(sqlStr);
+				setPreparedValues();
+			}
+
+			@Override
+			protected String getCurrentTableName() {
+				if (getMetaData().isShardingTable()) {
+					return super.getCurrentTableName();
+				}
+				return getCurrentTableNameByNamedObject(namedObject);
+			}
+		};
+		query.namedObject = query.getSessionFactory().getQueryByNameAndClass(queryName, clz);
+		query.fieldsValues = new TreeMap<>(new Comparator<Integer>() {
+			@Override
+			public int compare(Integer o1, Integer o2) {
+				return o1.compareTo(o2);
+			}
+		});
 	}
 
-	/**
-	 * 如果命名sql指定了查询的主表名，就使用sql指定的，否则使用entity注解声明的表名
+	/***
+	 * 
+	 * <b>@description 获取结果集对应的sql片段信息 </b>
 	 * @return
 	 */
-	@Override
-	protected String getCurrentTableName() {
-		return getCurrentTableNameByNamedObject(namedObject);
+	private StringBuilder getFieldsSql() {
+		List<SQLQueryFieldMeta> fields = ClassHelper.getColumnFields(getResultClz());
+		StringBuilder sb = new StringBuilder();
+		for (SQLQueryFieldMeta f : fields) {
+			sb.append(query.namedObject.getAlias() + "." + f.getColumn() + " as " + f.getField().getName() + ",");
+		}
+		if (sb.length() > 0) {
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		return sb;
 	}
-
-	private Object execute() {
-		sql = new StringBuilder(namedObject.getSql());
+	
+	private <D> Object execute(Class<D> clz) {
+		setResultClz(clz);
+		query.createQuerySql();
 		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
 		try {
-			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), DML_TYPE);
-			return sqlOpr.executeSQL(conn);
-		} catch (UnKnownFieldException e) {
-			throw e;
+			conn = factory.getConnection(query.getEntityClz(), query.getCurrentTableName(), DMLType.SELECT);
+			stmt = conn.prepareStatement(query.sql.toString());
+			query.setPreparedStatementValue(stmt, DMLType.SELECT);
+			query.showSql();
+			rs = stmt.executeQuery();
+			List<D> resultList = readResults(rs, clz);
+			rs.close();
+			return resultList;
 		} catch (Exception e) {
-			showUnMaskedSql(false);
+			query.showUnMaskedSql(false);
 			Session.flagException();
 			throw new RabbitDMLException(e.getMessage(), e);
 		} finally {
-			closeConnection(conn);
+			query.closeResultSet(rs);
+			DMLObject.closeStmt(stmt);
+			DMLObject.closeConnection(conn);
 			Session.clearException();
 		}
+	}
+
+	private <D> void setResultClz(Class<D> clz) {
+		this.resultClz = clz;
+	}
+	
+	private Class<?> getResultClz() {
+		return resultClz;
 	}
 
 	/**
 	 * <b>@description 准备预编译sql的值 </b>
 	 */
 	protected void setPreparedValues() {
-		for (PreparedValue v : fieldsValues.values()) {
-			preparedValues.add(v);
-		}
+		if (getFieldsValues().isEmpty()) {
+            return;
+        }
+		query.preparedValues.clear();
+        Collection<PreparedValue> values = getFieldsValues().values();
+        for (PreparedValue v : values) {
+            query.preparedValues.add(v);
+        }
+	}
+	
+	private TreeMap<Integer, PreparedValue> getFieldsValues() {
+		return query.fieldsValues;
 	}
 
 	/**
@@ -85,7 +179,10 @@ public class SQLQuery<T> extends DMLObject<T> {
 	 * @return
 	 */
 	public SQLQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz) {
-	    setVariable(fieldAlias, value, fieldName, entityClz);
+		query.setVariable(fieldAlias, value, fieldName, entityClz);
+		if (query.getEntityClz().equals(entityClz)) {
+			query.addFilter(fieldName, value);
+		}
 	    return this;
 	}
 
@@ -94,7 +191,17 @@ public class SQLQuery<T> extends DMLObject<T> {
 	 * @return
 	 */
 	public T unique() {
-		List<T> list = list();
+		return unique(query.getEntityClz());
+	}
+	
+	/**
+	 * <b>@description 读一行数据 </b>
+	 * @param <D>
+	 * @param clz	需要转换的类型
+	 * @return
+	 */
+	public <D> D unique(Class<D> clz) {
+		List<D> list = list(clz);
 		return list.isEmpty() ? null : list.get(0);
 	}
 
@@ -102,10 +209,19 @@ public class SQLQuery<T> extends DMLObject<T> {
 	 * <b>@description 查询列表 </b>
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public List<T> list() {
-		sqlOpr = createQueryOperation();
-		return (List<T>)execute();
+		return list(query.getEntityClz());
+	}
+	
+	/**
+	 * <b>@description 查询列表 </b>
+	 * @param <D>
+	 * @param clz	需要转换的类型
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public <D> List<D> list(Class<D> clz) {
+		return (List<D>) execute(clz);
 	}
 	
 	
@@ -116,7 +232,7 @@ public class SQLQuery<T> extends DMLObject<T> {
 	 * @return
 	 */
 	public SQLQuery<T> page(int pageIndex, int pageSize) {
-		
+		query.page(pageIndex, pageSize);
 		return this;
 	}
 	
@@ -125,32 +241,51 @@ public class SQLQuery<T> extends DMLObject<T> {
 	 * @return
 	 */
 	public long count() {
-		return 0L;
+		query.createCountSql();
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			conn = factory.getConnection(query.getEntityClz(), query.getCurrentTableName(), DMLType.SELECT);
+			stmt = conn.prepareStatement(query.sql.toString());
+			query.setPreparedStatementValue(stmt, DMLType.SELECT);
+			query.showSql();
+			rs = stmt.executeQuery();
+			rs.next();
+			return Long.parseLong(rs.getObject(1).toString());
+		} catch (Exception e) {
+			query.showUnMaskedSql(false);
+			Session.flagException();
+			throw new RabbitDMLException(e.getMessage(), e);
+		} finally {
+			query.closeResultSet(rs);
+			DMLObject.closeStmt(stmt);
+			DMLObject.closeConnection(conn);
+			Session.clearException();
+		}
 	}
 
 	/**
 	 * <b>@description 读取结果集 </b>
 	 * @param rs
-	 * @throws SQLException
+	 * @param clz
 	 */
-	private List<T> readResults(ResultSet rs) throws SQLException {
-		List<T> list = new ArrayList<>();
+	private <D> List<D> readResults(ResultSet rs, Class<D> clz) throws Exception {
+		List<D> list = new ArrayList<>();
 		List<String> headers = getColumnNames(rs);
 		while (rs.next()) {
-			T targetObj = DMLObject.newInstance(getEntityClz());
+			D targetObj = DMLObject.newInstance(clz);
 			for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
 				Object colValue = rs.getObject(i);
 				if (null == colValue) {
 					continue;
 				}
-				if (sessionFactory.getDialectType().isOracle() && colValue instanceof Date) {
+				if (factory.getDialectType().isOracle() && colValue instanceof Date) {
 					colValue = rs.getTimestamp(i);
 				}
-				Field field = getFieldByColumnName(headers.get(i - 1));
+				Field field = ClassHelper.getField(clz, headers.get(i - 1));
 				if (null != field) {
-					colValue = sessionFactory.onValueGot(colValue, field);
-					DialectTransformer.getTransformer(sessionFactory.getDialectType()).setValue2EntityField(targetObj,
-							field, colValue);
+					setValue2Obj(targetObj, colValue, field);
 				}
 			}
 			list.add(targetObj);
@@ -159,22 +294,27 @@ public class SQLQuery<T> extends DMLObject<T> {
 	}
 
 	/**
-	 * <b>@description 根据数据库列名获取字段对象 </b>
-	 * @param colName
-	 * @return
+	 * 
+	 * <b>@description 往目标对象targetObj的field字段设值 </b>
+	 * @param <D>
+	 * @param targetObj
+	 * @param colValue		数据库中查询出来的值
+	 * @param field
 	 */
-	private Field getFieldByColumnName(String colName) {
-		try {
-			return MetaData.getCachedFieldsMeta(getEntityClz(), colName).getField();
-		} catch (UnKnownFieldException e) {
-			try {
-				return getEntityClz().getDeclaredField(colName);
-			} catch (NoSuchFieldException nfe) {
-				return null;
-			}
+	private <D> void setValue2Obj(D targetObj, Object colValue, Field field) throws Exception {
+		colValue = factory.onValueGot(colValue, field);
+		if (MetaData.isEntityClass(field.getType())) {
+			field.setAccessible(true);
+			Object obj = DMLObject.newInstance(field.getType());
+			field.set(targetObj, obj);
+			DialectTransformer.getTransformer(factory.getDialectType()).setValue2EntityField(obj,
+					MetaData.getPrimaryKeyField(field.getType()), colValue);
+		} else {
+			DialectTransformer.getTransformer(factory.getDialectType()).setValue2EntityField(targetObj,
+					field, colValue);
 		}
 	}
-
+	
 	/**
 	 * <b>@description 根据结果集获取列名信息 </b>
 	 * @param rs
@@ -189,57 +329,5 @@ public class SQLQuery<T> extends DMLObject<T> {
 		return headers;
 	}
 
-	private PreparedStatement prepareStatement(Connection conn) throws SQLException {
-		sql = new StringBuilder(namedObject.getSql());
-		PreparedStatement stmt = conn.prepareStatement(sql.toString());
-		setPreparedStatementValue(stmt, DML_TYPE);
-		showSql();
-		return stmt;
-	}
-	
-	/**
-	 * <b>@description 创建查询操作  </b>
-	 * @return
-	 */
-	private SQLOperation createQueryOperation() {
-		return new SQLOperation() {
-			@Override
-			public Object executeSQL(Connection conn) throws SQLException {
-				PreparedStatement stmt = null;
-				try {
-					setPreparedValues();
-					stmt = prepareStatement(conn);
-					ResultSet rs = stmt.executeQuery();
-					List<T> list = readResults(rs);
-					rs.close();
-					return list;
-				} finally {
-					closeStmt(stmt);
-				}
-			}
-		};
-	}
-	
-	
-	@Override
-	protected List<ShardFactor> getFactors() {
-		return factors;
-	}
 
-	@Override
-	protected String getAliasByTableName(String tableName) {
-		return tableName;
-	}
-
-	protected interface SQLOperation {
-
-		/**
-		 * 
-		 * <b>Description: 执行sql操作</b><br>
-		 * @param conn
-		 * @throws Exception
-		 * 
-		 */
-		public Object executeSQL(Connection conn) throws SQLException;
-	}
 }

@@ -24,7 +24,7 @@ import rabbit.open.orm.core.dml.name.NamedSQL;
  */
 public class NamedQuery<T> {
     
-    Logger logger = Logger.getLogger(getClass());
+    private Logger logger = Logger.getLogger(getClass());
 	
 	private Query<T> query;	
 	

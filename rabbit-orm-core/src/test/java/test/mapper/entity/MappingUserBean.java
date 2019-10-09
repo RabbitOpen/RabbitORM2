@@ -1,14 +1,9 @@
 package test.mapper.entity;
 
 import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.Entity;
-import rabbit.open.orm.common.annotation.PrimaryKey;
-import rabbit.open.orm.common.dml.Policy;
 
-@Entity("MAPPING_USER")
-public class MappingUser {
+public class MappingUserBean {
 
-	@PrimaryKey(policy=Policy.AUTOINCREMENT)
 	@Column("ID")
 	private Long id;
 	
