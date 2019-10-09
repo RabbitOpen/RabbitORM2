@@ -48,6 +48,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 	
 	@Override
 	public long execute() {
+		runCallBackTask();
 	    prepareFilterMetas();
         combineFilters();
         doShardingCheck();

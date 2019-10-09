@@ -72,12 +72,10 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
     protected void updateTargetTableName() {
         if (isShardingOperation()) {
             String tableName = getCurrentShardedTableName(getFactors());
-            String replaceAll = sql.toString().replaceAll(TABLE_NAME_REG,
-                    tableName);
+            String replaceAll = sql.toString().replaceAll(TABLE_NAME_REG, tableName);
             sql = new StringBuilder(replaceAll);
         } else {
-            sql = new StringBuilder(sql.toString().replaceAll(TABLE_NAME_REG,
-                    metaData.getTableName()));
+            sql = new StringBuilder(sql.toString().replaceAll(TABLE_NAME_REG, metaData.getTableName()));
         }
     }
     
@@ -91,11 +89,14 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
         }
         List<FilterDescriptor> mfds = getMainFilterDescriptors();
         for (FilterDescriptor fd : mfds) {
-            factors.add(new ShardFactor(fd.getField(), fd.getFilter(), fd
-                    .getValue()));
+            factors.add(new ShardFactor(fd.getField(), fd.getFilter(), fd.getValue()));
         }
         metaData.updateTableName(getCurrentShardedTableName(factors));
+        dependencyPath.clear();
+        addedFilters.clear();
+        clzesEnabled2Join = null;
         filterDescriptors.clear();
+        runCallBackTask();
         prepareFilterMetas();
         combineFilters();
     }
@@ -143,20 +144,19 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
         if (depsPath.length == 0) {
             return addFilter(fieldReg, value, ft, getEntityClz());
         }
-        String field = getFieldByReg(fieldReg);
-        checkField(depsPath[0], field);
-        checkQueryPath(depsPath);
-        if (!addedFilters.containsKey(depsPath[0])) {
-            addedFilters.put(depsPath[0], new HashMap<String, List<DynamicFilterDescriptor>>());
-        }
-        Map<String, List<DynamicFilterDescriptor>> fmps = addedFilters
-                .get(depsPath[0]);
-        if (!fmps.containsKey(field)) {
-            fmps.put(field, new ArrayList<DynamicFilterDescriptor>());
-        }
-        fmps.get(field).add(
-                new DynamicFilterDescriptor(fieldReg, ft, value, !field
-                        .equals(fieldReg)));
+        filterTasks.add(() -> {
+        	String field = getFieldByReg(fieldReg);
+            checkField(depsPath[0], field);
+            checkQueryPath(depsPath);
+            if (!addedFilters.containsKey(depsPath[0])) {
+                addedFilters.put(depsPath[0], new HashMap<>());
+            }
+            Map<String, List<DynamicFilterDescriptor>> fmps = addedFilters.get(depsPath[0]);
+            if (!fmps.containsKey(field)) {
+                fmps.put(field, new ArrayList<>());
+            }
+            fmps.get(field).add(new DynamicFilterDescriptor(fieldReg, ft, value, !field.equals(fieldReg)));
+        });
         return this;
     }
 
@@ -414,8 +414,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
                 // 子表的主键值
                 Object jpkv = getValue(jpk, o);
                 FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
-                values.add(new PreparedValue(RabbitValueConverter.convert(jpkv,
-                        fmd), fmd.getField()));
+                values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
                 rsql.append("?,");
             }
             rsql.deleteCharAt(rsql.lastIndexOf(","));

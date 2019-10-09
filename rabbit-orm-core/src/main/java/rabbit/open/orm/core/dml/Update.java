@@ -94,6 +94,7 @@ public class Update<T> extends NonQueryAdapter<T> {
 
 	@Override
 	public long execute() {
+		runCallBackTask();
 	    prepareFilterMetas();
         combineFilters();
         doShardingCheck();
@@ -322,7 +323,6 @@ public class Update<T> extends NonQueryAdapter<T> {
         updateTargetTableName();
         return super.execute();
 	}
-	
 
 	/**
 	 * 

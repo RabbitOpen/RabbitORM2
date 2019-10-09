@@ -11,6 +11,7 @@ import rabbit.open.orm.core.dml.meta.proxy.OneToManyProxy;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,10 +70,45 @@ public class MetaData<T> {
 
     public static <D> MetaData<?> getMetaByClass(Class<D> clz) {
         if (metaMapping.containsKey(clz)) {
-            return metaMapping.get(clz);
+            return metaMapping.get(clz).copyIfSharding(clz);
         }
         cacheMeta(clz);
-        return metaMapping.get(clz);
+        return metaMapping.get(clz).copyIfSharding(clz);
+    }
+    
+    /***
+     * <b>@description 如果是分区表则每次都复制一份meta，防止被updateTableName污染表名 </b>
+     * @param <D>
+     * @param clz
+     */
+    @SuppressWarnings("unchecked")
+	private <D> MetaData<D> copyIfSharding(Class<D> clz) {
+    	if (!isShardingTable()) {
+    		return (MetaData<D>) this;
+    	}
+    	MetaData<D> meta = new MetaData<>(clz);
+    	Field[] fields = getClass().getDeclaredFields();
+    	for (Field f : fields) {
+    		if (Modifier.isStatic(f.getModifiers())) {
+    			continue;
+    		}
+    		f.setAccessible(true);
+    		try {
+				f.set(meta, f.get(this));
+			} catch (Exception e) {
+				throw new RabbitDMLException(e);
+			}
+    	}
+    	return meta;
+    }
+    
+    /**
+     * 
+     * <b>@description 判断当前表是否是分区表 </b>
+     * @return
+     */
+    public boolean isShardingTable() {
+    	return !shardingPolicy.getClass().equals(ShardingPolicy.class);
     }
 
 	/**

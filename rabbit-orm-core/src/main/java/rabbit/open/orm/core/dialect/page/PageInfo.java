@@ -7,9 +7,8 @@ public class PageInfo {
 	private int pageIndex;
 
 	public PageInfo(int pageIndex, int pageSize) {
-		super();
-		this.pageSize = pageSize;
-		this.pageIndex = pageIndex;
+		setPageIndex(pageIndex);
+		setPageSize(pageSize);
 	}
 
 	public int getPageSize() {
