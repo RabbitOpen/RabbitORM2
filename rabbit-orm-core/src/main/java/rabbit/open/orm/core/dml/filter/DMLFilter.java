@@ -42,10 +42,6 @@ public abstract class DMLFilter {
 	// 默认是内连接
 	private boolean inner = true;
 	
-	public DMLFilter(Class<?> entityClz) {
-		this(entityClz, true);
-	}
-
 	public DMLFilter(Class<?> entityClz, boolean inner) {
 		super();
 		this.entityClz = entityClz;

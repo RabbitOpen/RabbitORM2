@@ -21,7 +21,11 @@ public class ManyToManyFilter extends DMLFilter {
 	protected JoinFieldMetaData<?> joinFieldMetaData;
 
 	public ManyToManyFilter(Class<?> entityClz) {
-		super(entityClz);
+		this(entityClz, true);
+	}
+	
+	public ManyToManyFilter(Class<?> entityClz, boolean inner) {
+		super(entityClz, inner);
 	}
 
 	@Override

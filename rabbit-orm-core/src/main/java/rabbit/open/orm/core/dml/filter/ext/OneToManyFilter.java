@@ -6,9 +6,13 @@ package rabbit.open.orm.core.dml.filter.ext;
 public class OneToManyFilter extends ManyToManyFilter {
 
 	public OneToManyFilter(Class<?> entityClz) {
-		super(entityClz);
+		this(entityClz, true);
 	}
-
+	
+	public OneToManyFilter(Class<?> entityClz, boolean inner) {
+		super(entityClz, inner);
+	}
+	
 	@Override
 	protected StringBuilder createJoinSql() {
 		return getQuery().createOTMJoinSql(joinFieldMetaData, !isInner());
