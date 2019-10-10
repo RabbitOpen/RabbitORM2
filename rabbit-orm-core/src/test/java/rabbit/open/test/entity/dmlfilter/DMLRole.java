@@ -1,0 +1,43 @@
+package rabbit.open.test.entity.dmlfilter;
+
+import java.util.List;
+
+import rabbit.open.orm.common.annotation.Column;
+import rabbit.open.orm.common.annotation.Entity;
+import rabbit.open.orm.common.annotation.ManyToMany;
+import rabbit.open.orm.common.annotation.PrimaryKey;
+import rabbit.open.orm.common.dml.Policy;
+
+@Entity("DML_ROLE")
+public class DMLRole {
+
+	@PrimaryKey(policy = Policy.AUTOINCREMENT)
+	@Column("ID")
+	private Integer id;
+
+	@Column(value = "NAME", keyWord = true)
+	private String name;
+
+	@ManyToMany(id="ID", policy=Policy.AUTOINCREMENT, 
+			joinTable="DML_ROLE_RESOURCE", 
+			joinColumn="ROLE_ID", reverseJoinColumn="RESOURCE_ID")
+	private List<DMLResource> resources;
+	
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	
+}

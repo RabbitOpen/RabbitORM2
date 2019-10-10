@@ -34,11 +34,11 @@ import rabbit.open.orm.common.exception.RepeatedAliasException;
 import rabbit.open.orm.common.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.common.shard.ShardFactor;
 import rabbit.open.orm.common.shard.ShardingPolicy;
+import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.FilterDescriptor;
 import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
-import rabbit.open.orm.core.dml.meta.JoinFilter;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
 import rabbit.open.orm.datasource.Session;
@@ -712,8 +712,8 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 				return true;
 			}
 		}
-		for (JoinFilter jf : joinFilters.values()) {
-			if (jf.getAssociatedClass().contains(clz)) {
+		for (DMLFilter filter : dmlFilters.values()) {
+			if (filter.getAssociatedClass().contains(clz)) {
 				return true;
 			}
 		}
@@ -781,7 +781,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	private void createJoinFetchSql() {
 		sql.append(" ");
 		for (JoinFieldMetaData<?> jfm : joinFieldMetas) {
-			if (joinFilters.containsKey(jfm.getJoinClass())) {
+			if (dmlFilters.containsKey(jfm.getJoinClass())) {
 				// 如果包含了动态innerJoinFilter 就忽略左连接
 				continue;
 			}
@@ -851,8 +851,8 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * 创建Many2Many/One2Many的innerJoin sql
 	 */
 	private void createDynamicInnerJoinSql() {
-		for (JoinFilter jf : joinFilters.values()) {
-			sql.append(jf.getInnerJoinSQL());
+		for (DMLFilter filter : dmlFilters.values()) {
+			sql.append(filter.getJoinSql());
 		}
 	}
 
@@ -863,7 +863,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * @param addedJoinFilters
 	 *
 	 */
-	protected StringBuilder addDynFilterSql(JoinFieldMetaData<?> jfm,
+	public StringBuilder addDynFilterSql(JoinFieldMetaData<?> jfm,
 											Map<Class<?>, Map<String, List<DynamicFilterDescriptor>>> addedJoinFilters) {
 		StringBuilder sql = new StringBuilder();
 		Class<?> jc = jfm.getJoinClass();
@@ -905,7 +905,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * @return
 	 *
 	 */
-	protected StringBuilder createMTMJoinSql(JoinFieldMetaData<?> jfm, boolean leftJoin) {
+	public StringBuilder createMTMJoinSql(JoinFieldMetaData<?> jfm, boolean leftJoin) {
 		StringBuilder sb = new StringBuilder();
 		ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
 		// 中间表别名
@@ -936,7 +936,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * @return
 	 *
 	 */
-	protected StringBuilder createOTMJoinSql(JoinFieldMetaData<?> jfm, boolean leftJoin) {
+	public StringBuilder createOTMJoinSql(JoinFieldMetaData<?> jfm, boolean leftJoin) {
 		StringBuilder sb = new StringBuilder();
 		OneToMany otm = (OneToMany) jfm.getAnnotation();
 		String lj = leftJoin ? LEFT_JOIN : INNER_JOIN;
@@ -1409,42 +1409,25 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 *
 	 */
 	public abstract AbstractQuery<T> addJoinFilter(String reg, Object value, Class<?> target);
-
+	
 	/**
 	 *
-	 * <b>Description:  新增一对多/多对多 内链接查询</b><br>.
+	 * <b>Description:  新增一对多/多对多/ 多对一  链接查询</b><br>.
 	 *                  该方法会覆盖addJoinFilter、joinFetch函数中同表的过滤条件
 	 * @param filter
 	 * @return
 	 *
 	 */
-	public AbstractQuery<T> addInnerJoinFilter(JoinFilter filter) {
-		joinFilters.put(filter.getJoinClass(), filter);
+	public AbstractQuery<T> addDMLFilter(DMLFilter filter) {
+		filter.setParentEntityClz(getEntityClz());
+		filter.setQuery(this);
+		if (!dmlFilters.containsKey(filter.getEntityClz())) {
+			dmlFilters.put(filter.getEntityClz(), filter);
+		} else {
+			dmlFilters.get(filter.getEntityClz()).combineFilter(filter);
+		}
 		return this;
 	}
-
-	/**
-	 *
-	 * <b>Description:	添加内链接过滤条件，相同target的内链接过滤条件会合并</b><br>
-	 * @param reg
-	 * @param ft
-	 * @param value
-	 * @param target
-	 * @return
-	 *
-	 */
-	public abstract AbstractQuery<T> addInnerJoinFilter(String reg, FilterType ft, Object value, Class<?> target);
-
-	/**
-	 *
-	 * <b>Description:	addJoinFilter添加的是left join。该方法添加的是inner join过滤条件</b><br>
-	 * @param reg
-	 * @param value
-	 * @param target
-	 * @return
-	 *
-	 */
-	public abstract AbstractQuery<T> addInnerJoinFilter(String reg, Object value, Class<?> target);
 
 	/**
 	 *

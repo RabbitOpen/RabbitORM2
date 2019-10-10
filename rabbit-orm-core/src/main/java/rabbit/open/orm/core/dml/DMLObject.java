@@ -34,11 +34,11 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.common.shard.ShardFactor;
 import rabbit.open.orm.common.shard.ShardingPolicy;
+import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.FilterDescriptor;
 import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
-import rabbit.open.orm.core.dml.meta.JoinFilter;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
 import rabbit.open.orm.core.dml.name.NamedSQL;
@@ -110,8 +110,8 @@ public abstract class DMLObject<T> {
 	//动态添加的left join过滤器
 	protected Map<Class<?>, Map<String, List<DynamicFilterDescriptor>>> addedJoinFilters;
 
-	//动态添加的inner join过滤器
-	protected Map<Class<?>, JoinFilter> joinFilters = new HashMap<>();
+	//动态添加的DMLFilter
+	protected Map<Class<?>, DMLFilter> dmlFilters = new HashMap<>();
 	
 	//缓存class的依赖路径, 同一个clz不能有多个路径
 	protected Map<Class<?>, List<FilterDescriptor>> dependencyPath = new HashMap<>();
@@ -717,7 +717,7 @@ public abstract class DMLObject<T> {
 	 * @param field	
 	 * 
 	 */
-    protected void cachePreparedValues(Object value, Field field) {
+    public void cachePreparedValues(Object value, Field field) {
         if (null == value) {
             preparedValues.add(new PreparedValue(null, field));
             return;
@@ -746,7 +746,7 @@ public abstract class DMLObject<T> {
 	 * @return
 	 * 
 	 */
-    protected String getFieldByReg(String reg) {
+    public String getFieldByReg(String reg) {
         String field;
         Matcher matcher = pattern.matcher(reg);
         if (matcher.find()) {

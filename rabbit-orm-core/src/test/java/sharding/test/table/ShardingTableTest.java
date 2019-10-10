@@ -17,6 +17,8 @@ import rabbit.open.orm.common.exception.FetchShardEntityException;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SessionFactory;
+import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
+import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
 import sharding.test.table.entity.Region;
 import sharding.test.table.entity.ShardCar;
@@ -316,8 +318,8 @@ public class ShardingTableTest {
 
         su = sus.createQuery().addFilter("id", user.getId())
                 .fetch(Region.class)
-                .addInnerJoinFilter("id", sr1.getId(), ShardRoom.class)
-                .addInnerJoinFilter("carNo", sc1.getCarNo(), ShardCar.class)
+                .addDMLFilter(new ManyToManyFilter(ShardRoom.class).on("id", sr1.getId()))
+                .addDMLFilter(new OneToManyFilter(ShardCar.class).on("carNo", sc1.getCarNo()))
                 .joinFetch(ShardRoom.class).joinFetch(ShardCar.class).execute()
                 .unique();
         TestCase.assertEquals(su.getRegion().getName(), user.getRegion()

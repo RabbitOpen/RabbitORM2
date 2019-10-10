@@ -8,7 +8,6 @@ import java.util.List;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.EmptyListFilterException;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
-import rabbit.open.orm.core.dml.meta.JoinFilterBuilder;
 
 /**
  * <b>Description: 	查询操作</b><br>
@@ -112,41 +111,6 @@ public class Query<T> extends AbstractQuery<T> {
 	public AbstractQuery<T> addJoinFilter(String reg, Object value,
 			Class<?> target) {
 		return addJoinFilter(reg, FilterType.EQUAL, value, target);
-	}
-
-	/**
-	 * 
-	 * <b>Description:	添加【一对多/多对多】多端内链接过滤条件，相同target的内链接过滤条件和合并</b><br>
-	 * @param reg		字段在正则
-	 * @param ft		过滤条件
-	 * @param value		条件值
-	 * @param target   多端实体的class对象
-	 * @return	
-	 * 
-	 */
-	@Override
-	public AbstractQuery<T> addInnerJoinFilter(String reg, FilterType ft, Object value, Class<?> target) {
-		if (!joinFilters.containsKey(target)) {
-			addInnerJoinFilter(JoinFilterBuilder.prepare(this).join(target).on(reg, value, ft).build());
-		} else {
-			joinFilters.get(target).getFilterDescriptor().on(reg, value, ft);
-		}
-		return this;
-	}
-
-	/**
-	 *
-	 * <b>Description:	添加【一对多/多对多】多端内链接过滤条件，相同target的内链接过滤条件和合并</b><br>
-	 * @param reg		字段在正则
-	 * @param value		条件值
-	 * @param target   多端实体的class对象
-	 * @return
-	 *
-	 */
-	@Override
-	public AbstractQuery<T> addInnerJoinFilter(String reg, Object value,
-			Class<?> target) {
-		return addInnerJoinFilter(reg, FilterType.EQUAL, value, target);
 	}
 
 	/**

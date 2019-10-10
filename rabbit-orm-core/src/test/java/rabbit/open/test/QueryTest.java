@@ -25,12 +25,14 @@ import rabbit.open.orm.common.exception.OrderAssociationException;
 import rabbit.open.orm.common.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.common.exception.WrongJavaTypeException;
 import rabbit.open.orm.core.dml.Query;
-import rabbit.open.orm.core.dml.meta.JoinFilterBuilder;
+import rabbit.open.orm.core.dml.filter.DMLFilter;
+import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
+import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.EnumComponent;
 import rabbit.open.test.entity.EnumComponent.ComponentCodeEnum;
-import rabbit.open.test.entity.EnumRole.EnumRoleEnum;
 import rabbit.open.test.entity.EnumRole;
+import rabbit.open.test.entity.EnumRole.EnumRoleEnum;
 import rabbit.open.test.entity.Leader;
 import rabbit.open.test.entity.Master;
 import rabbit.open.test.entity.Organization;
@@ -43,7 +45,15 @@ import rabbit.open.test.entity.UUIDPolicyEntity;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.entity.ZProperty;
 import rabbit.open.test.entity.Zone;
+import rabbit.open.test.entity.dmlfilter.DMLResource;
+import rabbit.open.test.entity.dmlfilter.DMLRole;
+import rabbit.open.test.entity.dmlfilter.DMLUser;
 import rabbit.open.test.service.CarService;
+import rabbit.open.test.service.DMLResourceService;
+import rabbit.open.test.service.DMLRoleService;
+import rabbit.open.test.service.DMLTeamService;
+import rabbit.open.test.service.DMLURIService;
+import rabbit.open.test.service.DMLUserService;
 import rabbit.open.test.service.EnumComponentService;
 import rabbit.open.test.service.EnumRoleService;
 import rabbit.open.test.service.LeaderService;
@@ -97,6 +107,21 @@ public class QueryTest {
 
     @Autowired
     MyUserSerivce mus;
+    
+    @Autowired
+    DMLUserService dmlUs;
+    
+    @Autowired
+    DMLRoleService dmlRs;
+    
+    @Autowired
+    DMLTeamService dmlTs;
+    
+    @Autowired
+    DMLResourceService dmlResourceService;
+    
+    @Autowired
+	DMLURIService dmlUris;
     
     @Test
     public void multiExtend() {
@@ -204,35 +229,6 @@ public class QueryTest {
 
     /**
      * 
-     * <b>Description: 新增内链接条件测试</b><br>
-     * 
-     */
-    @Test
-    public void innerJoinQueryTest() {
-        User user = addInitData(120);
-        User u = us
-                .createQuery()
-                .joinFetch(Role.class)
-                .fetch(Organization.class)
-                .addFilter("id", user.getId())
-                .addInnerJoinFilter(
-                        "id",
-                        FilterType.IN,
-                        new Integer[] { user.getRoles().get(0).getId(),
-                                user.getRoles().get(1).getId() }, Role.class)
-                .addInnerJoinFilter("roleName",
-                        user.getRoles().get(0).getRoleName(), Role.class)
-                .execute().unique();
-        TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
-                .getOrgCode());
-        TestCase.assertEquals(u.getRoles().size(), 1);
-        TestCase.assertEquals(u.getRoles().get(0).getRoleName(), user
-                .getRoles().get(0).getRoleName());
-        System.out.println(u);
-    }
-
-    /**
-     * 
      * <b>Description: 新增自定义内链接条件测试</b><br>
      * . ManyToMany
      * 
@@ -245,17 +241,12 @@ public class QueryTest {
                 .joinFetch(Role.class)
                 .fetch(Organization.class)
                 .addFilter("id", user.getId())
-                .addInnerJoinFilter(
-                        JoinFilterBuilder
-                                .prepare(query)
-                                .join(Role.class)
-                                .on("id", user.getRoles().get(0).getId())
-                                .on("roleName",
-                                        user.getRoles().get(0).getRoleName())
-                                .join(Resources.class)
-                                .on("${id}",
-                                        user.getRoles().get(0).getResources()
-                                                .get(0).getId()).build())
+                .addDMLFilter(new ManyToManyFilter(Role.class)
+	    					.on("id", user.getRoles().get(0).getId())
+	    					.on("roleName",user.getRoles().get(0).getRoleName())
+	    					.add(new ManyToManyFilter(Resources.class)
+	    					.on("${id}", user.getRoles().get(0).getResources() .get(0).getId()))	
+                		)
                 .execute().unique();
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
                 .getOrgCode());
@@ -273,14 +264,11 @@ public class QueryTest {
         Query<User> query = us.createQuery();
         try {
             query.joinFetch(Role.class)
-                    .addInnerJoinFilter(
-                            JoinFilterBuilder.prepare(query)
-                                    .join(Organization.class).on("id", 1)
-                                    .build()).execute().unique();
+                    .addDMLFilter(new ManyToManyFilter(Organization.class).on("id", 1))
+                    .execute().unique();
             throw new RuntimeException();
         } catch (Exception e) {
-            TestCase.assertEquals(e.getClass(),
-                    InvalidJoinFilterException.class);
+            TestCase.assertEquals(e.getClass(), InvalidJoinFilterException.class);
         }
     }
 
@@ -301,21 +289,13 @@ public class QueryTest {
                 .alias(Resources.class, "RESOURCES")
                 .fetch(Organization.class)
                 .joinFetch(Car.class)
-                .addInnerJoinFilter(
-                        JoinFilterBuilder
-                                .prepare(query)
-                                .join(Role.class)
-                                .on("id", user.getRoles().get(0).getId())
-                                .on("roleName",
-                                        user.getRoles().get(0).getRoleName())
-                                .join(Resources.class)
-                                .on("${id}",
-                                        user.getRoles().get(0).getResources()
-                                                .get(0).getId()).build())
-                .addInnerJoinFilter(
-                        JoinFilterBuilder.prepare(query).join(Car.class)
-                                .on("${id}", user.getCars().get(0).getId())
-                                .build()).execute().unique();
+                .addDMLFilter(new ManyToManyFilter(Role.class)
+                		.on("id", user.getRoles().get(0).getId())
+                        .on("roleName",  user.getRoles().get(0).getRoleName())
+                        .add(new ManyToManyFilter(Resources.class)
+                        		.on("${id}", user.getRoles().get(0).getResources().get(0).getId())))
+                .addDMLFilter(new OneToManyFilter(Car.class).on("${id}", user.getCars().get(0).getId()))
+                .execute().unique();
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
                 .getOrgCode());
         TestCase.assertEquals(u.getRoles().size(), 1);
@@ -344,9 +324,8 @@ public class QueryTest {
             TestCase.assertSame(e.getClass(), OrderAssociationException.class);
         }
         Query<User> query = us.createQuery();
-        query.addInnerJoinFilter(
-                JoinFilterBuilder.prepare(query).join(Role.class).on("id", 1)
-                        .build()).fetch(Organization.class)
+        query.addDMLFilter(new ManyToManyFilter(Role.class).on("id", 1))
+        		.fetch(Organization.class)
                 .asc("id", Organization.class).desc("id").asc("id", Role.class)
                 .execute();
     }
@@ -362,14 +341,12 @@ public class QueryTest {
         Query<User> query = us.createQuery();
         query.joinFetch(Role.class).fetch(Organization.class)
             .joinFetch(Car.class)
-            .addInnerJoinFilter(
-                JoinFilterBuilder.prepare(query).join(Role.class)
-                        .on("id", u.getRoles().get(0).getId()).on("roleName", u.getRoles().get(0).getRoleName())
-                        .join(Resources.class).on("${id}", 
-                                u.getRoles().get(0).getResources().get(0).getId()).build())
-            .addInnerJoinFilter(
-                JoinFilterBuilder.prepare(query).join(Car.class)
-                        .on("${id}", u.getCars().get(1).getId()).build());
+            .addDMLFilter(new ManyToManyFilter(Role.class)
+            			.on("id", u.getRoles().get(0).getId())
+            			.on("roleName", u.getRoles().get(0).getRoleName())
+                        .add(new ManyToManyFilter(Resources.class)
+                        		.on("${id}", u.getRoles().get(0).getResources().get(0).getId())))
+            .addDMLFilter(new OneToManyFilter(Car.class).on("${id}", u.getCars().get(1).getId()));
         long count = query.count();
         TestCase.assertEquals(1, count);
 
@@ -930,7 +907,17 @@ public class QueryTest {
     	
     	TestCase.assertEquals(list.size(), 1);
     	TestCase.assertEquals(list.get(0).getRole().getAge(), er.getAge());
-    	
+    }
+    
+    @Test
+    public void dmlFilterTest() {
+    	Query<DMLUser> query = dmlUs.createQuery();
+    	DMLFilter filter = new ManyToManyFilter(DMLRole.class).on("name", FilterType.IN, new String[]{"zhangsan"})
+    				.add(new ManyToManyFilter(DMLResource.class));
+    	filter.setParentEntityClz(DMLUser.class);
+    	filter.setQuery(query);
+    	String sql = filter.getJoinSql();
+		System.out.println(sql);
     }
     
 }

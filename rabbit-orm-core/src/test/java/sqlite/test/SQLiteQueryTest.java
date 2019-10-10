@@ -5,14 +5,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import junit.framework.TestCase;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.CycleDependencyException;
 import rabbit.open.orm.common.exception.InvalidFetchOperationException;
@@ -22,7 +21,8 @@ import rabbit.open.orm.common.exception.InvalidQueryPathException;
 import rabbit.open.orm.common.exception.OrderAssociationException;
 import rabbit.open.orm.common.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.core.dml.Query;
-import rabbit.open.orm.core.dml.meta.JoinFilterBuilder;
+import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
+import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
 import sqlite.test.entity.SQLiteCar;
 import sqlite.test.entity.SQLiteLeader;
 import sqlite.test.entity.SQLiteOrganization;
@@ -194,13 +194,13 @@ public class SQLiteQueryTest {
                 .joinFetch(SQLiteRole.class)
                 .fetch(SQLiteOrganization.class)
                 .addFilter("id", user.getId())
-                .addInnerJoinFilter(
-                        "id",
-                        FilterType.IN,
-                        new Integer[] { user.getRoles().get(0).getId(),
-                                user.getRoles().get(1).getId() }, SQLiteRole.class)
-                .addInnerJoinFilter("roleName",
-                        user.getRoles().get(0).getRoleName(), SQLiteRole.class)
+                .addDMLFilter(new ManyToManyFilter(SQLiteRole.class)
+                		.on( "id", FilterType.IN, new Integer[] { 
+                				user.getRoles().get(0).getId(), 
+                				user.getRoles().get(1).getId()}
+                		))
+                .addDMLFilter(new ManyToManyFilter(SQLiteRole.class).on("roleName",
+                        user.getRoles().get(0).getRoleName()))
                 .execute().unique();
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
                 .getOrgCode());
@@ -224,17 +224,11 @@ public class SQLiteQueryTest {
                 .joinFetch(SQLiteRole.class)
                 .fetch(SQLiteOrganization.class)
                 .addFilter("id", user.getId())
-                .addInnerJoinFilter(
-                        JoinFilterBuilder
-                                .prepare(query)
-                                .join(SQLiteRole.class)
-                                .on("id", user.getRoles().get(0).getId())
-                                .on("roleName",
-                                        user.getRoles().get(0).getRoleName())
-                                .join(SQLiteResources.class)
-                                .on("${id}",
-                                        user.getRoles().get(0).getResources()
-                                                .get(0).getId()).build())
+                .addDMLFilter(new ManyToManyFilter(SQLiteRole.class).on("id", user.getRoles().get(0).getId())
+                                	.on("roleName", user.getRoles().get(0).getRoleName())
+                                .add(new ManyToManyFilter(SQLiteResources.class)
+                                		.on("${id}", user.getRoles().get(0).getResources().get(0).getId()))
+                        )
                 .execute().unique();
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
                 .getOrgCode());
@@ -252,10 +246,8 @@ public class SQLiteQueryTest {
         Query<SQLiteUser> query = us.createQuery();
         try {
             query.joinFetch(SQLiteRole.class)
-                    .addInnerJoinFilter(
-                            JoinFilterBuilder.prepare(query)
-                                    .join(SQLiteOrganization.class).on("id", 1)
-                                    .build()).execute().unique();
+                    .addDMLFilter(new ManyToManyFilter(SQLiteOrganization.class).on("id", 1))
+                    .execute().unique();
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertEquals(e.getClass(),
@@ -280,21 +272,15 @@ public class SQLiteQueryTest {
                 .alias(SQLiteResources.class, "RESOURCES")
                 .fetch(SQLiteOrganization.class)
                 .joinFetch(SQLiteCar.class)
-                .addInnerJoinFilter(
-                        JoinFilterBuilder
-                                .prepare(query)
-                                .join(SQLiteRole.class)
+                .addDMLFilter(new ManyToManyFilter(SQLiteRole.class)
                                 .on("id", user.getRoles().get(0).getId())
-                                .on("roleName",
-                                        user.getRoles().get(0).getRoleName())
-                                .join(SQLiteResources.class)
+                                .on("roleName", user.getRoles().get(0).getRoleName())
+                                .add(new ManyToManyFilter(SQLiteResources.class)
                                 .on("${id}",
                                         user.getRoles().get(0).getResources()
-                                                .get(0).getId()).build())
-                .addInnerJoinFilter(
-                        JoinFilterBuilder.prepare(query).join(SQLiteCar.class)
-                                .on("${id}", user.getCars().get(0).getId())
-                                .build()).execute().unique();
+                                                .get(0).getId())))
+                .addDMLFilter(new OneToManyFilter(SQLiteCar.class)
+                                .on("${id}", user.getCars().get(0).getId())).execute().unique();
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
                 .getOrgCode());
         TestCase.assertEquals(u.getRoles().size(), 1);
@@ -324,9 +310,7 @@ public class SQLiteQueryTest {
             TestCase.assertSame(e.getClass(), OrderAssociationException.class);
         }
         Query<SQLiteUser> query = us.createQuery();
-        query.addInnerJoinFilter(
-                JoinFilterBuilder.prepare(query).join(SQLiteRole.class).on("id", 1)
-                        .build()).fetch(SQLiteOrganization.class)
+        query.addDMLFilter(new ManyToManyFilter(SQLiteRole.class).on("id", 1)).fetch(SQLiteOrganization.class)
                 .asc("id", SQLiteOrganization.class).desc("id").asc("id", SQLiteRole.class)
                 .execute();
     }
@@ -343,14 +327,13 @@ public class SQLiteQueryTest {
         Query<SQLiteUser> query = us.createQuery();
         query.joinFetch(SQLiteRole.class).fetch(SQLiteOrganization.class)
             .joinFetch(SQLiteCar.class)
-            .addInnerJoinFilter(
-                JoinFilterBuilder.prepare(query).join(SQLiteRole.class)
+            .addDMLFilter(
+                new ManyToManyFilter(SQLiteRole.class)
                         .on("id", u.getRoles().get(0).getId()).on("roleName", u.getRoles().get(0).getRoleName())
-                        .join(SQLiteResources.class).on("${id}", 
-                                u.getRoles().get(0).getResources().get(0).getId()).build())
-            .addInnerJoinFilter(
-                JoinFilterBuilder.prepare(query).join(SQLiteCar.class)
-                        .on("${id}", u.getCars().get(1).getId()).build());
+                        .add(new ManyToManyFilter(SQLiteResources.class).on("${id}", 
+                                u.getRoles().get(0).getResources().get(0).getId())))
+            .addDMLFilter(new OneToManyFilter(SQLiteCar.class)
+                        .on("${id}", u.getCars().get(1).getId()));
         long count = query.count();
         TestCase.assertEquals(1, count);
         
