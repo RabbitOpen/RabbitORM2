@@ -1588,6 +1588,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	protected void createCountSql() {
 		reset2PreparedStatus();
 		runCallBackTask();
+		doFilterChecking();
 		prepareFilterMetas();
 		combineFilters();
 		prepareMany2oneFilters();

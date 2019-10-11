@@ -1064,6 +1064,10 @@ public class QueryTest {
     		.fetch(DMLHome.class)
     		.unique();
     	TestCase.assertEquals(queryUser.getHome().getName(), h.getName());
+    	TestCase.assertEquals( dmlUs.createQuery()
+        		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", h.getId()))
+        		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("name", h.getName()))
+        		.fetch(DMLHome.class).count(), 1);
     }
 
 	private DMLUri createURI(String uriName) {
