@@ -1,12 +1,10 @@
 package rabbit.open.orm.core.dml;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
 import rabbit.open.orm.common.dml.FilterType;
-import rabbit.open.orm.common.exception.EmptyListFilterException;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 
 /**
@@ -38,24 +36,6 @@ public class Query<T> extends AbstractQuery<T> {
 	@Override
 	public AbstractQuery<T> addFilter(String reg, Object value, FilterType ft,
 			Class<?>... depsPath) {
-		if (FilterType.IN.equals(ft)) {
-			if (null == value) {
-				throw new EmptyListFilterException("filter can't be empty");
-			}
-			if (value.getClass().isArray()) {
-				Object[] arr = (Object[]) value;
-				if (arr.length == 0) {
-					throw new EmptyListFilterException("filter list size can't be empty");
-				}
-			}
-			if (value instanceof Collection) {
-				@SuppressWarnings("unchecked")
-				Collection<Object> arr = (Collection<Object>) value;
-				if (arr.isEmpty()) {
-					throw new EmptyListFilterException("filter list size can't be empty");
-				}
-			}
-		}
 		filterTasks.add(new DynamicFilterTask<T>(this, reg, value, ft, depsPath));
 		return this;
 	}

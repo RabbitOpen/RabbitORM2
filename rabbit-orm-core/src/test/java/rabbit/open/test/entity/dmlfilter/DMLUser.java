@@ -27,6 +27,9 @@ public class DMLUser {
 			joinTable="DML_USER_TEAM", 
 			joinColumn="USER_ID", reverseJoinColumn="TEAM_ID")
 	private List<DMLTeam> teams;
+	
+	@Column("HOME")
+	private DMLHome home;
 
 	public Integer getId() {
 		return id;
@@ -58,6 +61,14 @@ public class DMLUser {
 
 	public void setTeams(List<DMLTeam> teams) {
 		this.teams = teams;
+	}
+
+	public DMLHome getHome() {
+		return home;
+	}
+
+	public void setHome(DMLHome home) {
+		this.home = home;
 	}
 	
 	

@@ -23,6 +23,9 @@ public class DMLRole {
 			joinColumn="ROLE_ID", reverseJoinColumn="RESOURCE_ID")
 	private List<DMLResource> resources;
 	
+	@Column("ORG")
+	private DMLOrg org;
+	
 	public Integer getId() {
 		return id;
 	}
@@ -38,6 +41,21 @@ public class DMLRole {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	
+
+	public List<DMLResource> getResources() {
+		return resources;
+	}
+
+	public void setResources(List<DMLResource> resources) {
+		this.resources = resources;
+	}
+
+	public DMLOrg getOrg() {
+		return org;
+	}
+
+	public void setOrg(DMLOrg org) {
+		this.org = org;
+	}
+
 }

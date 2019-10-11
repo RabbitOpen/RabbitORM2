@@ -24,6 +24,7 @@ import rabbit.open.orm.common.annotation.OneToMany;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.AmbiguousDependencyException;
+import rabbit.open.orm.common.exception.ConflictFilterException;
 import rabbit.open.orm.common.exception.CycleFetchException;
 import rabbit.open.orm.common.exception.FetchShardEntityException;
 import rabbit.open.orm.common.exception.InvalidFetchOperationException;
@@ -431,8 +432,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * @param fetchEntity
 	 * @param entity
 	 */
-	private void injectFetchDependency(Map<String, Object> fetchEntity,
-									   Object entity) {
+	private void injectFetchDependency(Map<String, Object> fetchEntity, Object entity) {
 		if (null == clzesEnabled2Join) {
 			return;
 		}
@@ -577,6 +577,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	protected void createQuerySql() {
 		reset2PreparedStatus();
 		runCallBackTask();
+		doFilterChecking();
 		// 分析并准备查询条件
 		prepareFilterMetas();
 		combineFilters();
@@ -593,6 +594,17 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		createGroupBySql();
 		createOrderSql();
 		createPageSql();
+	}
+
+	// 检查过滤条件是否冲突
+	private void doFilterChecking() {
+		List<Class<?>> list = new ArrayList<>();
+		this.dmlFilters.values().forEach(f -> list.addAll(f.getAssociatedClass()));
+		list.forEach(clz -> {
+			if (addedFilters.containsKey(clz) || addedJoinFilters.containsKey(clz)) {
+				throw new ConflictFilterException(clz);
+			}
+		});
 	}
 
 	/**
@@ -791,12 +803,12 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 				sql.append(createMTMJoinSql(jfm));
 			}
 			// 动态添加的join条件
-			sql.append(addDynFilterSql(jfm));
+			sql.append(addDynamicFilterSql(jfm));
 		}
 	}
 
-	private StringBuilder addDynFilterSql(JoinFieldMetaData<?> jfm) {
-		return addDynFilterSql(jfm, addedJoinFilters);
+	private StringBuilder addDynamicFilterSql(JoinFieldMetaData<?> jfm) {
+		return addDynamicFilterSql(jfm, addedJoinFilters);
 	}
 
 	/**
@@ -863,22 +875,31 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * @param addedJoinFilters
 	 *
 	 */
-	public StringBuilder addDynFilterSql(JoinFieldMetaData<?> jfm,
-											Map<Class<?>, Map<String, List<DynamicFilterDescriptor>>> addedJoinFilters) {
-		StringBuilder sql = new StringBuilder();
-		Class<?> jc = jfm.getJoinClass();
-		if (!addedJoinFilters.containsKey(jc)) {
-			return sql;
+	public StringBuilder addDynamicFilterSql(JoinFieldMetaData<?> jfm,
+				Map<Class<?>, Map<String, List<DynamicFilterDescriptor>>> addedJoinFilters) {
+		Class<?> clz = jfm.getJoinClass();
+		if (!addedJoinFilters.containsKey(clz)) {
+			return new StringBuilder();
 		}
-		Map<String, List<DynamicFilterDescriptor>> map = addedJoinFilters.get(jc);
+		return createDynamicFilterByClz(clz, addedJoinFilters.get(clz));
+	}
+
+	/**
+	 * <b>@description 根据过滤条件创建关联sql </b>
+	 * @param clz	被关联的实体
+	 * @param map	过滤条件
+	 * @return
+	 */
+	public StringBuilder createDynamicFilterByClz(Class<?> clz, Map<String, List<DynamicFilterDescriptor>> map) {
+		StringBuilder sql = new StringBuilder();
 		Iterator<String> fields = map.keySet().iterator();
 		while (fields.hasNext()) {
 			String field = fields.next();
 			List<DynamicFilterDescriptor> list = map.get(field);
 			for (DynamicFilterDescriptor dfd : list) {
-				FieldMetaData fmd = MetaData.getCachedFieldsMeta(jc, field);
+				FieldMetaData fmd = MetaData.getCachedFieldsMeta(clz, field);
 				sql.append("AND ");
-				String key = getAliasByTableName(jfm.getTableName()) + "." + getColumnName(fmd.getColumn());
+				String key = getAliasByTableName(MetaData.getTableNameByClass(clz)) + "." + getColumnName(fmd.getColumn());
 				String filter = dfd.getFilter().value();
 				if (dfd.isReg()) {
 					key = replaceRegByColumnName(dfd.getKeyReg(), fmd.getField(), key);
@@ -1283,13 +1304,13 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 			if (!getClzesEnabled2Join().containsKey(key)) {
 				continue;
 			}
-			if (!enableFetch(key)) {
+			if (!isFetchEnabled(key)) {
 				fetchClasses.remove(key);
 			}
 		}
 	}
 
-	private boolean enableFetch(Class<?> key) {
+	private boolean isFetchEnabled(Class<?> key) {
 		for (FilterDescriptor fd : getClzesEnabled2Join().get(key)) {
 			if (fd.getJoinDependency().equals(fetchClasses.get(key))) {
 				return true;
@@ -1525,10 +1546,8 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 			setPreparedStatementValue(stmt, null);
 			showSql();
 			rs = stmt.executeQuery();
-			if (rs.next()) {
-				return Long.parseLong(rs.getObject(1).toString());
-			}
-			return 0L;
+			rs.next();
+			return Long.parseLong(rs.getObject(1).toString());
 		} catch (Exception e) {
 			showUnMaskedSql(false);
 			Session.flagException();

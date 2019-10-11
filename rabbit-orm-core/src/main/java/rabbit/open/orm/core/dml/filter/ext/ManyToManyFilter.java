@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.InvalidJoinFilterException;
 import rabbit.open.orm.core.dml.DMLObject;
+import rabbit.open.orm.core.dml.DynamicFilterTask;
 import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
@@ -39,10 +40,8 @@ public class ManyToManyFilter extends DMLFilter {
 		}
 		joinFieldMetaData = metas.get(0);
 		StringBuilder sql = createJoinSql();
-		sql.append(getQuery().addDynFilterSql(joinFieldMetaData, joinFilters));
-		if (null != filter) {
-			sql.append(filter.getJoinSql());
-		}
+		sql.append(getQuery().addDynamicFilterSql(joinFieldMetaData, joinFilters));
+		filters.forEach(f -> sql.append(f.getJoinSql()));
 		return sql.toString();
 	}
 	
@@ -55,6 +54,7 @@ public class ManyToManyFilter extends DMLFilter {
 		tasks.add(() -> {
 			Class<?> clz = getEntityClz();
 			String field = getQuery().getFieldByReg(fieldName);
+			DynamicFilterTask.doValueCheck(value, filter);
 			DMLObject.checkField(clz, field);
 			if (!joinFilters.containsKey(clz)) {
 				joinFilters.put(clz, new HashMap<String, List<DynamicFilterDescriptor>>());
@@ -66,5 +66,4 @@ public class ManyToManyFilter extends DMLFilter {
 		});
 		return this;
 	}
-
 }

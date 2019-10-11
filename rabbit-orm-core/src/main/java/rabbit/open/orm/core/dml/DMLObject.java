@@ -607,7 +607,7 @@ public abstract class DMLObject<T> {
 	 * @return	
 	 * 
 	 */
-    protected Map<Class<?>, List<FilterDescriptor>> getClzesEnabled2Join() {
+    public Map<Class<?>, List<FilterDescriptor>> getClzesEnabled2Join() {
         if (null == clzesEnabled2Join) {
             clzesEnabled2Join = new ConcurrentHashMap<>();
             findOutEnable2JoinClzes(getEntityClz());
@@ -817,7 +817,7 @@ public abstract class DMLObject<T> {
         return sb;
     }
 
-    protected String getColumnName(Column c) {
+    public String getColumnName(Column c) {
         return sessionFactory.getColumnName(c);
     }
 

@@ -1,11 +1,13 @@
 package rabbit.open.orm.core.dml;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import rabbit.open.orm.common.dml.FilterType;
+import rabbit.open.orm.common.exception.EmptyListFilterException;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 
 /**
@@ -46,7 +48,31 @@ public class DynamicFilterTask<T> implements CallBackTask{
 	 */
 	@Override
 	public void run() {
+		doValueCheck(value, ft);
 		addFilter(reg, value, ft, depsPath);
+	}
+
+	// 输入校验
+	public static void doValueCheck(Object value, FilterType ft) {
+		if (!FilterType.IN.equals(ft)) {
+			return;
+		}
+		if (null == value) {
+			throw new EmptyListFilterException();
+		}
+		if (value.getClass().isArray()) {
+			Object[] arr = (Object[]) value;
+			if (arr.length == 0) {
+				throw new EmptyListFilterException();
+			}
+		}
+		if (value instanceof Collection) {
+			@SuppressWarnings("unchecked")
+			Collection<Object> arr = (Collection<Object>) value;
+			if (arr.isEmpty()) {
+				throw new EmptyListFilterException();
+			}
+		}
 	}
 
 	private void addFilter(String reg, Object value, FilterType ft, Class<?>... depsPath) {

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import junit.framework.TestCase;
 import rabbit.open.orm.common.dml.FilterType;
+import rabbit.open.orm.common.exception.ConflictFilterException;
 import rabbit.open.orm.common.exception.CycleDependencyException;
 import rabbit.open.orm.common.exception.EmptyListFilterException;
 import rabbit.open.orm.common.exception.InvalidFetchOperationException;
@@ -22,11 +24,12 @@ import rabbit.open.orm.common.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.common.exception.InvalidJoinFilterException;
 import rabbit.open.orm.common.exception.InvalidQueryPathException;
 import rabbit.open.orm.common.exception.OrderAssociationException;
+import rabbit.open.orm.common.exception.RepeatedDMLFilterException;
 import rabbit.open.orm.common.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.common.exception.WrongJavaTypeException;
 import rabbit.open.orm.core.dml.Query;
-import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
+import rabbit.open.orm.core.dml.filter.ext.ManyToOneFilter;
 import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.EnumComponent;
@@ -45,10 +48,15 @@ import rabbit.open.test.entity.UUIDPolicyEntity;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.entity.ZProperty;
 import rabbit.open.test.entity.Zone;
+import rabbit.open.test.entity.dmlfilter.DMLHome;
+import rabbit.open.test.entity.dmlfilter.DMLOrg;
 import rabbit.open.test.entity.dmlfilter.DMLResource;
 import rabbit.open.test.entity.dmlfilter.DMLRole;
+import rabbit.open.test.entity.dmlfilter.DMLUri;
 import rabbit.open.test.entity.dmlfilter.DMLUser;
 import rabbit.open.test.service.CarService;
+import rabbit.open.test.service.DMLHomeService;
+import rabbit.open.test.service.DMLOrgService;
 import rabbit.open.test.service.DMLResourceService;
 import rabbit.open.test.service.DMLRoleService;
 import rabbit.open.test.service.DMLTeamService;
@@ -909,15 +917,159 @@ public class QueryTest {
     	TestCase.assertEquals(list.get(0).getRole().getAge(), er.getAge());
     }
     
+    @Autowired
+    DMLHomeService homeService;
+    
+    @Test
+    public void dmlFilterExceptionTest() {
+    	try {
+    		Query<DMLUser> query = dmlUs.createQuery();
+        	query.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", 1));
+        	query.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("name", "lisi"));
+        	query.addFilter("id", 10, DMLHome.class);
+        	query.list();
+        	throw new RuntimeException();
+    	} catch (Exception e) {
+			TestCase.assertEquals(ConflictFilterException.class, e.getClass());
+		}
+    	try {
+    		Query<DMLUser> query = dmlUs.createQuery();
+    		query.addDMLFilter(new ManyToManyFilter(DMLRole.class).on("id", 1));
+    		query.addJoinFilter("id", 2, DMLRole.class);
+    		query.list();
+    		throw new RuntimeException();
+    	} catch (Exception e) {
+    		TestCase.assertEquals(ConflictFilterException.class, e.getClass());
+    	}
+    	try {
+    		dmlUs.createQuery().joinFetch(DMLRole.class)
+			.addDMLFilter(
+					new ManyToManyFilter(DMLRole.class).on("id", 1).add(
+							new ManyToManyFilter(DMLResource.class).on("name", "").add(
+									new ManyToOneFilter(DMLUri.class).on("id", 1)
+									)
+							).add(
+	    							new ManyToManyFilter(DMLResource.class).on("name", "").add(
+	    									new ManyToOneFilter(DMLUri.class).on("id", 1)
+	    									)
+	    							)
+					)
+			.unique();
+    		throw new RuntimeException();
+    	} catch (Exception e) {
+    		TestCase.assertEquals(RepeatedDMLFilterException.class, e.getClass());
+		}
+    }
+    
+    @Autowired
+    private DMLOrgService orgService;
+    
     @Test
     public void dmlFilterTest() {
-    	Query<DMLUser> query = dmlUs.createQuery();
-    	DMLFilter filter = new ManyToManyFilter(DMLRole.class).on("name", FilterType.IN, new String[]{"zhangsan"})
-    				.add(new ManyToManyFilter(DMLResource.class));
-    	filter.setParentEntityClz(DMLUser.class);
-    	filter.setQuery(query);
-    	String sql = filter.getJoinSql();
-		System.out.println(sql);
+    	DMLUser user = new DMLUser();
+    	user.setName("dmlUser");
+    	dmlUs.add(user);
+    	DMLRole r1 = addRole("role1");
+    	DMLRole r2 = addRole("role2");
+    	DMLOrg org = new DMLOrg();
+    	org.setName("myorg");
+    	orgService.add(org);
+    	r1.setOrg(org);
+    	dmlRs.add(r2);
+    	dmlRs.add(r1);
+    	
+    	DMLUri u1 = createURI("uri1");
+    	DMLUri u2 = createURI("uri2");
+    	dmlUris.add(u1);
+    	dmlUris.add(u2);
+    	
+    	DMLResource res1 = createResource("DMLResource1");
+    	res1.setUri(u1);
+    	DMLResource res2 = createResource("DMLResource2");
+    	res2.setUri(u2);
+    	DMLResource res3 = createResource("DMLResource3");
+    	DMLResource res4 = createResource("DMLResource4");
+    	dmlResourceService.add(res1);
+    	dmlResourceService.add(res2);
+    	dmlResourceService.add(res3);
+    	dmlResourceService.add(res4);
+    	r1.setResources(Arrays.asList(res1, res2));
+    	r2.setResources(Arrays.asList(res3, res4));
+    	
+    	dmlRs.addJoinRecords(r1);
+    	dmlRs.addJoinRecords(r2);
+    	user.setRoles(Arrays.asList(r1, r2));
+    	dmlUs.addJoinRecords(user);
+    	
+    	TestCase.assertEquals(dmlUs.createQuery().joinFetch(DMLRole.class).unique().getRoles().size(), 2);
+    	
+    	DMLUser queryUser = dmlUs.createQuery().joinFetch(DMLRole.class)
+    			.addDMLFilter(new ManyToManyFilter(DMLRole.class).on("id", r1.getId()))
+    			.unique();
+    	TestCase.assertEquals(queryUser.getRoles().size(), 1);
+    	TestCase.assertEquals(queryUser.getRoles().get(0).getName(), r1.getName());
+    	
+    	
+    	TestCase.assertNull(dmlUs.createQuery().joinFetch(DMLRole.class)
+    			.addDMLFilter(new ManyToManyFilter(DMLRole.class).on("id", r1.getId())
+    					.add(new ManyToManyFilter(DMLResource.class).on("name", res3.getName())))
+    			.unique());
+    	
+    	
+		queryUser = dmlUs.createQuery().joinFetch(DMLRole.class)
+    			.addDMLFilter(new ManyToManyFilter(DMLRole.class).on("id", r1.getId())
+    					.add(new ManyToManyFilter(DMLResource.class).on("name", res1.getName()))
+    					)
+    			.unique();
+    	TestCase.assertEquals(queryUser.getRoles().size(), 1);
+    	TestCase.assertEquals(queryUser.getRoles().get(0).getName(), r1.getName());
+    	
+    	
+    	
+    	
+    	queryUser = dmlUs.createQuery().joinFetch(DMLRole.class)
+    			.addDMLFilter(
+    					new ManyToManyFilter(DMLRole.class).on("id", r1.getId()).add(
+    							new ManyToManyFilter(DMLResource.class).on("name", res1.getName())
+    								.on("id", res1.getId())
+    								.add(
+    									new ManyToOneFilter(DMLUri.class).on("id", res1.getId())
+    									)
+    							).add(new ManyToOneFilter(DMLOrg.class).on("id", org.getId()))
+    					)
+    			.unique();
+    	TestCase.assertEquals(queryUser.getRoles().size(), 1);
+    	TestCase.assertEquals(queryUser.getRoles().get(0).getName(), r1.getName());
+    	
+    	TestCase.assertNull(dmlUs.createQuery().joinFetch(DMLRole.class)
+    			.addDMLFilter(
+    					new ManyToManyFilter(DMLRole.class).on("id", r1.getId()).add(
+    							new ManyToManyFilter(DMLResource.class).on("name", res1.getName())
+    								.on("id", res1.getId())
+    								.add(
+    									new ManyToOneFilter(DMLUri.class).on("id", res1.getId())
+    									)
+    							).add(new ManyToOneFilter(DMLOrg.class).on("id", org.getId() + 10000))
+    					)
+    			.unique());
     }
+
+	private DMLUri createURI(String uriName) {
+		DMLUri u1 = new DMLUri();
+		u1.setName(uriName);
+		return u1;
+	}
+
+	private DMLResource createResource(String resourceName) {
+		DMLResource res1 = new DMLResource();
+		res1.setName(resourceName);
+		return res1;
+	}
+
+	private DMLRole addRole(String roleName) {
+		DMLRole r1 = new DMLRole();
+		r1.setName(roleName);
+		return r1;
+	}
     
 }
