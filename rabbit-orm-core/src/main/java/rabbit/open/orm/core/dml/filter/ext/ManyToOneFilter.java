@@ -37,7 +37,7 @@ public class ManyToOneFilter extends DMLFilter {
 	}
 	
 	public ManyToOneFilter(Class<?> entityClz) {
-		this(entityClz, null, true);
+		this(entityClz, null);
 	}
 	
 	@Override
