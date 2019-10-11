@@ -28,11 +28,11 @@ public class ServiceCodeElement extends AbstractDaoCodeElement {
 		sb.append(AbstractDaoCodeElement.IMPORT + entityName + ";\n");
 		sb.append(AbstractDaoCodeElement.IMPORT + Service.class.getName() + ";\n");
 		sb.append(AbstractDaoCodeElement.IMPORT + entityName.substring(0, entityName.lastIndexOf('.') + 1) 
-				+ "dao.base." + AbstractDaoCodeElement.PRIMARY_DAO_CLASS_NAME + ";\n");
+				+ "dao.base." + AbstractDaoCodeElement.GENERIC_DAO_CLASS_NAME + ";\n");
 		sb.append(new DocElement(CodeGenerator.COMMON_MSG, "@desc:  " + entitySimpleName + " service 实现类"));
 		sb.append(new AnnotationElement("@Service", "", Service.class.getName()));
 		sb.append("public class " + entitySimpleName + "Service" + " extends " + 
-				AbstractDaoCodeElement.PRIMARY_DAO_CLASS_NAME + "<" + entitySimpleName + "> {\n\n}\n");
+				AbstractDaoCodeElement.GENERIC_DAO_CLASS_NAME + "<" + entitySimpleName + "> {\n\n}\n");
 		return sb.toString();
 	}
 
