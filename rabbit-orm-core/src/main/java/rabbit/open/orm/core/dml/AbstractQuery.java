@@ -842,6 +842,12 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 					break;
 				}
 			}
+			List<Class<?>> list = new ArrayList<>();
+			this.dmlFilters.values().forEach(f -> list.addAll(f.getAssociatedClass()));
+			if (list.contains(fd.getField().getType())) {
+				innered = true;
+				break;
+			}
 			if (!innered) {
 				sql.append(LEFT_JOIN + fd.getFilterTable() + " "
 						+ getTableAlias(fd));

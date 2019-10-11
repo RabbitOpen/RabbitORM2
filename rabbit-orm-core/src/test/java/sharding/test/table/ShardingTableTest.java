@@ -18,6 +18,7 @@ import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
+import rabbit.open.orm.core.dml.filter.ext.ManyToOneFilter;
 import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
 import sharding.test.table.entity.Region;
@@ -225,7 +226,10 @@ public class ShardingTableTest {
         ShardingUser user = addUser(22L, "lyixhuxomixn", r);
         ShardingUser u = sus.createQuery().addFilter("id", user.getId())
                 .addFilter("name", regionName, Region.class)
-                .fetch(Region.class).execute().unique();
+                .fetch(Region.class).unique();
+        u = sus.createQuery().addFilter("id", user.getId())
+                .addDMLFilter(new ManyToOneFilter(Region.class).on("name", regionName))
+                .fetch(Region.class).unique();
         TestCase.assertEquals(user.getId(), u.getId());
         TestCase.assertEquals(user.getName(), u.getName());
         TestCase.assertEquals(u.getRegion().getId(), r.getId());

@@ -966,8 +966,13 @@ public class QueryTest {
     
     @Test
     public void dmlFilterTest() {
+    	DMLHome h = new DMLHome();
+    	h.setName("myhome");
+    	homeService.add(h);
+    	
     	DMLUser user = new DMLUser();
     	user.setName("dmlUser");
+    	user.setHome(h);
     	dmlUs.add(user);
     	DMLRole r1 = addRole("role1");
     	DMLRole r2 = addRole("role2");
@@ -1052,6 +1057,13 @@ public class QueryTest {
     							).add(new ManyToOneFilter(DMLOrg.class).on("id", org.getId() + 10000))
     					)
     			.unique());
+    	
+    	queryUser = dmlUs.createQuery()
+    		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", h.getId()))
+    		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("name", h.getName()))
+    		.fetch(DMLHome.class)
+    		.unique();
+    	TestCase.assertEquals(queryUser.getHome().getName(), h.getName());
     }
 
 	private DMLUri createURI(String uriName) {
