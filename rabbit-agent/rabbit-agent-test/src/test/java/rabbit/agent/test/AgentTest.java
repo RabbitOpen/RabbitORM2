@@ -17,7 +17,8 @@ public class AgentTest {
     public void callStackTrackTest() {
         CallStackTracker handler = new CallStackTracker();
         AgentDelegator.addDelegationHandler(handler);
-        new TestRunner().h1();
+        TestRunner runner = new TestRunner();
+        runner.h1();
         logger.info("\n" + handler.getStacks());
     }
 }
