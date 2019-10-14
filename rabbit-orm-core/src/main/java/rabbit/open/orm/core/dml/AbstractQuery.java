@@ -32,6 +32,7 @@ import rabbit.open.orm.common.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.common.exception.OrderAssociationException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.RepeatedAliasException;
+import rabbit.open.orm.common.exception.RepeatedDMLFilterException;
 import rabbit.open.orm.common.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.common.shard.ShardFactor;
 import rabbit.open.orm.common.shard.ShardingPolicy;
@@ -1447,11 +1448,10 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	public AbstractQuery<T> addDMLFilter(DMLFilter filter) {
 		filter.setParentEntityClz(getEntityClz());
 		filter.setQuery(this);
-		if (!dmlFilters.containsKey(filter.getEntityClz())) {
-			dmlFilters.put(filter.getEntityClz(), filter);
-		} else {
-			dmlFilters.get(filter.getEntityClz()).combineFilter(filter);
+		if (dmlFilters.containsKey(filter.getEntityClz())) {
+			throw new RepeatedDMLFilterException(filter.getEntityClz());
 		}
+		dmlFilters.put(filter.getEntityClz(), filter);
 		return this;
 	}
 

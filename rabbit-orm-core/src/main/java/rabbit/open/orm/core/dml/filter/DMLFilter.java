@@ -28,9 +28,6 @@ public abstract class DMLFilter {
 	// 基于当前实体{entityClz}的次级过滤条件
 	protected List<DMLFilter> filters = new ArrayList<>();
 
-	// 合并的同级filter
-	protected List<DMLFilter> combinedFilters = new ArrayList<>();
-
 	// 对应的查询对象
 	private AbstractQuery<?> query;
 
@@ -111,32 +108,6 @@ public abstract class DMLFilter {
 		for (CallBackTask task : tasks) {
 			task.run();
 		}
-		this.combinedFilters.forEach(f -> {
-			f.runCallTasks();
-			Map<String, List<DynamicFilterDescriptor>> map = f.joinFilters.get(getEntityClz());
-			Map<String, List<DynamicFilterDescriptor>> parentMap = joinFilters.get(getEntityClz());
-			if (null == map) {
-				return;
-			}
-			map.forEach((k, v) -> {
-				if (parentMap.containsKey(k)) {
-					parentMap.get(k).addAll(v);
-				} else {
-					parentMap.put(k, v);
-				}
-			});
-		});
-	}
-
-	/**
-	 * 
-	 * <b>@description 合并filter的过滤条件 </b>
-	 * @param filter
-	 * @return
-	 */
-	public DMLFilter combineFilter(DMLFilter filter) {
-		this.combinedFilters.add(filter);
-		return this;
 	}
 
 	public void setQuery(AbstractQuery<?> query) {

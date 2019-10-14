@@ -66,17 +66,6 @@ public class ManyToOneFilter extends DMLFilter {
 		for (CallBackTask task : tasks) {
 			task.run();
 		}
-		for (DMLFilter filter : combinedFilters) {
-			ManyToOneFilter f = (ManyToOneFilter) filter;
-			f.runCallTasks();
-			f.addedFilters.forEach((k, v) -> {
-				if (addedFilters.containsKey(k)) {
-					addedFilters.get(k).addAll(v);
-				} else {
-					addedFilters.put(k, v);
-				}
-			});
-		}
 	}
 
 	// 核对过滤条件的正确性，并检查fieldName是否有值，如果没有则找出关联值

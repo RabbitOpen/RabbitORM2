@@ -930,8 +930,17 @@ public class QueryTest {
         	query.list();
         	throw new RuntimeException();
     	} catch (Exception e) {
-			TestCase.assertEquals(ConflictFilterException.class, e.getClass());
+			TestCase.assertEquals(RepeatedDMLFilterException.class, e.getClass());
 		}
+    	try {
+    		Query<DMLUser> query = dmlUs.createQuery();
+    		query.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", 1)
+    				.add(new ManyToOneFilter(DMLHome.class).on("name", "lisi")));
+    		query.list();
+    		throw new RuntimeException();
+    	} catch (Exception e) {
+    		TestCase.assertEquals(InvalidFetchOperationException.class, e.getClass());
+    	}
     	try {
     		Query<DMLUser> query = dmlUs.createQuery();
     		query.addDMLFilter(new ManyToManyFilter(DMLRole.class).on("id", 1));
@@ -1059,14 +1068,12 @@ public class QueryTest {
     			.unique());
     	
     	queryUser = dmlUs.createQuery()
-    		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", h.getId()))
-    		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("name", h.getName()))
+    		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", h.getId()).on("name", h.getName()))
     		.fetch(DMLHome.class)
     		.unique();
     	TestCase.assertEquals(queryUser.getHome().getName(), h.getName());
     	TestCase.assertEquals( dmlUs.createQuery()
-        		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", h.getId()))
-        		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("name", h.getName()))
+        		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", h.getId()).on("name", h.getName()))
         		.fetch(DMLHome.class).count(), 1);
     }
 

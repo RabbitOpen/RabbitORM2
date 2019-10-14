@@ -198,9 +198,7 @@ public class SQLiteQueryTest {
                 		.on( "id", FilterType.IN, new Integer[] { 
                 				user.getRoles().get(0).getId(), 
                 				user.getRoles().get(1).getId()}
-                		))
-                .addDMLFilter(new ManyToManyFilter(SQLiteRole.class).on("roleName",
-                        user.getRoles().get(0).getRoleName()))
+                		).on("roleName", user.getRoles().get(0).getRoleName()))
                 .execute().unique();
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
                 .getOrgCode());
