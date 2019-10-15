@@ -263,8 +263,8 @@ public abstract class DDLHelper {
         try {
             connection = factory.getConnection();
             ddlHelper.setConnection(connection);
-            logger.info("DDLType[" + factory.getDialectType().name() + "]: "
-                    + factory.getDdl().toUpperCase());
+            String upperCase = factory.getDdl().toUpperCase();
+			logger.info("DDLType[{}]: {}", factory.getDialectType(), upperCase);
             if (DDLType.CREATE.name().equalsIgnoreCase(factory.getDdl())) {
                 doCreate(factory, ddlHelper);
             } else {
@@ -608,8 +608,9 @@ public abstract class DDLHelper {
         try {
             stmt = conn.createStatement();
             for (StringBuilder sql : sqls) {
-                logger.info(SQLFormater.format(sql.toString().trim())
-                        .toUpperCase());
+                String upperCase = SQLFormater.format(sql.toString().trim())
+                        .toUpperCase();
+				logger.info("{}", upperCase);
                 stmt.addBatch(sql.toString());
             }
             stmt.executeBatch();
@@ -640,7 +641,8 @@ public abstract class DDLHelper {
         try {
             stmt = conn.createStatement();
             StringBuilder sql = createTableSQL(clz, tableName);
-            logger.info(SQLFormater.format(sql.toString()).toUpperCase());
+            String upperCase = SQLFormater.format(sql.toString()).toUpperCase();
+			logger.info("{}", upperCase);
             stmt.execute(sql.toString());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

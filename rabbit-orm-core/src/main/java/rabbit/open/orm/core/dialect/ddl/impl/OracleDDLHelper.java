@@ -111,7 +111,7 @@ public class OracleDDLHelper extends DDLHelper {
 			for (String d : fks) {
 				StringBuilder sql = new StringBuilder("ALTER TABLE ").append(d.split(",")[0])
 						.append(" DROP CONSTRAINT ").append(d.split(",")[1]);
-				logger.info(sql.toString());
+				logger.info("{}", sql);
 				stmt.executeUpdate(sql.toString());
 			}
         } catch (Exception e) {
@@ -176,7 +176,8 @@ public class OracleDDLHelper extends DDLHelper {
 					continue;
 				}
 				String drop = "drop table " + table;
-				logger.info(SQLFormater.format(drop).toUpperCase());
+				String upperCase = SQLFormater.format(drop).toUpperCase();
+				logger.info("{}", upperCase);
 				stmt.execute(drop);
 			}
 		} catch (Exception e) {
@@ -201,7 +202,8 @@ public class OracleDDLHelper extends DDLHelper {
 				if (null == drop) {
 					continue;
 				}
-				logger.info(SQLFormater.format(drop).toUpperCase());
+				String upperCase = SQLFormater.format(drop).toUpperCase();
+				logger.info("{}", upperCase);
 				stmt.execute(drop);
 			}
 		} catch (SQLException e) {
@@ -222,7 +224,8 @@ public class OracleDDLHelper extends DDLHelper {
 					continue;
 				}
 				StringBuilder sql = createJoinTableSql(entry.getKey(), entry.getValue());
-				logger.info(SQLFormater.format(sql.toString()).toUpperCase());
+				String upperCase = SQLFormater.format(sql.toString()).toUpperCase();
+				logger.info("{}", upperCase);
 				stmt.execute(sql.toString());
 			}
 		} catch (Exception e) {
@@ -242,12 +245,14 @@ public class OracleDDLHelper extends DDLHelper {
 				if (null == sql) {
 					continue;
 				}
-				logger.info(SQLFormater.format(sql.toString()).toUpperCase());
+				String upperCase = SQLFormater.format(sql.toString()).toUpperCase();
+				logger.info("{}", upperCase);
 				stmt.execute(sql.toString());
 			}
 			//注释
 			for (StringBuilder cmt : getCommentSqls()) {
-				logger.info(cmt.toString().toUpperCase());
+				String upperCase = cmt.toString().toUpperCase();
+				logger.info("{}", upperCase);
 				stmt.execute(cmt.toString());
 			}
 		} catch (SQLException e) {

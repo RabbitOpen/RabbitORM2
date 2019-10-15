@@ -355,7 +355,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
                 stmt.addBatch();
             }
             if (sessionFactory.isShowSql()) {
-                logger.info(sql.toString());
+                logger.info("{}", sql);
             }
             stmt.executeBatch();
         } finally {

@@ -138,9 +138,7 @@ public class RabbitDataSource extends AbstractDataSource {
 			session.setVersion(getRestartTimes());
 			counter++;
 			connectors.addFirst(session);
-			logger.info("new session{" + session.getVersion() + "}[" + session + "] is created! [" + counter
-					+ "] session alive! " + "[" + connectors.size()
-					+ "] sessions is idle");
+			logger.info("new session{{}} [{}] is created! [{}] session alive! [{}] sessions is idle", session.getVersion(), session, counter, connectors.size());
 		} catch (Exception e) {
 			throw new RabbitDMLException(e);
 		} finally {

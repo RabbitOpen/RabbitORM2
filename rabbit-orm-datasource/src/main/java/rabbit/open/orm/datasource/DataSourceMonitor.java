@@ -85,7 +85,7 @@ public class DataSourceMonitor extends Thread {
 	 */
 	public void releaseHoldedSession() {
 		for (Entry<Session, SessionHolderInfo> entry : sessionHolder.entrySet()) {
-			logger.error(sessionHolder.size() + " connection left, " + entry.getValue());
+			logger.error("{} connection left, {}", sessionHolder.size(), entry.getValue());
 			entry.getKey().destroy();
 		}
 	}

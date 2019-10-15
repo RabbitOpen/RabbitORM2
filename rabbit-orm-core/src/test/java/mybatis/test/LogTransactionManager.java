@@ -37,7 +37,7 @@ public class LogTransactionManager extends RabbitTransactionManager {
 		if (def.isReadOnly()) {
 			return;
 		}
-		logger.info("doBegin: " + obj);
+		logger.info("doBegin: {}", obj);
 		super.doBegin(obj, def);
 	}
 
@@ -46,7 +46,7 @@ public class LogTransactionManager extends RabbitTransactionManager {
 		if (status.isReadOnly()) {
 			return;
 		}
-		logger.info("doCommit: " + status.getTransaction());
+		logger.info("doCommit: {}", status.getTransaction());
 		super.doCommit(status);
 	}
 
@@ -60,25 +60,25 @@ public class LogTransactionManager extends RabbitTransactionManager {
 		if (status.isReadOnly()) {
 			return;
 		}
-		logger.info("doRollback: " + status.getTransaction());
+		logger.info("doRollback: {}", status.getTransaction());
 		super.doRollback(status);
 	}
 
 	@Override
 	protected boolean isExistingTransaction(Object transaction) {
 		boolean existingTransaction = super.isExistingTransaction(transaction);
-		logger.info("isExistingTransaction: " + existingTransaction);
+		logger.info("isExistingTransaction: {}", existingTransaction);
 		return existingTransaction;
 	}
 
 	@Override
 	protected Object doSuspend(Object transaction) {
-		logger.info("doSuspend: " + transaction);
+		logger.info("doSuspend: {}", transaction);
 		return null;
 	}
 
 	@Override
 	protected void doResume(Object transaction, Object suspendedResources) {
-		logger.info("doResume: " + transaction + ", " + suspendedResources);
+		logger.info("doResume: {}, {}", transaction, suspendedResources);
 	}
 }

@@ -39,7 +39,7 @@ public class RabbitDataSourceTest {
 							e.printStackTrace();
 						}
 					}
-					logger.info("exit " + Thread.currentThread().getId());
+					logger.info("exit {}", Thread.currentThread().getId());
 				}
 			}).start();
         }

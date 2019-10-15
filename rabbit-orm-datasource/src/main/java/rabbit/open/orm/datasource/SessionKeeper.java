@@ -46,7 +46,7 @@ public class SessionKeeper {
 			StackTraceElement ste = stackTraceElements[i];
 			sb.append("\t" + ste.toString() + "\r\n");
 		}
-		logger.error(sb.toString());
+		logger.error("{}", sb);
 		
 		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
 		sb = new StringBuilder("current operation 2: \n");
@@ -54,7 +54,7 @@ public class SessionKeeper {
 			StackTraceElement ste = stes[i];
 			sb.append("\t" + ste.toString() + "\r\n");
 		}
-		logger.error(sb.toString());
+		logger.error("{}", sb);
 	}
 	
 	public void back2Pool(Session conn) {

@@ -193,8 +193,7 @@ public class Session implements Connection {
 	public void destroy() {
 		closeStmts();
 		dataSource.closeSession(this);
-		logger.info("session{version: " + version + ", stmtments:" + cachedStmts.size() + "} closed, ["
-				+ dataSource.getCounter() + "] session left!");
+		logger.info("session{version: {}, stmtments: {}} closed, [{}] session left!", version, cachedStmts.size(), dataSource.getCounter());
 	}
 
 	@Override

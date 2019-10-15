@@ -67,7 +67,8 @@ public class MySQLDDLHelper extends DDLHelper {
                     continue;
                 }
                 String drop = "drop table " + table;
-                logger.info(SQLFormater.format(drop).toUpperCase());
+                String sql = SQLFormater.format(drop).toUpperCase();
+				logger.info("{}", sql);
                 stmt.addBatch(drop);
             }
             stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
@@ -95,7 +96,8 @@ public class MySQLDDLHelper extends DDLHelper {
                 if (null == drop) {
                     continue;
                 }
-                logger.info(SQLFormater.format(drop).toUpperCase());
+                String out = SQLFormater.format(drop).toUpperCase();
+				logger.info("{}", out);
                 stmt.addBatch(drop);
             }
             stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
@@ -121,7 +123,8 @@ public class MySQLDDLHelper extends DDLHelper {
                 }
                 StringBuilder sql = createJoinTableSql(entry.getKey(),
                         entry.getValue());
-                logger.info(SQLFormater.format(sql.toString()).toUpperCase());
+                String out = SQLFormater.format(sql.toString()).toUpperCase();
+				logger.info("{}", out);
                 stmt.addBatch(sql.toString());
             }
             stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
@@ -150,7 +153,8 @@ public class MySQLDDLHelper extends DDLHelper {
                 if (null == sql) {
                     continue;
                 }
-                logger.info(SQLFormater.format(sql.toString()).toUpperCase());
+                String out = SQLFormater.format(sql.toString()).toUpperCase();
+				logger.info("{}", out);
                 stmt.addBatch(sql.toString());
             }
             stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);

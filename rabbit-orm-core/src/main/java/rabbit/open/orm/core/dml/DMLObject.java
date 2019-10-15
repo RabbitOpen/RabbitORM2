@@ -163,8 +163,8 @@ public abstract class DMLObject<T> {
      * <b>Description  显示带问号的sql.</b>
      */
     public void showMaskedPreparedSql() {
-        logger.info(NEW_LINE + (sessionFactory.isFormatSql() ? 
-                SQLFormater.format(sql.toString()) : sql.toString()));
+        Object formattedSql = sessionFactory.isFormatSql() ? SQLFormater.format(sql.toString()) : sql.toString();
+		logger.info("{}{}", NEW_LINE, formattedSql);
     }
 
     /**
@@ -198,9 +198,9 @@ public abstract class DMLObject<T> {
 					+ (preparedValues.isEmpty() ? "" : (NEW_LINE + vs
 							.toString()));
 			if (info) {
-            	logger.info(msg);
+            	logger.info("{}", msg);
             } else {
-            	logger.error(msg);
+            	logger.error("{}", msg);
             }
         } catch (Exception e) {
             logger.error("show sql error for " + e.getMessage(), e);

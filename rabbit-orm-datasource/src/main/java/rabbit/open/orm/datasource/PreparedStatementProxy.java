@@ -80,7 +80,7 @@ public class PreparedStatementProxy implements MethodInterceptor {
 			Object ret = method.invoke(stmt, args);
 			long cost = System.currentTimeMillis() - start;
 			if (cost >= getSlowSqlThreshold()) {
-				logger.debug("cost: " + cost + "ms, " + preparedSql.toString());
+				logger.debug("cost: {}ms, {}", cost, preparedSql);
 			}
 			return ret;
 		}

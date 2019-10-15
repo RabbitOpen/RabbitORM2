@@ -555,9 +555,7 @@ public class Update<T> extends NonQueryAdapter<T> {
     private void setEntityFiled(Object data, String key, FieldMetaData fmd,
             Object value) {
         Field pk = MetaData.getPrimaryKeyField(fmd.getField().getType());
-        logger.warn("value[" + value + "] is not compatible with field[" 
-        		+ key + "(" + fmd.getField().getType().getName() + ")] of " 
-        		+ data.getClass().getName());
+        logger.warn("value[{}] is not compatible with field[{}({})] of {}", value, key, fmd.getField().getType().getName(), data.getClass().getName());
         Object bean = DMLObject.newInstance(fmd.getField().getType());
 		if (value instanceof Number) {
             setValue2Field(bean, pk, RabbitValueConverter.cast(

@@ -108,7 +108,8 @@ public class PackageScanner implements Serializable {
             } else {
                 File root = new File(url.toURI());
                 if (root.exists() && root.isDirectory()) {
-                    logger.info("scan path: " + root.getPath().replaceAll("\\\\", "/"));
+                    String output = root.getPath().replaceAll("\\\\", "/");
+					logger.info("scan path: {}", output);
                     for (File f : root.listFiles()) {
                         files.addAll(scanFile(rootPath + "." + f.getName(), f));
                     }
@@ -177,7 +178,7 @@ public class PackageScanner implements Serializable {
                 if (!jar.endsWith("jar")) {
                     if (new File(jar).isDirectory()) {
                         URL base = new URL(new File(jar).toURI().toString());
-                        logger.info("scan directory [" + jar + "] for interface");
+                        logger.info("scan directory [{}] for interface", jar);
                         files.addAll(scanDirectory(roots, base, interfaceClz));
                     }
                     continue;
@@ -268,7 +269,7 @@ public class PackageScanner implements Serializable {
                 if (!jar.endsWith("jar")) {
                     if (new File(jar).isDirectory()) {
                         URL base = new URL(new File(jar).toURI().toString());
-                        logger.info("scan directory " + jar);
+                        logger.info("scan directory {}", jar);
                         files.addAll(scanDirectory(roots, anno, base));
                     }
                     continue;

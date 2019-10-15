@@ -17,7 +17,7 @@ public class MyDMLInterceptor implements DMLInterceptor {
     
     @Override
     public Object onValueSet(Object value, Field field, DMLType type) {
-        logger.info(field.getDeclaringClass().getSimpleName() + "." + field.getName() + ":\t" + value + ":\t" + type);
+        logger.info("{}.{}:\t{},:\t{}", field.getDeclaringClass().getSimpleName(), field.getName(), value, type);
         if (UUIDPolicyEntity.class.equals(field.getDeclaringClass())) {
             try {
                 if (field.equals(UUIDPolicyEntity.class.getDeclaredField("id"))) {

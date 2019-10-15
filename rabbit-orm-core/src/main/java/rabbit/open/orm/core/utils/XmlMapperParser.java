@@ -91,7 +91,7 @@ public class XmlMapperParser {
 
 	private void readXmls(List<String> xmls) {
 		for (String xml : xmls) {
-			logger.info("parsing " + xml);
+			logger.info("parsing {}", xml);
 			parseOneByOne(xml);
 		}
 	}
@@ -204,7 +204,7 @@ public class XmlMapperParser {
 			return xmls;
 		}
         if (!path.isDirectory()) {
-			logger.warn("mapping file path[" + sqlPath + "] is not a directory!");
+			logger.warn("mapping file path[{}] is not a directory!", sqlPath);
 			if (url.contains(".war!") || url.contains(".jar!")) {
                 String jar = getJarFileName(url);
                 xmls.addAll(findXmls(jar));
