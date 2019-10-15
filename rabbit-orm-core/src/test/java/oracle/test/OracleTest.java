@@ -147,7 +147,7 @@ public class OracleTest {
         us.add(u2);
         List<User> list = us
                 .createQuery()
-                .addMultiDropFilter(
+                .addFilter(
                         new MultiDropFilter().on("id", u1.getId(),
                                 FilterType.IN).on("desc", u2.getDesc()))
                 .fetch(Organization.class).asc("id").execute().list();
@@ -183,7 +183,7 @@ public class OracleTest {
                 .execute();
 
         List<User> list = us.createQuery()
-                .addMultiDropFilter(
+                .addFilter(
                         new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
                                 FilterType.IN).on("desc", u2.getDesc()))
                 .fetch(Organization.class).asc("id").execute().list();
@@ -242,7 +242,7 @@ public class OracleTest {
                         FilterType.IN).on("desc", u2.getDesc())).execute();
         
         List<User> list = us.createQuery()
-                .addMultiDropFilter(
+                .addFilter(
                         new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
                                 FilterType.IN).on("desc", u2.getDesc()))
                                 .fetch(Organization.class).asc("id").execute().list();

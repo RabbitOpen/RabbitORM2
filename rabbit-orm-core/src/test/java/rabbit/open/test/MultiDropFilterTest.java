@@ -41,7 +41,7 @@ public class MultiDropFilterTest {
         us.add(u2);
         List<User> list = us
                 .createQuery()
-                .addMultiDropFilter(
+                .addFilter(
                         new MultiDropFilter().on("id", u1.getId(),
                                 FilterType.IN).on("desc", u2.getDesc()))
                 .fetch(Organization.class).asc("id").execute().list();
@@ -77,7 +77,7 @@ public class MultiDropFilterTest {
                 .execute();
 
         List<User> list = us.createQuery()
-                .addMultiDropFilter(
+                .addFilter(
                         new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
                                 FilterType.IN).on("desc", u2.getDesc()))
                 .fetch(Organization.class).asc("id").execute().list();
@@ -117,9 +117,9 @@ public class MultiDropFilterTest {
         		.execute();
         
         List<User> list = us.createQuery()
-                .addMultiDropFilter(new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
+                .addFilter(new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
                                 FilterType.IN).on("desc", u2.getDesc()))
-                .addMultiDropFilter(new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
+                .addFilter(new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
                 		FilterType.IN).on("desc", u2.getDesc()))
                                 .fetch(Organization.class).asc("id").execute().list();
         TestCase.assertEquals(1, list.size());
@@ -177,7 +177,7 @@ public class MultiDropFilterTest {
 		u3.setAge(10);
 		u3.setDesc("3H3");
 		us.add(u3);
-		List<User> list = us.createQuery().addMultiDropFilter(
+		List<User> list = us.createQuery().addFilter(
 				new MultiDropFilter().on("id", u1.getId())
 				.on("id", u2.getId()).on("id", u3.getId()))
 				.list();

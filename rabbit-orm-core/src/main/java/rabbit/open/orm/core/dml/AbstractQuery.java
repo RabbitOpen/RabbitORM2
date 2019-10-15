@@ -565,7 +565,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * <b>Description  添加Or类型的过滤条件</b>
 	 * @param multiDropFilter
 	 */
-	public AbstractQuery<T> addMultiDropFilter(MultiDropFilter multiDropFilter) {
+	public AbstractQuery<T> addFilter(MultiDropFilter multiDropFilter) {
 		cacheMultiDropFilter(multiDropFilter);
 		return this;
 	}
