@@ -19,7 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.annotation.Entity;
@@ -66,7 +67,7 @@ public abstract class DMLObject<T> {
 
     protected static final String UNDERLINE = "_";
 
-    Logger logger = Logger.getLogger(getClass());
+    Logger logger = LoggerFactory.getLogger(getClass());
 	
 	protected List<CallBackTask> filterTasks;
 	

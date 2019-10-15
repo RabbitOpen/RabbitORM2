@@ -111,7 +111,7 @@ public class OracleDDLHelper extends DDLHelper {
 			for (String d : fks) {
 				StringBuilder sql = new StringBuilder("ALTER TABLE ").append(d.split(",")[0])
 						.append(" DROP CONSTRAINT ").append(d.split(",")[1]);
-				logger.info(sql);
+				logger.info(sql.toString());
 				stmt.executeUpdate(sql.toString());
 			}
         } catch (Exception e) {

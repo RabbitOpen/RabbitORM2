@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.common.dialect.DialectType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
@@ -27,7 +28,7 @@ public abstract class DialectTransformer {
 
     private static Map<DialectType, DialectTransformer> cache = new ConcurrentHashMap<>();
 
-    private Logger logger = Logger.getLogger(getClass());
+    private Logger logger = LoggerFactory.getLogger(getClass());
     
     private Pager pager;
     

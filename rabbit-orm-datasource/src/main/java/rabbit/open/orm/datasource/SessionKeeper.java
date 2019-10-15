@@ -2,11 +2,13 @@ package rabbit.open.orm.datasource;
 
 import java.sql.Connection;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class SessionKeeper {
 
-	private static Logger logger = Logger.getLogger(SessionKeeper.class);
+	private static Logger logger = LoggerFactory.getLogger(SessionKeeper.class);
 	
 	private ThreadLocal<Connection> keeper = new ThreadLocal<>();
 

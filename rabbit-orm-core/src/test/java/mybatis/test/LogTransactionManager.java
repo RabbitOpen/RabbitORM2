@@ -1,6 +1,7 @@
 package mybatis.test;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 
@@ -10,7 +11,7 @@ import rabbit.open.orm.core.spring.RabbitTransactionManager;
 @SuppressWarnings("serial")
 public class LogTransactionManager extends RabbitTransactionManager {
 
-	private Logger logger = Logger.getLogger(getClass());
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	public LogTransactionManager() {
 		super();

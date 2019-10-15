@@ -12,7 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -63,7 +64,7 @@ public class SessionFactory {
 	// 需要扫描的包
 	protected String packages2Scan = "";
 
-	private static Logger logger = Logger.getLogger(SessionFactory.class);
+	private static Logger logger = LoggerFactory.getLogger(SessionFactory.class);
 
 	public static final ThreadLocal<Object> transObjHolder = new ThreadLocal<>();
 

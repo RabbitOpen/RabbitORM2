@@ -3,19 +3,19 @@ package oracle.test;
 import java.sql.Connection;
 import java.sql.Statement;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 import junit.framework.TestCase;
 import oracle.test.entity.Region;
 import oracle.test.entity.ShardingUser;
 import oracle.test.service.OracleRegionService;
 import oracle.test.service.OracleShardingUserService;
-
-import org.apache.log4j.Logger;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SessionFactory;
@@ -35,7 +35,7 @@ public class OracleShardingTest {
     @Autowired
     OracleRegionService rs;
 
-    Logger logger = Logger.getLogger(getClass());
+    Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
      * <b>Description 新增 + 查询测试</b>

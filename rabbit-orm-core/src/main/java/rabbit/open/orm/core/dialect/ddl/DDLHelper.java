@@ -15,7 +15,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import rabbit.open.orm.common.annotation.Column;
@@ -47,7 +48,7 @@ public abstract class DDLHelper {
 
     protected Connection conn;
 
-    protected static Logger logger = Logger.getLogger(DDLHelper.class);
+    protected static Logger logger = LoggerFactory.getLogger(DDLHelper.class);
 
     protected Map<Class<?>, String> typeStringCache = new HashMap<>();
 

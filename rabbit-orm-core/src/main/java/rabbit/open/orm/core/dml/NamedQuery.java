@@ -7,7 +7,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
@@ -23,7 +24,7 @@ import rabbit.open.orm.core.dml.name.NamedSQL;
  */
 public class NamedQuery<T> {
     
-    private Logger logger = Logger.getLogger(getClass());
+    private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private Query<T> query;	
 	

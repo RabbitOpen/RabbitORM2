@@ -13,7 +13,8 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.common.exception.RabbitDDLException;
 
@@ -23,7 +24,7 @@ import rabbit.open.orm.common.exception.RabbitDDLException;
 @SuppressWarnings("serial")
 public class PackageScanner implements Serializable {
 
-    static Logger logger = Logger.getLogger(PackageScanner.class);
+    private static Logger logger = LoggerFactory.getLogger(PackageScanner.class);
 
     /**
      * 过滤包含特定注解的类

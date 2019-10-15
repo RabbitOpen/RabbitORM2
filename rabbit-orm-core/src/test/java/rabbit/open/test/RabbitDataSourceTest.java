@@ -4,13 +4,14 @@ import java.sql.Connection;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.datasource.RabbitDataSource;
 
 public class RabbitDataSourceTest {
 
-	static Logger logger = Logger.getLogger(RabbitDataSourceTest.class);
+	static Logger logger = LoggerFactory.getLogger(RabbitDataSourceTest.class);
 	static boolean stop = false;
 	public static void main(String[] args) throws Exception {
 		RabbitDataSource rds = new RabbitDataSource();

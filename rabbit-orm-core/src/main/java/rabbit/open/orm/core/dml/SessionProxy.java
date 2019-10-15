@@ -4,7 +4,8 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
@@ -16,7 +17,7 @@ import org.springframework.cglib.proxy.MethodProxy;
  */
 public class SessionProxy implements MethodInterceptor {
 
-	private static Logger logger = Logger.getLogger(SessionProxy.class);
+	private static Logger logger = LoggerFactory.getLogger(SessionProxy.class);
 	
     // 真实session
     private Connection realSession;

@@ -10,7 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.common.exception.SessionHoldOverTimeException;
 
@@ -23,7 +24,7 @@ public class DataSourceMonitor extends Thread {
 
 	private boolean run = true;
 
-	private Logger logger = Logger.getLogger(getClass());
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	protected RabbitDataSource dataSource;
 

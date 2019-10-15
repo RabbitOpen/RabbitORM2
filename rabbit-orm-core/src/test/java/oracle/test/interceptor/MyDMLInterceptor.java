@@ -2,18 +2,18 @@ package oracle.test.interceptor;
 
 import java.lang.reflect.Field;
 
-import oracle.test.entity.UUIDPolicyEntity;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import oracle.test.entity.UUIDPolicyEntity;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.core.dml.interceptor.DMLInterceptor;
 
 @Component
 public class MyDMLInterceptor implements DMLInterceptor {
 
-    Logger logger = Logger.getLogger(getClass());
+    Logger logger = LoggerFactory.getLogger(getClass());
     
     @Override
     public Object onValueSet(Object value, Field field, DMLType type) {

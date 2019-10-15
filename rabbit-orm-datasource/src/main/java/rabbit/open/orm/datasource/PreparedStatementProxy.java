@@ -1,14 +1,16 @@
 package rabbit.open.orm.datasource;
 
-import org.apache.log4j.Logger;
-import org.springframework.cglib.proxy.Enhancer;
-import org.springframework.cglib.proxy.MethodInterceptor;
-import org.springframework.cglib.proxy.MethodProxy;
-import rabbit.open.orm.common.exception.RabbitDMLException;
-
 import java.lang.reflect.Method;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cglib.proxy.Enhancer;
+import org.springframework.cglib.proxy.MethodInterceptor;
+import org.springframework.cglib.proxy.MethodProxy;
+
+import rabbit.open.orm.common.exception.RabbitDMLException;
 
 public class PreparedStatementProxy implements MethodInterceptor {
 
@@ -21,7 +23,7 @@ public class PreparedStatementProxy implements MethodInterceptor {
     
     private RabbitDataSource dataSource;
     
-    private Logger logger = Logger.getLogger(getClass());
+    private Logger logger = LoggerFactory.getLogger(getClass());
     
     static {
         try {

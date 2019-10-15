@@ -5,7 +5,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.DMLObject;
@@ -30,7 +31,7 @@ import rabbit.open.orm.core.dml.meta.MetaData;
  */
 public abstract class SpringDaoAdapter<T> {
 
-	protected Logger logger = Logger.getLogger(getClass());
+	protected Logger logger = LoggerFactory.getLogger(getClass());
 	
 	protected Class<T> clz;
 	
