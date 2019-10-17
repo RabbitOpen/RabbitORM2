@@ -1508,8 +1508,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		if (fms.containsKey(fieldName)) {
 			return getColumnName(fms.get(fieldName).getColumn());
 		}
-		throw new RabbitDMLException("field [" + fieldName
-				+ "] is no declared in " + targetClz.getName());
+		throw new RabbitDMLException("field [" + fieldName + "] is not declared in " + targetClz.getName());
 	}
 
 	/**
