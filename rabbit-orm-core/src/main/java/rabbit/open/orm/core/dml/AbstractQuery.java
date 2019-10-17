@@ -1502,8 +1502,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * @return
 	 *
 	 */
-	private String getColumnNameByFieldAndClz(String fieldName,
-											  Class<?> targetClz) {
+	private String getColumnNameByFieldAndClz(String fieldName, Class<?> targetClz) {
 		Map<String, FieldMetaData> fms = MetaData.getCachedFieldsMetas(targetClz);
 		if (fms.containsKey(fieldName)) {
 			return getColumnName(fms.get(fieldName).getColumn());
