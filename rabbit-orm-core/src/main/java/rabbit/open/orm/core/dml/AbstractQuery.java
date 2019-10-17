@@ -472,27 +472,32 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		}
 	}
 
-	private void readMany2ManyEntity(Map<String, Object> joinFetchEntity, Object colValue, String[] colNames) {
+	private void readMany2ManyEntity(Map<String, Object> entityMap, Object colValue, String[] colNames) {
 		// joinFetch出来的数据
 		String tableAlias = colNames[1];
 		String tableName = getTableNameByAlias(tableAlias);
 		String fieldNameAlias = colNames[2];
 		String fieldName = MetaData.getFieldsAliasMapping(
 				MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
-		if (null == joinFetchEntity.get(tableName)) {
+		if (null == entityMap.get(tableName)) {
 			Object entity = DMLObject.newInstance(MetaData.getClassByTableName(tableName));
-			joinFetchEntity.put(tableName, entity);
+			entityMap.put(tableName, entity);
 		}
 		Field field = getFieldByName(tableName, fieldName);
+		setValue2EntityField(entityMap, colValue, tableName, field);
+	}
+
+	private void setValue2EntityField(Map<String, Object> entityMap, Object colValue, String tableName, Field field) {
 		if (MetaData.isEntityClass(field.getType())) {
 			Object newInstance = DMLObject.newInstance(field.getType());
 			Field pkField = MetaData.getPrimaryKeyField(field.getType());
 			setValue2EntityField(newInstance, pkField, colValue);
-			setValue2Field(joinFetchEntity.get(tableName), field, newInstance);
+			setValue2Field(entityMap.get(tableName), field, newInstance);
 		} else {
-			setValue2EntityField(joinFetchEntity.get(tableName), field, colValue);
+			setValue2EntityField(entityMap.get(tableName), field, colValue);
 		}
 	}
+
 	/**
 	 *
 	 * 通过别名获取表名
@@ -511,7 +516,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		return "";
 	}
 
-	private void readFetchEntity(Map<String, Object> fetchEntityMap, Object colValue, String[] colNames) {
+	private void readFetchEntity(Map<String, Object> entityMap, Object colValue, String[] colNames) {
 		String tableAlias = colNames[0]; // 带后缀的表别名
 		String realTableAlias = tableAlias; // 真实表别名
 		boolean isMultiFetch = tableAlias.contains(UNDERLINE);
@@ -520,26 +525,18 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		}
 		String tableName = getTableNameByAlias(realTableAlias);
 		String fieldNameAlias = colNames[1];
-		String fieldName = MetaData.getFieldsAliasMapping(
-				MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
-		if (null == fetchEntityMap.get(tableAlias)) {
+		if (null == entityMap.get(tableAlias)) {
 			Object entity = DMLObject.newInstance(MetaData.getClassByTableName(tableName));
-			fetchEntityMap.put(tableAlias, entity);
+			entityMap.put(tableAlias, entity);
 		}
 		Field field;
 		try {
+			String fieldName = MetaData.getFieldsAliasMapping(MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
 			field = getFieldByName(tableName, fieldName);
 		} catch (Exception e) {
 			throw new RabbitDMLException(e);
 		}
-		if (MetaData.isEntityClass(field.getType())) {
-			Object newInstance = DMLObject.newInstance(field.getType());
-			Field pkField = MetaData.getPrimaryKeyField(field.getType());
-			setValue2EntityField(newInstance, pkField, colValue);
-			setValue2Field(fetchEntityMap.get(tableAlias), field,  newInstance);
-		} else {
-			setValue2EntityField(fetchEntityMap.get(tableAlias), field, colValue);
-		}
+		setValue2EntityField(entityMap, colValue, tableAlias, field);
 	}
 
 	protected Field getFieldByName(String tableName, String fieldName) {
