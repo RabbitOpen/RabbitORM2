@@ -938,7 +938,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		String joinTableAlias = getAliasByTableName(jfm.getTableName());
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + mtm.joinTable() + " " + middleTableAias + " ON ");
 		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "."
-				+ MetaData.getPrimaryKey(jfm.getTargetClass(), sessionFactory) + " = ");
+				+ MetaData.getPrimaryKeyColumnName(jfm.getTargetClass(), sessionFactory) + " = ");
 		sb.append(middleTableAias + "." + mtm.joinColumn() + " ");
 		if (!StringUtils.isEmpty(mtm.filterColumn()) && joinColumnFilterValueMap.containsKey(jfm.getJoinClass())) {
 			cachePreparedValues(joinColumnFilterValueMap.get(jfm.getJoinClass()), null);
@@ -946,7 +946,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		}
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + jfm.getTableName() + " " + joinTableAlias + " ON ");
 		sb.append(middleTableAias + "." + mtm.reverseJoinColumn() + " = ");
-		sb.append(joinTableAlias + "." + getColumnName(jfm.getPrimaryKey()));
+		sb.append(joinTableAlias + "." + getColumnName(jfm.getJoinClassPrimaryKey()));
 		sb.append(createJoinFilterSqlSegment(jfm));
 		sb.append(" ");
 		return sb;
@@ -966,7 +966,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		String lj = leftJoin ? LEFT_JOIN : INNER_JOIN;
 		sb.append(lj + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
 		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "."
-				+ MetaData.getPrimaryKey(jfm.getTargetClass(), sessionFactory) + " = ");
+				+ MetaData.getPrimaryKeyColumnName(jfm.getTargetClass(), sessionFactory) + " = ");
 		sb.append(getAliasByTableName(jfm.getTableName()) + "." + otm.joinColumn());
 		sb.append(createJoinFilterSqlSegment(jfm));
 		sb.append(" ");

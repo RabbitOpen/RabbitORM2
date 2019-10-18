@@ -148,7 +148,14 @@ public class MetaData<T> {
         return shardingPolicy;
     }
 	
-	public static String getPrimaryKey(Class<?> clz, SessionFactory factory) {
+	/***
+	 * 
+	 * <b>@description 获取主键字段的名字 </b>
+	 * @param clz
+	 * @param factory
+	 * @return
+	 */
+	public static String getPrimaryKeyColumnName(Class<?> clz, SessionFactory factory) {
 	    Column column = getPrimaryKeyFieldMeta(clz).getColumn();
         return factory.getColumnName(column);
 	}
