@@ -266,20 +266,10 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
         for (Object o : jrs) {
             StringBuilder rsql = new StringBuilder();
             List<PreparedValue> values = new ArrayList<>();
-            
             ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
             rsql.append("INSERT INTO " + mtm.joinTable() + "(");
             rsql.append(mtm.joinColumn() + "," + mtm.reverseJoinColumn());
-            if (!SessionFactory.isEmpty(mtm.id())) {
-                if (!mtm.policy().equals(Policy.AUTOINCREMENT)) {
-                    rsql.append(", " + mtm.id());
-                }
-            } else {
-                if (mtm.policy().equals(Policy.UUID) || mtm.policy().equals(Policy.SEQUENCE)) {
-                    throw new RabbitDMLException("ManyToMany id must be specified when policy is ["
-                            + mtm.policy() + "]");
-                }
-            }
+            appendIdField(rsql, mtm);
             // 子表的关联键值
             FieldMetaData pkfmd = MetaData.getCachedFieldsMeta(getEntityClz(), jfm.getMasterField().getName());
             values.add(new PreparedValue(RabbitValueConverter.convert(value, pkfmd), pkfmd.getField()));
@@ -287,26 +277,44 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
             values.add(new PreparedValue(RabbitValueConverter.convert(getValue(jfm.getSlaveField(), o), fmd), fmd.getField()));
             rsql.append(")VALUES(" + PLACE_HOLDER);
             rsql.append("," + PLACE_HOLDER);
-            if (!SessionFactory.isEmpty(mtm.id())) {
-                if (mtm.policy().equals(Policy.UUID)) {
-                    values.add(new PreparedValue(UUIDPolicy.getID(), jfm.getField()));
-                    rsql.append(", " + PLACE_HOLDER + ")");
-                }
-                if (mtm.policy().equals(Policy.SEQUENCE)) {
-                    rsql.append(", " + mtm.sequence() + ".NEXTVAL)");
-                }
-                if (mtm.policy().equals(Policy.AUTOINCREMENT)) {
-                    rsql.append(")");
-                }
-
-            } else {
-                rsql.append(")");
-            }
+            appendIdFieldValue(jfm, rsql, values, mtm);
             psd.setSql(rsql);
             preparedValues.add(values);
         }
         return psd;
     }
+
+ // 生成多对多中间表时，向insert语句添加当前这条记录的主键id字段的值信息
+	private void appendIdFieldValue(JoinFieldMetaData<?> jfm, StringBuilder rsql, List<PreparedValue> values,
+			ManyToMany mtm) {
+		if (!SessionFactory.isEmpty(mtm.id())) {
+		    if (mtm.policy().equals(Policy.UUID)) {
+		        values.add(new PreparedValue(UUIDPolicy.getID(), jfm.getField()));
+		        rsql.append(", " + PLACE_HOLDER + ")");
+		    }
+		    if (mtm.policy().equals(Policy.SEQUENCE)) {
+		        rsql.append(", " + mtm.sequence() + ".NEXTVAL)");
+		    }
+		    if (mtm.policy().equals(Policy.AUTOINCREMENT)) {
+		        rsql.append(")");
+		    }
+		} else {
+		    rsql.append(")");
+		}
+	}
+
+	// 生成多对多中间表时，向insert语句添加当前这条记录的主键id字段信息
+	private void appendIdField(StringBuilder rsql, ManyToMany mtm) {
+		if (!SessionFactory.isEmpty(mtm.id())) {
+		    if (!mtm.policy().equals(Policy.AUTOINCREMENT)) {
+		        rsql.append(", " + mtm.id());
+		    }
+		} else {
+		    if (mtm.policy().equals(Policy.UUID) || mtm.policy().equals(Policy.SEQUENCE)) {
+		        throw new RabbitDMLException("ManyToMany id must be specified when policy is [" + mtm.policy() + "]");
+		    }
+		}
+	}
 
 	/**
 	 * 
