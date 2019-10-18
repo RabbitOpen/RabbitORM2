@@ -120,7 +120,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
 
     /**
      * 
-     * <b>Description: 从many2many的中间表中替换数据(先移除相同的再添加)</b><br>
+     * <b>Description: 从many2many的中间表中替换数据(先移除所有旧的再添加新的)</b><br>
      * @param data
      * 
      */
