@@ -17,6 +17,7 @@ import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 /**
  * <b>@description 过滤器 </b>
  */
+@SuppressWarnings("rawtypes")
 public abstract class DMLFilter {
 
 	// 主表实体类
@@ -48,7 +49,7 @@ public abstract class DMLFilter {
 	}
 
 	// 基于entityClz添加过滤条件
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("unchecked")
 	public DMLFilter add(DMLFilter filter) {
 		boolean exits = !filters.stream().filter(f -> f.getEntityClz() == filter.entityClz).collect(Collectors.toList()).isEmpty();
 		if (exits) {
@@ -136,7 +137,7 @@ public abstract class DMLFilter {
 	}
 
 	private interface QueryLoader {
-		AbstractQuery<?> getQuery();
+		AbstractQuery getQuery();
 	}
 
 	/**

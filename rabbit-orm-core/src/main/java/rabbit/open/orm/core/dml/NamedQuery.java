@@ -3,7 +3,6 @@ package rabbit.open.orm.core.dml;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -59,12 +58,7 @@ public class NamedQuery<T> {
 			}
 		};
 		query.namedObject = query.getSessionFactory().getQueryByNameAndClass(name, clz);
-		query.fieldsValues = new TreeMap<>(new Comparator<Integer>() {
-			@Override
-			public int compare(Integer o1, Integer o2) {
-				return o1.compareTo(o2);
-			}
-		});
+		query.fieldsValues = new TreeMap<>((o1, o2) -> o1.compareTo(o2));
 	}
 
 	protected void generateQuerySql() {

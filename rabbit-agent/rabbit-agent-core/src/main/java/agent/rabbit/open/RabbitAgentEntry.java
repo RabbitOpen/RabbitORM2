@@ -21,6 +21,8 @@ public class RabbitAgentEntry {
 
 	private static Logger logger = LoggerFactory.getLogger(RabbitAgentEntry.class);
 
+	private RabbitAgentEntry () {}
+	
 	public static void premain(String agentArgs, Instrumentation inst) {
 		AgentBuilder.Transformer transformer = (builder, typeDescription, classLoader, javaModule) -> builder
 				.method(ElementMatchers.<MethodDescription>any()) // 拦截任意方法

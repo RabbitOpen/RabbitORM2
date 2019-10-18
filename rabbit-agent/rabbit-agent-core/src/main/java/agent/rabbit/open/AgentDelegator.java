@@ -13,6 +13,8 @@ import java.util.concurrent.LinkedBlockingDeque;
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class AgentDelegator {
+	
+	private AgentDelegator() {}
 
 	private static LinkedBlockingDeque<DelegationHandler> handlers = new LinkedBlockingDeque<>(100);
 

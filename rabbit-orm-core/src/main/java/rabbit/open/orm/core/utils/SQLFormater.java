@@ -21,6 +21,8 @@ public class SQLFormater {
 	static final String INDENTSTRING = "    ";
 	static final String INITIAL = "\n    ";
 
+	private SQLFormater() {}
+	
 	public static String format(String source) {
 		return new FormatProcess(source).perform().trim();
 	}

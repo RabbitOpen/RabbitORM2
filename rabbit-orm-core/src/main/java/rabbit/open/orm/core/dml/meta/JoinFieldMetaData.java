@@ -97,7 +97,6 @@ public class JoinFieldMetaData<T> implements Cloneable {
 		return slaveField;
 	}
 	
-	@Override
     @SuppressWarnings("unchecked")
 	public JoinFieldMetaData<T> clone() {
         try {

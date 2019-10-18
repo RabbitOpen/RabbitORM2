@@ -39,14 +39,11 @@ public class MultiDropFilter {
     }
 
     public MultiDropFilter on(String field, Object value, FilterType filterType) {
-    	tasks.add(new CallBackTask() {
-			@Override
-			public void run() {
-				Field f = DMLObject.checkField(targetClz, field);
-				FilterDescriptor fd = new FilterDescriptor(field, value, filterType.value());
-				fd.setField(f);
-				filters.add(new MultiDropFilter(field, fd));
-			}
+    	tasks.add(() -> {
+			Field f = DMLObject.checkField(targetClz, field);
+			FilterDescriptor fd = new FilterDescriptor(field, value, filterType.value());
+			fd.setField(f);
+			filters.add(new MultiDropFilter(field, fd));
 		});
         return this;
     }

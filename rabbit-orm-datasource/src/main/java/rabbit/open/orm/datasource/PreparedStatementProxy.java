@@ -29,7 +29,7 @@ public class PreparedStatementProxy implements MethodInterceptor {
         try {
             oraclePreparedStatementClz = Class.forName("oracle.jdbc.OraclePreparedStatement");
         } catch (ClassNotFoundException e) {
-            
+            // TO DO: ignore
         }
     }
     

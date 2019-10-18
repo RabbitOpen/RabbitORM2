@@ -102,6 +102,7 @@ public class XmlMapperParser {
 		try {
             reader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         } catch (SAXException e) {
+        	// TO DO: ignore
         }
 		Document doc;
 		try {

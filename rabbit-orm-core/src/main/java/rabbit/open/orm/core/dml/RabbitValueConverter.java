@@ -22,6 +22,8 @@ import rabbit.open.orm.core.dml.meta.FieldMetaData;
  */
 public class RabbitValueConverter {
 
+	private RabbitValueConverter() {}
+	
 	/**
 	 * 
 	 * 根据DB类型进行java值类型到DB数据值类型的转换

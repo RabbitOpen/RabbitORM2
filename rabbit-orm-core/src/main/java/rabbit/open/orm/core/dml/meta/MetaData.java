@@ -74,7 +74,8 @@ public class MetaData<T> {
         this.entityClz = entityClz;
     }
 
-    public static <D> MetaData<?> getMetaByClass(Class<D> clz) {
+    @SuppressWarnings("rawtypes")
+	public static <D> MetaData getMetaByClass(Class<D> clz) {
         if (metaMapping.containsKey(clz)) {
             return metaMapping.get(clz).copyIfSharding(clz);
         }

@@ -5,7 +5,7 @@
     <parent>
         <groupId>rabbit.open</groupId>
         <artifactId>rabbit-agent</artifactId>
-        <version>3.0</version>
+        <version>3.1.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>rabbit-agent-shade</artifactId>
