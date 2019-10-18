@@ -46,7 +46,7 @@ public abstract class SpringDaoAdapter<T> {
         	}
             this.clz = (Class<T>) ((ParameterizedType) (cls.getGenericSuperclass())).getActualTypeArguments()[0];
         } catch (Exception e) {
-
+        	// TO DO : ignore
         }
     }
 
@@ -372,7 +372,7 @@ public abstract class SpringDaoAdapter<T> {
 			}
 			cloneBeanField(dest, fieldValue, df);
 		} catch (Exception e) {
-
+			// TO DO : ignore
 		}
     }
 

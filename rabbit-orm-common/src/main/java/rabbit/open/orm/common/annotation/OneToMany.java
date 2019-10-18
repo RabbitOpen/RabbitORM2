@@ -15,6 +15,9 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.FIELD)
 public @interface OneToMany {
 
-	// 外键名
+	// 多端对象和当前主表关联的字段
 	public String joinColumn();
+	
+	// 一端对象和多端对象关联的字段(默认是主键)
+	public String masterFieldName() default "";
 }

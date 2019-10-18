@@ -117,7 +117,8 @@ public class Insert<T> extends NonQueryAdapter<T> {
             }
         }
         if (fmd.isForeignKey()) {
-            createForeignKeySqlSegment(vsql, fmd, fieldValue);
+            cacheForeignKeyValue(fmd, fieldValue);
+            vsql.append(PLACE_HOLDER);
         } else {
             if (fmd.isPrimaryKey() && fmd.getPrimaryKey().policy().equals(Policy.SEQUENCE)) {
                 vsql.append(fieldValue);
@@ -131,12 +132,18 @@ public class Insert<T> extends NonQueryAdapter<T> {
         return vsql;
     }
 
-	private void createForeignKeySqlSegment(StringBuilder values,
-			FieldMetaData fmd, Object value) {
-		FieldMetaData foreignKey = new FieldMetaData(fmd.getForeignField(), fmd.getForeignField().getAnnotation(Column.class));
-		Object vv = getValue(foreignKey.getField(), value);
-		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(vv, foreignKey), foreignKey.getField()));
-		values.append(PLACE_HOLDER);
+    // 向preparedValues添加外键字段的值
+	private void cacheForeignKeyValue(FieldMetaData fmd, Object value) {
+		if ("".equals(fmd.getColumn().joinFieldName())) {
+			FieldMetaData foreignKey = new FieldMetaData(fmd.getForeignField(), fmd.getForeignField().getAnnotation(Column.class));
+			Object vv = getValue(foreignKey.getField(), value);
+			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(vv, foreignKey), foreignKey.getField()));
+		} else {
+			// 自定义外键关联
+			FieldMetaData cfm = MetaData.getCachedFieldsMeta(value.getClass(), fmd.getColumn().joinFieldName());
+			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(getValue(cfm.getField(), value), cfm), cfm.getField()));
+		}
+		
 	}
 
 	private Object getPrimaryKeyValueByPolicy(FieldMetaData fmd) {

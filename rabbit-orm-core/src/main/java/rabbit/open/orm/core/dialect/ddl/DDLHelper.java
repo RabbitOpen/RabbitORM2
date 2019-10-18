@@ -696,9 +696,7 @@ public abstract class DDLHelper {
         StringBuilder sql = new StringBuilder();
         sql.append(getColumnName(fmd.getColumn()).toUpperCase() + " ");
         if (fmd.isForeignKey()) {
-            FieldMetaData pk = MetaData.getCachedFieldsMeta(fmd.getField().getType(), 
-                    fmd.getForeignField().getName());
-            sql.append(getSqlTypeByJavaType(pk.getField().getType(), pk.getColumn().length()));
+            createForeignKeyColumn(fmd, sql);
         } else {
             sql.append(getSqlTypeByJavaType(fmd.getField().getType(), fmd
                     .getColumn().length()));
@@ -711,6 +709,16 @@ public abstract class DDLHelper {
         sql.append(",");
         return sql;
     }
+
+	private void createForeignKeyColumn(FieldMetaData fmd, StringBuilder sql) {
+		if ("".equals(fmd.getColumn().joinFieldName())) {
+			FieldMetaData pk = MetaData.getCachedFieldsMeta(fmd.getField().getType(), fmd.getForeignField().getName());
+			sql.append(getSqlTypeByJavaType(pk.getField().getType(), pk.getColumn().length()));
+		} else {
+			FieldMetaData cfm = MetaData.getCachedFieldsMeta(fmd.getField().getType(), fmd.getColumn().joinFieldName());
+			sql.append(getSqlTypeByJavaType(cfm.getField().getType(), cfm.getColumn().length()));
+		}
+	}
 
     /**
      * <b>Description  根据策略添加策略sql片段</b>

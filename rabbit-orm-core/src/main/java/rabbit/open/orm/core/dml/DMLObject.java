@@ -622,9 +622,7 @@ public abstract class DMLObject<T> {
             if (!fmd.isForeignKey()) {
                 continue;
             }
-            Column column = MetaData.getPrimaryKeyFieldMeta(fmd.getField().getType())
-                    .getColumn();
-            String fkName = getColumnName(column);
+            String fkName = getManyToOnePrimaryKeyColumnName(fmd);
             String fkTable = getTableNameByClass(fmd.getField().getType());
             String tableAlias = getAliasByTableName(fkTable);
 			if (fmd.isMultiFetchField()) {
@@ -651,6 +649,23 @@ public abstract class DMLObject<T> {
                     recusiveFindOutEnable2JoinClzes(fmd);
                 }
             }
+		}
+	}
+	
+	
+	/**
+	 * <b>@description 在多对一条件下获取多对一的一端表关联字段 </b>
+	 * @param fmd
+	 * @return
+	 */
+	private String getManyToOnePrimaryKeyColumnName(FieldMetaData fmd) {
+		Column column = fmd.getColumn();
+		if ("".equals(column.joinFieldName())) {
+			return getColumnName(MetaData.getPrimaryKeyFieldMeta(fmd.getField().getType()).getColumn());
+		} else {
+			// 如果用户自定义了关联字段，就采用自定义的关联字段
+			FieldMetaData cfm = MetaData.getCachedFieldsMeta(fmd.getField().getType(), column.joinFieldName());
+			return getSessionFactory().getColumnName(cfm.getColumn());
 		}
 	}
 

@@ -509,19 +509,19 @@ public class Update<T> extends NonQueryAdapter<T> {
 	 * @return
 	 * 
 	 */
-	private Object combineValues(Object data) {
+	private Object combineValues(Object obj) {
+		Object data = obj;
         if (nullfields.isEmpty() && settedValue.isEmpty()) {
             return data;
         }
-        if (data == null) {
+        if (null == data) {
             data = DMLObject.newInstance(getEntityClz());
             clearDefaultValue(data);
         }
         Iterator<String> it = settedValue.keySet().iterator();
         while (it.hasNext()) {
             String key = it.next();
-            FieldMetaData fmd = MetaData.getCachedFieldsMeta(getEntityClz(),
-                    key);
+            FieldMetaData fmd = MetaData.getCachedFieldsMeta(getEntityClz(), key);
             Object value = settedValue.get(key);
             try {
                 setValue2Field(data, fmd.getField(), value);
@@ -552,14 +552,12 @@ public class Update<T> extends NonQueryAdapter<T> {
      * @param fmd
      * @param value
      */
-    private void setEntityFiled(Object data, String key, FieldMetaData fmd,
-            Object value) {
+    private void setEntityFiled(Object data, String key, FieldMetaData fmd, Object value) {
         Field pk = MetaData.getPrimaryKeyField(fmd.getField().getType());
         logger.warn("value[{}] is not compatible with field[{}({})] of {}", value, key, fmd.getField().getType().getName(), data.getClass().getName());
         Object bean = DMLObject.newInstance(fmd.getField().getType());
 		if (value instanceof Number) {
-            setValue2Field(bean, pk, RabbitValueConverter.cast(
-                    new BigDecimal(value.toString()), pk.getType()));
+            setValue2Field(bean, pk, RabbitValueConverter.cast(new BigDecimal(value.toString()), pk.getType()));
         } else {
             setValue2Field(bean, pk, value);
         }

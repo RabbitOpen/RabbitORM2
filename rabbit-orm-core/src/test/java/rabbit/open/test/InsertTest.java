@@ -13,6 +13,10 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.UUIDPolicyEntity;
 import rabbit.open.test.entity.User;
+import rabbit.open.test.entity.custom.CustomOrg;
+import rabbit.open.test.entity.custom.CustomOrgService;
+import rabbit.open.test.entity.custom.CustomUser;
+import rabbit.open.test.entity.custom.CustomUserService;
 import rabbit.open.test.service.UUIDEntityService;
 import rabbit.open.test.service.UserService;
 
@@ -41,17 +45,41 @@ public class InsertTest {
         User user = new User();
         user.setName("zhangsan");
         us.add(user);
-        System.out.println(user);
         user = new User();
         user.setName("zhangsan1");
         user.setOrg(new Organization("MY_ORG", "MY_ORG_NAME"));
         us.add(user);
-        System.out.println(user);
+        User query = us.getByID(user.getId());
+        TestCase.assertNull(query.getOrg());
 
         // uuid策略测试
-        UUIDPolicyEntity data = new UUIDPolicyEntity("lisi");
+        UUIDPolicyEntity data = new UUIDPolicyEntity("UUIDPolicyEntity-lisi");
         uus.add(data);
-        System.out.println(data);
+        UUIDPolicyEntity byID = uus.getByID(data.getId());
+        TestCase.assertEquals(data.getId(), byID.getId());
+        TestCase.assertEquals(data.getName(), byID.getName());
+    }
+    
+    @Autowired
+    CustomUserService cus;
+    
+    @Autowired
+    CustomOrgService cos;
+    
+    @Test
+    public void customAddTest() {
+    	CustomOrg org = new CustomOrg();
+    	org.setName("org-1");
+    	cos.add(org);
+    	
+    	CustomUser u = new CustomUser();
+    	u.setOrg(org);
+    	u.setName("username");
+    	cus.add(u);
+    	CustomUser unique = cus.createQuery().fetch(CustomOrg.class).addFilter("id", u.getId()).unique();
+    	TestCase.assertEquals(unique.getName(), u.getName());
+    	TestCase.assertEquals(unique.getOrg().getId(), org.getId());
+    	TestCase.assertEquals(unique.getOrg().getName(), org.getName());
     }
 
     @Test
@@ -64,7 +92,6 @@ public class InsertTest {
         	us.add(user);
     	}
     	TestCase.assertEquals(count, us.createQuery().addFilter("name", name).count());
-    	
     }
 
     @Test
@@ -82,6 +109,5 @@ public class InsertTest {
         } catch (Exception e) {
             TestCase.assertSame(NoField2InsertException.class, e.getClass());
         }
-        
     }
 }

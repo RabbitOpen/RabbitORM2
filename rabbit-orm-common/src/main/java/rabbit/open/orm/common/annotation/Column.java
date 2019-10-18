@@ -31,5 +31,8 @@ public @interface Column {
 
 	// 字段注释
 	public String comment() default "";
+	
+	// manyToOne 时 多端和当前表关联的字段(采用实体字段)，为空(默认)时使用主键字段
+	public String joinFieldName() default "";
 
 }

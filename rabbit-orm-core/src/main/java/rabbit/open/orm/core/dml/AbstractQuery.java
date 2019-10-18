@@ -439,14 +439,20 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		}
 		List<FilterDescriptor> deps = clzesEnabled2Join.get(entity.getClass());
 		for (FilterDescriptor fd : deps) {
-			Object depObj = fetchEntity.get(getAliasByTableName(getTableNameByClass(fd
-					.getJoinDependency())));
+			Object depObj = fetchEntity.get(getAliasByTableName(getTableNameByClass(fd.getJoinDependency())));
 			Object value = null;
 			if (null == depObj || null == (value = getValue(fd.getJoinField(), depObj))) {
 				continue;
 			}
-			Field pk = MetaData.getPrimaryKeyField(entity.getClass());
-			if (getValue(pk, value).equals(getValue(pk, entity))) {
+			FieldMetaData cfm = MetaData.getCachedFieldsMeta(depObj.getClass(), fd.getJoinField().getName());
+			Field field = null;
+			if ("".equals(cfm.getColumn().joinFieldName())) {
+				field = MetaData.getPrimaryKeyField(entity.getClass());
+			} else {
+				// 如果不是通过id字段依赖则特殊处理
+				field = MetaData.getCachedFieldsMeta(entity.getClass(), cfm.getColumn().joinFieldName()).getField();
+			}
+			if (getValue(field, value).equals(getValue(field, entity))) {
 				setValue2Field(depObj, fd.getJoinField(), entity);
 				return;
 			}
@@ -477,8 +483,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		String tableAlias = colNames[1];
 		String tableName = getTableNameByAlias(tableAlias);
 		String fieldNameAlias = colNames[2];
-		String fieldName = MetaData.getFieldsAliasMapping(
-				MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
+		String fieldName = MetaData.getFieldsAliasMapping(MetaData.getClassByTableName(tableName)).get(fieldNameAlias);
 		if (null == entityMap.get(tableName)) {
 			Object entity = DMLObject.newInstance(MetaData.getClassByTableName(tableName));
 			entityMap.put(tableName, entity);
@@ -490,8 +495,15 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	private void setValue2EntityField(Map<String, Object> entityMap, Object colValue, String tableName, Field field) {
 		if (MetaData.isEntityClass(field.getType())) {
 			Object newInstance = DMLObject.newInstance(field.getType());
-			Field pkField = MetaData.getPrimaryKeyField(field.getType());
-			setValue2EntityField(newInstance, pkField, colValue);
+			FieldMetaData cfm = MetaData.getCachedFieldsMeta(entityMap.get(tableName).getClass(), field.getName());
+			if ("".equals(cfm.getColumn().joinFieldName())) {
+				// 默认使用主键关联
+				setValue2EntityField(newInstance, MetaData.getPrimaryKeyField(field.getType()), colValue);
+			} else {
+				// 如果指定了关联字段则用关联字段进行关联
+				setValue2EntityField(newInstance, MetaData.getCachedFieldsMeta(field.getType(), cfm.getColumn().joinFieldName()).getField(), colValue);
+			}
+			
 			setValue2Field(entityMap.get(tableName), field, newInstance);
 		} else {
 			setValue2EntityField(entityMap.get(tableName), field, colValue);

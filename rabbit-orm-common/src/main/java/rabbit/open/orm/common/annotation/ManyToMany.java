@@ -20,11 +20,17 @@ public @interface ManyToMany {
 	//一端对象在中间表中的外键名
 	public String joinColumn();
 	
+	//一端对象和中间表关联的字段(默认是主键)
+	public String masterFieldName() default "";
+	
 	//中间表的名字
 	public String joinTable();
 	
 	//多端对象在中间表中的外键名
 	public String reverseJoinColumn();
+	
+	//多端对象和中间表关联的字段(默认是主键)
+	public String slaveFieldName() default "";
 	
 	public Policy policy() default Policy.NONE;
 	

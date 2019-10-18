@@ -21,8 +21,7 @@ import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.common.shard.ShardingPolicy;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SessionFactory;
-import rabbit.open.orm.core.dml.meta.proxy.ManyToManyProxy;
-import rabbit.open.orm.core.dml.meta.proxy.OneToManyProxy;
+import rabbit.open.orm.core.dml.meta.proxy.GenericAnnotationProxy;
 
 
 /**
@@ -442,13 +441,13 @@ public class MetaData<T> {
         if (null != ann) {
             ParameterizedType pt = (ParameterizedType) field.getGenericType();
             return new JoinFieldMetaData(field, (Class<?>) pt.getActualTypeArguments()[0], clz, 
-                    ManyToManyProxy.proxy((ManyToMany) ann));
+            		GenericAnnotationProxy.proxy((ManyToMany) ann, ManyToMany.class));
         }
         ann = field.getAnnotation(OneToMany.class);
         if (null != ann) {
             ParameterizedType pt = (ParameterizedType) field.getGenericType();
             return new JoinFieldMetaData(field, (Class<?>) pt.getActualTypeArguments()[0], clz, 
-                    OneToManyProxy.proxy((OneToMany) ann));
+            		GenericAnnotationProxy.proxy((OneToMany) ann, OneToMany.class));
         }
         return null;
     }

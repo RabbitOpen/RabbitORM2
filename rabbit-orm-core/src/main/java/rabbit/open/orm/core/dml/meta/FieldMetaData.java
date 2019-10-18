@@ -6,8 +6,7 @@ import java.util.Date;
 import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.annotation.PrimaryKey;
 import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.core.dml.meta.proxy.ColumnProxy;
-import rabbit.open.orm.core.dml.meta.proxy.PrimaryKeyProxy;
+import rabbit.open.orm.core.dml.meta.proxy.GenericAnnotationProxy;
 
 /**
  * <b>Description: 	字段元信息对象</b><br>
@@ -75,18 +74,22 @@ public class FieldMetaData {
     public FieldMetaData(Field field, Column column) {
 		super();
 		this.field = field;
-		this.column = ColumnProxy.proxy(column);
+		this.column = GenericAnnotationProxy.proxy(column, Column.class);
 		if (baseDataType.contains(field.getType().getSimpleName())) {
 			throw new RabbitDMLException("data type[" + field.getType().getSimpleName()
 					+ "] is not supported by rabbit entity!");
 		}
-		setPrimaryKey(PrimaryKeyProxy.proxy(field.getAnnotation(PrimaryKey.class)));
+		setPrimaryKey(GenericAnnotationProxy.proxy(field.getAnnotation(PrimaryKey.class), PrimaryKey.class));
 		//判断是否是外键类型
 		if (!MetaData.isEntityClass(field.getType())) {
 			return;
 		}
 		this.isForeignKey = true;
-		foreignField = MetaData.getPrimaryKeyField(field.getType());
+		if ("".equals(this.column.joinFieldName())) {
+			foreignField = MetaData.getPrimaryKeyField(field.getType());
+		} else {
+			foreignField = MetaData.getCachedFieldsMeta(field.getType(), this.column.joinFieldName()).getField();
+		}
 	}
 	
 	public FieldMetaData(Field field, Column column, Object value, String tableName) {
