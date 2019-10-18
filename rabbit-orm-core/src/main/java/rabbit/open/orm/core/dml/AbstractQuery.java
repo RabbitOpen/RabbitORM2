@@ -1220,7 +1220,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	}
 
 	private void prepareByClass(Class<?> clz2Fetch) {
-		// 执行mutifetch的class不允许继续向下操作
+		// 执行multi fetch的class不允许继续向下操作
 		List<FilterDescriptor> fds = getFilterDescriptorsByClzAndDep(clz2Fetch,
 				fetchClasses.get(clz2Fetch));
 		fetchTimesMappingTable.put(clz2Fetch, fds.size());
