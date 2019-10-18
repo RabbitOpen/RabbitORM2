@@ -213,7 +213,7 @@ public class InsertTest {
     		ccs.add(car);
     		cars.add(car);
     	}
-    	CustomUser unique = cus.createQuery().joinFetch(CustomCar.class).unique();
+    	CustomUser unique = cus.createQuery().joinFetch(CustomCar.class).addFilter("id", u.getId()).unique();
     	TestCase.assertEquals(5, unique.getCars().size());
     	AbstractQuery<CustomUser> query = cus.createQuery().addDMLFilter(new OneToManyFilter(CustomCar.class)
     				.on("carNo", cars.get(0).getCarNo()));
@@ -223,14 +223,14 @@ public class InsertTest {
 		TestCase.assertEquals(cars.get(0).getOwner().getName(), unique.getCars().get(0).getOwner().getName());
 		TestCase.assertEquals(cars.get(0).getId(), unique.getCars().get(0).getId());
 		
-		query = cus.createQuery().addJoinFilter("carNo", cars.get(0).getCarNo(), CustomCar.class);
+		query = cus.createQuery().addJoinFilter("carNo", cars.get(0).getCarNo(), CustomCar.class).addFilter("id", u.getId());
 		TestCase.assertEquals(1, query.count());
 		unique = query.joinFetch(CustomCar.class).unique();
 		TestCase.assertEquals(cars.get(0).getCarNo(), unique.getCars().get(0).getCarNo());
 		TestCase.assertEquals(cars.get(0).getOwner().getName(), unique.getCars().get(0).getOwner().getName());
 		TestCase.assertEquals(cars.get(0).getId(), unique.getCars().get(0).getId());
 		
-		query = cus.createQuery().joinFetch(CustomCar.class, cars.get(0));
+		query = cus.createQuery().joinFetch(CustomCar.class, cars.get(0)).addFilter("id", u.getId());
 		unique = query.unique();
 		TestCase.assertEquals(cars.get(0).getCarNo(), unique.getCars().get(0).getCarNo());
 		TestCase.assertEquals(cars.get(0).getOwner().getName(), unique.getCars().get(0).getOwner().getName());
