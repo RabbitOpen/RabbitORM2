@@ -5,6 +5,7 @@ import java.util.List;
 import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.annotation.ManyToMany;
+import rabbit.open.orm.common.annotation.OneToMany;
 import rabbit.open.orm.common.annotation.PrimaryKey;
 import rabbit.open.orm.common.dml.Policy;
 
@@ -31,6 +32,9 @@ public class CustomUser {
 			joinColumn = "USER_NAME", 
 			reverseJoinColumn = "ROLE_NAME")
 	private List<CustomRole> roles;
+
+	@OneToMany(joinColumn = "OWNER", masterFieldName = "name")
+	private List<CustomCar> cars;
 
 	public Integer getId() {
 		return id;
@@ -72,5 +76,12 @@ public class CustomUser {
 		this.roles = roles;
 	}
 
-	
+	public List<CustomCar> getCars() {
+		return cars;
+	}
+
+	public void setCars(List<CustomCar> cars) {
+		this.cars = cars;
+	}
+
 }

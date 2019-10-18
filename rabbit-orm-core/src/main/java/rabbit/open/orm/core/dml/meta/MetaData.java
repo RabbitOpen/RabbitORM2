@@ -20,7 +20,6 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.common.shard.ShardingPolicy;
 import rabbit.open.orm.core.dml.DMLObject;
-import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.proxy.GenericAnnotationProxy;
 
 
@@ -147,18 +146,6 @@ public class MetaData<T> {
         return shardingPolicy;
     }
 	
-	/***
-	 * 
-	 * <b>@description 获取主键字段的名字 </b>
-	 * @param clz
-	 * @param factory
-	 * @return
-	 */
-	public static String getPrimaryKeyColumnName(Class<?> clz, SessionFactory factory) {
-	    Column column = getPrimaryKeyFieldMeta(clz).getColumn();
-        return factory.getColumnName(column);
-	}
-
 	/**
      * 
      * <b>Description:  注册类和表的映射关系</b><br>

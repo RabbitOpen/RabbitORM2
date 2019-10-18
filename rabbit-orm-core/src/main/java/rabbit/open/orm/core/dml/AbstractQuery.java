@@ -979,7 +979,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		String lj = leftJoin ? LEFT_JOIN : INNER_JOIN;
 		sb.append(lj + jfm.getTableName() + " " + getAliasByTableName(jfm.getTableName()) + " ON ");
 		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "."
-				+ MetaData.getPrimaryKeyColumnName(jfm.getTargetClass(), sessionFactory) + " = ");
+				+ getColumnName(jfm.getMasterClassPrimaryKeyColumn()) + " = ");
 		sb.append(getAliasByTableName(jfm.getTableName()) + "." + otm.joinColumn());
 		sb.append(createJoinFilterSqlSegment(jfm));
 		sb.append(" ");

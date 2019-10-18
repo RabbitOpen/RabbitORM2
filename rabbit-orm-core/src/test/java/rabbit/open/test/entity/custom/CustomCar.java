@@ -5,18 +5,18 @@ import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.annotation.PrimaryKey;
 import rabbit.open.orm.common.dml.Policy;
 
-@Entity("CUSTOMER_ROLE")
-public class CustomRole {
+@Entity("CUSTOMER_CAR")
+public class CustomCar {
 
 	@PrimaryKey(policy = Policy.AUTOINCREMENT)
 	@Column("ID")
 	private Integer id;
 
-	@Column(value = "NAME", keyWord = true)
-	private String name;
+	@Column(value = "CAR_NO")
+	private String carNo;
 
-	@Column(value = "GROUP_", keyWord = true)
-	private String group;
+	@Column(value = "OWNER", keyWord = true, joinFieldName = "name")
+	private CustomUser owner;
 
 	public Integer getId() {
 		return id;
@@ -26,20 +26,20 @@ public class CustomRole {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public String getCarNo() {
+		return carNo;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setCarNo(String carNo) {
+		this.carNo = carNo;
 	}
 
-	public String getGroup() {
-		return group;
+	public CustomUser getOwner() {
+		return owner;
 	}
 
-	public void setGroup(String group) {
-		this.group = group;
+	public void setOwner(CustomUser owner) {
+		this.owner = owner;
 	}
 
 }
