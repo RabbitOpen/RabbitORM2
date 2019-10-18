@@ -446,11 +446,11 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 			}
 			FieldMetaData cfm = MetaData.getCachedFieldsMeta(depObj.getClass(), fd.getJoinField().getName());
 			Field field = null;
-			if ("".equals(cfm.getColumn().joinFieldName())) {
+			if ("".equals(cfm.getColumn().joinFieldName().trim())) {
 				field = MetaData.getPrimaryKeyField(entity.getClass());
 			} else {
 				// 如果不是通过id字段依赖则特殊处理
-				field = MetaData.getCachedFieldsMeta(entity.getClass(), cfm.getColumn().joinFieldName()).getField();
+				field = MetaData.getCachedFieldsMeta(entity.getClass(), cfm.getColumn().joinFieldName().trim()).getField();
 			}
 			if (getValue(field, value).equals(getValue(field, entity))) {
 				setValue2Field(depObj, fd.getJoinField(), entity);
@@ -496,12 +496,13 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		if (MetaData.isEntityClass(field.getType())) {
 			Object newInstance = DMLObject.newInstance(field.getType());
 			FieldMetaData cfm = MetaData.getCachedFieldsMeta(entityMap.get(tableName).getClass(), field.getName());
-			if ("".equals(cfm.getColumn().joinFieldName())) {
+			if ("".equals(cfm.getColumn().joinFieldName().trim())) {
 				// 默认使用主键关联
 				setValue2EntityField(newInstance, MetaData.getPrimaryKeyField(field.getType()), colValue);
 			} else {
 				// 如果指定了关联字段则用关联字段进行关联
-				setValue2EntityField(newInstance, MetaData.getCachedFieldsMeta(field.getType(), cfm.getColumn().joinFieldName()).getField(), colValue);
+				setValue2EntityField(newInstance, MetaData.getCachedFieldsMeta(field.getType(), 
+						cfm.getColumn().joinFieldName().trim()).getField(), colValue);
 			}
 			
 			setValue2Field(entityMap.get(tableName), field, newInstance);
@@ -950,7 +951,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		String joinTableAlias = getAliasByTableName(jfm.getTableName());
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + mtm.joinTable() + " " + middleTableAias + " ON ");
 		sb.append(getAliasByTableName(getTableNameByClass(jfm.getTargetClass())) + "."
-				+ MetaData.getPrimaryKeyColumnName(jfm.getTargetClass(), sessionFactory) + " = ");
+				+ getColumnName(jfm.getMasterClassPrimaryKeyColumn()) + " = ");
 		sb.append(middleTableAias + "." + mtm.joinColumn() + " ");
 		if (!StringUtils.isEmpty(mtm.filterColumn()) && joinColumnFilterValueMap.containsKey(jfm.getJoinClass())) {
 			cachePreparedValues(joinColumnFilterValueMap.get(jfm.getJoinClass()), null);
@@ -958,7 +959,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		}
 		sb.append((leftJoin ? LEFT_JOIN : INNER_JOIN) + jfm.getTableName() + " " + joinTableAlias + " ON ");
 		sb.append(middleTableAias + "." + mtm.reverseJoinColumn() + " = ");
-		sb.append(joinTableAlias + "." + getColumnName(jfm.getJoinClassPrimaryKey()));
+		sb.append(joinTableAlias + "." + getColumnName(jfm.getJoinClassPrimaryKeyColumn()));
 		sb.append(createJoinFilterSqlSegment(jfm));
 		sb.append(" ");
 		return sb;

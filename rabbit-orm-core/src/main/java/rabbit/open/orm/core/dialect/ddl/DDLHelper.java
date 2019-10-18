@@ -183,7 +183,7 @@ public abstract class DDLHelper {
 
     /**
      * 
-     * <b>Description: 实体表</b><br>
+     * <b>Description: 实体实体表</b><br>
      * @param entities
      * 
      */
@@ -198,7 +198,7 @@ public abstract class DDLHelper {
 
     /**
      * 
-     * <b>Description: 创建实体表</b><br>
+     * <b>Description: 创建关联表</b><br>
      * @param entities
      * 
      */
@@ -378,27 +378,38 @@ public abstract class DDLHelper {
         return clz;
     }
 
-    private List<JoinTableDescriptor> getJoinTableDescription(Class<?> clz,
-            Field f, ManyToMany m2m) {
-        List<JoinTableDescriptor> des = new ArrayList<>();
+    private List<JoinTableDescriptor> getJoinTableDescription(Class<?> clz, Field f, ManyToMany m2m) {
+        List<JoinTableDescriptor> descriptors = new ArrayList<>();
         if (!m2m.policy().equals(Policy.NONE)) {
-            des.add(new JoinTableDescriptor(
-                    m2m.policy().equals(Policy.UUID) ? String.class
+            descriptors.add(new JoinTableDescriptor(m2m.policy().equals(Policy.UUID) ? String.class
                             : Long.class, m2m.id(), m2m.policy(), m2m.policy()
                             .equals(Policy.UUID) ? 36 : 0));
         }
-        des.add(new JoinTableDescriptor(MetaData.getPrimaryKeyFieldMeta(clz)
-                .getField().getType(), m2m.joinColumn(), MetaData.getPrimaryKeyFieldMeta(clz).getColumn().length()));
-        ParameterizedType pt = (ParameterizedType) f.getGenericType();
-        des.add(new JoinTableDescriptor(MetaData.getPrimaryKeyFieldMeta(
-                (Class<?>) pt.getActualTypeArguments()[0]).getField().getType(), m2m
-                .reverseJoinColumn(), MetaData
-                .getPrimaryKeyFieldMeta((Class<?>) pt.getActualTypeArguments()[0])
-                .getColumn().length()));
-        if (!StringUtils.isEmpty(m2m.filterColumn())) {
-            des.add(new JoinTableDescriptor(String.class, m2m.filterColumn(), 50));
+        if ("".equals(m2m.masterFieldName().trim())) {
+        	descriptors.add(new JoinTableDescriptor(MetaData.getPrimaryKeyFieldMeta(clz).getField().getType(), 
+            		m2m.joinColumn(), MetaData.getPrimaryKeyFieldMeta(clz).getColumn().length()));
+        } else {
+        	// 自定义关联字段
+        	FieldMetaData cfm = MetaData.getCachedFieldsMeta(clz, m2m.masterFieldName().trim());
+			descriptors.add(new JoinTableDescriptor(cfm.getField().getType(), m2m.joinColumn(), cfm.getColumn().length()));
         }
-        return des;
+        
+        ParameterizedType pt = (ParameterizedType) f.getGenericType();
+        if ("".equals(m2m.slaveFieldName().trim())) {
+        	descriptors.add(new JoinTableDescriptor(MetaData.getPrimaryKeyFieldMeta(
+                    (Class<?>) pt.getActualTypeArguments()[0]).getField().getType(), 
+            		m2m.reverseJoinColumn(), 
+            		MetaData.getPrimaryKeyFieldMeta((Class<?>) pt.getActualTypeArguments()[0]).getColumn().length()));
+        } else {
+        	// 自定义关联字段
+        	FieldMetaData cfm = MetaData.getCachedFieldsMeta((Class<?>) pt.getActualTypeArguments()[0], m2m.slaveFieldName().trim());
+			descriptors.add(new JoinTableDescriptor(cfm.getField().getType(), m2m.reverseJoinColumn(), cfm.getColumn().length()));
+        }
+        
+        if (!StringUtils.isEmpty(m2m.filterColumn())) {
+            descriptors.add(new JoinTableDescriptor(String.class, m2m.filterColumn(), 50));
+        }
+        return descriptors;
     }
 
     private boolean isEntity(HashSet<String> entities, ManyToMany m2m) {
@@ -711,11 +722,11 @@ public abstract class DDLHelper {
     }
 
 	private void createForeignKeyColumn(FieldMetaData fmd, StringBuilder sql) {
-		if ("".equals(fmd.getColumn().joinFieldName())) {
+		if ("".equals(fmd.getColumn().joinFieldName().trim())) {
 			FieldMetaData pk = MetaData.getCachedFieldsMeta(fmd.getField().getType(), fmd.getForeignField().getName());
 			sql.append(getSqlTypeByJavaType(pk.getField().getType(), pk.getColumn().length()));
 		} else {
-			FieldMetaData cfm = MetaData.getCachedFieldsMeta(fmd.getField().getType(), fmd.getColumn().joinFieldName());
+			FieldMetaData cfm = MetaData.getCachedFieldsMeta(fmd.getField().getType(), fmd.getColumn().joinFieldName().trim());
 			sql.append(getSqlTypeByJavaType(cfm.getField().getType(), cfm.getColumn().length()));
 		}
 	}

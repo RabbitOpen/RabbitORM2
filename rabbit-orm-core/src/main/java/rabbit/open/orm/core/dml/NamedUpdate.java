@@ -1,8 +1,6 @@
 package rabbit.open.orm.core.dml;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.TreeMap;
 
 import rabbit.open.orm.common.dml.DMLType;
@@ -22,21 +20,18 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 		this.sessionFactory = factory;
 		namedObject = sessionFactory.getQueryByNameAndClass(name, clz);
 		fieldsValues = new TreeMap<>();
-		sqlOperation = new SQLOperation() {
-			@Override
-			public long executeSQL(Connection conn) throws SQLException {
-			    PreparedStatement stmt = null;
-				try {
-					setPreparedValues();
-					sql = new StringBuilder();
-					sql.append(namedObject.getSql());
-	                stmt = conn.prepareStatement(sql.toString());
-	                setPreparedStatementValue(stmt, dmlType);
-	                showSql();
-	                return stmt.executeUpdate();
-				} finally {
-				    closeStmt(stmt);
-				}
+		sqlOperation = conn -> {
+		    PreparedStatement stmt = null;
+			try {
+				setPreparedValues();
+				sql = new StringBuilder();
+				sql.append(namedObject.getSql());
+                stmt = conn.prepareStatement(sql.toString());
+                setPreparedStatementValue(stmt, dmlType);
+                showSql();
+                return stmt.executeUpdate();
+			} finally {
+			    closeStmt(stmt);
 			}
 		};
 	}

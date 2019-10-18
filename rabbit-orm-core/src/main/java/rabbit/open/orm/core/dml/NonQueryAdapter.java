@@ -1,6 +1,5 @@
 package rabbit.open.orm.core.dml;
 
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -15,6 +14,7 @@ import rabbit.open.orm.common.annotation.ManyToMany;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.dml.Policy;
+import rabbit.open.orm.common.exception.EmptyPrimaryKeyValueException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.common.shard.ShardFactor;
@@ -225,21 +225,29 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
 	 * @return
 	 * 
 	 */
-    protected List<PreparedSqlDescriptor> createAddJoinRecordsSql(T data,
-            Object value) {
+    protected List<PreparedSqlDescriptor> createAddJoinRecordsSql(T data) {
         List<PreparedSqlDescriptor> des = new ArrayList<>();
         for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
             List<?> jrs = getM2MJoinFieldValue(data, jfm);
             if (null == jrs || jrs.isEmpty()) {
                 continue;
             }
+            Object value;
+            value = getValue(jfm.getMasterField(), data);
+            assertEmptyPKValue(value);
             des.add(createAddJoinRecordsSql(value, jfm, jrs));
         }
         return des;
     }
     
+    protected void assertEmptyPKValue(Object value) {
+        if (null == value) {
+            throw new EmptyPrimaryKeyValueException();
+        }
+    }
+    
     @SuppressWarnings("rawtypes")
-    private List getM2MJoinFieldValue(T data, JoinFieldMetaData<?> jfm) {
+    protected List getM2MJoinFieldValue(T data, JoinFieldMetaData<?> jfm) {
         if (!(jfm.getAnnotation() instanceof ManyToMany)) {
             return new ArrayList<>();
         }
@@ -258,9 +266,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
         for (Object o : jrs) {
             StringBuilder rsql = new StringBuilder();
             List<PreparedValue> values = new ArrayList<>();
-            Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
-            // 子表的主键值
-            Object jpkv = getValue(jpk, o);
+            
             ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
             rsql.append("INSERT INTO " + mtm.joinTable() + "(");
             rsql.append(mtm.joinColumn() + "," + mtm.reverseJoinColumn());
@@ -274,10 +280,11 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
                             + mtm.policy() + "]");
                 }
             }
-            FieldMetaData pkfmd = getPrimayKeyFieldMeta(getEntityClz());
+            // 子表的关联键值
+            FieldMetaData pkfmd = MetaData.getCachedFieldsMeta(getEntityClz(), jfm.getMasterField().getName());
             values.add(new PreparedValue(RabbitValueConverter.convert(value, pkfmd), pkfmd.getField()));
-            FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
-            values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
+            FieldMetaData fmd = MetaData.getCachedFieldsMeta(jfm.getJoinClass(), jfm.getSlaveField().getName());
+            values.add(new PreparedValue(RabbitValueConverter.convert(getValue(jfm.getSlaveField(), o), fmd), fmd.getField()));
             rsql.append(")VALUES(" + PLACE_HOLDER);
             rsql.append("," + PLACE_HOLDER);
             if (!SessionFactory.isEmpty(mtm.id())) {
@@ -391,7 +398,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
 	 * @return
 	 * 
 	 */
-	protected List<PreparedSqlDescriptor> createRemoveJoinRecordsSql(T data, Object value) {
+	protected List<PreparedSqlDescriptor> createRemoveJoinRecordsSql(T data) {
 		List<PreparedSqlDescriptor> des = new ArrayList<>();
         for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
             List<?> jrs = getM2MJoinFieldValue(data, jfm);
@@ -402,19 +409,20 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
             ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
             StringBuilder rsql = new StringBuilder();
             rsql.append("DELETE FROM " + mtm.joinTable() + WHERE);
-            FieldMetaData pkfmd = getPrimayKeyFieldMeta(getEntityClz());
-            Object pv = RabbitValueConverter.convert(value, pkfmd);
+            FieldMetaData pkfmd = MetaData.getCachedFieldsMeta(getEntityClz(), jfm.getMasterField().getName());
+            Object value = getValue(jfm.getMasterField(), data);
+            assertEmptyPKValue(value);
+			Object pv = RabbitValueConverter.convert(value, pkfmd);
             List<Object> values = new ArrayList<>();
             values.add(new PreparedValue(pv, pkfmd.getField()));
             rsql.append(mtm.joinColumn() + " = " + PLACE_HOLDER);
             rsql.append(" AND " + mtm.reverseJoinColumn() + " IN (");
             for (Object o : jrs) {
-                Field jpk = MetaData.getPrimaryKeyField(jfm.getJoinClass());
-                // 子表的主键值
-                Object jpkv = getValue(jpk, o);
-                FieldMetaData fmd = getPrimayKeyFieldMeta(jfm.getJoinClass());
+                // 子表的关联主键值
+                Object jpkv = getValue(jfm.getSlaveField(), o);
+                FieldMetaData fmd =  MetaData.getCachedFieldsMeta(jfm.getJoinClass(), jfm.getSlaveField().getName());
                 values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
-                rsql.append("?,");
+                rsql.append("?, ");
             }
             rsql.deleteCharAt(rsql.lastIndexOf(","));
             rsql.append(")");

@@ -352,9 +352,7 @@ public abstract class DMLObject<T> {
 	protected void generateFilters(List<FieldMetaData> fieldMetas) {
         for (FieldMetaData fmd : fieldMetas) {
             if (fmd.isForeignKey()) {
-                Column column = MetaData.getPrimaryKeyFieldMeta(
-                        fmd.getFieldValue().getClass()).getColumn();
-                String fkName = getColumnName(column);
+                String fkName = getManyToOnePrimaryKeyColumnName(fmd);
                 String fkTable = getTableNameByClass(fmd.getField().getType());
                 MetaData.updateTableMapping(fkTable, fmd.getField().getType());
                 FilterDescriptor desc = new FilterDescriptor(
@@ -660,11 +658,11 @@ public abstract class DMLObject<T> {
 	 */
 	private String getManyToOnePrimaryKeyColumnName(FieldMetaData fmd) {
 		Column column = fmd.getColumn();
-		if ("".equals(column.joinFieldName())) {
+		if ("".equals(column.joinFieldName().trim())) {
 			return getColumnName(MetaData.getPrimaryKeyFieldMeta(fmd.getField().getType()).getColumn());
 		} else {
 			// 如果用户自定义了关联字段，就采用自定义的关联字段
-			FieldMetaData cfm = MetaData.getCachedFieldsMeta(fmd.getField().getType(), column.joinFieldName());
+			FieldMetaData cfm = MetaData.getCachedFieldsMeta(fmd.getField().getType(), column.joinFieldName().trim());
 			return getSessionFactory().getColumnName(cfm.getColumn());
 		}
 	}

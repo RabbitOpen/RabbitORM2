@@ -1,9 +1,7 @@
 package rabbit.open.orm.core.dml;
 
 import java.io.Serializable;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.dml.FilterType;
@@ -28,19 +26,16 @@ public class Delete<T> extends NonQueryAdapter<T> {
 	public Delete(SessionFactory sessionFactory, T filterData, Class<T> clz) {
 		super(sessionFactory, filterData, clz);
 		setDmlType(DMLType.DELETE);
-		sqlOperation = new SQLOperation() {
-			@Override
-			public long executeSQL(Connection conn) throws SQLException {
-				PreparedStatement stmt = null;
-				try {
-					createDeleteSql();
-					stmt = conn.prepareStatement(sql.toString());
-					setPreparedStatementValue(stmt, DMLType.DELETE);
-					showSql();
-					return stmt.executeUpdate();
-				} finally {
-					closeStmt(stmt);
-				}
+		sqlOperation = conn -> {
+			PreparedStatement stmt = null;
+			try {
+				createDeleteSql();
+				stmt = conn.prepareStatement(sql.toString());
+				setPreparedStatementValue(stmt, DMLType.DELETE);
+				showSql();
+				return stmt.executeUpdate();
+			} finally {
+				closeStmt(stmt);
 			}
 		};
 	}
@@ -93,18 +88,15 @@ public class Delete<T> extends NonQueryAdapter<T> {
 			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(id, fmd), fmd.getField()));
 			sql.append(getColumnName(fmd.getColumn()) + " = " + PLACE_HOLDER);
 		}
-		sqlOperation = new SQLOperation() {
-			@Override
-			public long executeSQL(Connection conn) throws SQLException {
-				PreparedStatement stmt = null;
-				try {
-					stmt = conn.prepareStatement(sql.toString());
-					setPreparedStatementValue(stmt, DMLType.DELETE);
-					showSql();
-					return stmt.executeUpdate();
-				} finally {
-					closeStmt(stmt);
-				}
+		sqlOperation = conn -> {
+			PreparedStatement stmt = null;
+			try {
+				stmt = conn.prepareStatement(sql.toString());
+				setPreparedStatementValue(stmt, DMLType.DELETE);
+				showSql();
+				return stmt.executeUpdate();
+			} finally {
+				closeStmt(stmt);
 			}
 		};
 		updateTargetTableName();

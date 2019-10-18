@@ -1,15 +1,11 @@
 package rabbit.open.orm.core.dml;
 
-import java.lang.reflect.Field;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import rabbit.open.orm.common.annotation.ManyToMany;
 import rabbit.open.orm.common.dml.DMLType;
-import rabbit.open.orm.common.exception.EmptyPrimaryKeyValueException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.shard.ShardFactor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
@@ -38,28 +34,13 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      * 
      */
     public long addJoinRecords(T data) {
-        Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-        Object value;
-        value = getValue(pk, data);
-        assertEmptyPKValue(value);
-        this.sqlOperation = new SQLOperation() {
-
-            @Override
-            public long executeSQL(Connection conn) throws SQLException {
-                List<PreparedSqlDescriptor> psds = createAddJoinRecordsSql(
-                        data, value);
-                executeBatch(conn, psds);
-                return 0;
-            }
+        this.sqlOperation = conn -> {
+        	 List<PreparedSqlDescriptor> psds = createAddJoinRecordsSql(data);
+             executeBatch(conn, psds);
+             return 0;
         };
         setDmlType(DMLType.INSERT);
         return execute();
-    }
-
-    private void assertEmptyPKValue(Object value) {
-        if (null == value) {
-            throw new EmptyPrimaryKeyValueException();
-        }
     }
 
     /**
@@ -83,20 +64,13 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      * 
      */
     public long removeJoinRecords(T data) {
-        Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-        Object value = getValue(pk, data);
-        assertEmptyPKValue(value);
-        this.sqlOperation = new SQLOperation() {
-            @Override
-            public long executeSQL(Connection conn) throws SQLException {
-                List<PreparedSqlDescriptor> psds = createRemoveJoinRecordsSql(
-                        data, value);
-                if (psds.isEmpty()) {
-                    throw new RabbitDMLException("no record to remove!");
-                }
-                executeBatch(conn, psds);
-                return 0;
+        this.sqlOperation = conn -> {
+            List<PreparedSqlDescriptor> psds = createRemoveJoinRecordsSql(data);
+            if (psds.isEmpty()) {
+                throw new RabbitDMLException("no record to remove!");
             }
+            executeBatch(conn, psds);
+            return 0;
         };
         setDmlType(DMLType.DELETE);
         return execute();
@@ -109,11 +83,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      * @param join
      * 
      */
-    public void clearJoinRecords(T data, Class<?> join) {
-        Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-        Object value;
-        value = getValue(pk, data);
-        assertEmptyPKValue(value);
+    public void removeJoinRecords(T data, Class<?> join) {
         sql = new StringBuilder();
         for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
             if (!(jfm.getAnnotation() instanceof ManyToMany)
@@ -124,25 +94,24 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
             sql.append("DELETE FROM " + mtm.joinTable() + WHERE);
             sql.append(mtm.joinColumn() + " = ");
             sql.append(PLACE_HOLDER);
-            FieldMetaData fmd = getPrimayKeyFieldMeta(getEntityClz());
-            preparedValues.add(new PreparedValue(RabbitValueConverter.convert(
-                    value, fmd), fmd.getField()));
+            FieldMetaData fmd = MetaData.getCachedFieldsMeta(getEntityClz(), jfm.getMasterField().getName());
+            Object value = getValue(jfm.getMasterField(), data);
+            assertEmptyPKValue(value);
+			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(
+            		value, fmd), fmd.getField()));
         }
         if (0 == sql.length()) {
             throw new RabbitDMLException("no record to clear!");
         }
-        this.sqlOperation = new SQLOperation() {
-            @Override
-            public long executeSQL(Connection conn) throws SQLException {
-                PreparedStatement stmt = null;
-                try {
-                    stmt = conn.prepareStatement(sql.toString());
-                    setPreparedStatementValue(stmt, null);
-                    showSql();
-                    return stmt.executeUpdate();
-                } finally {
-                    closeStmt(stmt);
-                }
+        this.sqlOperation = conn -> {
+            PreparedStatement stmt = null;
+            try {
+                stmt = conn.prepareStatement(sql.toString());
+                setPreparedStatementValue(stmt, null);
+                showSql();
+                return stmt.executeUpdate();
+            } finally {
+                closeStmt(stmt);
             }
         };
         setDmlType(DMLType.DELETE);
@@ -156,21 +125,20 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      * 
      */
     public void replaceJoinRecords(T data) {
-        Field pk = MetaData.getPrimaryKeyField(getEntityClz());
-        Object value = getValue(pk, data);
-        assertEmptyPKValue(value);
-        this.sqlOperation = new SQLOperation() {
-            @Override
-            public long executeSQL(Connection conn) throws SQLException {
-                List<PreparedSqlDescriptor> del = createRemoveJoinRecordsSql(
-                        data, value);
-                executeBatch(conn, del);
-                List<PreparedSqlDescriptor> add = createAddJoinRecordsSql(
-                        data, value);
-                executeBatch(conn, add);
-                return 0;
-            }
-        };
+		this.sqlOperation = conn -> {
+			for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
+				List<?> jrs = getM2MJoinFieldValue(data, jfm);
+				if (null == jrs || jrs.isEmpty()) {
+					continue;
+				}
+				preparedValues.clear();
+				removeJoinRecords(data, jfm.getJoinClass());
+			}
+			preparedValues.clear();
+			List<PreparedSqlDescriptor> add = createAddJoinRecordsSql(data);
+			executeBatch(conn, add);
+			return 0;
+		};
         setDmlType(DMLType.UPDATE);
         execute();
     }

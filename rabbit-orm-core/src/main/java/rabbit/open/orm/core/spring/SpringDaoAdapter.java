@@ -216,8 +216,8 @@ public abstract class SpringDaoAdapter<T> {
 	 * @param joinClass	
 	 * 
 	 */
-	public void clearJoinRecords(T data, Class<?> joinClass) {
-		new JoinTableManager<>(sessionFactory, clz).clearJoinRecords(data, joinClass);
+	public void removeJoinRecords(T data, Class<?> joinClass) {
+		new JoinTableManager<>(sessionFactory, clz).removeJoinRecords(data, joinClass);
 	}
 	
 	/**

@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
 import rabbit.open.orm.common.annotation.Column;
+import rabbit.open.orm.common.annotation.ManyToMany;
+import rabbit.open.orm.common.annotation.OneToMany;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 
 /**
@@ -35,8 +37,17 @@ public class JoinFieldMetaData<T> implements Cloneable {
 	//表名
 	private String tableName;
 	
-	//主键名
-	private Column joinClassPrimaryKey;
+	//关联表中的字段的column信息
+	private Column joinClassPrimaryKeyColumn;
+	
+	//主表中的字段的column信息
+	private Column masterClassPrimaryKeyColumn;
+	
+	// 【主表】和【中间表】关联的字段
+	private Field masterField;
+
+	// 【从表】和【中间表】表关联的字段
+	private Field slaveField;
 	
 	public JoinFieldMetaData(Field field, Class<T> joinClass, Class<?> targetClass, Annotation annotation) {
         super();
@@ -45,8 +56,46 @@ public class JoinFieldMetaData<T> implements Cloneable {
         this.joinClass = joinClass;
         this.annotation = annotation;
         this.tableName = MetaData.getTableNameByClass(joinClass);
-        this.joinClassPrimaryKey = MetaData.getPrimaryKeyFieldMeta(joinClass).getColumn();
+        initPrimaryKeyColumn(joinClass, targetClass, annotation);
     }
+
+	private void initPrimaryKeyColumn(Class<T> joinClass, Class<?> targetClass, Annotation annotation) {
+		if (annotation instanceof ManyToMany) {
+        	ManyToMany mtm = (ManyToMany) annotation;
+        	if ("".equals(mtm.slaveFieldName().trim())) {
+        		joinClassPrimaryKeyColumn = MetaData.getPrimaryKeyFieldMeta(joinClass).getColumn();
+        		slaveField = MetaData.getPrimaryKeyField(joinClass);
+        	} else {
+        		joinClassPrimaryKeyColumn = MetaData.getCachedFieldsMeta(joinClass, mtm.slaveFieldName().trim()).getColumn();
+        		slaveField = MetaData.getCachedFieldsMeta(joinClass, mtm.slaveFieldName().trim()).getField();
+        	}
+        	if ("".equals(mtm.masterFieldName().trim())) {
+        		masterClassPrimaryKeyColumn = MetaData.getPrimaryKeyFieldMeta(targetClass).getColumn();
+        		masterField = MetaData.getPrimaryKeyField(targetClass);
+        	} else {
+        		masterClassPrimaryKeyColumn = MetaData.getCachedFieldsMeta(targetClass, mtm.masterFieldName().trim()).getColumn();
+        		masterField = MetaData.getCachedFieldsMeta(targetClass, mtm.masterFieldName().trim()).getField();
+        	}
+        }
+		if (annotation instanceof OneToMany) {
+			OneToMany otm = (OneToMany) annotation;
+			if ("".equals(otm.masterFieldName().trim())) {
+				masterClassPrimaryKeyColumn = MetaData.getPrimaryKeyFieldMeta(targetClass).getColumn();
+				masterField = MetaData.getPrimaryKeyField(targetClass);
+			} else {
+				masterClassPrimaryKeyColumn = MetaData.getCachedFieldsMeta(targetClass, otm.masterFieldName().trim()).getColumn();
+				masterField = MetaData.getCachedFieldsMeta(targetClass, otm.masterFieldName().trim()).getField();
+			}
+		}
+	}
+	
+	public Field getMasterField() {
+		return masterField;
+	}
+	
+	public Field getSlaveField() {
+		return slaveField;
+	}
 	
 	@Override
     @SuppressWarnings("unchecked")
@@ -58,10 +107,14 @@ public class JoinFieldMetaData<T> implements Cloneable {
         }
     }
 	
-	public Column getJoinClassPrimaryKey() {
-		return joinClassPrimaryKey;
+	public Column getJoinClassPrimaryKeyColumn() {
+		return joinClassPrimaryKeyColumn;
 	}
 
+	public Column getMasterClassPrimaryKeyColumn() {
+		return masterClassPrimaryKeyColumn;
+	}
+	
 	public T getFilter() {
 		return filter;
 	}

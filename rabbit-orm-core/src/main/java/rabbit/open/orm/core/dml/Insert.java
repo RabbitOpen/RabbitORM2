@@ -34,12 +34,9 @@ public class Insert<T> extends NonQueryAdapter<T> {
         }
         setDmlType(DMLType.INSERT);
         createInsertSql(data);
-        sqlOperation = new SQLOperation() {
-            @Override
-            public long executeSQL(Connection conn) throws SQLException {
-                updateTargetTableName();
-                return doExecute(conn);
-            }
+        sqlOperation = conn -> {
+            updateTargetTableName();
+            return doExecute(conn);
         };
 	}
 
@@ -134,13 +131,13 @@ public class Insert<T> extends NonQueryAdapter<T> {
 
     // 向preparedValues添加外键字段的值
 	private void cacheForeignKeyValue(FieldMetaData fmd, Object value) {
-		if ("".equals(fmd.getColumn().joinFieldName())) {
+		if ("".equals(fmd.getColumn().joinFieldName().trim())) {
 			FieldMetaData foreignKey = new FieldMetaData(fmd.getForeignField(), fmd.getForeignField().getAnnotation(Column.class));
 			Object vv = getValue(foreignKey.getField(), value);
 			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(vv, foreignKey), foreignKey.getField()));
 		} else {
 			// 自定义外键关联
-			FieldMetaData cfm = MetaData.getCachedFieldsMeta(value.getClass(), fmd.getColumn().joinFieldName());
+			FieldMetaData cfm = MetaData.getCachedFieldsMeta(value.getClass(), fmd.getColumn().joinFieldName().trim());
 			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(getValue(cfm.getField(), value), cfm), cfm.getField()));
 		}
 		

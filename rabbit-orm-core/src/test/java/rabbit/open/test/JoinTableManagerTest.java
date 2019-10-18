@@ -75,7 +75,7 @@ public class JoinTableManagerTest {
         User u = addRecords(3);
         User user = query(u);
         TestCase.assertEquals(user.getRoles().size(), 3);
-        us.clearJoinRecords(u, Role.class);
+        us.removeJoinRecords(u, Role.class);
         user = query(u);
         TestCase.assertNull(user.getRoles());
     }
@@ -84,7 +84,7 @@ public class JoinTableManagerTest {
     public void exceptionTest() {
         try {
             User user = new User();
-            us.clearJoinRecords(user, Role.class);
+            us.removeJoinRecords(user, Role.class);
             throw new RuntimeException();
         } catch (Exception e) {
             TestCase.assertEquals(PoolTest.getRootCause(e).getClass(),
@@ -100,7 +100,6 @@ public class JoinTableManagerTest {
     @Test
     public void replaceJoinRecordsTest() {
         User user = addRecords(1);
-        Role role = user.getRoles().get(0);
         user = query(user);
         TestCase.assertEquals(user.getRoles().size(), 1);
         List<Role> roles = new ArrayList<Role>();
@@ -112,10 +111,9 @@ public class JoinTableManagerTest {
         user.setRoles(roles);
         us.replaceJoinRecords(user);
         user = query(user);
-        TestCase.assertEquals(user.getRoles().size(), 3);
+        TestCase.assertEquals(user.getRoles().size(), 2);
         TestCase.assertEquals(getRoleByID(roles.get(0).getId(), user.getRoles()).getRoleName(), roles.get(0).getRoleName());
         TestCase.assertEquals(getRoleByID(roles.get(1).getId(), user.getRoles()).getRoleName(), roles.get(1).getRoleName());
-        TestCase.assertEquals(getRoleByID(role.getId(), user.getRoles()).getRoleName(), role.getRoleName());
         
     }
     

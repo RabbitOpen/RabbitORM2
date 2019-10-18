@@ -85,10 +85,10 @@ public class FieldMetaData {
 			return;
 		}
 		this.isForeignKey = true;
-		if ("".equals(this.column.joinFieldName())) {
+		if ("".equals(this.column.joinFieldName().trim())) {
 			foreignField = MetaData.getPrimaryKeyField(field.getType());
 		} else {
-			foreignField = MetaData.getCachedFieldsMeta(field.getType(), this.column.joinFieldName()).getField();
+			foreignField = MetaData.getCachedFieldsMeta(field.getType(), this.column.joinFieldName().trim()).getField();
 		}
 	}
 	

@@ -1,17 +1,14 @@
-package rabbit.open.test.entity.custom;
-
-import java.util.List;
+package oracle.test.entity;
 
 import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.annotation.Entity;
-import rabbit.open.orm.common.annotation.ManyToMany;
 import rabbit.open.orm.common.annotation.PrimaryKey;
 import rabbit.open.orm.common.dml.Policy;
 
 @Entity("CUSTOMER_USER")
 public class CustomUser {
 
-	@PrimaryKey(policy = Policy.AUTOINCREMENT)
+	@PrimaryKey(policy=Policy.SEQUENCE, sequence="MYSEQ")
 	@Column("ID")
 	private Integer id;
 
@@ -23,14 +20,6 @@ public class CustomUser {
 
 	@Column("age")
 	private Integer age;
-	
-	@ManyToMany(id = "ID", policy = Policy.AUTOINCREMENT, 
-			joinTable = "T_CUSTOM_USER_ROLE", 
-			masterFieldName = "name",
-			slaveFieldName = "name", 
-			joinColumn = "USER_NAME", 
-			reverseJoinColumn = "ROLE_NAME")
-	private List<CustomRole> roles;
 
 	public Integer getId() {
 		return id;
@@ -64,13 +53,4 @@ public class CustomUser {
 		this.age = age;
 	}
 
-	public List<CustomRole> getRoles() {
-		return roles;
-	}
-
-	public void setRoles(List<CustomRole> roles) {
-		this.roles = roles;
-	}
-
-	
 }
