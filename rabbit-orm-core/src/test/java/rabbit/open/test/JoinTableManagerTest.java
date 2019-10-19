@@ -12,6 +12,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import junit.framework.TestCase;
 import rabbit.open.orm.common.exception.EmptyPrimaryKeyValueException;
+import rabbit.open.orm.common.exception.InvalidJoinMergeException;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.Role;
@@ -94,6 +95,13 @@ public class JoinTableManagerTest {
 			throw new RuntimeException();
 		} catch (Exception e) {
 			TestCase.assertEquals(PoolTest.getRootCause(e).getClass(), EmptyPrimaryKeyValueException.class);
+		}
+		try {
+			User user = new User();
+			us.mergeJoinRecords(user, JRole.class);
+			throw new RuntimeException();
+		} catch (Exception e) {
+			TestCase.assertEquals(PoolTest.getRootCause(e).getClass(), InvalidJoinMergeException.class);
 		}
 	}
 

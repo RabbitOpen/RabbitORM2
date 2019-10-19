@@ -309,22 +309,6 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
 		}
 	}
 
-	/**
-	 * 
-	 * <b>Description:	获取主键字段的描述符信息</b><br>
-	 * @param clz
-	 * @return	
-	 * 
-	 */
-    protected FieldMetaData getPrimayKeyFieldMeta(Class<?> clz) {
-        for (FieldMetaData fmd : MetaData.getCachedFieldsMetas(clz).values()) {
-            if (fmd.isPrimaryKey()) {
-                return fmd;
-            }
-        }
-        throw new RabbitDMLException("no primary key was found");
-    }
-
     /**
 	 * 
 	 * <b>Description:	批量执行sql</b><br>

@@ -161,24 +161,23 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
 		this.sqlOperation = conn -> {
 			preparedValues.clear();
 			JoinFieldMetaData jfmd = getJoinFieldMetaData(joinClass);
-	    	if (null == jfmd) {
-	    		throw new InvalidJoinMergeException(getEntityClz(), joinClass);
-	    	}
-	    	List<PreparedSqlDescriptor> psd = createRemoveJoinRecordsSql(data, jfmd);
-	    	executeBatch(conn, psd);
+			if (null == jfmd) {
+				throw new InvalidJoinMergeException(getEntityClz(), joinClass);
+			}
+			List<PreparedSqlDescriptor> psd = createRemoveJoinRecordsSql(data, jfmd);
+			executeBatch(conn, psd);
 			return 0;
 		};
-        setDmlType(DMLType.DELETE);
-        execute();
+		setDmlType(DMLType.DELETE);
+		execute();
 	}
 
 	private JoinFieldMetaData getJoinFieldMetaData(Class joinClass) {
 		for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
-            if ((jfm.getAnnotation() instanceof ManyToMany)
-                    && jfm.getJoinClass().equals(joinClass)) {
-            	return jfm;
-            }
-    	}
+			if ((jfm.getAnnotation() instanceof ManyToMany) && jfm.getJoinClass().equals(joinClass)) {
+				return jfm;
+			}
+		}
 		return null;
 	}
     
