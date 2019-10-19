@@ -184,7 +184,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 	 */
 	@Override
 	public Delete<T> addNotNullFilter(String fieldReg, Class<?>... depsPath) {
-		super.addFilter(fieldReg, null, FilterType.IS_NOT, depsPath);
+		super.addNotNullFilter(fieldReg, depsPath);
 		return this;
 	}
 	
