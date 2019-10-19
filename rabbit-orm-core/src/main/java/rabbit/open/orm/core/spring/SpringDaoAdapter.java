@@ -141,7 +141,6 @@ public abstract class SpringDaoAdapter<T> {
 	 * 
 	 * <b>Description:	创建一个sql查询</b><br>
 	 * @param sqlName
-	 * @return	
 	 * 
 	 */
 	public SQLQuery<T> createSQLQuery(String sqlName) {
@@ -152,7 +151,6 @@ public abstract class SpringDaoAdapter<T> {
 	 * 
 	 * <b>Description:	创建一个带过滤条件的更新对象</b><br>
 	 * @param filterData
-	 * @return	
 	 * 
 	 */
 	public Update<T> createUpdate(T filterData) {
@@ -162,7 +160,6 @@ public abstract class SpringDaoAdapter<T> {
 	/**
 	 * 
 	 * <b>Description:	创建一个更新对象</b><br>
-	 * @return	
 	 * 
 	 */
 	public Update<T> createUpdate() {
@@ -173,7 +170,6 @@ public abstract class SpringDaoAdapter<T> {
 	 * 
 	 * <b>Description:	根据主键进行更新</b><br>
 	 * @param data
-	 * @return
 	 * 
 	 */
 	public long updateByID(T data) {
@@ -183,7 +179,6 @@ public abstract class SpringDaoAdapter<T> {
 	/**
 	 * <b>@description 根据id替换数据库中的同id数据  </b>
 	 * @param data
-	 * @return
 	 */
 	public long replaceByID(T data) {
 		return new Update<>(sessionFactory, clz).replaceByID(data);
@@ -198,23 +193,30 @@ public abstract class SpringDaoAdapter<T> {
 	public void addJoinRecords(T data) {
 		new JoinTableManager<>(sessionFactory, clz).addJoinRecords(data);
 	}
-	
+
 	/**
 	 * 
-	 * <b>Description:	删除中间表数据</b><br>
+	 * <b>Description:	新增指定的中间表数据</b><br>
 	 * @param data	
+	 * @param joinClass	
 	 * 
+	 */
+	public void addJoinRecords(T data, Class<?> joinClass) {
+		new JoinTableManager<>(sessionFactory, clz).addJoinRecords(data, joinClass);
+	}
+	
+	/**
+	 * <b>Description:	删除所有中间表数据</b><br>
+	 * @param data	
 	 */
 	public void removeJoinRecords(T data) {
 		new JoinTableManager<>(sessionFactory, clz).removeJoinRecords(data);
 	}
 	
 	/**
-	 * 
 	 * <b>Description:	清除特定记录的中间表数据</b><br>
 	 * @param data		该对象的主键字段必须有值
 	 * @param joinClass	
-	 * 
 	 */
 	public void removeJoinRecords(T data, Class<?> joinClass) {
 		new JoinTableManager<>(sessionFactory, clz).removeJoinRecords(data, joinClass);
@@ -222,12 +224,24 @@ public abstract class SpringDaoAdapter<T> {
 	
 	/**
 	 * 
-	 * <b>Description:	替换中间表数据</b><br>
+	 * <b>Description:	替换特定表的中间表数据</b><br>
 	 * @param data	
+	 * @param joinClass	
 	 * 
 	 */
-	public void replaceJoinRecords(T data) {
-		new JoinTableManager<>(sessionFactory, clz).replaceJoinRecords(data);
+	public void replaceJoinRecords(T data, Class<?> joinClass) {
+		new JoinTableManager<>(sessionFactory, clz).replaceJoinRecords(data, joinClass);
+	}
+
+	/**
+	 * 
+	 * <b>Description:	合并特定表的中间表数据</b><br>
+	 * @param data	
+	 * @param joinClass	
+	 * 
+	 */
+	public void mergeJoinRecords(T data, Class<?> joinClass) {
+		new JoinTableManager<>(sessionFactory, clz).mergeJoinRecords(data, joinClass);
 	}
 	
 	/**

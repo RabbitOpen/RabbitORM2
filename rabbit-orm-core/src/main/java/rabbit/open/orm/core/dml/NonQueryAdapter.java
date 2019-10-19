@@ -217,28 +217,21 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
 		return tableName;
 	}
 	
-	/**
-	 * 
-	 * <b>Description:	创建添加中间表数据的sql</b><br>
-	 * @param data
-	 * @param value		data的主键字段的值
-	 * @return
-	 * 
-	 */
-    protected List<PreparedSqlDescriptor> createAddJoinRecordsSql(T data) {
-        List<PreparedSqlDescriptor> des = new ArrayList<>();
-        for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
-            List<?> jrs = getM2MJoinFieldValue(data, jfm);
-            if (null == jrs || jrs.isEmpty()) {
-                continue;
-            }
-            Object value;
-            value = getValue(jfm.getMasterField(), data);
-            assertEmptyPKValue(value);
-            des.add(createAddJoinRecordsSql(value, jfm, jrs));
-        }
-        return des;
-    }
+    /**
+     * <b>@description 根据JoinFieldMetaData创建sql </b>
+     * @param data
+     * @param jfm
+     * @return
+     */
+	protected PreparedSqlDescriptor createAddJoinRecordsSql(T data, JoinFieldMetaData<?> jfm) {
+		List<?> joinRecords = getM2MJoinFieldValue(data, jfm);
+		if (null == joinRecords || joinRecords.isEmpty()) {
+		    return null;
+		}
+		Object value = getValue(jfm.getMasterField(), data);
+		assertEmptyPKValue(value);
+		return createAddJoinRecordsSql(value, jfm, joinRecords);
+	}
     
     protected void assertEmptyPKValue(Object value) {
         if (null == value) {
@@ -258,12 +251,12 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
      * <b>@description 创建添加中间表记录的sql </b>
      * @param value	主表主键字段的值
      * @param jfm	关联信息
-     * @param jrs	关联表对象值
+     * @param joinRecords	关联表对象值
      * @return
      */
-    private PreparedSqlDescriptor createAddJoinRecordsSql(Object value, JoinFieldMetaData<?> jfm, List<?> jrs) {
-        PreparedSqlDescriptor psd = new PreparedSqlDescriptor(jrs.size());
-        for (Object o : jrs) {
+    private PreparedSqlDescriptor createAddJoinRecordsSql(Object value, JoinFieldMetaData<?> jfm, List<?> joinRecords) {
+        PreparedSqlDescriptor psd = new PreparedSqlDescriptor(joinRecords.size());
+        for (Object record : joinRecords) {
             StringBuilder rsql = new StringBuilder();
             List<PreparedValue> values = new ArrayList<>();
             ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
@@ -274,7 +267,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
             FieldMetaData pkfmd = MetaData.getCachedFieldsMeta(getEntityClz(), jfm.getMasterField().getName());
             values.add(new PreparedValue(RabbitValueConverter.convert(value, pkfmd), pkfmd.getField()));
             FieldMetaData fmd = MetaData.getCachedFieldsMeta(jfm.getJoinClass(), jfm.getSlaveField().getName());
-            values.add(new PreparedValue(RabbitValueConverter.convert(getValue(jfm.getSlaveField(), o), fmd), fmd.getField()));
+            values.add(new PreparedValue(RabbitValueConverter.convert(getValue(jfm.getSlaveField(), record), fmd), fmd.getField()));
             rsql.append(")VALUES(" + PLACE_HOLDER);
             rsql.append("," + PLACE_HOLDER);
             appendIdFieldValue(jfm, rsql, values, mtm);
@@ -354,7 +347,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
         try {
             stmt = conn.prepareStatement(psd.getSql().toString());
             stmt.clearBatch();
-            sql = new StringBuilder("\n" + (sessionFactory.isFormatSql() ? 
+            StringBuilder sql = new StringBuilder("\n" + (sessionFactory.isFormatSql() ? 
                     SQLFormater.format(psd.getSql().toString()) : psd.getSql().toString()));
             for (int i = 0; i < psd.getExecuteTimes(); i++) {
                 List<PreparedValue> values = (List<PreparedValue>) preparedValues.get();
@@ -398,46 +391,4 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
         }
     }
 
-	/**
-	 * 
-	 * <b>Description:	创建删除中间表记录的sql</b><br>
-	 * @param data
-	 * @param value
-	 * @return
-	 * 
-	 */
-	protected List<PreparedSqlDescriptor> createRemoveJoinRecordsSql(T data) {
-		List<PreparedSqlDescriptor> des = new ArrayList<>();
-        for (JoinFieldMetaData<?> jfm : metaData.getJoinMetas()) {
-            List<?> jrs = getM2MJoinFieldValue(data, jfm);
-            if (null == jrs || jrs.isEmpty()) {
-                continue;
-            }
-            PreparedSqlDescriptor psd = new PreparedSqlDescriptor(1);
-            ManyToMany mtm = (ManyToMany) jfm.getAnnotation();
-            StringBuilder rsql = new StringBuilder();
-            rsql.append("DELETE FROM " + mtm.joinTable() + WHERE);
-            FieldMetaData pkfmd = MetaData.getCachedFieldsMeta(getEntityClz(), jfm.getMasterField().getName());
-            Object value = getValue(jfm.getMasterField(), data);
-            assertEmptyPKValue(value);
-			Object pv = RabbitValueConverter.convert(value, pkfmd);
-            List<Object> values = new ArrayList<>();
-            values.add(new PreparedValue(pv, pkfmd.getField()));
-            rsql.append(mtm.joinColumn() + " = " + PLACE_HOLDER);
-            rsql.append(" AND " + mtm.reverseJoinColumn() + " IN (");
-            for (Object o : jrs) {
-                // 子表的关联主键值
-                Object jpkv = getValue(jfm.getSlaveField(), o);
-                FieldMetaData fmd =  MetaData.getCachedFieldsMeta(jfm.getJoinClass(), jfm.getSlaveField().getName());
-                values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
-                rsql.append("?, ");
-            }
-            rsql.deleteCharAt(rsql.lastIndexOf(","));
-            rsql.append(")");
-            preparedValues.add(values);
-            psd.setSql(rsql);
-            des.add(psd);
-        }
-		return des;
-	}
 }

@@ -177,7 +177,7 @@ public class InsertTest {
     		roles.add(role);
     	}
     	u.setRoles(roles);
-    	cus.replaceJoinRecords(u);
+    	cus.replaceJoinRecords(u, CustomRole.class);
     	unique = cus.createQuery().joinFetch(CustomRole.class).addFilter("id", u.getId()).unique();
     	TestCase.assertEquals(3, unique.getRoles().size());
     	
