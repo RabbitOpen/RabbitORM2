@@ -19,53 +19,53 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.RabbitORMException;
 
 /**
- * <b>Description: 	rabbit数据源</b><br>
- * <b>@author</b>	肖乾斌
+ * <b>Description: rabbit数据源</b><br>
+ * <b>@author</b> 肖乾斌
  * 
  */
 public class RabbitDataSource extends AbstractDataSource {
 
 	protected Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	protected LinkedBlockingDeque<Session> connectors = new LinkedBlockingDeque<>();
-	
+
 	protected DataSourceMonitor monitor;
-	
+
 	/**
 	 * 标记数据源是否已经关闭
 	 */
 	protected boolean closed = false;
-	
+
 	// 显示慢sql
-    protected boolean showSlowSql = false;
-    
-    // 慢sql的耗时阈值
-    protected long threshold = 0L;
-    
-    // 打印可疑的连接获取操作堆栈信息
-    protected boolean dumpSuspectedFetch = false;
-    
-    private SessionKeeper keeper = new SessionKeeper(this);
-    
-    // 数据源重启次数
-    private long restartTimes = 0;
-    
+	protected boolean showSlowSql = false;
+
+	// 慢sql的耗时阈值
+	protected long threshold = 0L;
+
+	// 打印可疑的连接获取操作堆栈信息
+	protected boolean dumpSuspectedFetch = false;
+
+	private SessionKeeper keeper = new SessionKeeper(this);
+
+	// 数据源重启次数
+	private long restartTimes = 0;
+
 	/**
 	 * 创建session时使用的锁
 	 */
 	private ReentrantLock sessionCreateLock = new ReentrantLock();
-	
+
 	// 获取连接时的等待时间
 	private long fetchTimeOut = 0L;
-	
+
 	// session的最大允许持有时间，超时会打印日志(如果允许的话)
 	private long maxSessionHoldingSeconds = 3L * 60;
-	
+
 	/**
 	 * 计数器
 	 */
 	private int counter = 0;
-	
+
 	/**
 	 * 获取一个可用的连接
 	 */
@@ -76,48 +76,48 @@ public class RabbitDataSource extends AbstractDataSource {
 		keeper.fetchFromPool(conn);
 		return conn;
 	}
-	
+
 	private Session getConnectionInternal() throws SQLException {
 		if (closed) {
-            throw new DataSourceClosedException("data source is closed!");
-        }
-        Session first = null;
-        try {
-        	first = connectors.pollFirst(fetchTimeOut, TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
-        	logger.error(e.getMessage(), e);
-        }
-        if (null != first) {
-            return first;
-        }
-        try2CreateNewSession();
-        if (getCounter() < getMaxSize()) {
-            return getConnectionInternal();
-        } else {
-            return pollConnection(15);
-        }
+			throw new DataSourceClosedException("data source is closed!");
+		}
+		Session first = null;
+		try {
+			first = connectors.pollFirst(fetchTimeOut, TimeUnit.MILLISECONDS);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+		if (null != first) {
+			return first;
+		}
+		try2CreateNewSession();
+		if (getCounter() < getMaxSize()) {
+			return getConnectionInternal();
+		} else {
+			return pollConnection(15);
+		}
 	}
 
 	/**
 	 * 
 	 * <b>Description: 获取一个连接</b><br>
-	 * @param 	seconds		超时秒数
+	 * @param seconds 超时秒数
 	 * @return
-	 * @throws 	RabbitORMException
+	 * @throws RabbitORMException
 	 * 
 	 */
-    private Session pollConnection(int seconds) throws RabbitORMException {
-        try {
-        	Session first;
-            first = connectors.pollFirst(seconds, TimeUnit.SECONDS);
-            if (null == first) {
-                throw new GetConnectionTimeOutException("get connection timeout for [" + seconds + "]s!");
-            }
-            return first;
-        } catch (Exception e) {
-            throw new RabbitORMException(e);
-        }
-    }
+	private Session pollConnection(int seconds) throws RabbitORMException {
+		try {
+			Session first;
+			first = connectors.pollFirst(seconds, TimeUnit.SECONDS);
+			if (null == first) {
+				throw new GetConnectionTimeOutException("get connection timeout for [" + seconds + "]s!");
+			}
+			return first;
+		} catch (Exception e) {
+			throw new RabbitORMException(e);
+		}
+	}
 
 	/**
 	 * 
@@ -133,19 +133,19 @@ public class RabbitDataSource extends AbstractDataSource {
 			if (getCounter() >= getMaxSize()) {
 				return;
 			}
-			Session session = new Session(DriverManager.getConnection(getUrl(),
-					getUsername(), getPassword()), this);
+			Session session = new Session(DriverManager.getConnection(getUrl(), getUsername(), getPassword()), this);
 			session.setVersion(getRestartTimes());
 			counter++;
 			connectors.addFirst(session);
-			logger.info("new session{{}} [{}] is created! [{}] session alive! [{}] sessions is idle", session.getVersion(), session, counter, connectors.size());
+			logger.info("new session{{}} [{}] is created! [{}] session alive! [{}] sessions is idle",
+					session.getVersion(), session, counter, connectors.size());
 		} catch (Exception e) {
 			throw new RabbitDMLException(e);
 		} finally {
 			sessionCreateLock.unlock();
 		}
 	}
-	
+
 	/**
 	 * 
 	 * <b>Description: 释放连接资源</b><br>
@@ -159,14 +159,14 @@ public class RabbitDataSource extends AbstractDataSource {
 			if (conn.getVersion() == getRestartTimes()) {
 				connectors.putFirst(conn);
 			} else {
-				logger.error("session version[" + conn.getVersion()
-						+ "] is old, current version is " + getRestartTimes());
+				logger.error(
+						"session version[" + conn.getVersion() + "] is old, current version is " + getRestartTimes());
 			}
 		} catch (Exception e) {
 			logger.info(e.getMessage(), e);
 		}
 	}
-	
+
 	/**
 	 * 
 	 * <b>Description: 初始化</b><br>
@@ -200,10 +200,10 @@ public class RabbitDataSource extends AbstractDataSource {
 		try {
 			Class.forName(getDriverClass());
 		} catch (ClassNotFoundException e) {
-			logger.error(e.getMessage(), e);
+			throw new RabbitDMLException(e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * 
 	 * <b>Description: 获取db类型</b><br>
@@ -211,56 +211,56 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * 
 	 */
 	public DBType getDBType() {
-        if (driverClass.toLowerCase().contains("oracle")) {
-            return DBType.ORACLE;
-        }
-        if (driverClass.toLowerCase().contains("sqlserver")) {
-            return DBType.SQLSERVER;
-        }
-        if (driverClass.toLowerCase().contains("db2")) {
-            return DBType.DB2;
-        }
-        if (driverClass.toLowerCase().contains("mysql")) {
-            return DBType.MYSQL;
-        }
-        if (driverClass.toLowerCase().contains("sqlite")) {
-            return DBType.SQLITE;
-        }
+		if (driverClass.toLowerCase().contains("oracle")) {
+			return DBType.ORACLE;
+		}
+		if (driverClass.toLowerCase().contains("sqlserver")) {
+			return DBType.SQLSERVER;
+		}
+		if (driverClass.toLowerCase().contains("db2")) {
+			return DBType.DB2;
+		}
+		if (driverClass.toLowerCase().contains("mysql")) {
+			return DBType.MYSQL;
+		}
+		if (driverClass.toLowerCase().contains("sqlite")) {
+			return DBType.SQLITE;
+		}
 		throw new RabbitDMLException("unknown driver type[" + driverClass + "]");
 	}
-	
+
 	/**
 	 * 
 	 * <b>Description: 销毁</b><br>
 	 * 
 	 */
 	@PreDestroy
-    public void shutdown() {
-        logger.info("datasource is closing.....");
-        monitor.shutdown();
-        diableDataSource();
-        closeAllSessions();
-        logger.info("datasource is successfully closed!");
-    }
-	
+	public void shutdown() {
+		logger.info("datasource is closing.....");
+		monitor.shutdown();
+		diableDataSource();
+		closeAllSessions();
+		logger.info("datasource is successfully closed!");
+	}
+
 	/**
 	 * 
-	 * <b>Description:	重启数据源</b><br>
+	 * <b>Description: 重启数据源</b><br>
 	 * 
 	 */
-    public synchronized void restart() {
-        logger.info("datasource is restarting.....");
-        diableDataSource();
-        closeAllSessions();
-        enableDataSource();
-        try {
-        	setRestartTimes(getRestartTimes() + 1);
-            initSessions();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-        logger.info("datasource is restarted!");
-    }
+	public synchronized void restart() {
+		logger.info("datasource is restarting.....");
+		diableDataSource();
+		closeAllSessions();
+		enableDataSource();
+		try {
+			setRestartTimes(getRestartTimes() + 1);
+			initSessions();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+		logger.info("datasource is restarted!");
+	}
 
 	private void enableDataSource() {
 		setDataSourceClosed(false);
@@ -279,46 +279,46 @@ public class RabbitDataSource extends AbstractDataSource {
 	 * <b>Description: 关闭资源</b><br>
 	 * 
 	 */
-    public void closeSession(Session session) {
-        try {
-            sessionCreateLock.lock();
-            keeper.back2Pool(session);
-            monitor.releaseSession(session);
-            counter--;
-            session.getConnector().close();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        } finally {
-            sessionCreateLock.unlock();
-        }
-    }
-	
+	public void closeSession(Session session) {
+		try {
+			sessionCreateLock.lock();
+			keeper.back2Pool(session);
+			monitor.releaseSession(session);
+			counter--;
+			session.getConnector().close();
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		} finally {
+			sessionCreateLock.unlock();
+		}
+	}
+
 	/**
 	 * 
 	 * <b>Description: 关闭所有的连接</b><br>
 	 * 
 	 */
-    private void closeAllSessions() {
-        while (getCounter() > 0) {
-            try {
-                Session session = pollConnection(10);
-                session.destroy();
-            } catch (Exception e) {
-                logger.error("datasource restart timeout : " + e.getMessage(), e);
-                // 如果太久都没释放连接
-                monitor.releaseHoldedSession();
-            }
-        }
-    }
+	private void closeAllSessions() {
+		while (getCounter() > 0) {
+			try {
+				Session session = pollConnection(10);
+				session.destroy();
+			} catch (Exception e) {
+				logger.error("datasource restart timeout : " + e.getMessage(), e);
+				// 如果太久都没释放连接
+				monitor.releaseHoldedSession();
+			}
+		}
+	}
 
 	public int getCounter() {
 		return counter;
 	}
-	
+
 	public LinkedBlockingDeque<Session> getConnectors() {
 		return connectors;
 	}
-	
+
 	public boolean isShowSlowSql() {
 		return showSlowSql;
 	}
@@ -342,25 +342,25 @@ public class RabbitDataSource extends AbstractDataSource {
 	public void setDumpSuspectedFetch(boolean dumpSuspectedFetch) {
 		this.dumpSuspectedFetch = dumpSuspectedFetch;
 	}
-	
+
 	public void setRestartTimes(long restartTimes) {
 		this.restartTimes = restartTimes;
 	}
-	
+
 	public long getRestartTimes() {
 		return restartTimes;
 	}
-	
+
 	public void setFetchTimeOut(long fetchTimeOut) {
 		this.fetchTimeOut = fetchTimeOut;
 	}
-	
+
 	public long getMaxSessionHoldingSeconds() {
 		return maxSessionHoldingSeconds;
 	}
-	
+
 	public void setMaxSessionHoldingSeconds(long maxSessionHoldingSeconds) {
 		this.maxSessionHoldingSeconds = maxSessionHoldingSeconds;
 	}
-	
+
 }
