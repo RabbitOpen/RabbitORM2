@@ -249,7 +249,7 @@ public class QueryTest {
                 .joinFetch(Role.class)
                 .fetch(Organization.class)
                 .addFilter("id", user.getId())
-                .addDMLFilter(new ManyToManyFilter(Role.class)
+                .addFilter(new ManyToManyFilter(Role.class)
 	    					.on("id", user.getRoles().get(0).getId())
 	    					.on("roleName",user.getRoles().get(0).getRoleName())
 	    					.add(new ManyToManyFilter(Resources.class)
@@ -272,7 +272,7 @@ public class QueryTest {
         Query<User> query = us.createQuery();
         try {
             query.joinFetch(Role.class)
-                    .addDMLFilter(new ManyToManyFilter(Organization.class).on("id", 1))
+                    .addFilter(new ManyToManyFilter(Organization.class).on("id", 1))
                     .execute().unique();
             throw new RuntimeException();
         } catch (Exception e) {
@@ -297,12 +297,12 @@ public class QueryTest {
                 .alias(Resources.class, "RESOURCES")
                 .fetch(Organization.class)
                 .joinFetch(Car.class)
-                .addDMLFilter(new ManyToManyFilter(Role.class)
+                .addFilter(new ManyToManyFilter(Role.class)
                 		.on("id", user.getRoles().get(0).getId())
                         .on("roleName",  user.getRoles().get(0).getRoleName())
                         .add(new ManyToManyFilter(Resources.class)
                         		.on("${id}", user.getRoles().get(0).getResources().get(0).getId())))
-                .addDMLFilter(new OneToManyFilter(Car.class).on("${id}", user.getCars().get(0).getId()))
+                .addFilter(new OneToManyFilter(Car.class).on("${id}", user.getCars().get(0).getId()))
                 .execute().unique();
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
                 .getOrgCode());
@@ -332,7 +332,7 @@ public class QueryTest {
             TestCase.assertSame(e.getClass(), OrderAssociationException.class);
         }
         Query<User> query = us.createQuery();
-        query.addDMLFilter(new ManyToManyFilter(Role.class).on("id", 1))
+        query.addFilter(new ManyToManyFilter(Role.class).on("id", 1))
         		.fetch(Organization.class)
                 .asc("id", Organization.class).desc("id").asc("id", Role.class)
                 .execute();
@@ -349,12 +349,12 @@ public class QueryTest {
         Query<User> query = us.createQuery();
         query.joinFetch(Role.class).fetch(Organization.class)
             .joinFetch(Car.class)
-            .addDMLFilter(new ManyToManyFilter(Role.class)
+            .addFilter(new ManyToManyFilter(Role.class)
             			.on("id", u.getRoles().get(0).getId())
             			.on("roleName", u.getRoles().get(0).getRoleName())
                         .add(new ManyToManyFilter(Resources.class)
                         		.on("${id}", u.getRoles().get(0).getResources().get(0).getId())))
-            .addDMLFilter(new OneToManyFilter(Car.class).on("${id}", u.getCars().get(1).getId()));
+            .addFilter(new OneToManyFilter(Car.class).on("${id}", u.getCars().get(1).getId()));
         long count = query.count();
         TestCase.assertEquals(1, count);
 
@@ -924,8 +924,8 @@ public class QueryTest {
     public void dmlFilterExceptionTest() {
     	try {
     		Query<DMLUser> query = dmlUs.createQuery();
-        	query.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", 1));
-        	query.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("name", "lisi"));
+        	query.addFilter(new ManyToOneFilter(DMLHome.class).on("id", 1));
+        	query.addFilter(new ManyToOneFilter(DMLHome.class).on("name", "lisi"));
         	query.addFilter("id", 10, DMLHome.class);
         	query.list();
         	throw new RuntimeException();
@@ -934,7 +934,7 @@ public class QueryTest {
 		}
     	try {
     		Query<DMLUser> query = dmlUs.createQuery();
-    		query.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", 1)
+    		query.addFilter(new ManyToOneFilter(DMLHome.class).on("id", 1)
     				.add(new ManyToOneFilter(DMLHome.class).on("name", "lisi")));
     		query.list();
     		throw new RuntimeException();
@@ -943,7 +943,7 @@ public class QueryTest {
     	}
     	try {
     		Query<DMLUser> query = dmlUs.createQuery();
-    		query.addDMLFilter(new ManyToManyFilter(DMLRole.class).on("id", 1));
+    		query.addFilter(new ManyToManyFilter(DMLRole.class).on("id", 1));
     		query.addJoinFilter("id", 2, DMLRole.class);
     		query.list();
     		throw new RuntimeException();
@@ -952,7 +952,7 @@ public class QueryTest {
     	}
     	try {
     		dmlUs.createQuery().joinFetch(DMLRole.class)
-			.addDMLFilter(
+			.addFilter(
 					new ManyToManyFilter(DMLRole.class).on("id", 1).add(
 							new ManyToManyFilter(DMLResource.class).on("name", "").add(
 									new ManyToOneFilter(DMLUri.class).on("id", 1)
@@ -1018,20 +1018,20 @@ public class QueryTest {
     	TestCase.assertEquals(dmlUs.createQuery().joinFetch(DMLRole.class).unique().getRoles().size(), 2);
     	
     	DMLUser queryUser = dmlUs.createQuery().joinFetch(DMLRole.class)
-    			.addDMLFilter(new ManyToManyFilter(DMLRole.class).on("id", r1.getId()))
+    			.addFilter(new ManyToManyFilter(DMLRole.class).on("id", r1.getId()))
     			.unique();
     	TestCase.assertEquals(queryUser.getRoles().size(), 1);
     	TestCase.assertEquals(queryUser.getRoles().get(0).getName(), r1.getName());
     	
     	
     	TestCase.assertNull(dmlUs.createQuery().joinFetch(DMLRole.class)
-    			.addDMLFilter(new ManyToManyFilter(DMLRole.class).on("id", r1.getId())
+    			.addFilter(new ManyToManyFilter(DMLRole.class).on("id", r1.getId())
     					.add(new ManyToManyFilter(DMLResource.class).on("name", res3.getName())))
     			.unique());
     	
     	
 		queryUser = dmlUs.createQuery().joinFetch(DMLRole.class)
-    			.addDMLFilter(new ManyToManyFilter(DMLRole.class).on("id", r1.getId())
+    			.addFilter(new ManyToManyFilter(DMLRole.class).on("id", r1.getId())
     					.add(new ManyToManyFilter(DMLResource.class).on("name", res1.getName()))
     					)
     			.unique();
@@ -1042,7 +1042,7 @@ public class QueryTest {
     	
     	
     	queryUser = dmlUs.createQuery().joinFetch(DMLRole.class)
-    			.addDMLFilter(
+    			.addFilter(
     					new ManyToManyFilter(DMLRole.class).on("id", r1.getId()).add(
     							new ManyToManyFilter(DMLResource.class).on("name", res1.getName())
     								.on("id", res1.getId())
@@ -1056,7 +1056,7 @@ public class QueryTest {
     	TestCase.assertEquals(queryUser.getRoles().get(0).getName(), r1.getName());
     	
     	TestCase.assertNull(dmlUs.createQuery().joinFetch(DMLRole.class)
-    			.addDMLFilter(
+    			.addFilter(
     					new ManyToManyFilter(DMLRole.class).on("id", r1.getId()).add(
     							new ManyToManyFilter(DMLResource.class).on("name", res1.getName())
     								.on("id", res1.getId())
@@ -1068,12 +1068,12 @@ public class QueryTest {
     			.unique());
     	
     	queryUser = dmlUs.createQuery()
-    		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", h.getId()).on("name", h.getName()))
+    		.addFilter(new ManyToOneFilter(DMLHome.class).on("id", h.getId()).on("name", h.getName()))
     		.fetch(DMLHome.class)
     		.unique();
     	TestCase.assertEquals(queryUser.getHome().getName(), h.getName());
     	TestCase.assertEquals( dmlUs.createQuery()
-        		.addDMLFilter(new ManyToOneFilter(DMLHome.class).on("id", h.getId()).on("name", h.getName()))
+        		.addFilter(new ManyToOneFilter(DMLHome.class).on("id", h.getId()).on("name", h.getName()))
         		.fetch(DMLHome.class).count(), 1);
     }
 

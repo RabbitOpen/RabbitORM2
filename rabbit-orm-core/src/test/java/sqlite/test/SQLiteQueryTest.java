@@ -194,7 +194,7 @@ public class SQLiteQueryTest {
                 .joinFetch(SQLiteRole.class)
                 .fetch(SQLiteOrganization.class)
                 .addFilter("id", user.getId())
-                .addDMLFilter(new ManyToManyFilter(SQLiteRole.class)
+                .addFilter(new ManyToManyFilter(SQLiteRole.class)
                 		.on( "id", FilterType.IN, new Integer[] { 
                 				user.getRoles().get(0).getId(), 
                 				user.getRoles().get(1).getId()}
@@ -222,7 +222,7 @@ public class SQLiteQueryTest {
                 .joinFetch(SQLiteRole.class)
                 .fetch(SQLiteOrganization.class)
                 .addFilter("id", user.getId())
-                .addDMLFilter(new ManyToManyFilter(SQLiteRole.class).on("id", user.getRoles().get(0).getId())
+                .addFilter(new ManyToManyFilter(SQLiteRole.class).on("id", user.getRoles().get(0).getId())
                                 	.on("roleName", user.getRoles().get(0).getRoleName())
                                 .add(new ManyToManyFilter(SQLiteResources.class)
                                 		.on("${id}", user.getRoles().get(0).getResources().get(0).getId()))
@@ -244,7 +244,7 @@ public class SQLiteQueryTest {
         Query<SQLiteUser> query = us.createQuery();
         try {
             query.joinFetch(SQLiteRole.class)
-                    .addDMLFilter(new ManyToManyFilter(SQLiteOrganization.class).on("id", 1))
+                    .addFilter(new ManyToManyFilter(SQLiteOrganization.class).on("id", 1))
                     .execute().unique();
             throw new RuntimeException();
         } catch (Exception e) {
@@ -270,14 +270,14 @@ public class SQLiteQueryTest {
                 .alias(SQLiteResources.class, "RESOURCES")
                 .fetch(SQLiteOrganization.class)
                 .joinFetch(SQLiteCar.class)
-                .addDMLFilter(new ManyToManyFilter(SQLiteRole.class)
+                .addFilter(new ManyToManyFilter(SQLiteRole.class)
                                 .on("id", user.getRoles().get(0).getId())
                                 .on("roleName", user.getRoles().get(0).getRoleName())
                                 .add(new ManyToManyFilter(SQLiteResources.class)
                                 .on("${id}",
                                         user.getRoles().get(0).getResources()
                                                 .get(0).getId())))
-                .addDMLFilter(new OneToManyFilter(SQLiteCar.class)
+                .addFilter(new OneToManyFilter(SQLiteCar.class)
                                 .on("${id}", user.getCars().get(0).getId())).execute().unique();
         TestCase.assertEquals(u.getOrg().getOrgCode(), user.getOrg()
                 .getOrgCode());
@@ -308,7 +308,7 @@ public class SQLiteQueryTest {
             TestCase.assertSame(e.getClass(), OrderAssociationException.class);
         }
         Query<SQLiteUser> query = us.createQuery();
-        query.addDMLFilter(new ManyToManyFilter(SQLiteRole.class).on("id", 1)).fetch(SQLiteOrganization.class)
+        query.addFilter(new ManyToManyFilter(SQLiteRole.class).on("id", 1)).fetch(SQLiteOrganization.class)
                 .asc("id", SQLiteOrganization.class).desc("id").asc("id", SQLiteRole.class)
                 .execute();
     }
@@ -325,12 +325,12 @@ public class SQLiteQueryTest {
         Query<SQLiteUser> query = us.createQuery();
         query.joinFetch(SQLiteRole.class).fetch(SQLiteOrganization.class)
             .joinFetch(SQLiteCar.class)
-            .addDMLFilter(
+            .addFilter(
                 new ManyToManyFilter(SQLiteRole.class)
                         .on("id", u.getRoles().get(0).getId()).on("roleName", u.getRoles().get(0).getRoleName())
                         .add(new ManyToManyFilter(SQLiteResources.class).on("${id}", 
                                 u.getRoles().get(0).getResources().get(0).getId())))
-            .addDMLFilter(new OneToManyFilter(SQLiteCar.class)
+            .addFilter(new OneToManyFilter(SQLiteCar.class)
                         .on("${id}", u.getCars().get(1).getId()));
         long count = query.count();
         TestCase.assertEquals(1, count);

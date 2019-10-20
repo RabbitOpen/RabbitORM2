@@ -8,7 +8,7 @@ package rabbit.open.orm.common.exception;
 public class ConflictFilterException extends RabbitDMLException {
 
 	public ConflictFilterException(Class<?> clz) {
-		super("[" + clz.getName() + "] can't be both used by addFilter/addJoinFilter and addDMLFilter");
+		super("[" + clz.getName() + "] can't be both used by addFilter/addJoinFilter and addFilter(DMLFilter)");
 	}
 
 }

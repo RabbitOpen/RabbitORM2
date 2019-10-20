@@ -8,7 +8,7 @@ package rabbit.open.orm.common.exception;
 public class RepeatedDMLFilterException extends RabbitDMLException {
 
 	public RepeatedDMLFilterException(Class<?> clz) {
-		super("[" + clz.getName() + "] can't be added more than once by addDMLFilter");
+		super("[" + clz.getName() + "] can't be added more than once by addFilter(DMLFilter)");
 	}
 
 }

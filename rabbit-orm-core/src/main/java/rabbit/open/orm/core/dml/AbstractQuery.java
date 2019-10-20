@@ -1455,7 +1455,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * @return
 	 *
 	 */
-	public AbstractQuery<T> addDMLFilter(DMLFilter filter) {
+	public AbstractQuery<T> addFilter(DMLFilter filter) {
 		filter.setParentEntityClz(getEntityClz());
 		filter.setQuery(this);
 		if (dmlFilters.containsKey(filter.getEntityClz())) {
@@ -1598,6 +1598,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		doFilterChecking();
 		prepareFilterMetas();
 		combineFilters();
+		convertJoinFilter2Metas();
 		prepareMany2oneFilters();
 		doShardingCheck();
 		generateCountSql();

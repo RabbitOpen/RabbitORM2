@@ -229,7 +229,7 @@ public class ShardingTableTest {
                 .addFilter("name", regionName, Region.class)
                 .fetch(Region.class).unique();
         u = sus.createQuery().addFilter("id", user.getId())
-                .addDMLFilter(new ManyToOneFilter(Region.class).on("name", regionName))
+                .addFilter(new ManyToOneFilter(Region.class).on("name", regionName))
                 .fetch(Region.class).unique();
         TestCase.assertEquals(user.getId(), u.getId());
         TestCase.assertEquals(user.getName(), u.getName());
@@ -323,8 +323,8 @@ public class ShardingTableTest {
 
         su = sus.createQuery().addFilter("id", user.getId())
                 .fetch(Region.class)
-                .addDMLFilter(new ManyToManyFilter(ShardRoom.class).on("id", sr1.getId()))
-                .addDMLFilter(new OneToManyFilter(ShardCar.class).on("carNo", sc1.getCarNo()))
+                .addFilter(new ManyToManyFilter(ShardRoom.class).on("id", sr1.getId()))
+                .addFilter(new OneToManyFilter(ShardCar.class).on("carNo", sc1.getCarNo()))
                 .joinFetch(ShardRoom.class).joinFetch(ShardCar.class).execute()
                 .unique();
         TestCase.assertEquals(su.getRegion().getName(), user.getRegion()

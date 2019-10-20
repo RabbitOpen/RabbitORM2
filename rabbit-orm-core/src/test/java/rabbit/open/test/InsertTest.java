@@ -181,7 +181,7 @@ public class InsertTest {
     	unique = cus.createQuery().joinFetch(CustomRole.class).addFilter("id", u.getId()).unique();
     	TestCase.assertEquals(3, unique.getRoles().size());
     	
-		AbstractQuery<CustomUser> query = cus.createQuery().addDMLFilter(new ManyToManyFilter(CustomRole.class).on("group", roles.get(0).getGroup()));
+		AbstractQuery<CustomUser> query = cus.createQuery().addFilter(new ManyToManyFilter(CustomRole.class).on("group", roles.get(0).getGroup()));
 		TestCase.assertEquals(1, query.count());
 		List<CustomRole> userRoles = query.joinFetch(CustomRole.class).unique().getRoles();
 		TestCase.assertEquals(1, userRoles.size());
@@ -215,7 +215,7 @@ public class InsertTest {
     	}
     	CustomUser unique = cus.createQuery().joinFetch(CustomCar.class).addFilter("id", u.getId()).unique();
     	TestCase.assertEquals(5, unique.getCars().size());
-    	AbstractQuery<CustomUser> query = cus.createQuery().addDMLFilter(new OneToManyFilter(CustomCar.class)
+    	AbstractQuery<CustomUser> query = cus.createQuery().addFilter(new OneToManyFilter(CustomCar.class)
     				.on("carNo", cars.get(0).getCarNo()));
 		TestCase.assertEquals(1, query.count());
 		unique = query.joinFetch(CustomCar.class).unique();
