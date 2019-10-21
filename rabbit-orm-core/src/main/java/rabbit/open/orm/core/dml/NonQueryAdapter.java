@@ -97,7 +97,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
         filterDescriptors.clear();
         runCallBackTask();
         prepareFilterMetas();
-        combineFilters();
+        mergeFilters();
     }
     
     @Override

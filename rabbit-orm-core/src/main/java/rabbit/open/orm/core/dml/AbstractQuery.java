@@ -591,7 +591,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		doFilterChecking();
 		// 分析并准备查询条件
 		prepareFilterMetas();
-		combineFilters();
+		mergeFilters();
 		convertJoinFilter2Metas();
 		prepareMany2oneFilters();
 		doShardingCheck();
@@ -659,7 +659,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		many2oneFilterDescriptors.clear();
 		restClassesEnabled2Join();
 		prepareFilterMetas();
-		combineFilters();
+		mergeFilters();
 		prepareMany2oneFilters();
 	}
 
@@ -1597,7 +1597,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		runCallBackTask();
 		doFilterChecking();
 		prepareFilterMetas();
-		combineFilters();
+		mergeFilters();
 		convertJoinFilter2Metas();
 		prepareMany2oneFilters();
 		doShardingCheck();

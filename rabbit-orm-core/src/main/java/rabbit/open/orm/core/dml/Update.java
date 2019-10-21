@@ -95,7 +95,7 @@ public class Update<T> extends NonQueryAdapter<T> {
 	public long execute() {
 		runCallBackTask();
 	    prepareFilterMetas();
-        combineFilters();
+        mergeFilters();
         doShardingCheck();
 	    return super.execute();
 	}

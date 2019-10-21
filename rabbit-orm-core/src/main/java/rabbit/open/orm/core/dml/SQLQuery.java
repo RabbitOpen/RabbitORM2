@@ -56,7 +56,7 @@ public class SQLQuery<T> {
 				if (query.getMetaData().isShardingTable()) {
 					query.addedFilters.clear();
 					query.runCallBackTask();
-					query.combineFilters();
+					query.mergeFilters();
 				}
 				sql = new StringBuilder(query.namedObject.getSql());
 				replaceFieldsSql();

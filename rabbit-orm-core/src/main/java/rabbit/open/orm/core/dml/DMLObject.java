@@ -362,9 +362,9 @@ public abstract class DMLObject<T> {
                 desc.setField(fmd.getField());
                 desc.setJoinOn(true);
                 desc.setFilterTable(fkTable);
+                desc.setJoinField(fmd.getField());
                 filterDescriptors.add(desc);
-                generateFilters(getNonEmptyFieldMetas(fmd.getFieldValue(), fmd
-                        .getField().getType()));
+                generateFilters(getNonEmptyFieldMetas(fmd.getFieldValue(), fmd.getField().getType()));
             } else {
                 FilterDescriptor desc = new FilterDescriptor(
                         getAliasByTableName(fmd.getFieldTableName()) + "."
@@ -383,11 +383,10 @@ public abstract class DMLObject<T> {
 	 * <b>Description:	将动态添加的表间关联条件去重合并</b><br>	
 	 * 
 	 */
-    protected void combineFilters() {
+    protected void mergeFilters() {
         // 添加动态的过滤描述符
-        for (Entry<Class<?>, Map<String, List<DynamicFilterDescriptor>>> entry : addedFilters
-                .entrySet()) {
-            combineFiltersByClz(entry.getKey());
+        for (Entry<Class<?>, Map<String, List<DynamicFilterDescriptor>>> entry : addedFilters.entrySet()) {
+            mergeFiltersByClz(entry.getKey());
             Map<String, List<DynamicFilterDescriptor>> map = entry.getValue();
             Iterator<String> fields = map.keySet().iterator();
             while (fields.hasNext()) {
@@ -475,7 +474,7 @@ public abstract class DMLObject<T> {
 	 * @param clz	
 	 * 
 	 */
-    private void combineFiltersByClz(Class<?> clz) {
+    private void mergeFiltersByClz(Class<?> clz) {
         if (!dependencyPath.containsKey(clz)) {
             return;
         }
@@ -640,11 +639,11 @@ public abstract class DMLObject<T> {
                 List<FilterDescriptor> list = new ArrayList<>();
                 list.add(desc);
                 clzesEnabled2Join.put(fmd.getField().getType(), list);
-                recusiveFindOutEnable2JoinClzes(fmd);
+                recursiveFindOutEnable2JoinClzes(fmd);
             } else {
                 if (!isDependencyExists(clz, fmd)) {
                     clzesEnabled2Join.get(fmd.getField().getType()).add(desc);
-                    recusiveFindOutEnable2JoinClzes(fmd);
+                    recursiveFindOutEnable2JoinClzes(fmd);
                 }
             }
 		}
@@ -667,7 +666,7 @@ public abstract class DMLObject<T> {
 		}
 	}
 
-    private void recusiveFindOutEnable2JoinClzes(FieldMetaData fmd) {
+    private void recursiveFindOutEnable2JoinClzes(FieldMetaData fmd) {
         if (fmd.isMultiFetchField() && fmd.getIndex() != 1) {
             return;
         }
