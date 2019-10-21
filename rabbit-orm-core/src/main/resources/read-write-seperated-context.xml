@@ -94,7 +94,7 @@
 	</bean> 
 
     <!-- 配置复合数据源   -->
-    <bean id="combinedDataSource" class="rabbit.open.orm.core.datasource.ReadWriteSeperatedDataSource">
+    <bean id="combinedDataSource" class="rabbit.open.orm.core.datasource.ReadWriteSeparatedDataSource">
         <property name="readSource" ref="read"/>
         <property name="writeSource" ref="write"/>
     </bean>
