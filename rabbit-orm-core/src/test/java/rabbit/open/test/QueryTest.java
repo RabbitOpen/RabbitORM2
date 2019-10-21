@@ -146,7 +146,9 @@ public class QueryTest {
     public void simpleQueryTest() {
         User user = addInitData(1202);
         List<User> list = us.createQuery(user).joinFetch(Role.class)
-                .fetch(Organization.class).distinct().execute().list();
+                .fetch(Organization.class)
+                .addFilter("id", user.getOrg().getId(), Organization.class, User.class)
+                .distinct().execute().list();
         TestCase.assertTrue(list.size() > 0);
         TestCase.assertEquals(user.getBigField(), list.get(0).getBigField());
         TestCase.assertEquals(user.getDoubleField(), list.get(0).getDoubleField());
