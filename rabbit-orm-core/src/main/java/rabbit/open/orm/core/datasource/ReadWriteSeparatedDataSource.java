@@ -10,7 +10,7 @@ import rabbit.open.orm.core.dml.CombinedDataSource;
 import rabbit.open.orm.core.dml.SessionFactory;
 
 /**
- * <b>Description 读写分离数据源</b>
+ * <b>Description 读写分离数据源 </b>
  */
 public class ReadWriteSeparatedDataSource implements CombinedDataSource {
 
