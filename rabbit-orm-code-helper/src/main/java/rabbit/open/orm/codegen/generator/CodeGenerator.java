@@ -22,6 +22,7 @@ import rabbit.open.orm.codegen.elements.DomainClassElement;
 import rabbit.open.orm.codegen.elements.FieldElement;
 import rabbit.open.orm.codegen.elements.ServiceCodeElement;
 import rabbit.open.orm.codegen.filter.GeneratorFilter;
+import rabbit.open.orm.codegen.filter.NameType;
 import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.annotation.PrimaryKey;
@@ -75,8 +76,8 @@ public class CodeGenerator {
 		}
 
 		@Override
-		public String convertTableName2EntityName(String expectedEntityName, String tableName) {
-			return expectedEntityName;
+		public String onNameChanged(String expectedName, String nameInDB, NameType type) {
+			return expectedName;
 		}
 	};
 	
@@ -106,11 +107,12 @@ public class CodeGenerator {
 	/**
 	 * <b>@description 根据驼峰命令规则将字段名转成java类名 </b>
 	 * 
-	 * @param dbName
+	 * @param nameInDB
+	 * @param type
 	 * @return
 	 */
-	private String convertDbName2Java(String dbName) {
-		StringBuilder name = new StringBuilder(dbName.toLowerCase());
+	private String convertDbName2Java(String nameInDB, NameType type) {
+		StringBuilder name = new StringBuilder(nameInDB.toLowerCase());
 		int index = name.indexOf("_");
 		while (-1 != index) {
 			try {
@@ -122,7 +124,7 @@ public class CodeGenerator {
 			}
 		}
 		String expectedEntityName = name.toString().replaceAll("_", "");
-		return filter.convertTableName2EntityName(expectedEntityName, dbName);
+		return filter.onNameChanged(expectedEntityName, nameInDB, type);
 	}
 	
 	/**
@@ -168,7 +170,7 @@ public class CodeGenerator {
 			throws SQLException, IOException {
 		ResultSet columns = conn.getMetaData().getColumns(null, null,
 				tableName, null);
-		String className = JavaElement.upperFirstLetter(convertDbName2Java(tableName));
+		String className = JavaElement.upperFirstLetter(convertDbName2Java(tableName, NameType.TABLE));
 		String filePath = fileRootPath;
 		if (!JavaElement.isEmptyStr(basePackageName)) {
 			filePath += "/" + basePackageName.replaceAll("\\.", "/");
@@ -220,7 +222,7 @@ public class CodeGenerator {
 		}
 		
 		String remark = rows.getString("REMARKS");
-		String name = convertDbName2Java(columnName);
+		String name = convertDbName2Java(columnName, NameType.COLUMN);
 		
 		DBFieldDescriptor fieldDescriptor = MappingRegistry.getFieldDescriptor(type);
 		if (null == fieldDescriptor) {
@@ -299,7 +301,7 @@ public class CodeGenerator {
 	 * @throws IOException 
 	 */
 	private void generateDaoClassFile(String tableName) throws IOException { 
-		String javaEntityName = JavaElement.upperFirstLetter(convertDbName2Java(tableName));
+		String javaEntityName = JavaElement.upperFirstLetter(convertDbName2Java(tableName, NameType.TABLE));
 		FileWriter fw = new FileWriter(daoFile.getAbsoluteFile() + "\\"
 				+ javaEntityName + "Dao.java");
 		try {
@@ -317,7 +319,7 @@ public class CodeGenerator {
 	 * @throws IOException
 	 */
 	private void generateServiceClassFile(String tableName) throws IOException { 
-		String javaEntityName = JavaElement.upperFirstLetter(convertDbName2Java(tableName));
+		String javaEntityName = JavaElement.upperFirstLetter(convertDbName2Java(tableName, NameType.TABLE));
 		FileWriter fw = new FileWriter(serviceFile.getAbsoluteFile() + "\\" + javaEntityName + "Service.java");
 		try {
 			fw.write(new ServiceCodeElement(basePackageName + ".service",

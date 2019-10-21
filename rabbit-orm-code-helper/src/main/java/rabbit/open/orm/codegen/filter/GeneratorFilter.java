@@ -21,9 +21,10 @@ public interface GeneratorFilter {
 
 	/**
 	 * 将表名转成类名
-	 * @param expectedEntityName	按驼峰命名规则转换出来的实体名
-	 * @param tableName				表名
-	 * @return						你希望的实体名
+	 * @param expectedName	按驼峰命名规则转换出来的名字名
+	 * @param nameInDB		数据库中原始的名称
+	 * @param type			名字类型
+	 * @return				你希望的名字
 	 */
-	public String convertTableName2EntityName(String expectedEntityName, String tableName);
+	public String onNameChanged(String expectedName, String nameInDB, NameType type);
 }
