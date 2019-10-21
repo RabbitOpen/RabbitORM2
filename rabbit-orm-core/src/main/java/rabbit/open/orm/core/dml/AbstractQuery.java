@@ -798,7 +798,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	}
 
 	private void createInnerJoinsql() {
-		sql.append(generateInnerJoinsql());
+		sql.append(generateInnerJoinSql());
 	}
 
 	private void createJoinFetchSql() {

@@ -17,7 +17,7 @@ public class OracleDeleteGenerator extends DeleteDialectAdapter {
         sql.append(DMLObject.WHERE + delete.metaData.getTableName() + "." + primaryKeyColumnName + " IN (");
 		sql.append("SELECT " + delete.metaData.getTableName() + "." + primaryKeyColumnName + " FROM " 
 					+ delete.metaData.getTableName());
-		sql.append(delete.generateInnerJoinsql());
+		sql.append(delete.generateInnerJoinSql());
 		sql.append(delete.generateFilterSql());
 		sql.append(")");
 		return sql;

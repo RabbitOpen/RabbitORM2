@@ -817,7 +817,7 @@ public abstract class DMLObject<T> {
 	 * @return	
 	 * 
 	 */
-    protected StringBuilder generateInnerJoinsql() {
+    protected StringBuilder generateInnerJoinSql() {
         StringBuilder sb = new StringBuilder();
         for (FilterDescriptor fd : filterDescriptors) {
             if (!fd.isJoinOn()) {

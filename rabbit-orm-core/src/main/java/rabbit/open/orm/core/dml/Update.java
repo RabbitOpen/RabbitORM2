@@ -354,7 +354,7 @@ public class Update<T> extends NonQueryAdapter<T> {
             sql.append("SELECT " + metaData.getTableName() + "."
                     + getColumnName(metaData.getPrimaryKey()) + " FROM "
                     + metaData.getTableName());
-            sql.append(generateInnerJoinsql());
+            sql.append(generateInnerJoinSql());
             sql.append(generateFilterSql());
             sql.append(")t)");
         } else {
