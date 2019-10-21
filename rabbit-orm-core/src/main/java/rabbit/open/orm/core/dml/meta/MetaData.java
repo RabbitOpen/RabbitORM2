@@ -56,7 +56,7 @@ public class MetaData<T> {
 	
 	private ShardingPolicy shardingPolicy;
 	
-	private Map<Class<? extends ShardingPolicy>, ShardingPolicy> policyMapping = new ConcurrentHashMap<>();
+	private static Map<Class<? extends ShardingPolicy>, ShardingPolicy> policyMapping = new ConcurrentHashMap<>();
 	
 	//表名
 	protected String tableName;

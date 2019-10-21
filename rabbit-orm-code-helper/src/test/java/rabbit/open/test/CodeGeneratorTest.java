@@ -10,8 +10,6 @@ import rabbit.open.orm.codegen.filter.GeneratorFilter;
 import rabbit.open.orm.codegen.filter.NameType;
 import rabbit.open.orm.codegen.generator.CodeGenerator;
 
-import javax.naming.Name;
-
 @RunWith(JUnit4.class)
 public class CodeGeneratorTest {
 
