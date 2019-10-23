@@ -5,8 +5,8 @@ import java.util.Date;
 import java.util.List;
 
 import junit.framework.TestCase;
-import oracle.test.entity.RegRoom;
-import oracle.test.entity.RegUser;
+import oracle.test.entity.ORegRoom;
+import oracle.test.entity.ORegUser;
 import oracle.test.service.OracleRegRoomService;
 import oracle.test.service.OracleRegUserService;
 
@@ -39,7 +39,7 @@ public class OracleRegQueryTest {
 	 */
 	@Test
 	public void regQueryTest() {
-		RegUser user = new RegUser();
+		ORegUser user = new ORegUser();
 		Date start = new Date();
 		// 一天的毫秒数
 		long milDays = 24 * 60 * 60 * 1000;
@@ -50,12 +50,12 @@ public class OracleRegQueryTest {
 		user.setTo(200);
 		rus.add(user);
 		
-		RegRoom r1 = new RegRoom();
+		ORegRoom r1 = new ORegRoom();
 		r1.setStart(start);
 		r1.setEnd(end);
 		r1.setUser(user);
 		rrs.add(r1);
-		RegRoom r2 = new RegRoom();
+		ORegRoom r2 = new ORegRoom();
 		r2.setStart(start);
 		r2.setEnd(end);
 		r2.setUser(user);
@@ -75,11 +75,11 @@ public class OracleRegQueryTest {
 				.addFilter("24 * (${end} - ${start})", 48)
 				.count());
 		
-		RegUser unique = rus.createQuery().addFilter("${to} - ${from}", user.getTo() - user.getFrom(), FilterType.LTE)
+		ORegUser unique = rus.createQuery().addFilter("${to} - ${from}", user.getTo() - user.getFrom(), FilterType.LTE)
 			// 起始日期和截止日期相差48小时
 			.addFilter("24 * (${end} - ${start})", 48)
-			.joinFetch(RegRoom.class)
-			.addJoinFilter("24 * (${end} - ${start})", 48, RegRoom.class)
+			.joinFetch(ORegRoom.class)
+			.addJoinFilter("24 * (${end} - ${start})", 48, ORegRoom.class)
 			.addFilter("id", user.getId()).unique();
 		TestCase.assertEquals(unique.getRooms().size(), 2);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -93,7 +93,7 @@ public class OracleRegQueryTest {
 		int from = 100;
 		int to = 200;
 		for (int i = 0; i < count; i++) {
-			RegUser user = new RegUser();
+			ORegUser user = new ORegUser();
 			Date start = new Date();
 			// 一天的毫秒数
 			long milDays = 24 * 60 * 60 * 1000;
@@ -106,7 +106,7 @@ public class OracleRegQueryTest {
 			rus.add(user);
 		}
 		for (int i = 0; i < count; i++) {
-			RegUser user = new RegUser();
+			ORegUser user = new ORegUser();
 			Date start = new Date();
 			// 一天的毫秒数
 			long milDays = 24 * 60 * 60 * 1000;
@@ -118,12 +118,12 @@ public class OracleRegQueryTest {
 			user.setName("lisi");
 			rus.add(user);
 		}
-		List<RegUser> list = rus.createDynamicQuery()
+		List<ORegUser> list = rus.createDynamicQuery()
 				.querySpecifiedFields("name", "countOfName", "sumOfFrom").groupBy("name")
 				.list();
 		TestCase.assertTrue(list.size() >= 2);
 		int find = 0;
-		for (RegUser u : list) {
+		for (ORegUser u : list) {
 			if ("lisi".equals(u.getName()) || "zhangsan".equals(u.getName())) {
 				TestCase.assertTrue(count == u.getCountOfName());
 				TestCase.assertTrue(count * from == u.getSumOfFrom());

@@ -20,6 +20,7 @@ import rabbit.open.orm.core.dml.NamedUpdate;
 import rabbit.open.orm.core.dml.Query;
 import rabbit.open.orm.core.dml.SQLQuery;
 import rabbit.open.orm.core.dml.SessionFactory;
+import rabbit.open.orm.core.dml.ShardedQuery;
 import rabbit.open.orm.core.dml.Update;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
@@ -135,7 +136,6 @@ public abstract class SpringDaoAdapter<T> {
 	public NamedDelete<T> createNamedDelete(String sqlName) {
 		return new NamedDelete<>(sessionFactory, clz, sqlName);
 	}
-	
 	
 	/**
 	 * 
@@ -281,6 +281,21 @@ public abstract class SpringDaoAdapter<T> {
 		return createQuery().page(pageIndex, pageSize).execute().list();
 	}
 	
+	/**
+	 * <b>@description 创建一个分片查询 </b>
+	 * @param filterData
+	 */
+	public ShardedQuery<T> createShardedQuery(T filterData) {
+		return new ShardedQuery<>(sessionFactory, clz, filterData);
+	}
+
+	/**
+	 * <b>@description 创建一个分片查询 </b>
+	 */
+	public ShardedQuery<T> createShardedQuery() {
+		return createShardedQuery(null);
+	}
+
 	/**
 	 * 
 	 * <b>Description:		删除满足data条件的数据</b><br>

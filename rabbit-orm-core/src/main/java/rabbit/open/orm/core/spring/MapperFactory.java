@@ -10,11 +10,11 @@ import java.util.Map;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 
-import rabbit.open.orm.common.annotation.NameSpace;
-import rabbit.open.orm.common.annotation.Param;
-import rabbit.open.orm.common.annotation.SQLName;
 import rabbit.open.orm.common.exception.EmptyFieldMappingException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.core.annotation.NameSpace;
+import rabbit.open.orm.core.annotation.Param;
+import rabbit.open.orm.core.annotation.SQLName;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.name.NamedSQL;
 import rabbit.open.orm.core.spring.runner.MethodMapping;

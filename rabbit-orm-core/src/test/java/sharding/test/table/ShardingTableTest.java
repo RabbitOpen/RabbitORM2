@@ -17,7 +17,6 @@ import junit.framework.TestCase;
 import rabbit.open.orm.common.exception.FetchShardEntityException;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.DMLObject;
-import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
 import rabbit.open.orm.core.dml.filter.ext.ManyToOneFilter;
 import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
@@ -335,10 +334,18 @@ public class ShardingTableTest {
         TestCase.assertEquals(su.getCars().get(0).getCarNo(), sc1.getCarNo());
     }
 
-    private void reCreateTable(String tableName) {
-        dropShardingTable(tableName, sus.getFactory());
-        DDLHelper.createTable(sus.getFactory(), tableName, ShardingUser.class);
-    }
+	private void reCreateTable(String tableName) {
+		Connection connection = null;
+		try {
+			connection = sus.getFactory().getConnection();
+			dropShardingTable(tableName, connection);
+			DDLHelper.createTable(connection, sus.getFactory().getDialectType(), tableName, ShardingUser.class);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		} finally {
+			DMLObject.closeConnection(connection);
+		}
+	}
 
     /**
      * <b>Description 异常测试</b>
@@ -392,22 +399,17 @@ public class ShardingTableTest {
 
     /**
      * <b>Description 删除分片表</b>
-     * 
      * @param tableName
-     * @param factory
+     * @param connection
      */
-    private void dropShardingTable(String tableName, SessionFactory factory) {
-        Connection connection = null;
+    private void dropShardingTable(String tableName, Connection connection) {
         Statement stmt = null;
         try {
-            connection = factory.getConnection();
             stmt = connection.createStatement();
             stmt.execute("drop table " + tableName);
             stmt.close();
         } catch (Exception e) {
             logger.error(e.getMessage());
-        } finally {
-            DMLObject.closeConnection(connection);
         }
     }
 

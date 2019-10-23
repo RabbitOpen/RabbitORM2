@@ -2,12 +2,12 @@ package rabbit.open.test.entity;
 
 import java.util.List;
 
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.Entity;
-import rabbit.open.orm.common.annotation.ManyToMany;
-import rabbit.open.orm.common.annotation.OneToMany;
-import rabbit.open.orm.common.annotation.PrimaryKey;
 import rabbit.open.orm.common.dml.Policy;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.Entity;
+import rabbit.open.orm.core.annotation.ManyToMany;
+import rabbit.open.orm.core.annotation.OneToMany;
+import rabbit.open.orm.core.annotation.PrimaryKey;
 
 @Entity("T_TEAM")
 public class Team {

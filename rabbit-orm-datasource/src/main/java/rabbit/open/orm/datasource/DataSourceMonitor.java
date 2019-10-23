@@ -44,7 +44,7 @@ public class DataSourceMonitor extends Thread {
 		while (run) {
 			monitorDataSource();
 			monitorSessionTimeout();
-			sleep5s();
+			sleep(5);
 		}
 	}
 
@@ -259,9 +259,11 @@ public class DataSourceMonitor extends Thread {
 	 * <b>Description: 睡眠5s</b><br>
 	 * 
 	 */
-	protected void sleep5s() {
+	protected void sleep(int seconds) {
 		try {
-			semaphore.tryAcquire(5, TimeUnit.SECONDS);
+			if (semaphore.tryAcquire(seconds, TimeUnit.SECONDS)) {
+				run = false;
+			}
 		} catch (Exception e) {
 			logger.error("database monitor is interrupted");
 		}
@@ -269,7 +271,6 @@ public class DataSourceMonitor extends Thread {
 
 	public void shutdown() {
 		logger.info("datasource monitor is stopping....");
-		run = false;
 		try {
 			semaphore.release();
 			join();

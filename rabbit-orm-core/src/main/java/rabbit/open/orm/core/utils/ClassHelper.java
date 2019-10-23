@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import rabbit.open.orm.common.annotation.Column;
+import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dml.meta.SQLQueryFieldMeta;
 
 public abstract class ClassHelper {

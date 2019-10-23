@@ -18,9 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.util.StringUtils;
 
-import rabbit.open.orm.common.annotation.Entity;
-import rabbit.open.orm.common.annotation.ManyToMany;
-import rabbit.open.orm.common.annotation.OneToMany;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.AmbiguousDependencyException;
@@ -34,8 +31,9 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.RepeatedAliasException;
 import rabbit.open.orm.common.exception.RepeatedDMLFilterException;
 import rabbit.open.orm.common.exception.RepeatedFetchOperationException;
-import rabbit.open.orm.common.shard.ShardFactor;
-import rabbit.open.orm.common.shard.ShardingPolicy;
+import rabbit.open.orm.core.annotation.Entity;
+import rabbit.open.orm.core.annotation.ManyToMany;
+import rabbit.open.orm.core.annotation.OneToMany;
 import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
@@ -43,6 +41,8 @@ import rabbit.open.orm.core.dml.meta.FilterDescriptor;
 import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
+import rabbit.open.orm.core.dml.shard.DefaultShardingPolicy;
+import rabbit.open.orm.core.dml.shard.ShardFactor;
 import rabbit.open.orm.datasource.Session;
 
 /**
@@ -1649,8 +1649,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 */
 	protected void checkShardedFetch(Class<?> clz) {
 		Entity entity = clz.getAnnotation(Entity.class);
-		if (null != entity && !getEntityClz().equals(clz)
-				&& !ShardingPolicy.class.equals(entity.policy())) {
+		if (null != entity && !getEntityClz().equals(clz) && !DefaultShardingPolicy.class.equals(entity.policy())) {
 			throw new FetchShardEntityException(clz);
 		}
 	}

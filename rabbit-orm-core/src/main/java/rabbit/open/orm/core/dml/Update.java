@@ -14,16 +14,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.WrongJavaTypeException;
-import rabbit.open.orm.common.shard.ShardFactor;
+import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.FilterDescriptor;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
+import rabbit.open.orm.core.dml.shard.ShardFactor;
 
 /**
  * <b>Description: 	更新操作</b><br>

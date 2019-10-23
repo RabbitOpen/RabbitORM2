@@ -14,7 +14,7 @@ import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import rabbit.open.orm.common.annotation.NameSpace;
+import rabbit.open.orm.core.annotation.NameSpace;
 import rabbit.open.orm.core.utils.PackageScanner;
 
 /**

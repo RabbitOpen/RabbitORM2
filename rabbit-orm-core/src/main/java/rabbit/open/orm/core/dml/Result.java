@@ -5,13 +5,12 @@ import java.util.List;
 
 /**
  * 查询结果
- * @author	肖乾斌
- * 
+ * @author 肖乾斌
  */
-public class Result<T>{
-	
+public class Result<T> {
+
 	private List<T> resultList = new ArrayList<>();
-	
+
 	public Result(List<T> resultList) {
 		this.resultList = resultList;
 	}
@@ -23,7 +22,7 @@ public class Result<T>{
 	public List<T> list() {
 		return resultList;
 	}
-	
+
 	/**
 	 * 取回唯一的那个结果集
 	 * @return

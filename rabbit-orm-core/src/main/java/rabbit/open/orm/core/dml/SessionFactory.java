@@ -4,12 +4,15 @@ import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
@@ -17,16 +20,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.ddl.DDLType;
 import rabbit.open.orm.common.dialect.DialectType;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dialect.dml.DeleteDialectAdapter;
 import rabbit.open.orm.core.dml.interceptor.DMLInterceptor;
+import rabbit.open.orm.core.dml.meta.FieldMetaData;
+import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.name.NamedSQL;
+import rabbit.open.orm.core.dml.shard.ShardedTableNameMatcher;
+import rabbit.open.orm.core.dml.shard.ShardingPolicy;
 import rabbit.open.orm.core.spring.TransactionObject;
 import rabbit.open.orm.core.utils.PackageScanner;
 import rabbit.open.orm.core.utils.XmlMapperParser;
@@ -80,13 +87,20 @@ public class SessionFactory {
 
 	// 实体类的包名路径
 	private Set<String> entities;
+	
+	// 分区表监控器
+	private ShardedTableMonitor shardedTableMonitor;
+
+	// 分片策略和分片表集合之间的映射关系缓存
+	private Map<Class<? extends ShardingPolicy>, List<String>> shardedTablesCache = new ConcurrentHashMap<>();
+
+	private ShardedTableNameMatcher shardedTableNameMatcher;
 
 	public Connection getConnection() throws SQLException {
 		return getConnection(null, null, null);
 	}
 
-	public Connection getConnection(Class<?> entityClz, String tableName,
-									DMLType type) throws SQLException {
+	public Connection getConnection(Class<?> entityClz, String tableName, DMLType type) throws SQLException {
 		DataSource ds = getDataSource(entityClz, tableName, type);
 		Connection conn;
 		if (isTransactionOpen()) {
@@ -199,7 +213,7 @@ public class SessionFactory {
 	 * <b>@description 获取sessionfactory能够支配的所有数据源 </b>
 	 * @return
 	 */
-	private Set<DataSource> getAllDataSources() {
+	public Set<DataSource> getAllDataSources() {
 		if (!sources.isEmpty()) {
 			return sources;
 		}
@@ -402,8 +416,8 @@ public class SessionFactory {
 		DialectTransformer.init();
 		DeleteDialectAdapter.init();
 		PolicyInsert.init();
-		DDLHelper.checkMapping(this);
-		DDLHelper.cacheFieldsAlias(this);
+		checkMapping();
+		cacheFieldsAlias();
 		DDLHelper.init();
 		cacheDefaultIsolationLevel();
 		//组合数据源不支持ddl
@@ -414,8 +428,66 @@ public class SessionFactory {
 			sqlParser = new XmlMapperParser(mappingFiles);
 			sqlParser.doXmlParsing();
 		}
+		startShardedTableMonitor();
 	}
 
+	/**
+	 * <b>@description 启动分区表监控线程  </b>
+	 */
+	private void startShardedTableMonitor() {
+		// 预加载一下所有的数据源
+		getAllDataSources();
+		shardedTableMonitor = new ShardedTableMonitor(this);
+		shardedTableMonitor.start();
+	}
+	
+	@PreDestroy
+	public void destroy() {
+		shardedTableMonitor.shutdown();
+	}
+
+	 /**
+     * @description 检查包和类的映射关系
+     */
+    private void checkMapping() {
+		for (String clzName : (HashSet<String>) getEntities()) {
+    		try {
+				Class<?> clz = Class.forName(clzName);
+				MetaData.getMetaByClass(clz);
+			} catch (ClassNotFoundException e) {
+				logger.error(e.getMessage(), e);
+			}
+    	}
+    }
+    
+    /**
+     * @description 缓存字段别名映射关系
+     */
+	private void cacheFieldsAlias() {
+		for (String clzName : (HashSet<String>) getEntities()) {
+			try {
+				Class<?> clz = Class.forName(clzName);
+				Map<String, String> aliasMappings = MetaData.getFieldsAliasMapping(clz);
+				if (null == aliasMappings) {
+					aliasMappings = new ConcurrentHashMap<>();
+					MetaData.setFieldsAliasMapping(clz, aliasMappings);
+				}
+				Collection<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(clz).values();
+				int i = 0;
+				for (FieldMetaData metaData : fieldsMetas) {
+					String fn = metaData.getField().getName();
+					String alias = Integer.toString(i);
+					aliasMappings.put(alias, fn);
+					aliasMappings.put(fn, alias);
+					i++;
+				}
+			} catch (ClassNotFoundException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+	}
+    
+	
 	/**
 	 *
 	 * <b>Description:	根据查询的名字和类信息获取命名查询对象</b><br>
@@ -559,4 +631,29 @@ public class SessionFactory {
 		}
 		return entities;
 	}
+	
+	public void setShardedTableNameMatcher(ShardedTableNameMatcher shardedTableNameMatcher) {
+		this.shardedTableNameMatcher = shardedTableNameMatcher;
+	}
+	
+	public ShardedTableNameMatcher getShardedTableNameMatcher() {
+		if (null == shardedTableNameMatcher) {
+			setShardedTableNameMatcher(new ShardedTableNameMatcher());
+		}
+		return shardedTableNameMatcher;
+	}
+	
+	/**
+	 * <b>@description 设置分片策略对应的表信息 </b>
+	 * @param clz
+	 * @param tables
+	 */
+	public void setShardTables(Class<? extends ShardingPolicy> clz, List<String> tables) {
+		this.shardedTablesCache.put(clz, tables);
+	}
+	
+	public Map<Class<? extends ShardingPolicy>, List<String>> getShardedTablesCache() {
+		return shardedTablesCache;
+	}
+	
 }

@@ -16,9 +16,9 @@ import oracle.test.entity.CustomOrg;
 import oracle.test.entity.CustomOrgService;
 import oracle.test.entity.CustomUser;
 import oracle.test.entity.CustomUserService;
-import oracle.test.entity.Organization;
-import oracle.test.entity.Role;
-import oracle.test.entity.User;
+import oracle.test.entity.OracleOrganization;
+import oracle.test.entity.ORole;
+import oracle.test.entity.OUser;
 import oracle.test.service.OracleOrganizationService;
 import oracle.test.service.OracleRoleService;
 import oracle.test.service.OracleUserService;
@@ -51,13 +51,13 @@ public class OracleTest {
      */
     @Test
     public void query() {
-        User u = new User();
+        OUser u = new OUser();
         u.setAge(10);
         u.setIndex("myindex");
         us.add(u);
-        List<User> list = us.createQuery().page(0, 10)
-                .addFilter("index", u.getIndex()).joinFetch(Role.class)
-                .fetch(Organization.class).distinct().execute().list();
+        List<OUser> list = us.createQuery().page(0, 10)
+                .addFilter("index", u.getIndex()).joinFetch(ORole.class)
+                .fetch(OracleOrganization.class).distinct().execute().list();
         list.forEach(us -> System.out.println(us));
         TestCase.assertTrue(list.size() > 0);
     }
@@ -67,31 +67,31 @@ public class OracleTest {
 	 */
 	@Test
 	public void deltaUpdateTest() {
-		User u = new User();
+		OUser u = new OUser();
 		int age = 1100;
 		u.setAge(age);
 		us.add(u);
 		int delta = -10;
 		us.createUpdate(u).deltaUpdate("age", delta).execute();
-		User user = us.getByID(u.getId());
+		OUser user = us.getByID(u.getId());
 		TestCase.assertEquals(user.getAge().intValue(), age + delta);
 	}
 
 
     @Test
     public void simpleQueryTest() {
-        User user = addInitData(100);
-        List<User> list = us.createQuery(user).joinFetch(Role.class)
-                .fetch(Organization.class).distinct().execute().list();
+        OUser user = addInitData(100);
+        List<OUser> list = us.createQuery(user).joinFetch(ORole.class)
+                .fetch(OracleOrganization.class).distinct().execute().list();
         TestCase.assertTrue(list.size() > 0);
     }
 
     @Test
     public void namedQueryTest() {
-        User user = addInitData(111);
-        User u = us.createNamedQuery("getUserByName")
-                .set("username", "%zhangsan%", "name", User.class)
-                .set("userId", user.getId(), "id", User.class).execute()
+        OUser user = addInitData(111);
+        OUser u = us.createNamedQuery("getUserByName")
+                .set("username", "%zhangsan%", "name", OUser.class)
+                .set("userId", user.getId(), "id", OUser.class).execute()
                 .unique();
         System.out.println(u);
         TestCase.assertEquals(user.getName(), u.getName());
@@ -103,16 +103,16 @@ public class OracleTest {
      * @param start
      * 
      */
-    public User addInitData(int start) {
-        User user = new User();
+    public OUser addInitData(int start) {
+        OUser user = new OUser();
         // 添加组织
-        Organization org = new Organization("FBI", "联邦调查局");
+        OracleOrganization org = new OracleOrganization("FBI", "联邦调查局");
         os.add(org);
 
         // 添加角色
-        List<Role> roles = new ArrayList<Role>();
+        List<ORole> roles = new ArrayList<ORole>();
         for (int i = start; i < start + 2; i++) {
-            Role r = new Role("R" + i);
+            ORole r = new ORole("R" + i);
             rs.add(r);
             roles.add(r);
         }
@@ -141,20 +141,20 @@ public class OracleTest {
      */
     @Test
     public void multiDropFilterQueryTest() {
-        User u1 = new User();
+        OUser u1 = new OUser();
         u1.setAge(10);
         u1.setDesc("H1");
         us.add(u1);
-        User u2 = new User();
+        OUser u2 = new OUser();
         u2.setAge(10);
         u2.setDesc("H2");
         us.add(u2);
-        List<User> list = us
+        List<OUser> list = us
                 .createQuery()
                 .addFilter(
                         new MultiDropFilter().on("id", u1.getId(),
                                 FilterType.IN).on("desc", u2.getDesc()))
-                .fetch(Organization.class).asc("id").execute().list();
+                .fetch(OracleOrganization.class).asc("id").execute().list();
         TestCase.assertEquals(2, list.size());
         TestCase.assertEquals(u1.getDesc(), list.get(0).getDesc());
         TestCase.assertEquals(u2.getDesc(), list.get(1).getDesc());
@@ -165,16 +165,16 @@ public class OracleTest {
      */
     @Test
     public void multiDropFilterUpdateTest() {
-        User u1 = new User();
+        OUser u1 = new OUser();
         u1.setAge(10);
         u1.setDesc("1H1");
         us.add(u1);
-        User u2 = new User();
+        OUser u2 = new OUser();
         u2.setAge(10);
         u2.setDesc("1H2");
         us.add(u2);
 
-        User u3 = new User();
+        OUser u3 = new OUser();
         u3.setAge(10);
         u3.setDesc("1H3");
         us.add(u3);
@@ -186,11 +186,11 @@ public class OracleTest {
                         .on("desc", u2.getDesc()))
                 .execute();
 
-        List<User> list = us.createQuery()
+        List<OUser> list = us.createQuery()
                 .addFilter(
                         new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
                                 FilterType.IN).on("desc", u2.getDesc()))
-                .fetch(Organization.class).asc("id").execute().list();
+                .fetch(OracleOrganization.class).asc("id").execute().list();
         TestCase.assertEquals(3, list.size());
         TestCase.assertEquals(u1.getDesc(), list.get(0).getDesc());
         TestCase.assertEquals(u2.getDesc(), list.get(1).getDesc());
@@ -202,7 +202,7 @@ public class OracleTest {
     
     @Test
 	public void updateNullTest() {
-		User user = new User();
+		OUser user = new OUser();
 		user.setAge(23);
 		String name = "lxis";
 		user.setName(name);
@@ -210,7 +210,7 @@ public class OracleTest {
 		user.setDesc(desc);
 		us.add(user);
 		
-		User u = us.getByID(user.getId());
+		OUser u = us.getByID(user.getId());
 		TestCase.assertEquals(u.getName(), name);
 		TestCase.assertEquals(u.getDesc(), desc);
 		
@@ -226,16 +226,16 @@ public class OracleTest {
      */
     @Test
     public void multiDropFilterDeleteTest() {
-        User u1 = new User();
+        OUser u1 = new OUser();
         u1.setAge(10);
         u1.setDesc("2H1");
         us.add(u1);
-        User u2 = new User();
+        OUser u2 = new OUser();
         u2.setAge(10);
         u2.setDesc("2H2");
         us.add(u2);
         
-        User u3 = new User();
+        OUser u3 = new OUser();
         u3.setAge(10);
         u3.setDesc("2H3");
         us.add(u3);
@@ -245,11 +245,11 @@ public class OracleTest {
                 new MultiDropFilter().on("id", new Long[]{ u1.getId()},
                         FilterType.IN).on("desc", u2.getDesc())).execute();
         
-        List<User> list = us.createQuery()
+        List<OUser> list = us.createQuery()
                 .addFilter(
                         new MultiDropFilter().on("id", new Long[]{u1.getId(),  u3.getId()},
                                 FilterType.IN).on("desc", u2.getDesc()))
-                                .fetch(Organization.class).asc("id").execute().list();
+                                .fetch(OracleOrganization.class).asc("id").execute().list();
         TestCase.assertEquals(1, list.size());
         TestCase.assertEquals(u3.getDesc(), list.get(0).getDesc());
     }
@@ -259,16 +259,16 @@ public class OracleTest {
      */
     @Test
     public void multiDropFilterDeleteTest2() {
-        User u1 = new User();
+        OUser u1 = new OUser();
         u1.setAge(10);
         u1.setDesc("3H1");
         us.add(u1);
-        User u2 = new User();
+        OUser u2 = new OUser();
         u2.setAge(10);
         u2.setDesc("3H2");
         us.add(u2);
         
-        User u3 = new User();
+        OUser u3 = new OUser();
         u3.setAge(10);
         u3.setDesc("3H3");
         us.add(u3);
@@ -279,7 +279,7 @@ public class OracleTest {
                     .addNullFilter("id", false)
                     .execute();
         
-        List<User> list = us.createQuery()
+        List<OUser> list = us.createQuery()
                 .addFilter("id", new Long[]{u1.getId(), u2.getId(), u3.getId()}, FilterType.IN)
                 .asc("id").execute().list();
         TestCase.assertEquals(2, list.size());

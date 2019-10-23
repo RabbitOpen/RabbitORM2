@@ -31,6 +31,7 @@ import rabbit.open.orm.core.dml.Query;
 import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
 import rabbit.open.orm.core.dml.filter.ext.ManyToOneFilter;
 import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
+import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.EnumComponent;
 import rabbit.open.test.entity.EnumComponent.ComponentCodeEnum;
@@ -152,6 +153,7 @@ public class QueryTest {
         TestCase.assertTrue(list.size() > 0);
         TestCase.assertEquals(user.getBigField(), list.get(0).getBigField());
         TestCase.assertEquals(user.getDoubleField(), list.get(0).getDoubleField());
+        MetaData.getMetaByClass(User.class);
         TestCase.assertEquals(user.getFloatField(), list.get(0).getFloatField());
     }
 

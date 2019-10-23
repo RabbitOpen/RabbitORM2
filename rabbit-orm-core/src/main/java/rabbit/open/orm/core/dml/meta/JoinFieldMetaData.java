@@ -3,10 +3,10 @@ package rabbit.open.orm.core.dml.meta;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.ManyToMany;
-import rabbit.open.orm.common.annotation.OneToMany;
 import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.ManyToMany;
+import rabbit.open.orm.core.annotation.OneToMany;
 
 /**
  * 

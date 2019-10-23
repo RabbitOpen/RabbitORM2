@@ -6,14 +6,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.ddl.JoinTableDescriptor;
 import rabbit.open.orm.common.exception.RabbitDDLException;
+import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.utils.SQLFormater;
 
@@ -55,12 +56,12 @@ public class OracleDDLHelper extends DDLHelper {
 		dropJoinTables(entities);
 	}
 
-	protected HashSet<String> getDDLHelperExistedTables() {
+	protected Set<String> getDDLHelperExistedTables() {
 	    return super.getExistedTables();
 	}
 	
 	@Override
-	protected HashSet<String> getExistedTables() {
+	protected Set<String> getExistedTables() {
 	    Statement stmt = null;
 	    ResultSet tables = null;
         try {
@@ -170,7 +171,7 @@ public class OracleDDLHelper extends DDLHelper {
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
-			HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
+			Map<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
 			for (String table : joinTables.keySet()) {
 				if (!isTableExists(getExistedTables(), table)) {
 					continue;
@@ -218,7 +219,7 @@ public class OracleDDLHelper extends DDLHelper {
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
-			HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
+			Map<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
 			for (Entry<String, List<JoinTableDescriptor>> entry : joinTables.entrySet()) {
 				if (isTableExists(getExistedTables(), entry.getKey())) {
 					continue;
@@ -236,7 +237,7 @@ public class OracleDDLHelper extends DDLHelper {
 	}
 
 	@Override
-	protected void createEntityTables(HashSet<String> entities) {
+	protected void createEntityTables(Set<String> entities) {
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();

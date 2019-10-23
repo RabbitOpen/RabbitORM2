@@ -5,14 +5,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.ddl.JoinTableDescriptor;
 import rabbit.open.orm.common.exception.RabbitDDLException;
+import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.utils.SQLFormater;
 
@@ -61,7 +62,7 @@ public class MySQLDDLHelper extends DDLHelper {
         try {
             stmt = conn.createStatement();
             stmt.addBatch(SET_FOREIGN_KEY_CHECKS_0);
-            HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
+            Map<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
             for (String table : joinTables.keySet()) {
                 if (!isTableExists(getExistedTables(), table)) {
                     continue;
@@ -115,7 +116,7 @@ public class MySQLDDLHelper extends DDLHelper {
         try {
             stmt = conn.createStatement();
             stmt.addBatch(SET_FOREIGN_KEY_CHECKS_0);
-            HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
+            Map<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
             for (Entry<String, List<JoinTableDescriptor>> entry : joinTables
                     .entrySet()) {
                 if (isTableExists(getExistedTables(), entry.getKey())) {
@@ -143,7 +144,7 @@ public class MySQLDDLHelper extends DDLHelper {
      * 
      */
     @Override
-    protected void createEntityTables(HashSet<String> entities) {
+    protected void createEntityTables(Set<String> entities) {
         Statement stmt = null;
         try {
             stmt = conn.createStatement();

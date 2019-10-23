@@ -23,11 +23,11 @@ import rabbit.open.orm.codegen.elements.FieldElement;
 import rabbit.open.orm.codegen.elements.ServiceCodeElement;
 import rabbit.open.orm.codegen.filter.GeneratorFilter;
 import rabbit.open.orm.codegen.filter.NameType;
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.Entity;
-import rabbit.open.orm.common.annotation.PrimaryKey;
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.Entity;
+import rabbit.open.orm.core.annotation.PrimaryKey;
 
 public class CodeGenerator {
 

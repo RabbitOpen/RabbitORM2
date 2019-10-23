@@ -1,8 +1,8 @@
 package sharding.test.table.entity;
 
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.Entity;
-import rabbit.open.orm.common.annotation.PrimaryKey;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.Entity;
+import rabbit.open.orm.core.annotation.PrimaryKey;
 
 /**
  * <b>Description  车辆表</b>

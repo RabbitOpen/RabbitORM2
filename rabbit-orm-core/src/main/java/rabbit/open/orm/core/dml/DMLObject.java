@@ -22,8 +22,6 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.AmbiguousDependencyException;
@@ -33,8 +31,8 @@ import rabbit.open.orm.common.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.common.exception.InvalidQueryPathException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
-import rabbit.open.orm.common.shard.ShardFactor;
-import rabbit.open.orm.common.shard.ShardingPolicy;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
@@ -43,6 +41,9 @@ import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
 import rabbit.open.orm.core.dml.name.NamedSQL;
+import rabbit.open.orm.core.dml.shard.DefaultShardingPolicy;
+import rabbit.open.orm.core.dml.shard.ShardFactor;
+import rabbit.open.orm.core.dml.shard.ShardingPolicy;
 import rabbit.open.orm.core.utils.SQLFormater;
 
 /**
@@ -207,6 +208,10 @@ public abstract class DMLObject<T> {
         }
 	}
 
+	public StringBuilder getSql() {
+		return sql;
+	}
+	
     /**
      * 
      * <b>Description:    转成字符串</b><br>.
@@ -1002,8 +1007,15 @@ public abstract class DMLObject<T> {
      * @return
      */
 	protected String getCurrentShardedTableName(List<ShardFactor> factors) {
-		String tableName = getDeclaredTableName();
-		return getShardingPolicy().getShardingTable(getEntityClz(), tableName, factors);
+		return getShardingPolicy().getFirstHittedTable(getEntityClz(), getDeclaredTableName(), factors, getAllTables());
+	}
+	
+	/**
+	 * <b>@description 获取所有分区表 </b>
+	 * @return
+	 */
+	protected List<String> getAllTables() {
+		return sessionFactory.getShardedTablesCache().get(metaData.getShardingPolicy().getClass());
 	}
     
     protected String getCurrentTableName() {
@@ -1030,7 +1042,7 @@ public abstract class DMLObject<T> {
      * @return
      */
     protected boolean isShardingOperation() {
-        return !ShardingPolicy.class.equals(getShardingPolicy().getClass());
+        return !DefaultShardingPolicy.class.equals(getShardingPolicy().getClass());
     }
     
 	 /**

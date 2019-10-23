@@ -91,7 +91,7 @@
 			<value>${jdbc.dialect}</value>
 		</property>
 		<property name="packages2Scan">
-			<value>${jdbc.packages}</value>
+			<value>mybatis.test.entity</value>
 		</property>
 		<property name="scanJar">
 			<value>${jdbc.scanJar}</value>

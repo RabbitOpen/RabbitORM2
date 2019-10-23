@@ -13,21 +13,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.Entity;
-import rabbit.open.orm.common.annotation.ManyToMany;
 import rabbit.open.orm.common.ddl.DDLType;
 import rabbit.open.orm.common.ddl.JoinTableDescriptor;
 import rabbit.open.orm.common.dialect.DialectType;
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.common.exception.RabbitDDLException;
-import rabbit.open.orm.common.exception.RepeatedEntityMapping;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.Entity;
+import rabbit.open.orm.core.annotation.ManyToMany;
 import rabbit.open.orm.core.dialect.ddl.impl.DB2DDLHelper;
 import rabbit.open.orm.core.dialect.ddl.impl.MySQLDDLHelper;
 import rabbit.open.orm.core.dialect.ddl.impl.OracleDDLHelper;
@@ -75,57 +75,6 @@ public abstract class DDLHelper {
         helpers.put(DialectType.SQLITE3, new SQLiteDDLHelper());
     }
 
-    /**
-     * @description 检查包和类的映射关系
-     * @param factory
-     */
-    public static void checkMapping(SessionFactory factory) {
-    	HashSet<String> entities = (HashSet<String>) factory.getEntities();
-    	Map<String, Class<?>> map = new HashMap<>();
-    	for (String clzName : entities) {
-    		try {
-				Class<?> clz = Class.forName(clzName);
-				Entity entity = clz.getAnnotation(Entity.class);
-				if (map.containsKey(entity.value())) {
-					throw new RepeatedEntityMapping(map.get(entity.value()), clz, entity.value());
-				} else {
-					map.put(entity.value(), clz);
-				}
-			} catch (ClassNotFoundException e) {
-				logger.error(e.getMessage(), e);
-			}
-    	}
-    }
-    
-    /**
-     * @description 缓存字段别名映射关系
-     * @param factory
-     */
-	public static void cacheFieldsAlias(SessionFactory factory) {
-		HashSet<String> entities = (HashSet<String>) factory.getEntities();
-		for (String clzName : entities) {
-			try {
-				Class<?> clz = Class.forName(clzName);
-				Map<String, String> aliasMappings = MetaData.getFieldsAliasMapping(clz);
-				if (null == aliasMappings) {
-					aliasMappings = new ConcurrentHashMap<>();
-					MetaData.setFieldsAliasMapping(clz, aliasMappings);
-				}
-				Collection<FieldMetaData> fieldsMetas = MetaData.getCachedFieldsMetas(clz).values();
-				int i = 0;
-				for (FieldMetaData metaData : fieldsMetas) {
-					String fn = metaData.getField().getName();
-					String alias = Integer.toString(i);
-					aliasMappings.put(alias, fn);
-					aliasMappings.put(fn, alias);
-					i++;
-				}
-			} catch (ClassNotFoundException e) {
-				logger.error(e.getMessage(), e);
-			}
-		}
-	}
-    
     protected Connection getConnection() {
         return conn;
     }
@@ -136,18 +85,18 @@ public abstract class DDLHelper {
      * @return
      * 
      */
-    protected HashSet<String> getExistedTables() {
+    protected Set<String> getExistedTables() {
         try {
-            return readTablesFromDB();
+            return readTablesFromDB(getConnection());
         } catch (SQLException e) {
             throw new RabbitDDLException(e);
         }
     }
 
-    protected HashSet<String> readTablesFromDB() throws SQLException {
+    public static Set<String> readTablesFromDB(Connection connection) throws SQLException {
         ResultSet tables = null;
         try {
-            tables = getConnection().getMetaData().getTables(null, null, null, null);
+            tables = connection.getMetaData().getTables(null, null, null, null);
             HashSet<String> existsTables = new HashSet<>();
             while (tables.next()) {
                 if ("TABLE".equalsIgnoreCase(tables.getString("TABLE_TYPE"))) {
@@ -188,7 +137,7 @@ public abstract class DDLHelper {
      * 
      */
 
-    protected abstract void createEntityTables(HashSet<String> entities);
+    protected abstract void createEntityTables(Set<String> entities);
     
     /**
      * <b>@description 建表时的注释sql  </b>
@@ -227,9 +176,9 @@ public abstract class DDLHelper {
      * @return
      * 
      */
-    private HashSet<String> getEntityTables2Create(HashSet<String> entities,
-            HashSet<String> existedTables) {
-        HashSet<String> table2Create = new HashSet<>();
+    private Set<String> getEntityTables2Create(Set<String> entities,
+            Set<String> existedTables) {
+        Set<String> table2Create = new HashSet<>();
         for (String name : entities) {
             Class<?> clz = getClassByName(name);
             Entity entity = clz.getAnnotation(Entity.class);
@@ -289,23 +238,19 @@ public abstract class DDLHelper {
 
     /**
      * <b>Description 新建表</b>
-     * 
-     * @param factory
+     * @param connection
+     * @param dialectType
      * @param tableName
      * @param entityClz
      */
-    public static void createTable(SessionFactory factory, String tableName,
+    public static void createTable(Connection connection, DialectType dialectType, String tableName,
             Class<?> entityClz) {
-        DDLHelper ddlHelper = helpers.get(factory.getDialectType());
-        Connection connection = null;
+        DDLHelper ddlHelper = helpers.get(dialectType);
         try {
-            connection = factory.getConnection();
             ddlHelper.setConnection(connection);
             ddlHelper.createTable(entityClz, tableName);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-        } finally {
-            DMLObject.closeConnection(connection);
         }
     }
 
@@ -340,9 +285,8 @@ public abstract class DDLHelper {
      * @return
      * 
      */
-    protected HashMap<String, List<JoinTableDescriptor>> getJoinTables(
-            HashSet<String> entities) {
-        HashMap<String, List<JoinTableDescriptor>> joinTables = new HashMap<>();
+    protected Map<String, List<JoinTableDescriptor>> getJoinTables(Set<String> entities) {
+        Map<String, List<JoinTableDescriptor>> joinTables = new HashMap<>();
         for (String clzName : entities) {
             Class<?> clz = getClassByName(clzName);
             joinTables.putAll(getJoinTablesByClz(entities, clz));
@@ -350,10 +294,9 @@ public abstract class DDLHelper {
         return joinTables;
     }
 
-    private HashMap<String, List<JoinTableDescriptor>> getJoinTablesByClz(
-            HashSet<String> entities, Class<?> clz) {
+    private Map<String, List<JoinTableDescriptor>> getJoinTablesByClz(Set<String> entities, Class<?> clz) {
         Class<?> c = clz;
-        HashMap<String, List<JoinTableDescriptor>> joinTables = new HashMap<>();
+        Map<String, List<JoinTableDescriptor>> joinTables = new HashMap<>();
         while (!c.equals(Object.class)) {
             for (Field field : clz.getDeclaredFields()) {
                 ManyToMany m2m = field.getAnnotation(ManyToMany.class);
@@ -412,12 +355,11 @@ public abstract class DDLHelper {
         return descriptors;
     }
 
-    private boolean isEntity(HashSet<String> entities, ManyToMany m2m) {
+    private boolean isEntity(Set<String> entities, ManyToMany m2m) {
         for (String clzName : entities) {
             String tbn;
             try {
-                tbn = Class.forName(clzName).getAnnotation(Entity.class)
-                        .value();
+                tbn = Class.forName(clzName).getAnnotation(Entity.class).value();
             } catch (ClassNotFoundException e) {
                 throw new RabbitDDLException(e);
             }
@@ -505,7 +447,7 @@ public abstract class DDLHelper {
         return getTypeString(type);
     }
 
-    protected boolean isTableExists(HashSet<String> existsTables, String table) {
+    protected boolean isTableExists(Set<String> existsTables, String table) {
         for (String tb : existsTables) {
             if (tb.equalsIgnoreCase(table)) {
                 return true;
@@ -514,9 +456,9 @@ public abstract class DDLHelper {
         return false;
     }
 
-    protected void addJoinTables(HashSet<String> entities) {
+    protected void addJoinTables(Set<String> entities) {
         List<StringBuilder> jts = new ArrayList<>();
-        HashMap<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
+        Map<String, List<JoinTableDescriptor>> joinTables = getJoinTables(entities);
         for (Entry<String, List<JoinTableDescriptor>> entry : joinTables
                 .entrySet()) {
             if (!isTableExists(getExistedTables(), entry.getKey())) {
@@ -543,8 +485,7 @@ public abstract class DDLHelper {
      * @param existedTables
      * 
      */
-    protected List<StringBuilder> createAlterSqls(HashSet<String> entities,
-            HashSet<String> existedTables) {
+    protected List<StringBuilder> createAlterSqls(Set<String> entities, Set<String> existedTables) {
         List<StringBuilder> sqls = new ArrayList<>();
         for (String name : entities) {
             Class<?> clz = getClassByName(name);

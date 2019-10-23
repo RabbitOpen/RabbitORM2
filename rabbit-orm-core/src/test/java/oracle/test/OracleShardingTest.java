@@ -12,13 +12,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import junit.framework.TestCase;
-import oracle.test.entity.Region;
-import oracle.test.entity.ShardingUser;
+import oracle.test.entity.ORegion;
+import oracle.test.entity.OShardingUser;
 import oracle.test.service.OracleRegionService;
 import oracle.test.service.OracleShardingUserService;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.DMLObject;
-import rabbit.open.orm.core.dml.SessionFactory;
 
 /**
  * <b>Description: 分片表测试</b><br>
@@ -42,14 +41,14 @@ public class OracleShardingTest {
      */
     @Test
     public void shardingQueryTest() {
-        reCreateTable("T_SHARD_USER0");
-        reCreateTable("T_SHARD_USER1");
+        reCreateTable("TO_SHARD_USER0");
+        reCreateTable("TO_SHARD_USER1");
         addUser(8L, "zhangsan");
-        ShardingUser user1 = addUser(10L, "zhangsan");
-        ShardingUser user2 = addUser(11L, "lis");
-        ShardingUser u1 = sus.createQuery().addFilter("id", user1.getId())
+        OShardingUser user1 = addUser(10L, "zhangsan");
+        OShardingUser user2 = addUser(11L, "lis");
+        OShardingUser u1 = sus.createQuery().addFilter("id", user1.getId())
                 .execute().unique();
-        ShardingUser u2 = sus.createQuery().addFilter("id", user2.getId())
+        OShardingUser u2 = sus.createQuery().addFilter("id", user2.getId())
                 .execute().unique();
         TestCase.assertEquals(user1.getId(), u1.getId());
         TestCase.assertEquals(user1.getName(), u1.getName());
@@ -64,8 +63,8 @@ public class OracleShardingTest {
      */
     @Test
     public void deleteByIDTest() {
-        reCreateTable("T_SHARD_USER1");
-        ShardingUser user = addUser(113L, "zhangsan");
+        reCreateTable("TO_SHARD_USER1");
+        OShardingUser user = addUser(113L, "zhangsan");
         TestCase.assertNotNull(sus.getByID(user.getId()));
         sus.deleteByID(user.getId());
         TestCase.assertNull(sus.getByID(user.getId()));
@@ -76,8 +75,8 @@ public class OracleShardingTest {
      */
     @Test
     public void deleteTest() {
-        reCreateTable("T_SHARD_USER1");
-        ShardingUser user = addUser(115L, "zhangsan");
+        reCreateTable("TO_SHARD_USER1");
+        OShardingUser user = addUser(115L, "zhangsan");
         sus.createDelete(user).execute();
         TestCase.assertNull(sus.getByID(user.getId()));
 
@@ -90,7 +89,7 @@ public class OracleShardingTest {
                 .addFilter("name", user.getName()).execute();
         TestCase.assertNull(sus.getByID(user.getId()));
 
-        Region r = new Region();
+        ORegion r = new ORegion();
         r.setId("r33");
         r.setName("r1-name");
         rs.add(r);
@@ -98,8 +97,8 @@ public class OracleShardingTest {
         sus.createDelete().addFilter("id", user.getId())
                 .addFilter("name", user.getName())
                 .addFilter("region", r.getId())
-                .addFilter("id", r.getId(), Region.class)
-                .addFilter("name", r.getName(), Region.class).execute();
+                .addFilter("id", r.getId(), ORegion.class)
+                .addFilter("name", r.getName(), ORegion.class).execute();
         TestCase.assertNull(sus.getByID(user.getId()));
 
         user = addUser(123, "lyixhuxomixn", r);
@@ -113,11 +112,11 @@ public class OracleShardingTest {
 
     @Test
     public void updateByIDTest() {
-        reCreateTable("T_SHARD_USER1");
-        ShardingUser user1 = addUser(13L, "zhangsan");
+        reCreateTable("TO_SHARD_USER1");
+        OShardingUser user1 = addUser(13L, "zhangsan");
         user1.setName("zhang33");
         sus.updateByID(user1);
-        ShardingUser u1 = sus.getByID(user1.getId());
+        OShardingUser u1 = sus.getByID(user1.getId());
         TestCase.assertEquals(user1.getId(), u1.getId());
         TestCase.assertEquals(user1.getName(), u1.getName());
     }
@@ -127,12 +126,12 @@ public class OracleShardingTest {
      */
     @Test
     public void updateTest() {
-        reCreateTable("T_SHARD_USER1");
-        ShardingUser user = addUser(15L, "zhangsan");
+        reCreateTable("TO_SHARD_USER1");
+        OShardingUser user = addUser(15L, "zhangsan");
         String g = "male";
         long age = 10L;
         sus.createUpdate(user).set("age", age).set("gender", g).execute();
-        ShardingUser u = sus.getByID(user.getId());
+        OShardingUser u = sus.getByID(user.getId());
         TestCase.assertEquals(user.getId(), u.getId());
         TestCase.assertEquals(user.getName(), u.getName());
         TestCase.assertEquals(u.getGender(), g);
@@ -151,16 +150,16 @@ public class OracleShardingTest {
      */
     @Test
     public void complexUpdateTest() {
-        reCreateTable("T_SHARD_USER0");
-        Region r = new Region();
+        reCreateTable("TO_SHARD_USER0");
+        ORegion r = new ORegion();
         r.setId("id-r1");
         r.setName("r1-name");
         rs.add(r);
-        ShardingUser user = addUser(20L, "lyixhuxomixn", r);
+        OShardingUser user = addUser(20L, "lyixhuxomixn", r);
         String g = "male";
         long age = 10L;
         sus.createUpdate(user).set("age", age).set("gender", g).execute();
-        ShardingUser u = sus.getByID(user.getId());
+        OShardingUser u = sus.getByID(user.getId());
         TestCase.assertEquals(user.getId(), u.getId());
         TestCase.assertEquals(user.getName(), u.getName());
         TestCase.assertEquals(u.getGender(), g);
@@ -169,8 +168,8 @@ public class OracleShardingTest {
         age = 101L;
         sus.createUpdate().set("age", age).set("gender", g)
                 .addFilter("id", user.getId()).addFilter("region", r.getId())
-                .addFilter("name", r.getName(), Region.class).execute();
-        u = sus.createQuery().addFilter("id", user.getId()).fetch(Region.class)
+                .addFilter("name", r.getName(), ORegion.class).execute();
+        u = sus.createQuery().addFilter("id", user.getId()).fetch(ORegion.class)
                 .execute().unique();
         TestCase.assertEquals(user.getId(), u.getId());
         TestCase.assertEquals(user.getName(), u.getName());
@@ -185,17 +184,17 @@ public class OracleShardingTest {
      */
     @Test
     public void complexQueryTest() {
-        reCreateTable("T_SHARD_USER0");
-        Region r = new Region();
+        reCreateTable("TO_SHARD_USER0");
+        ORegion r = new ORegion();
         String regionId = "id-r2";
         String regionName = "r1-name";
         r.setId(regionId);
         r.setName(regionName);
         rs.add(r);
-        ShardingUser user = addUser(22L, "lyixhuxomixn", r);
-        ShardingUser u = sus.createQuery().addFilter("id", user.getId())
-                .addFilter("name", regionName, Region.class)
-                .fetch(Region.class).execute().unique();
+        OShardingUser user = addUser(22L, "lyixhuxomixn", r);
+        OShardingUser u = sus.createQuery().addFilter("id", user.getId())
+                .addFilter("name", regionName, ORegion.class)
+                .fetch(ORegion.class).execute().unique();
         TestCase.assertEquals(user.getId(), u.getId());
         TestCase.assertEquals(user.getName(), u.getName());
         TestCase.assertEquals(u.getRegion().getId(), r.getId());
@@ -203,41 +202,44 @@ public class OracleShardingTest {
     }
 
     private void reCreateTable(String tableName) {
-        dropShardingTable(tableName, sus.getFactory());
-        DDLHelper.createTable(sus.getFactory(), tableName, ShardingUser.class);
+        Connection connection = null;
+		try {
+			connection = sus.getFactory().getConnection();
+			dropShardingTable(tableName, connection);
+			DDLHelper.createTable(connection, sus.getFactory().getDialectType(), tableName, OShardingUser.class);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		} finally {
+			DMLObject.closeConnection(connection);
+		}
     }
-
+    
     /**
      * <b>Description 删除分片表</b>
-     * 
      * @param tableName
-     * @param factory
+     * @param connection
      */
-    private void dropShardingTable(String tableName, SessionFactory factory) {
-        Connection connection = null;
+    private void dropShardingTable(String tableName, Connection connection) {
         Statement stmt = null;
         try {
-            connection = factory.getConnection();
             stmt = connection.createStatement();
             stmt.execute("drop table " + tableName);
             stmt.close();
         } catch (Exception e) {
             logger.error(e.getMessage());
-        } finally {
-            DMLObject.closeConnection(connection);
         }
     }
 
-    private ShardingUser addUser(long id, String name) {
-        ShardingUser su = new ShardingUser();
+    private OShardingUser addUser(long id, String name) {
+        OShardingUser su = new OShardingUser();
         su.setId(id);
         su.setName(name);
         sus.add(su);
         return su;
     }
 
-    private ShardingUser addUser(long id, String name, Region r) {
-        ShardingUser su = new ShardingUser();
+    private OShardingUser addUser(long id, String name, ORegion r) {
+        OShardingUser su = new OShardingUser();
         su.setId(id);
         su.setName(name);
         su.setRegion(r);

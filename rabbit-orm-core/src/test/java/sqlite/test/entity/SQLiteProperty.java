@@ -1,11 +1,11 @@
 package sqlite.test.entity;
 
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.Entity;
-import rabbit.open.orm.common.annotation.PrimaryKey;
 import rabbit.open.orm.common.dml.Policy;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.Entity;
+import rabbit.open.orm.core.annotation.PrimaryKey;
 
-@Entity("T_PROPERTY")
+@Entity("T_PROPERTY_SQLITE")
 public class SQLiteProperty {
 
     @Column("ORG_ID")

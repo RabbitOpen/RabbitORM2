@@ -60,6 +60,8 @@ public class RabbitDataSource extends AbstractDataSource {
 
 	// session的最大允许持有时间，超时会打印日志(如果允许的话)
 	private long maxSessionHoldingSeconds = 3L * 60;
+	
+	private String name;
 
 	/**
 	 * 计数器
@@ -361,6 +363,14 @@ public class RabbitDataSource extends AbstractDataSource {
 
 	public void setMaxSessionHoldingSeconds(long maxSessionHoldingSeconds) {
 		this.maxSessionHoldingSeconds = maxSessionHoldingSeconds;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }

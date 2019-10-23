@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.InvalidFetchOperationException;
+import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dml.CallBackTask;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.DynamicFilterTask;

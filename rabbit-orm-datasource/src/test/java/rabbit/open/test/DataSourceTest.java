@@ -39,6 +39,7 @@ public class DataSourceTest {
         rds.setUsername("root");
         rds.setPassword("123");
         rds.setShowSlowSql(true);
+        rds.setName("RabbitDataSource");
         rds.setThreshold(1);
         rds.setFetchTimeOut(100);
         rds.init();
@@ -75,6 +76,7 @@ public class DataSourceTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        TestCase.assertEquals(rds.getName(), "RabbitDataSource");
         rds.shutdown();
         TestCase.assertEquals(0, rds.getConnectors().size());
     }

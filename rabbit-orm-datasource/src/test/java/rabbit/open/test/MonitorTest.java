@@ -1,16 +1,13 @@
 package rabbit.open.test;
 
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
-import junit.framework.TestCase;
-import rabbit.open.orm.datasource.DataSourceMonitor;
-import rabbit.open.orm.datasource.RabbitDataSource;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import junit.framework.TestCase;
+import rabbit.open.orm.datasource.DataSourceMonitor;
+import rabbit.open.orm.datasource.RabbitDataSource;
 
 @RunWith(JUnit4.class)
 public class MonitorTest {
@@ -32,12 +29,8 @@ public class MonitorTest {
                     }
 
                     @Override
-                    protected void sleep5s() {
-                        try {
-                        	new Semaphore(0).tryAcquire(1, TimeUnit.SECONDS);
-                        } catch (InterruptedException e) {
-                            logger.error("database monitor is interrupted");
-                        }
+                    protected void sleep(int seconds) {
+                        super.sleep(1);
                     }
 
                     @Override

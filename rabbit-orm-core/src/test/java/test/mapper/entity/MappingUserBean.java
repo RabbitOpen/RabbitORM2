@@ -1,6 +1,6 @@
 package test.mapper.entity;
 
-import rabbit.open.orm.common.annotation.Column;
+import rabbit.open.orm.core.annotation.Column;
 
 public class MappingUserBean {
 

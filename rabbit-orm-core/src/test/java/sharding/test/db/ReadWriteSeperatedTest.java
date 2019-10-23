@@ -15,9 +15,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import junit.framework.TestCase;
-import rabbit.open.orm.common.annotation.Entity;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.core.annotation.Entity;
 import sharding.test.db.entity.RWUser;
 import sharding.test.db.service.RWUserService;
 import sharding.test.db.service.WriteOnlyUserService;
@@ -121,7 +121,7 @@ public class ReadWriteSeperatedTest {
             logger.error(e.getMessage());
         }
         try {
-            stmt.execute("CREATE TABLE T_USER(ID BIGINT  NOT NULL AUTO_INCREMENT,NAME VARCHAR(50), AGE BIGINT, PRIMARY KEY (ID)) ");
+            stmt.execute("CREATE TABLE " + tableName + "(ID BIGINT  NOT NULL AUTO_INCREMENT,NAME VARCHAR(50), AGE BIGINT, PRIMARY KEY (ID)) ");
         } catch (Exception e) {
             logger.error(e.getMessage());
         }

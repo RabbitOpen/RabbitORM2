@@ -1,11 +1,11 @@
 package oracle.test.service;
 
-import oracle.test.entity.RegUser;
+import oracle.test.entity.ORegUser;
 
 import org.springframework.stereotype.Service;
 
 
 @Service
-public class OracleRegUserService extends OracleBaseService<RegUser> {
+public class OracleRegUserService extends OracleBaseService<ORegUser> {
 
 }

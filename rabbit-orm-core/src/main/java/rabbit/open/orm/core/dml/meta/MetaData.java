@@ -11,16 +11,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.Entity;
-import rabbit.open.orm.common.annotation.ManyToMany;
-import rabbit.open.orm.common.annotation.OneToMany;
-import rabbit.open.orm.common.annotation.PrimaryKey;
 import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.common.exception.RepeatedEntityMapping;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
-import rabbit.open.orm.common.shard.ShardingPolicy;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.Entity;
+import rabbit.open.orm.core.annotation.ManyToMany;
+import rabbit.open.orm.core.annotation.OneToMany;
+import rabbit.open.orm.core.annotation.PrimaryKey;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.meta.proxy.GenericAnnotationProxy;
+import rabbit.open.orm.core.dml.shard.DefaultShardingPolicy;
+import rabbit.open.orm.core.dml.shard.ShardingPolicy;
 
 
 /**
@@ -56,6 +58,7 @@ public class MetaData<T> {
 	
 	private ShardingPolicy shardingPolicy;
 	
+	// 分片策略缓存
 	private static Map<Class<? extends ShardingPolicy>, ShardingPolicy> policyMapping = new ConcurrentHashMap<>();
 	
 	//表名
@@ -83,31 +86,31 @@ public class MetaData<T> {
         return metaMapping.get(clz).copyIfSharding(clz);
     }
     
-    /***
-     * <b>@description 如果是分区表则每次都复制一份meta，防止被updateTableName污染表名 </b>
-     * @param <D>
-     * @param clz
-     */
-    @SuppressWarnings("unchecked")
+	/***
+	 * <b>@description 如果是分区表则每次都复制一份meta，防止被updateTableName污染表名 </b>
+	 * @param <D>
+	 * @param clz
+	 */
+	@SuppressWarnings("unchecked")
 	private <D> MetaData<D> copyIfSharding(Class<D> clz) {
-    	if (!isShardingTable()) {
-    		return (MetaData<D>) this;
-    	}
-    	MetaData<D> meta = new MetaData<>(clz);
-    	Field[] fields = getClass().getDeclaredFields();
-    	for (Field f : fields) {
-    		if (Modifier.isStatic(f.getModifiers())) {
-    			continue;
-    		}
-    		f.setAccessible(true);
-    		try {
+		if (!isShardingTable()) {
+			return (MetaData<D>) this;
+		}
+		MetaData<D> meta = new MetaData<>(clz);
+		Field[] fields = getClass().getDeclaredFields();
+		for (Field f : fields) {
+			if (Modifier.isStatic(f.getModifiers())) {
+				continue;
+			}
+			f.setAccessible(true);
+			try {
 				f.set(meta, f.get(this));
 			} catch (Exception e) {
 				throw new RabbitDMLException(e);
 			}
-    	}
-    	return meta;
-    }
+		}
+		return meta;
+	}
     
     /**
      * 
@@ -115,7 +118,7 @@ public class MetaData<T> {
      * @return
      */
     public boolean isShardingTable() {
-    	return !shardingPolicy.getClass().equals(ShardingPolicy.class);
+    	return !shardingPolicy.getClass().equals(DefaultShardingPolicy.class);
     }
 
 	/**
@@ -157,7 +160,13 @@ public class MetaData<T> {
         tableName = entityClz.getAnnotation(Entity.class).value();
         shardingPolicy = loadShardingPolicy(entityClz);
         primaryKey = getPrimaryKeyFieldMeta(entityClz).getColumn();
-        tableMapping.put(tableName, entityClz);
+        if (!tableMapping.containsKey(tableName)) {
+        	tableMapping.put(tableName, entityClz);
+        } else {
+        	if (!entityClz.equals(tableMapping.get(tableName))) {
+        		throw new RepeatedEntityMapping(entityClz, tableMapping.get(tableName), tableName);
+        	}
+        }
         clzMapping.put(entityClz, tableName);
         joinMetas = getJoinMetas(entityClz);
         fieldMetas = getMappingFieldMetas(entityClz).values();
@@ -169,7 +178,11 @@ public class MetaData<T> {
             return policyMapping.get(entity.policy());
         }
         try {
-            policyMapping.put(entity.policy(), DMLObject.newInstance(entity.policy()));
+        	if (DefaultShardingPolicy.class.equals(entity.policy())) {
+        		policyMapping.put(entity.policy(), new DefaultShardingPolicy());	
+        	} else {
+        		policyMapping.put(entity.policy(), DMLObject.newInstance(entity.policy()));
+        	}
         } catch (Exception e) {
             throw new RabbitDMLException(e);
         }

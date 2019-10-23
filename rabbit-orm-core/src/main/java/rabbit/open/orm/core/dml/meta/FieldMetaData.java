@@ -3,9 +3,9 @@ package rabbit.open.orm.core.dml.meta;
 import java.lang.reflect.Field;
 import java.util.Date;
 
-import rabbit.open.orm.common.annotation.Column;
-import rabbit.open.orm.common.annotation.PrimaryKey;
 import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.PrimaryKey;
 import rabbit.open.orm.core.dml.meta.proxy.GenericAnnotationProxy;
 
 /**

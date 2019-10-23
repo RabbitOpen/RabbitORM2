@@ -3,8 +3,8 @@ package rabbit.open.orm.core.dialect.ddl.impl;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import rabbit.open.orm.common.ddl.JoinTableDescriptor;
 import rabbit.open.orm.common.exception.RabbitDDLException;
@@ -28,9 +28,9 @@ public class SQLServerDDLHelper extends OracleDDLHelper {
 	}
 
 	@Override
-	protected HashSet<String> getExistedTables() {
+	protected Set<String> getExistedTables() {
 		try {
-			return readTablesFromDB();
+			return readTablesFromDB(getConnection());
 		} catch (SQLException e) {
 			throw new RabbitDDLException(e);
 		}

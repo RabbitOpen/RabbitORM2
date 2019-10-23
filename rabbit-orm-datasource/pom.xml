@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>rabbit.open</groupId>
 		<artifactId>orm</artifactId>
-		<version>3.1.1</version>
+		<version>3.2.0</version>
 	</parent>
 	<packaging>jar</packaging>
 	<artifactId>rabbit-orm-datasource</artifactId>

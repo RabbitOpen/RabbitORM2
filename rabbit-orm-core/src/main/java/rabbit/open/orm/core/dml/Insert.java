@@ -4,16 +4,16 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.common.exception.NoField2InsertException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.common.shard.ShardFactor;
+import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.policy.UUIDPolicy;
+import rabbit.open.orm.core.dml.shard.ShardFactor;
 
 /**
  * <b>Description: 	新增操作</b><br>

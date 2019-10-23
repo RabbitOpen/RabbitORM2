@@ -6,10 +6,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import rabbit.open.orm.common.annotation.Column;
 import rabbit.open.orm.common.ddl.JoinTableDescriptor;
 import rabbit.open.orm.common.dml.Policy;
+import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
@@ -41,7 +42,7 @@ public class SQLiteDDLHelper extends OracleDDLHelper {
 	}
 
 	@Override
-	protected HashSet<String> getExistedTables() {
+	protected Set<String> getExistedTables() {
 		return getDDLHelperExistedTables();
 	}
 

@@ -21,12 +21,11 @@ public class SQLiteTest {
         pro.put("date_string_format", "yyyy-MM-dd HH:mm:ss");
         Connection conn = DriverManager.getConnection("jdbc:sqlite::resource:db/app.s3db", pro);
         
-        ResultSet rs = conn.createStatement().executeQuery("select birth_day from t_user");
+        ResultSet rs = conn.createStatement().executeQuery("select birth_day from T_USER_SQLITE");
         while(rs.next()) {
             System.out.println(rs.getString(1));
             System.out.println(rs.getTimestamp(1));
         }
-        
         conn.close();
         
     }
