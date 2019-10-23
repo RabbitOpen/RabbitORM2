@@ -138,7 +138,7 @@ public abstract class DMLObject<T> {
 		filterTasks = new ArrayList<>();
 	}
 	
-	protected abstract List<ShardFactor> getFactors();
+	public abstract List<ShardFactor> getFactors();
  	
 	/**
 	 * 
@@ -156,7 +156,7 @@ public abstract class DMLObject<T> {
 		}
 	}
 
-	protected Class<T> getEntityClz() {
+	public Class<T> getEntityClz() {
         return metaData.getEntityClz();
     }
 	
@@ -1007,7 +1007,8 @@ public abstract class DMLObject<T> {
      * @return
      */
 	protected String getCurrentShardedTableName(List<ShardFactor> factors) {
-		return getShardingPolicy().getFirstHittedTable(getEntityClz(), getDeclaredTableName(), factors, getAllTables());
+		List<String> hittedTables = getShardingPolicy().getHittedTables(getEntityClz(), getDeclaredTableName(), factors, getAllTables());
+		return hittedTables.get(0);
 	}
 	
 	/**
@@ -1029,7 +1030,7 @@ public abstract class DMLObject<T> {
      * <b>Description  获取声明的原始表名</b>
      * @return
      */
-    protected String getDeclaredTableName() {
+    public String getDeclaredTableName() {
         return getEntityClz().getDeclaredAnnotation(Entity.class).value();
     }
 

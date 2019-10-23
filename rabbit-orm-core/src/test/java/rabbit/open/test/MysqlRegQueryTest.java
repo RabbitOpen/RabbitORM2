@@ -133,10 +133,16 @@ public class MysqlRegQueryTest {
 	@Test
 	public void exceptionTest() {
 		try {
-			rus.createDynamicQuery().querySpecifiedFields("name", "countOfName").groupBy("countOfName").list();
+			RegUser user = new RegUser();
+			Date start = new Date();
+			long milDays = 24 * 60 * 60 * 1000;
+			Date end = new Date(start.getTime() + 2L * milDays);
+			user.setStart(start);
+			user.setEnd(end);
+			rus.createDynamicQuery(user).querySpecifiedFields("name", "countOfName").groupBy("countOfName").list();
+			throw new RuntimeException();
 		} catch (InvalidGroupByFieldException e) {
 			return;
 		}
-		throw new RuntimeException();
 	}
 }

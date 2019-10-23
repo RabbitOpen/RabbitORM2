@@ -20,9 +20,9 @@ import rabbit.open.orm.core.dml.NamedUpdate;
 import rabbit.open.orm.core.dml.Query;
 import rabbit.open.orm.core.dml.SQLQuery;
 import rabbit.open.orm.core.dml.SessionFactory;
-import rabbit.open.orm.core.dml.ShardedQuery;
 import rabbit.open.orm.core.dml.Update;
 import rabbit.open.orm.core.dml.meta.MetaData;
+import rabbit.open.orm.core.dml.shard.impl.ShardedQuery;
 
 /**
  * <b>Description: 	database access object</b><br>

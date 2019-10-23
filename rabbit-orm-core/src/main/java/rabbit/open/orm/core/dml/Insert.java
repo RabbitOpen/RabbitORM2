@@ -41,7 +41,7 @@ public class Insert<T> extends NonQueryAdapter<T> {
 	}
 
 	@Override
-    protected List<ShardFactor> getFactors() {
+    public List<ShardFactor> getFactors() {
 	    if (!factors.isEmpty()) {
 	        return factors;
 	    }

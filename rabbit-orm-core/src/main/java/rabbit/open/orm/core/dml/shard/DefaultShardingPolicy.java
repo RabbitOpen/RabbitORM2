@@ -8,8 +8,9 @@ import java.util.List;
 public class DefaultShardingPolicy implements ShardingPolicy {
 
 	@Override
-	public String getFirstHittedTable(Class<?> clz, String tableName, List<ShardFactor> factors, List<String> allTables) {
-		return tableName;
+	public List<String> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
+			List<String> allTables) {
+		return allTables;
 	}
 
 }

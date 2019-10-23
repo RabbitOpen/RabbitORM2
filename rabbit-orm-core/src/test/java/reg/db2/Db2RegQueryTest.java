@@ -134,10 +134,10 @@ public class Db2RegQueryTest {
 	public void exceptionTest() {
 		try {
 			rus.createDynamicQuery().querySpecifiedFields("name", "countOfName").groupBy("countOfName").list();
+			throw new RuntimeException();
 		} catch (InvalidGroupByFieldException e) {
 			return;
 		}
-		throw new RuntimeException();
 	}
 
 	/**

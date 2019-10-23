@@ -136,10 +136,10 @@ public class SqlServerRegQueryTest {
 	public void exceptionTest() {
 		try {
 			rus.createDynamicQuery().querySpecifiedFields("name", "countOfName").groupBy("countOfName").list();
-		} catch (InvalidGroupByFieldException e) {
-			return;
+			throw new RuntimeException();
+		} catch (Exception e) {
+			TestCase.assertEquals(e.getClass(), InvalidGroupByFieldException.class);
 		}
-		throw new RuntimeException();
 	}
 
 	/**

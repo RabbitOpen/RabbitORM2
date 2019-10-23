@@ -2,11 +2,9 @@ package rabbit.open.orm.core.dml.shard.impl;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.meta.MetaData;
@@ -17,15 +15,17 @@ import rabbit.open.orm.core.dml.shard.ShardingPolicy;
  * <b>@description 主键的值hash code取模分片策略，多库时表名不能重复 </b>
  */
 public class PrimaryKeyModShardingPolicy implements ShardingPolicy {
-
+	
+	/**
+     * <b>@description 根据过滤条件命中的所有符合条件的切片表 </b>
+     * @param clz				实体类
+     * @param declaredTableName	类注解中声明的表名	
+     * @param factors			分表因素
+     * @param allTables			clz对应的数据库中的表集合
+     * @return
+     */
 	@Override
-	public String getFirstHittedTable(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
-			List<String> allTables) {
-		return getAllHittedTables(clz, declaredTableName, factors, allTables).get(0);
-	}
-
-	@Override
-	public List<String> getAllHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
+	public List<String> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
 			List<String> allTables) {
 		if (allTables.isEmpty()) {
 			throw new RabbitDMLException("no sharded tables are found for [" + clz + "]");
@@ -52,17 +52,13 @@ public class PrimaryKeyModShardingPolicy implements ShardingPolicy {
 
 	@SuppressWarnings("unchecked")
 	private List<Object> getValueList(ShardFactor factor) {
-		if (factor.getValue().getClass().isArray()) {
-			Object[] values = (Object[]) factor.getValue();
-			return Arrays.asList(values);
-		} else {
-			return (List<Object>) factor.getValue();
-		}
+		return (List<Object>) factor.getValue();
 	}
 
 	/**
 	 * 
 	 * <b>@description 获取当前查询条件中的分表因子 </b>
+	 * 
 	 * @param clz
 	 * @param factors
 	 * @return
@@ -80,5 +76,4 @@ public class PrimaryKeyModShardingPolicy implements ShardingPolicy {
 	protected String onSuffixCreated(int suffix) {
 		return String.format("_%04d", suffix);
 	}
-
 }

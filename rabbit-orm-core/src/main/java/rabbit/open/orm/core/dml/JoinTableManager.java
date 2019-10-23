@@ -75,7 +75,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
     }
 
     @Override
-    protected List<ShardFactor> getFactors() {
+    public List<ShardFactor> getFactors() {
         return new ArrayList<>();
     }
 

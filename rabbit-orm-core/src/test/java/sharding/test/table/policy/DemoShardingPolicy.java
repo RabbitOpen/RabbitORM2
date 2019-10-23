@@ -1,5 +1,6 @@
 package sharding.test.table.policy;
 
+import java.util.Arrays;
 import java.util.List;
 
 import rabbit.open.orm.core.annotation.Entity;
@@ -20,17 +21,17 @@ public class DemoShardingPolicy implements ShardingPolicy {
      * 	根据主键分表(奇偶 分表)
      */
     @Override
-    public String getFirstHittedTable(Class<?> clz, String declaredTableName,
-            List<ShardFactor> factors, List<String> allTables) {
-        if (!DefaultShardingPolicy.class.equals(clz.getAnnotation(Entity.class).policy())) {
+    public List<String> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
+    		List<String> allTables) {
+    	if (!DefaultShardingPolicy.class.equals(clz.getAnnotation(Entity.class).policy())) {
             if (containShardFactor(factors)) {
-                return getShardingTableName(declaredTableName, factors);
+                return Arrays.asList(getShardingTableName(declaredTableName, factors));
             } else {
                 // 该操作无法确认分表信息，应该从业务上规避
                 throw new UnKnownShardException("无法定位分表的操作被指定了");
             }
         } else {
-            return declaredTableName;
+            return Arrays.asList(declaredTableName);
         }
     }
 

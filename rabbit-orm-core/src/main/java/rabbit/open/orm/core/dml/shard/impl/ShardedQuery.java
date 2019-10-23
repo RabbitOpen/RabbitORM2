@@ -1,4 +1,4 @@
-package rabbit.open.orm.core.dml;
+package rabbit.open.orm.core.dml.shard.impl;
 
 import java.util.List;
 
@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.common.dml.FilterType;
+import rabbit.open.orm.core.dml.Query;
+import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
 import rabbit.open.orm.core.dml.shard.execption.InvalidShardedQueryException;
@@ -27,7 +29,7 @@ public class ShardedQuery<T> {
 
 	private int pageSize = 500;
 
-	private Cursor<T> cursor;
+	private ResultCursor<T> cursor;
 
 	public ShardedQuery(SessionFactory factory, Class<T> clz, T filter) {
 
@@ -39,8 +41,9 @@ public class ShardedQuery<T> {
 				if (null != cursor.getNextShardingTable()) {
 					return cursor.getNextShardingTable();
 				}
-				return getShardingPolicy().getFirstHittedTable(getEntityClz(), getDeclaredTableName(), factors,
+				List<String> hittedTables = getShardingPolicy().getHittedTables(getEntityClz(), getDeclaredTableName(), factors,
 						getAllTables());
+				return hittedTables.get(0);
 			}
 
 		};
@@ -49,14 +52,14 @@ public class ShardedQuery<T> {
 		if (!this.metaData.isShardingTable()) {
 			throw new InvalidShardedQueryException(metaData.getTableName());
 		}
-		cursor = new Cursor<>(query, pageSize);
+		cursor = new ResultCursor<>(query, pageSize);
 	}
 
 	/**
 	 * <b>@description 返回一个数据加载游标 </b>
 	 * @return
 	 */
-	public Cursor<T> cursor() {
+	public ResultCursor<T> cursor() {
 		return cursor;
 	}
 	

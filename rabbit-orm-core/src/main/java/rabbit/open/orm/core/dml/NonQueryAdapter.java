@@ -78,6 +78,14 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
         }
     }
     
+    protected void resetForExecute() {
+    	sql = new StringBuilder();
+		filterDescriptors.clear();
+		preparedValues.clear();
+		factors.clear();
+		addedFilters.clear();
+    }
+    
     public void setDmlType(DMLType dmlType) {
         this.dmlType = dmlType;
     }
@@ -101,7 +109,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
     }
     
     @Override
-    protected List<ShardFactor> getFactors() {
+    public List<ShardFactor> getFactors() {
         return factors;
     }
 	

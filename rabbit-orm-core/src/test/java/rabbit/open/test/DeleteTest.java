@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import rabbit.open.orm.core.dml.Delete;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.service.OrganizationService;
@@ -88,12 +89,13 @@ public class DeleteTest {
         user.setName("wangwu");
         user.setOrg(o);
         us.add(user);
-        long result = us
-                .createDelete()
+        Delete<User> delete = us
+                .createDelete(user)
                 .addNullFilter("birth")
                 .addNullFilter("birth", true)
                 .addFilter("orgCode", o.getOrgCode(), Organization.class,
-                        User.class).execute();
+                        User.class);
+		long result = delete.execute();
         TestCase.assertEquals(1, result);
     }
 

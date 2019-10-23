@@ -694,7 +694,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	}
 
 	@Override
-	protected List<ShardFactor> getFactors() {
+	public List<ShardFactor> getFactors() {
 		if (!factors.isEmpty()) {
 			return factors;
 		}

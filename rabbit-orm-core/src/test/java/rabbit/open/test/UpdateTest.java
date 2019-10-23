@@ -55,6 +55,24 @@ public class UpdateTest {
         TestCase.assertNull(user.getBirth());
 
     }
+
+    @Test
+    public void updateTest1() {
+    	User filter = new User();
+    	filter.setAge(10);
+    	filter.setBirth(new Date());
+    	User u = new User();
+    	u.setAge(10);
+    	u.setBirth(new Date());
+		Update<User> update = us.createUpdate(filter).addFilter("id", 1)
+				.set("org", 12)
+				.setValue(u)
+				.setNull("birth")
+				.set("name", "lisi");
+		update.execute();
+		update.execute();
+    		
+    }
     
     @Test
     public void updaterTest() {
