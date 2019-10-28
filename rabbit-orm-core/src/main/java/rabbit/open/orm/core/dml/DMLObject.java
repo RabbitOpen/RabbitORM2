@@ -1015,7 +1015,7 @@ public abstract class DMLObject<T> {
 	 * <b>@description 获取所有分区表 </b>
 	 * @return
 	 */
-	protected List<String> getAllTables() {
+	public List<String> getAllTables() {
 		return sessionFactory.getShardedTablesCache().get(metaData.getShardingPolicy().getClass());
 	}
     
@@ -1034,7 +1034,7 @@ public abstract class DMLObject<T> {
         return getEntityClz().getDeclaredAnnotation(Entity.class).value();
     }
 
-    protected ShardingPolicy getShardingPolicy() {
+    public ShardingPolicy getShardingPolicy() {
         return metaData.getShardingPolicy();
     }
     

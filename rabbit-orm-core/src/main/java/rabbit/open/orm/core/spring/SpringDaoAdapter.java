@@ -22,7 +22,9 @@ import rabbit.open.orm.core.dml.SQLQuery;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.Update;
 import rabbit.open.orm.core.dml.meta.MetaData;
+import rabbit.open.orm.core.dml.shard.impl.ShardedDelete;
 import rabbit.open.orm.core.dml.shard.impl.ShardedQuery;
+import rabbit.open.orm.core.dml.shard.impl.ShardedUpdate;
 
 /**
  * <b>Description: 	database access object</b><br>
@@ -294,6 +296,36 @@ public abstract class SpringDaoAdapter<T> {
 	 */
 	public ShardedQuery<T> createShardedQuery() {
 		return createShardedQuery(null);
+	}
+
+	/**
+	 * <b>@description 创建一个分片删除 </b>
+	 * @param filterData
+	 */
+	public ShardedDelete<T> createShardedDelete(T filterData) {
+		return new ShardedDelete<>(sessionFactory, clz, filterData);
+	}
+	
+	/**
+	 * <b>@description 创建一个分片删除  </b>
+	 */
+	public ShardedDelete<T> createShardedDelete() {
+		return createShardedDelete(null);
+	}
+
+	/**
+	 * <b>@description 创建一个分片更新 </b>
+	 * @param filterData
+	 */
+	public ShardedUpdate<T> createShardedUpdate(T filterData) {
+		return new ShardedUpdate<>(sessionFactory, clz, filterData);
+	}
+	
+	/**
+	 * <b>@description 创建一个分片更新  </b>
+	 */
+	public ShardedUpdate<T> createShardedUpdate() {
+		return createShardedUpdate(null);
 	}
 
 	/**

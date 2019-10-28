@@ -2,70 +2,54 @@ package rabbit.open.orm.core.dml.shard.impl;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import rabbit.open.orm.common.dml.FilterType;
+import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.Query;
 import rabbit.open.orm.core.dml.SessionFactory;
-import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
-import rabbit.open.orm.core.dml.shard.execption.InvalidShardedQueryException;
+import rabbit.open.orm.core.dml.shard.ShardedDMLObject;
 
 /**
  * 
  * <b>@description 分片查询 </b>
  * @param <T>
  */
-public class ShardedQuery<T> {
-
-	protected Logger logger = LoggerFactory.getLogger(getClass());
+public class ShardedQuery<T> extends ShardedDMLObject<T> {
 
 	protected Query<T> query;
 
-	protected SessionFactory factory;
-
-	protected MetaData<T> metaData;
-
 	private int pageSize = 500;
 
-	private ResultCursor<T> cursor;
-
 	public ShardedQuery(SessionFactory factory, Class<T> clz, T filter) {
-
 		query = new Query<T>(factory, filter, clz) {
 
 			// 如果迭代器中有分区表则直接取当前分区表
 			@Override
 			protected String getCurrentShardedTableName(List<ShardFactor> factors) {
-				if (null != cursor.getNextShardingTable()) {
-					return cursor.getNextShardingTable();
-				}
-				List<String> hittedTables = getShardingPolicy().getHittedTables(getEntityClz(), getDeclaredTableName(), factors,
-						getAllTables());
-				return hittedTables.get(0);
+				return getCurrentShardedTable(factors);
 			}
 
 		};
-		this.factory = factory;
-		this.metaData = query.getMetaData();
-		if (!this.metaData.isShardingTable()) {
-			throw new InvalidShardedQueryException(metaData.getTableName());
-		}
-		cursor = new ResultCursor<>(query, pageSize);
+		validDMLObject();
+		setCursor(new QueryCursor<>(query, pageSize));
 	}
 
+	@Override
+	protected DMLObject<T> getDMLObject() {
+		return query;
+	}
+	
 	/**
 	 * <b>@description 返回一个数据加载游标 </b>
 	 * @return
 	 */
-	public ResultCursor<T> cursor() {
-		return cursor;
+	public QueryCursor<T> cursor() {
+		return (QueryCursor<T>) cursor;
 	}
 	
 	public ShardedQuery<T> setPageSize(int pageSize) {
 		this.pageSize = pageSize;
-		cursor.setPageSize(pageSize);
+		((QueryCursor<T>)cursor).setPageSize(pageSize);
 		return this;
 	}
 
@@ -109,5 +93,9 @@ public class ShardedQuery<T> {
 	public ShardedQuery<T> addNullFilter(String reg, boolean isNull) {
 		query.addFilter(reg, null, isNull ? FilterType.IS : FilterType.IS_NOT);
 		return this;
+	}
+	
+	public ShardedQuery<T> addNullFilter(String reg) {
+		return addNullFilter(reg, true);
 	}
 }

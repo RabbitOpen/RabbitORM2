@@ -22,6 +22,49 @@ public abstract class Cursor<T> {
 	protected void setHasNext(boolean hasNext) {
 		this.hasNext = hasNext;
 	}
+	
+	/**
+	 * <b>@description 计算总条数 </b>
+	 * @return
+	 */
+	public final long count() {
+		return count(null);
+	}
+	
+	/**
+	 * <b>@description 计算总条数 </b>
+	 * @return
+	 */
+	/**
+	 * <b>@description 计算总条数 </b>
+	 * @return
+	 */
+	public long count(ShardedResultCounter counter) {
+		setHasNext(true);
+		long total = 0L;
+		nextShardingTable = null;
+		while (hasNext()) {
+			long count = getAffectedCount();
+			total += count;
+			String currentTable = getDMLObject().getMetaData().getTableName();
+			if (getHittedTables().indexOf(currentTable) == getHittedTables().size() - 1) {
+				setHasNext(false);
+				nextShardingTable = null;
+			} else {
+				nextShardingTable = getHittedTables().get(getHittedTables().indexOf(currentTable) + 1);
+			}
+			if (null != counter) {
+				counter.count(count, currentTable);
+			}
+		}
+		return total;
+	}
+
+	/**
+	 * <b>@description 当前dml操作受影响的条数  </b>
+	 * @return
+	 */
+	protected abstract long getAffectedCount();
 
 	/**
 	 * <b>@description 获取下次查询使用的分区表 </b>

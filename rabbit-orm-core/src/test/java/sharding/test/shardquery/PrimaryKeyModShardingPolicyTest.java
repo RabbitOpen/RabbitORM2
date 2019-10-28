@@ -22,7 +22,9 @@ import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.shard.execption.InvalidShardedQueryException;
-import rabbit.open.orm.core.dml.shard.impl.ResultCursor;
+import rabbit.open.orm.core.dml.shard.impl.DeleteCursor;
+import rabbit.open.orm.core.dml.shard.impl.QueryCursor;
+import rabbit.open.orm.core.dml.shard.impl.UpdateCursor;
 import sharding.test.shardquery.entity.Order;
 import sharding.test.shardquery.service.OrderService;
 import sharding.test.shardquery.service.PlanService;
@@ -91,14 +93,15 @@ public class PrimaryKeyModShardingPolicyTest {
 			o.setUsername("orderx-" + i);
 			os.add(o);
 		}
-		ResultCursor<Order> cursor = os.createShardedQuery().cursor();
+		QueryCursor<Order> cursor = os.createShardedQuery().cursor();
 		Map<String, Long> names = new HashMap<>();
-		cursor.count((count, tableName) -> {
+		long total = cursor.count((count, tableName) -> {
 			TestCase.assertEquals(5, count);
 			names.put(tableName, count);
 		});
 		TestCase.assertEquals(10, names.size());
-		cursor.scanData((list, tableName) -> {
+		TestCase.assertEquals(50, total);
+		cursor.next((list, tableName) -> {
 			TestCase.assertEquals(list.size(), names.get(tableName).intValue());
 		});
 		
@@ -117,11 +120,11 @@ public class PrimaryKeyModShardingPolicyTest {
 		}
 		
 		// 根据id查询
-		ResultCursor<Order> cursor = os.createShardedQuery().addFilter("id", 1).cursor();
+		QueryCursor<Order> cursor = os.createShardedQuery().addFilter("id", 1).cursor();
 		
 		List<Order>  orders = new ArrayList<>();
 		scanCount = 0;
-		long ret = cursor.scanData((list, tableName) -> {
+		long ret = cursor.next((list, tableName) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -133,7 +136,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		cursor = os.createShardedQuery().addFilter("id", 3, FilterType.GT).cursor();
 		orders.clear();
 		scanCount = 0;
-		ret = cursor.scanData((list, tableName) -> {
+		ret = cursor.next((list, tableName) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -143,7 +146,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		cursor = os.createShardedQuery().cursor();
 		orders.clear();
 		scanCount = 0;
-		ret = cursor.scanData((list, tableName) -> {
+		ret = cursor.next((list, tableName) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -164,10 +167,10 @@ public class PrimaryKeyModShardingPolicyTest {
 			os.add(o);
 		}
 		List<Integer> idList = Arrays.asList(1, 3, 2, 13, 23);
-		ResultCursor<Order> cursor = os.createShardedQuery().setPageSize(2).addFilter("id", idList, FilterType.IN).cursor();
+		QueryCursor<Order> cursor = os.createShardedQuery().setPageSize(2).addFilter("id", idList, FilterType.IN).cursor();
 		List<Order>  orders = new ArrayList<>();
 		scanCount = 0;
-		long ret = cursor.scanData((list, tableName) -> {
+		long ret = cursor.next((list, tableName) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -199,12 +202,16 @@ public class PrimaryKeyModShardingPolicyTest {
 			os.add(o);
 		}
 		List<Integer> idList = Arrays.asList(1, 13, 2, 18, 12);
-		ResultCursor<Order> cursor = os.createShardedQuery().addFilter("id", idList, FilterType.IN)
+		TestCase.assertEquals(os.createShardedQuery().addFilter("id", idList, FilterType.IN)
+				.desc("id").addNullFilter("username").cursor().count(), 0);
+		QueryCursor<Order> cursor = os.createShardedQuery().addFilter("id", idList, FilterType.IN)
 				.desc("id").addNullFilter("username", false).cursor();
+		
+		
 		
 		List<Order>  orders = new ArrayList<>();
 		scanCount = 0;
-		long ret = cursor.scanData((list, tableName) -> {
+		long ret = cursor.next((list, tableName) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -216,7 +223,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		
 		orders.clear();
 		scanCount = 0;
-		ret = cursor.scanData((list, tableName) -> {
+		ret = cursor.next((list, tableName) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -240,6 +247,98 @@ public class PrimaryKeyModShardingPolicyTest {
 	}
 
 	@Test
+	public void shardedDeleteTest() {
+		initTables();
+		// add测试
+		for (int i = 0; i < 50; i++) {
+			Order o = new Order();
+			o.setId(i);
+			o.setUsername("order-dd" + i);
+			os.add(o);
+		}
+		Order o = new Order();
+		int index = 5;
+		o.setId(index);
+		o.setUsername("order-dd" + index);
+		DeleteCursor<Order> cursor = os.createShardedDelete(o).addFilter("id", index).cursor();
+		scanCount = 0;
+		long total = cursor.count((count, tabName) -> {
+			scanCount++;
+			TestCase.assertEquals(1, count);
+			TestCase.assertEquals(MetaData.getMetaByClass(Order.class).getTableName() + String.format("_%04d", index),
+					tabName);
+		});
+		TestCase.assertEquals(1, total);
+		TestCase.assertEquals(1, scanCount);
+		
+		cursor = os.createShardedDelete().addFilter("id", 10, FilterType.GTE).cursor();
+		scanCount = 0;
+		total = cursor.count((count, tabName) -> {
+			scanCount++;
+			TestCase.assertEquals(4, count);
+		});
+		TestCase.assertEquals(40, total);
+		TestCase.assertEquals(10, scanCount);
+		
+		TestCase.assertEquals(os.createShardedDelete().addNullFilter("username").cursor().count(), 0);
+		TestCase.assertEquals(os.createShardedDelete().addNullFilter("username", false).cursor().count(), 9);
+		
+	}
+
+	@Test
+	public void shardedUpdateTest() {
+		initTables();
+		// add测试
+		for (int i = 0; i < 50; i++) {
+			Order o = new Order();
+			o.setId(i);
+			o.setUsername("order-dd" + i);
+			os.add(o);
+		}
+		Order o = new Order();
+		int index = 8;
+		o.setId(index);
+		o.setUsername("order-dd" + index);
+		String username = "hello";
+		UpdateCursor<Order> cursor = os.createShardedUpdate(o)
+				.set("username", username)
+				.addFilter("id", index)
+				.cursor();
+		scanCount = 0;
+		long total = cursor.count((count, tabName) -> {
+			scanCount++;
+			TestCase.assertEquals(1, count);
+			TestCase.assertEquals(MetaData.getMetaByClass(Order.class).getTableName() + String.format("_%04d", index),
+					tabName);
+		});
+		TestCase.assertEquals(1, total);
+		TestCase.assertEquals(1, scanCount);
+		TestCase.assertEquals(os.getByID(index).getUsername(), username);
+		
+		
+		o = new Order();
+		o.setUsername("xxx");
+		cursor = os.createShardedUpdate().setValue(o).addFilter("id", 10, FilterType.GTE).cursor();
+		scanCount = 0;
+		total = cursor.count((count, tabName) -> {
+			scanCount++;
+			TestCase.assertEquals(4, count);
+		});
+		TestCase.assertEquals(40, total);
+		TestCase.assertEquals(10, scanCount);
+		
+		cursor = os.createShardedUpdate(o)
+				.setNull("username")
+				.addFilter("id", 18)
+				.cursor();
+		TestCase.assertEquals(cursor.count(), 1);
+		TestCase.assertNull(os.getByID(18).getUsername());
+		TestCase.assertEquals(os.createShardedUpdate().set("username", "23").addNullFilter("username", false).cursor().count(), 49);
+		TestCase.assertEquals(os.createShardedUpdate().set("username", "23").addNullFilter("username").cursor().count(), 1);
+		TestCase.assertEquals(os.createShardedQuery().addFilter("username", "23").cursor().count(), 50);
+	}
+	
+	@Test
 	public void inByArrTest() {
 		initTables();
 		// add测试
@@ -250,11 +349,11 @@ public class PrimaryKeyModShardingPolicyTest {
 			os.add(o);
 		}
 		Integer[] ids = new Integer[] {1, 12, 15, 19};
-		ResultCursor<Order> cursor = os.createShardedQuery().addFilter("id", ids, FilterType.IN)
+		QueryCursor<Order> cursor = os.createShardedQuery().addFilter("id", ids, FilterType.IN)
 				.asc("id").cursor();
 		List<Order>  orders = new ArrayList<>();
 		scanCount = 0;
-		long ret = cursor.scanData((list, tableName) -> {
+		long ret = cursor.next((list, tableName) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -272,7 +371,6 @@ public class PrimaryKeyModShardingPolicyTest {
 			TestCase.assertTrue(exits);
 			TestCase.assertEquals("order-" + o.getId(), o.getUsername());
 		}
-		
 	}
 	
 	
@@ -307,6 +405,12 @@ public class PrimaryKeyModShardingPolicyTest {
 	public void exceptionTest() {
 		try {
 			ps.createShardedQuery();
+			throw new RuntimeException();
+		} catch (Exception e) {
+			TestCase.assertEquals(InvalidShardedQueryException.class, e.getClass());
+		}
+		try {
+			ps.createShardedDelete();
 			throw new RuntimeException();
 		} catch (Exception e) {
 			TestCase.assertEquals(InvalidShardedQueryException.class, e.getClass());
