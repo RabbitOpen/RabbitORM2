@@ -4,6 +4,7 @@ import java.util.List;
 
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.Query;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.Cursor;
 import rabbit.open.orm.core.dml.shard.ShardedResultSetProcessor;
 
@@ -41,7 +42,7 @@ public class QueryCursor<T> extends Cursor<T> {
 		nextShardingTable = null;
 		while (hasNext()) {
 			List<T> list = query.page(pageIndex, pageSize).list();
-			String currentTable = query.getMetaData().getTableName();
+			TableMeta currentTable = query.getCurrentTableMeta();
 			pageIndex++;
 			if (list.size() < pageSize) {
 				pageIndex = 0;

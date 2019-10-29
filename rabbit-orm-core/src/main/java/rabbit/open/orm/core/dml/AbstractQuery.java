@@ -127,7 +127,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
-			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), DMLType.SELECT);
+			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableMeta(), DMLType.SELECT);
 			stmt = conn.prepareStatement(sql.toString());
 			setPreparedStatementValue(stmt, DMLType.SELECT);
 			showSql();
@@ -654,7 +654,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		if (!isShardingOperation()) {
 			return;
 		}
-		metaData.updateTableName(getCurrentShardedTableName(getFactors()));
+		metaData.updateTableName(getCurrentShardedTableMeta(getFactors()).getTableName());
 		filterDescriptors.clear();
 		many2oneFilterDescriptors.clear();
 		restClassesEnabled2Join();
@@ -1554,7 +1554,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
-			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), DMLType.SELECT);
+			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableMeta(), DMLType.SELECT);
 			stmt = conn.prepareStatement(sql.toString());
 			setPreparedStatementValue(stmt, null);
 			showSql();

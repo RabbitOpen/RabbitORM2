@@ -12,6 +12,7 @@ import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.PreparedSqlDescriptor;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
 
 /**
@@ -70,8 +71,8 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
      * 用主表名替代中间表名
      */
     @Override
-    protected String getCurrentTableName() {
-        return getDeclaredTableName();
+	public TableMeta getCurrentTableMeta() {
+        return new TableMeta(getDeclaredTableName(), sessionFactory.getDataSource());
     }
 
     @Override

@@ -6,19 +6,15 @@ import javax.sql.DataSource;
 
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.core.dml.CombinedDataSource;
-import rabbit.open.orm.datasource.RabbitDataSource;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 
 public class MultiDataSource implements CombinedDataSource {
 
 	List<DataSource> sources;
 	
 	@Override
-	public DataSource getDataSource(Class<?> entityClz, String tableName, DMLType type) {
-		String tableIndex = tableName.substring(tableName.length() - 3);
-		if (Integer.parseInt(tableIndex) < 5) {
-			return sources.stream().filter(ds -> "ds1".equals(((RabbitDataSource)ds).getName())).findFirst().get();
-		}
-		return sources.stream().filter(ds -> "ds2".equals(((RabbitDataSource)ds).getName())).findFirst().get();
+	public DataSource getDataSource(Class<?> entityClz, TableMeta meta, DMLType type) {
+		return meta.getDataSource();
 	}
 
 	@Override

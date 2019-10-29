@@ -17,6 +17,7 @@ import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.SQLQueryFieldMeta;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.utils.ClassHelper;
 import rabbit.open.orm.datasource.Session;
 
@@ -70,7 +71,7 @@ public class SQLQuery<T> {
 				Pattern pattern = Pattern.compile(TABLE_REPLACE_WORD);
 		        Matcher matcher = pattern.matcher(sql.toString());
 		        if (matcher.find()) {
-		        	sql = new StringBuilder(sql.toString().replace(matcher.group(0), getCurrentTableName()));
+		        	sql = new StringBuilder(sql.toString().replace(matcher.group(0), getCurrentTableMeta().getTableName()));
 		        }
 			}
 
@@ -92,11 +93,11 @@ public class SQLQuery<T> {
 			}
 
 			@Override
-			protected String getCurrentTableName() {
+			public TableMeta getCurrentTableMeta() {
 				if (getMetaData().isShardingTable()) {
-					return super.getCurrentTableName();
+					return super.getCurrentTableMeta();
 				}
-				return getCurrentTableNameByNamedObject(namedObject);
+				return getTableMetaByNamedObject(namedObject);
 			}
 		};
 		query.namedObject = query.getSessionFactory().getQueryByNameAndClass(queryName, clz);
@@ -127,7 +128,7 @@ public class SQLQuery<T> {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
-			conn = factory.getConnection(query.getEntityClz(), query.getCurrentTableName(), DMLType.SELECT);
+			conn = factory.getConnection(query.getEntityClz(), query.getCurrentTableMeta(), DMLType.SELECT);
 			stmt = conn.prepareStatement(query.sql.toString());
 			query.setPreparedStatementValue(stmt, DMLType.SELECT);
 			query.showSql();
@@ -249,7 +250,7 @@ public class SQLQuery<T> {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		try {
-			conn = factory.getConnection(query.getEntityClz(), query.getCurrentTableName(), DMLType.SELECT);
+			conn = factory.getConnection(query.getEntityClz(), query.getCurrentTableMeta(), DMLType.SELECT);
 			stmt = conn.prepareStatement(query.sql.toString());
 			query.setPreparedStatementValue(stmt, DMLType.SELECT);
 			query.showSql();

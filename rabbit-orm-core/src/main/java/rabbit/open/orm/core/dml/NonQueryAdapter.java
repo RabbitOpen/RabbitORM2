@@ -70,7 +70,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
      */
     protected void updateTargetTableName() {
         if (isShardingOperation()) {
-            String tableName = getCurrentShardedTableName(getFactors());
+            String tableName = getCurrentShardedTableMeta(getFactors()).getTableName();
             String replaceAll = sql.toString().replaceAll(TABLE_NAME_REG, tableName);
             sql = new StringBuilder(replaceAll);
         } else {
@@ -98,7 +98,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
         for (FilterDescriptor fd : mfds) {
             factors.add(new ShardFactor(fd.getField(), fd.getFilter(), fd.getValue()));
         }
-        metaData.updateTableName(getCurrentShardedTableName(factors));
+        metaData.updateTableName(getCurrentShardedTableMeta(factors).getTableName());
         dependencyPath.clear();
         addedFilters.clear();
         clzesEnabled2Join = null;
@@ -122,7 +122,7 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
 	public long execute() {
 		Connection conn = null;
 		try {
-			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableName(), dmlType);
+			conn = sessionFactory.getConnection(getEntityClz(), getCurrentTableMeta(), dmlType);
 			return sqlOperation.executeSQL(conn);
 		} catch (UnKnownFieldException e) {
 			throw e;

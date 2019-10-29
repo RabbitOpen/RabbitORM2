@@ -31,6 +31,7 @@ import rabbit.open.orm.core.dialect.dml.DeleteDialectAdapter;
 import rabbit.open.orm.core.dml.interceptor.DMLInterceptor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.name.NamedSQL;
 import rabbit.open.orm.core.dml.shard.ShardedTableNameMatcher;
 import rabbit.open.orm.core.dml.shard.ShardingPolicy;
@@ -92,7 +93,7 @@ public class SessionFactory {
 	private ShardedTableMonitor shardedTableMonitor;
 
 	// 分片策略和分片表集合之间的映射关系缓存
-	private Map<Class<? extends ShardingPolicy>, List<String>> shardedTablesCache = new ConcurrentHashMap<>();
+	private Map<Class<? extends ShardingPolicy>, List<TableMeta>> shardedTablesCache = new ConcurrentHashMap<>();
 
 	private ShardedTableNameMatcher shardedTableNameMatcher;
 
@@ -100,8 +101,8 @@ public class SessionFactory {
 		return getConnection(null, null, null);
 	}
 
-	public Connection getConnection(Class<?> entityClz, String tableName, DMLType type) throws SQLException {
-		DataSource ds = getDataSource(entityClz, tableName, type);
+	public Connection getConnection(Class<?> entityClz, TableMeta tableMeta, DMLType type) throws SQLException {
+		DataSource ds = getDataSource(entityClz, tableMeta, type);
 		Connection conn;
 		if (isTransactionOpen()) {
 			RabbitConnectionHolder holder = (RabbitConnectionHolder) TransactionSynchronizationManager
@@ -197,14 +198,14 @@ public class SessionFactory {
 	/**
 	 * <b>Description   获取一个数据源</b>
 	 * @param entityClz
-	 * @param tableName
+	 * @param tableMeta
 	 * @param type
 	 * @return
 	 */
-	private DataSource getDataSource(Class<?> entityClz, String tableName,
+	private DataSource getDataSource(Class<?> entityClz, TableMeta tableMeta,
 									 DMLType type) {
 		if (null != combinedDataSource) {
-			return combinedDataSource.getDataSource(entityClz, tableName, type);
+			return combinedDataSource.getDataSource(entityClz, tableMeta, type);
 		}
 		return dataSource;
 	}
@@ -648,11 +649,11 @@ public class SessionFactory {
 	 * @param clz
 	 * @param tables
 	 */
-	public void setShardTables(Class<? extends ShardingPolicy> clz, List<String> tables) {
+	public void setShardTables(Class<? extends ShardingPolicy> clz, List<TableMeta> tables) {
 		this.shardedTablesCache.put(clz, tables);
 	}
 	
-	public Map<Class<? extends ShardingPolicy>, List<String>> getShardedTablesCache() {
+	public Map<Class<? extends ShardingPolicy>, List<TableMeta>> getShardedTablesCache() {
 		return shardedTablesCache;
 	}
 	

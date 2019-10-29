@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.name.FetcherDescriptor;
 import rabbit.open.orm.core.dml.name.JoinFetcherDescriptor;
 import rabbit.open.orm.core.dml.name.NamedSQL;
@@ -53,8 +54,8 @@ public class NamedQuery<T> {
 			 * @return
 			 */
 			@Override
-			protected String getCurrentTableName() {
-				return getCurrentTableNameByNamedObject(namedObject);
+			public TableMeta getCurrentTableMeta() {
+				return getTableMetaByNamedObject(namedObject);
 			}
 		};
 		query.namedObject = query.getSessionFactory().getQueryByNameAndClass(name, clz);

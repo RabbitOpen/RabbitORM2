@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.meta.MetaData;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 
 /**
  * 
@@ -71,7 +72,7 @@ public class ShardedTableMonitor extends Thread {
 	 * @param meta
 	 */
 	private void reloadByEntityMeta(MetaData<?> meta) {
-		List<String> list = new ArrayList<>();
+		List<TableMeta> list = new ArrayList<>();
 		for (DataSource ds : factory.getAllDataSources()) {
 			Connection conn = null;
 			try {
@@ -79,7 +80,7 @@ public class ShardedTableMonitor extends Thread {
 				Set<String> tables = DDLHelper.readTablesFromDB(conn);
 				for (String table : tables) {
 					if (factory.getShardedTableNameMatcher().match(meta.getTableName(), table)) {
-						list.add(table);
+						list.add(new TableMeta(table, ds));
 					}
 				}
 			} catch (Exception e) {

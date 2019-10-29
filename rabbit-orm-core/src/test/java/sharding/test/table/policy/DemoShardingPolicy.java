@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import rabbit.open.orm.core.annotation.Entity;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.DefaultShardingPolicy;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
 import rabbit.open.orm.core.dml.shard.ShardingPolicy;
@@ -21,8 +22,8 @@ public class DemoShardingPolicy implements ShardingPolicy {
      * 	根据主键分表(奇偶 分表)
      */
     @Override
-    public List<String> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
-    		List<String> allTables) {
+    public List<TableMeta> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
+    		List<TableMeta> tableMetas) {
     	if (!DefaultShardingPolicy.class.equals(clz.getAnnotation(Entity.class).policy())) {
             if (containShardFactor(factors)) {
                 return Arrays.asList(getShardingTableName(declaredTableName, factors));
@@ -31,7 +32,7 @@ public class DemoShardingPolicy implements ShardingPolicy {
                 throw new UnKnownShardException("无法定位分表的操作被指定了");
             }
         } else {
-            return Arrays.asList(declaredTableName);
+            return Arrays.asList(new TableMeta(declaredTableName, null));
         }
     }
 
@@ -41,10 +42,10 @@ public class DemoShardingPolicy implements ShardingPolicy {
      * @param factors
      * @return
      */
-    private String getShardingTableName(String tableName, List<ShardFactor> factors) {
+    private TableMeta getShardingTableName(String tableName, List<ShardFactor> factors) {
         for (ShardFactor sf : factors) {
             if ("id".equals(sf.getField().getName())) {
-                return tableName + (((Long) sf.getValue()).longValue() % 2);
+                return new TableMeta(tableName + (((Long) sf.getValue()).longValue() % 2), null);
             }
         }
         return null;

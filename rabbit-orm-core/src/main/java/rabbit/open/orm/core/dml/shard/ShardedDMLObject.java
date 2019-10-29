@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rabbit.open.orm.core.dml.DMLObject;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.execption.InvalidShardedQueryException;
 
 /**
@@ -38,12 +39,12 @@ public abstract class ShardedDMLObject<T> {
 	 * @param factors
 	 * @return
 	 */
-	protected String getCurrentShardedTable(List<ShardFactor> factors) {
+	protected TableMeta getCurrentShardedTable(List<ShardFactor> factors) {
 		if (null != cursor.getNextShardingTable()) {
 			return cursor.getNextShardingTable();
 		}
-		List<String> hittedTables = getDMLObject().getShardingPolicy().getHittedTables(getDMLObject().getEntityClz(),
-				getDMLObject().getDeclaredTableName(), factors, getDMLObject().getAllTables());
+		List<TableMeta> hittedTables = getDMLObject().getShardingPolicy().getHittedTables(getDMLObject().getEntityClz(),
+				getDMLObject().getDeclaredTableName(), factors, getDMLObject().getAllTableMetas());
 		return hittedTables.get(0);
 	}
 	

@@ -40,6 +40,7 @@ import rabbit.open.orm.core.dml.meta.FilterDescriptor;
 import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.name.NamedSQL;
 import rabbit.open.orm.core.dml.shard.DefaultShardingPolicy;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
@@ -956,7 +957,7 @@ public abstract class DMLObject<T> {
         for (MultiDropFilter filter : multiDropFilter.getFilters()) {
             FilterDescriptor fdi = filter.getFilterDescriptor();
             Column col = fdi.getField().getAnnotation(Column.class);
-            String key = getAliasByTableName(getCurrentTableName()) + "."
+            String key = getAliasByTableName(getCurrentTableMeta().getTableName()) + "."
                     		+ getColumnName(col);
             Object value = RabbitValueConverter.convert(fdi.getValue(),
                             MetaData.getCachedFieldsMeta(getEntityClz(),
@@ -1006,8 +1007,8 @@ public abstract class DMLObject<T> {
      * @param factors
      * @return
      */
-	protected String getCurrentShardedTableName(List<ShardFactor> factors) {
-		List<String> hittedTables = getShardingPolicy().getHittedTables(getEntityClz(), getDeclaredTableName(), factors, getAllTables());
+	protected TableMeta getCurrentShardedTableMeta(List<ShardFactor> factors) {
+		List<TableMeta> hittedTables = getShardingPolicy().getHittedTables(getEntityClz(), getDeclaredTableName(), factors, getAllTableMetas());
 		return hittedTables.get(0);
 	}
 	
@@ -1015,15 +1016,15 @@ public abstract class DMLObject<T> {
 	 * <b>@description 获取所有分区表 </b>
 	 * @return
 	 */
-	public List<String> getAllTables() {
+	public List<TableMeta> getAllTableMetas() {
 		return sessionFactory.getShardedTablesCache().get(metaData.getShardingPolicy().getClass());
 	}
     
-    protected String getCurrentTableName() {
+    public TableMeta getCurrentTableMeta() {
         if (isShardingOperation()) {
-            return getCurrentShardedTableName(getFactors());
+            return getCurrentShardedTableMeta(getFactors());
         }
-        return metaData.getTableName();
+        return new TableMeta(metaData.getTableName(), sessionFactory.getDataSource());
     }
 
     /**
@@ -1116,11 +1117,11 @@ public abstract class DMLObject<T> {
      * 获取根据命名sql对象对应的目标表名，如果配置参数targetTableName则用配置参数
      * @param namedObject   命名对象
      */
-	protected String getCurrentTableNameByNamedObject(NamedSQL namedObject) {
+	protected TableMeta getTableMetaByNamedObject(NamedSQL namedObject) {
         if (!SessionFactory.isEmpty(namedObject.getTargetTableName())) {
-            return namedObject.getTargetTableName().trim();
+            return new TableMeta(namedObject.getTargetTableName().trim(), sessionFactory.getDataSource());
         }
-        return getMetaData().getTableName();
+        return new TableMeta(getMetaData().getTableName(), sessionFactory.getDataSource());
     }
 	
 	/**

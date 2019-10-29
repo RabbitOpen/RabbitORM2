@@ -4,14 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import rabbit.open.orm.core.dml.DMLObject;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 
 public abstract class Cursor<T> {
 
 	// 下次dml操作使用的分区表
-	protected String nextShardingTable = null;
+	protected TableMeta nextShardingTable = null;
 
 	// 所有符合条件的表
-	private List<String> hittedTables = new ArrayList<>();
+	private List<TableMeta> hittedTables = new ArrayList<>();
 	
 	private boolean hasNext = true;
 	
@@ -46,18 +47,31 @@ public abstract class Cursor<T> {
 		while (hasNext()) {
 			long count = getAffectedCount();
 			total += count;
-			String currentTable = getDMLObject().getMetaData().getTableName();
-			if (getHittedTables().indexOf(currentTable) == getHittedTables().size() - 1) {
+			TableMeta meta = getDMLObject().getCurrentTableMeta();
+			int metaIndex = getMetaIndex(meta);
+			if (metaIndex == getHittedTables().size() - 1) {
 				setHasNext(false);
 				nextShardingTable = null;
 			} else {
-				nextShardingTable = getHittedTables().get(getHittedTables().indexOf(currentTable) + 1);
+				nextShardingTable = getHittedTables().get(metaIndex + 1);
 			}
 			if (null != counter) {
-				counter.count(count, currentTable);
+				counter.count(count, meta);
 			}
 		}
 		return total;
+	}
+
+	protected int getMetaIndex(TableMeta meta) {
+		int size = getHittedTables().size();
+		for (int i = 0; i < size; i++) {
+			TableMeta tableMeta = getHittedTables().get(i);
+			if (tableMeta.getDataSource().equals(meta.getDataSource())
+					&& tableMeta.getTableName().equals(meta.getTableName())) {
+				return i;
+			}
+		}
+		return 0;
 	}
 
 	/**
@@ -71,7 +85,7 @@ public abstract class Cursor<T> {
 	 * 
 	 * @return
 	 */
-	public String getNextShardingTable() {
+	public TableMeta getNextShardingTable() {
 		return nextShardingTable;
 	}
 	
@@ -85,7 +99,7 @@ public abstract class Cursor<T> {
 	 * <b>@description 获取T对应的所有分区表 </b>
 	 * @return
 	 */
-	protected List<String> getAllTables() {
+	protected List<TableMeta> getTableMetas() {
 		DMLObject<T> dmlObject = getDMLObject();
 		return dmlObject.getSessionFactory().getShardedTablesCache().get(dmlObject.getMetaData().getShardingPolicy().getClass());
 	}
@@ -94,10 +108,10 @@ public abstract class Cursor<T> {
 	 * <b>@description 获取被命中的表集合 </b>
 	 * @return
 	 */
-	protected List<String> getHittedTables() {
+	protected List<TableMeta> getHittedTables() {
 		if (hittedTables.isEmpty()) {
 			ShardingPolicy shardingPolicy = getDMLObject().getMetaData().getShardingPolicy();
-			hittedTables = shardingPolicy.getHittedTables(getDMLObject().getEntityClz(), getDMLObject().getDeclaredTableName(), getDMLObject().getFactors(), getAllTables());
+			hittedTables = shardingPolicy.getHittedTables(getDMLObject().getEntityClz(), getDMLObject().getDeclaredTableName(), getDMLObject().getFactors(), getTableMetas());
 		}
 		return hittedTables;
 	}

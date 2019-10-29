@@ -95,14 +95,14 @@ public class PrimaryKeyModShardingPolicyTest {
 		}
 		QueryCursor<Order> cursor = os.createShardedQuery().cursor();
 		Map<String, Long> names = new HashMap<>();
-		long total = cursor.count((count, tableName) -> {
+		long total = cursor.count((count, tableMeta) -> {
 			TestCase.assertEquals(5, count);
-			names.put(tableName, count);
+			names.put(tableMeta.getTableName(), count);
 		});
 		TestCase.assertEquals(10, names.size());
 		TestCase.assertEquals(50, total);
-		cursor.next((list, tableName) -> {
-			TestCase.assertEquals(list.size(), names.get(tableName).intValue());
+		cursor.next((list, tableMeta) -> {
+			TestCase.assertEquals(list.size(), names.get(tableMeta.getTableName()).intValue());
 		});
 		
 	}
@@ -124,7 +124,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		
 		List<Order>  orders = new ArrayList<>();
 		scanCount = 0;
-		long ret = cursor.next((list, tableName) -> {
+		long ret = cursor.next((list, tableMeta) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -136,7 +136,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		cursor = os.createShardedQuery().addFilter("id", 3, FilterType.GT).cursor();
 		orders.clear();
 		scanCount = 0;
-		ret = cursor.next((list, tableName) -> {
+		ret = cursor.next((list, tableMeta) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -146,7 +146,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		cursor = os.createShardedQuery().cursor();
 		orders.clear();
 		scanCount = 0;
-		ret = cursor.next((list, tableName) -> {
+		ret = cursor.next((list, tableMeta) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -170,7 +170,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		QueryCursor<Order> cursor = os.createShardedQuery().setPageSize(2).addFilter("id", idList, FilterType.IN).cursor();
 		List<Order>  orders = new ArrayList<>();
 		scanCount = 0;
-		long ret = cursor.next((list, tableName) -> {
+		long ret = cursor.next((list, tableMeta) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -211,7 +211,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		
 		List<Order>  orders = new ArrayList<>();
 		scanCount = 0;
-		long ret = cursor.next((list, tableName) -> {
+		long ret = cursor.next((list, tableMeta) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -223,7 +223,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		
 		orders.clear();
 		scanCount = 0;
-		ret = cursor.next((list, tableName) -> {
+		ret = cursor.next((list, tableMeta) -> {
 			orders.addAll(list);
 			scanCount++;
 		});
@@ -262,18 +262,16 @@ public class PrimaryKeyModShardingPolicyTest {
 		o.setUsername("order-dd" + index);
 		DeleteCursor<Order> cursor = os.createShardedDelete(o).addFilter("id", index).cursor();
 		scanCount = 0;
-		long total = cursor.count((count, tabName) -> {
+		long total = cursor.count((count, tableMeta) -> {
 			scanCount++;
 			TestCase.assertEquals(1, count);
-			TestCase.assertEquals(MetaData.getMetaByClass(Order.class).getTableName() + String.format("_%04d", index),
-					tabName);
 		});
 		TestCase.assertEquals(1, total);
 		TestCase.assertEquals(1, scanCount);
 		
 		cursor = os.createShardedDelete().addFilter("id", 10, FilterType.GTE).cursor();
 		scanCount = 0;
-		total = cursor.count((count, tabName) -> {
+		total = cursor.count((count, tableMeta) -> {
 			scanCount++;
 			TestCase.assertEquals(4, count);
 		});
@@ -305,11 +303,9 @@ public class PrimaryKeyModShardingPolicyTest {
 				.addFilter("id", index)
 				.cursor();
 		scanCount = 0;
-		long total = cursor.count((count, tabName) -> {
+		long total = cursor.count((count, tabMeta) -> {
 			scanCount++;
 			TestCase.assertEquals(1, count);
-			TestCase.assertEquals(MetaData.getMetaByClass(Order.class).getTableName() + String.format("_%04d", index),
-					tabName);
 		});
 		TestCase.assertEquals(1, total);
 		TestCase.assertEquals(1, scanCount);
@@ -320,7 +316,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		o.setUsername("xxx");
 		cursor = os.createShardedUpdate().setValue(o).addFilter("id", 10, FilterType.GTE).cursor();
 		scanCount = 0;
-		total = cursor.count((count, tabName) -> {
+		total = cursor.count((count, tabMeta) -> {
 			scanCount++;
 			TestCase.assertEquals(4, count);
 		});
@@ -353,7 +349,7 @@ public class PrimaryKeyModShardingPolicyTest {
 				.asc("id").cursor();
 		List<Order>  orders = new ArrayList<>();
 		scanCount = 0;
-		long ret = cursor.next((list, tableName) -> {
+		long ret = cursor.next((list, tableMeta) -> {
 			orders.addAll(list);
 			scanCount++;
 		});

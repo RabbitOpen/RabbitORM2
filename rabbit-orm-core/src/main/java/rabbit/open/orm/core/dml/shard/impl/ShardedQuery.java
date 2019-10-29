@@ -6,6 +6,7 @@ import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.Query;
 import rabbit.open.orm.core.dml.SessionFactory;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
 import rabbit.open.orm.core.dml.shard.ShardedDMLObject;
 
@@ -25,7 +26,7 @@ public class ShardedQuery<T> extends ShardedDMLObject<T> {
 
 			// 如果迭代器中有分区表则直接取当前分区表
 			@Override
-			protected String getCurrentShardedTableName(List<ShardFactor> factors) {
+			protected TableMeta getCurrentShardedTableMeta(List<ShardFactor> factors) {
 				return getCurrentShardedTable(factors);
 			}
 

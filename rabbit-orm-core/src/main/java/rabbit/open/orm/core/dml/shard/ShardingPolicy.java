@@ -3,6 +3,8 @@ package rabbit.open.orm.core.dml.shard;
 import java.util.ArrayList;
 import java.util.List;
 
+import rabbit.open.orm.core.dml.meta.TableMeta;
+
 /**
  * <b>Description  默认分表策略（部分表）</b>
  */
@@ -13,10 +15,10 @@ public interface ShardingPolicy {
      * @param clz
      * @param declaredTableName		
      * @param factors
-     * @param allTables
+     * @param tableMetas
      * @return
      */
-    default List<String> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors, List<String> allTables) {
+    default List<TableMeta> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors, List<TableMeta> tableMetas) {
 		return new ArrayList<>();
 	}
     

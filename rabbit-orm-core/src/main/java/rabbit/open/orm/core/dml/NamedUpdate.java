@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.util.TreeMap;
 
 import rabbit.open.orm.common.dml.DMLType;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 
 /**
  * <b>@description 命名更新对象 </b>
@@ -41,8 +42,8 @@ public class NamedUpdate<T> extends NonQueryAdapter<T> {
 	 * @return
 	 */
 	@Override
-	protected String getCurrentTableName() {
-		return getCurrentTableNameByNamedObject(namedObject);
+	public TableMeta getCurrentTableMeta() {
+		return getTableMetaByNamedObject(namedObject);
 	}
 
 	/**
