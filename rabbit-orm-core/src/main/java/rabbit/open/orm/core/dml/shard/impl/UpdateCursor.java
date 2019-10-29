@@ -3,6 +3,7 @@ package rabbit.open.orm.core.dml.shard.impl;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.Update;
 import rabbit.open.orm.core.dml.shard.Cursor;
+import rabbit.open.orm.core.dml.shard.ShardedResultCounter;
 
 /**
  * 
@@ -26,6 +27,14 @@ public class UpdateCursor<T> extends Cursor<T> {
 	@Override
 	protected DMLObject<T> getDMLObject() {
 		return update;
+	}
+	
+	public long next() {
+		return next(null);
+	}
+
+	public long next(ShardedResultCounter counter) {
+		return count(counter);
 	}
 
 }

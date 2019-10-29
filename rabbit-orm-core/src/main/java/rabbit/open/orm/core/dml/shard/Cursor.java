@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import rabbit.open.orm.core.dml.DMLObject;
+import rabbit.open.orm.core.dml.SessionFactory;
+import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.TableMeta;
 
 public abstract class Cursor<T> {
@@ -100,8 +102,9 @@ public abstract class Cursor<T> {
 	 * @return
 	 */
 	protected List<TableMeta> getTableMetas() {
-		DMLObject<T> dmlObject = getDMLObject();
-		return dmlObject.getSessionFactory().getShardedTablesCache().get(dmlObject.getMetaData().getShardingPolicy().getClass());
+		SessionFactory sessionFactory = getDMLObject().getSessionFactory();
+		MetaData<T> metaData = getDMLObject().getMetaData();
+		return sessionFactory.getTableMetas(metaData.getShardingPolicy().getClass(), metaData.getEntityClz());
 	}
 	
 	/**

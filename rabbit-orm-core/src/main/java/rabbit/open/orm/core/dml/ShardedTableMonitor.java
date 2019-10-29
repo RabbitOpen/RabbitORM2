@@ -89,7 +89,7 @@ public class ShardedTableMonitor extends Thread {
 				DMLObject.closeConnection(conn);
 			}
 		}
-		factory.setShardTables(meta.getShardingPolicy().getClass(), list);
+		factory.setShardTables(meta.getShardingPolicy().getClass(), meta.getEntityClz(), list);
 	}
 
 	public void shutdown() {

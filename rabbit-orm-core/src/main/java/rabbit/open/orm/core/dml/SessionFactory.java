@@ -93,7 +93,7 @@ public class SessionFactory {
 	private ShardedTableMonitor shardedTableMonitor;
 
 	// 分片策略和分片表集合之间的映射关系缓存
-	private Map<Class<? extends ShardingPolicy>, List<TableMeta>> shardedTablesCache = new ConcurrentHashMap<>();
+	private Map<Class<? extends ShardingPolicy>, Map<Class<?>, List<TableMeta>>> shardedTablesCache = new ConcurrentHashMap<>();
 
 	private ShardedTableNameMatcher shardedTableNameMatcher;
 
@@ -645,16 +645,19 @@ public class SessionFactory {
 	}
 	
 	/**
-	 * <b>@description 设置分片策略对应的表信息 </b>
+	 * <b>@description  设置分片策略对应的表信息 </b>
 	 * @param clz
-	 * @param tables
+	 * @param entityClz
+	 * @param tabMetas
 	 */
-	public void setShardTables(Class<? extends ShardingPolicy> clz, List<TableMeta> tables) {
-		this.shardedTablesCache.put(clz, tables);
+	public void setShardTables(Class<? extends ShardingPolicy> clz, Class<?> entityClz, List<TableMeta> tabMetas) {
+		if (!this.shardedTablesCache.containsKey(clz)) {
+			this.shardedTablesCache.put(clz, new ConcurrentHashMap<>());
+		}
+		this.shardedTablesCache.get(clz).put(entityClz, tabMetas);
 	}
 	
-	public Map<Class<? extends ShardingPolicy>, List<TableMeta>> getShardedTablesCache() {
-		return shardedTablesCache;
+	public List<TableMeta> getTableMetas(Class<? extends ShardingPolicy> clz, Class<?> entityClz) {
+		return shardedTablesCache.get(clz).get(entityClz);
 	}
-	
 }

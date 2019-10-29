@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -21,13 +22,16 @@ import junit.framework.TestCase;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.meta.MetaData;
+import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.execption.InvalidShardedQueryException;
+import rabbit.open.orm.core.dml.shard.execption.NoShardTableException;
 import rabbit.open.orm.core.dml.shard.impl.DeleteCursor;
 import rabbit.open.orm.core.dml.shard.impl.QueryCursor;
 import rabbit.open.orm.core.dml.shard.impl.UpdateCursor;
 import sharding.test.shardquery.entity.Order;
 import sharding.test.shardquery.service.OrderService;
 import sharding.test.shardquery.service.PlanService;
+import sharding.test.shardquery.service.PlanXService;
 
 /**
  * <b>Description: 分片表测试</b><br>
@@ -46,7 +50,15 @@ public class PrimaryKeyModShardingPolicyTest {
 	@Autowired
 	PlanService ps;
 	
+	@Autowired
+	PlanXService pxs;
+	
 	int scanCount = 0;
+	
+	@Before
+	public void init() {
+		initTables();
+	}
 	
 	/**
 	 * <b>@description 简单dml操作测试  </b>
@@ -82,7 +94,7 @@ public class PrimaryKeyModShardingPolicyTest {
 			TestCase.assertNull(result);
 		}
 	}
-
+	
 	@Test
 	public void counterTest() {
 		initTables();
@@ -94,15 +106,15 @@ public class PrimaryKeyModShardingPolicyTest {
 			os.add(o);
 		}
 		QueryCursor<Order> cursor = os.createShardedQuery().cursor();
-		Map<String, Long> names = new HashMap<>();
+		Map<TableMeta, Long> names = new HashMap<>();
 		long total = cursor.count((count, tableMeta) -> {
 			TestCase.assertEquals(5, count);
-			names.put(tableMeta.getTableName(), count);
+			names.put(tableMeta, count);
 		});
 		TestCase.assertEquals(10, names.size());
 		TestCase.assertEquals(50, total);
 		cursor.next((list, tableMeta) -> {
-			TestCase.assertEquals(list.size(), names.get(tableMeta.getTableName()).intValue());
+			TestCase.assertEquals(list.size(), names.get(tableMeta).intValue());
 		});
 		
 	}
@@ -193,7 +205,6 @@ public class PrimaryKeyModShardingPolicyTest {
 	
 	@Test
 	public void inByListTest() {
-		initTables();
 		// add测试
 		for (int i = 0; i < 50; i++) {
 			Order o = new Order();
@@ -379,7 +390,7 @@ public class PrimaryKeyModShardingPolicyTest {
 			read.close();
 			
 			Connection write = os.getDs2().getConnection();
-			for (int i = 5; i < 10; i++) {
+			for (int i = 0; i < 5; i++) {
 				reCreateTable(MetaData.getMetaByClass(Order.class).getTableName() + String.format("_%04d", i), write);
 			}
 			write.close();
@@ -410,6 +421,18 @@ public class PrimaryKeyModShardingPolicyTest {
 			throw new RuntimeException();
 		} catch (Exception e) {
 			TestCase.assertEquals(InvalidShardedQueryException.class, e.getClass());
+		}
+		try {
+			pxs.createShardedDelete().cursor().next();
+			throw new RuntimeException();
+		} catch (Exception e) {
+			TestCase.assertEquals(NoShardTableException.class, e.getClass());
+		}
+		try {
+			pxs.createShardedUpdate().cursor().next();
+			throw new RuntimeException();
+		} catch (Exception e) {
+			TestCase.assertEquals(NoShardTableException.class, e.getClass());
 		}
 	}
 	

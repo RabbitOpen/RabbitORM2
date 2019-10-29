@@ -11,9 +11,10 @@ import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
 import rabbit.open.orm.core.dml.shard.ShardingPolicy;
+import rabbit.open.orm.core.dml.shard.execption.NoShardTableException;
 
 /**
- * <b>@description 主键的值hash code取模分片策略 </b>
+ * <b>@description 主键的值hash code取模分片策略,，不支持动态扩容 </b>
  */
 public class PrimaryKeyModShardingPolicy implements ShardingPolicy {
 	
@@ -28,6 +29,9 @@ public class PrimaryKeyModShardingPolicy implements ShardingPolicy {
 	@Override
 	public List<TableMeta> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
 			List<TableMeta> tableMetas) {
+		if (tableMetas.isEmpty()) {
+			throw new NoShardTableException(clz);
+		}
 		ShardFactor factor = getShardFactor(clz, factors);
 		if (null == factor) {
 			return tableMetas;

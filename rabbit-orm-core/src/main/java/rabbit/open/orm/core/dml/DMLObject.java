@@ -1008,7 +1008,7 @@ public abstract class DMLObject<T> {
      * @return
      */
 	protected TableMeta getCurrentShardedTableMeta(List<ShardFactor> factors) {
-		List<TableMeta> hittedTables = getShardingPolicy().getHittedTables(getEntityClz(), getDeclaredTableName(), factors, getAllTableMetas());
+		List<TableMeta> hittedTables = getShardingPolicy().getHittedTables(getEntityClz(), getDeclaredTableName(), factors, getTableMetas());
 		return hittedTables.get(0);
 	}
 	
@@ -1016,8 +1016,8 @@ public abstract class DMLObject<T> {
 	 * <b>@description 获取所有分区表 </b>
 	 * @return
 	 */
-	public List<TableMeta> getAllTableMetas() {
-		return sessionFactory.getShardedTablesCache().get(metaData.getShardingPolicy().getClass());
+	public List<TableMeta> getTableMetas() {
+		return sessionFactory.getTableMetas(metaData.getShardingPolicy().getClass(), metaData.getEntityClz());
 	}
     
     public TableMeta getCurrentTableMeta() {

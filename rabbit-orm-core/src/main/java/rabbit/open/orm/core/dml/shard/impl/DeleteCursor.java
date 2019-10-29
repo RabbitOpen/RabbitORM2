@@ -3,6 +3,7 @@ package rabbit.open.orm.core.dml.shard.impl;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.Delete;
 import rabbit.open.orm.core.dml.shard.Cursor;
+import rabbit.open.orm.core.dml.shard.ShardedResultCounter;
 
 /**
  * 
@@ -28,4 +29,11 @@ public class DeleteCursor<T> extends Cursor<T> {
 		return delete;
 	}
 
+	public long next() {
+		return next(null);
+	}
+
+	public long next(ShardedResultCounter counter) {
+		return count(counter);
+	}
 }
