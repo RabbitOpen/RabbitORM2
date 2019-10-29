@@ -39,24 +39,25 @@ public class QueryCursor<T> extends Cursor<T> {
 	public long next(ShardedResultSetProcessor<T> processor) {
 		setHasNext(true);
 		long count = 0;
-		nextShardingTable = null;
+		nextShardingTableMeta = null;
 		while (hasNext()) {
 			List<T> list = query.page(pageIndex, pageSize).list();
-			TableMeta currentTable = query.getCurrentTableMeta();
+			TableMeta meta = query.getCurrentTableMeta();
 			pageIndex++;
 			if (list.size() < pageSize) {
 				pageIndex = 0;
-				if (getHittedTables().indexOf(currentTable) == getHittedTables().size() - 1) {
+				int metaIndex = getMetaIndex(meta);
+				if (metaIndex == getHittedTables().size() - 1) {
 					setHasNext(false);
-					nextShardingTable = null;
+					nextShardingTableMeta = null;
 				} else {
-					nextShardingTable = getHittedTables().get(getHittedTables().indexOf(currentTable) + 1);
+					nextShardingTableMeta = getHittedTables().get(metaIndex + 1);
 				}
 			} else {
-				nextShardingTable = currentTable;
+				nextShardingTableMeta = meta;
 			}
 			count += list.size();
-			processor.process(list, currentTable);
+			processor.process(list, meta);
 		}
 		return count;
 	}

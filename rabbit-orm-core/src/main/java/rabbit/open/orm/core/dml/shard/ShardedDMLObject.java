@@ -40,8 +40,8 @@ public abstract class ShardedDMLObject<T> {
 	 * @return
 	 */
 	protected TableMeta getCurrentShardedTable(List<ShardFactor> factors) {
-		if (null != cursor.getNextShardingTable()) {
-			return cursor.getNextShardingTable();
+		if (null != cursor.getNextShardingTableMeta()) {
+			return cursor.getNextShardingTableMeta();
 		}
 		List<TableMeta> hittedTables = getDMLObject().getShardingPolicy().getHittedTables(getDMLObject().getEntityClz(),
 				getDMLObject().getDeclaredTableName(), factors, getDMLObject().getTableMetas());

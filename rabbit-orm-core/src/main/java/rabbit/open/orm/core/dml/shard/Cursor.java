@@ -11,7 +11,7 @@ import rabbit.open.orm.core.dml.meta.TableMeta;
 public abstract class Cursor<T> {
 
 	// 下次dml操作使用的分区表
-	protected TableMeta nextShardingTable = null;
+	protected TableMeta nextShardingTableMeta = null;
 
 	// 所有符合条件的表
 	private List<TableMeta> hittedTables = new ArrayList<>();
@@ -45,7 +45,7 @@ public abstract class Cursor<T> {
 	public long count(ShardedResultCounter counter) {
 		setHasNext(true);
 		long total = 0L;
-		nextShardingTable = null;
+		nextShardingTableMeta = null;
 		while (hasNext()) {
 			long count = getAffectedCount();
 			total += count;
@@ -53,9 +53,9 @@ public abstract class Cursor<T> {
 			int metaIndex = getMetaIndex(meta);
 			if (metaIndex == getHittedTables().size() - 1) {
 				setHasNext(false);
-				nextShardingTable = null;
+				nextShardingTableMeta = null;
 			} else {
-				nextShardingTable = getHittedTables().get(metaIndex + 1);
+				nextShardingTableMeta = getHittedTables().get(metaIndex + 1);
 			}
 			if (null != counter) {
 				counter.count(count, meta);
@@ -84,11 +84,10 @@ public abstract class Cursor<T> {
 
 	/**
 	 * <b>@description 获取下次查询使用的分区表 </b>
-	 * 
 	 * @return
 	 */
-	public TableMeta getNextShardingTable() {
-		return nextShardingTable;
+	public TableMeta getNextShardingTableMeta() {
+		return nextShardingTableMeta;
 	}
 	
 	/**

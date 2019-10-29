@@ -410,10 +410,11 @@ public class SessionFactory {
 	/**
 	 *
 	 * <b>Description: 执行ddl操作</b><br>
+	 * @throws ClassNotFoundException 
 	 *
 	 */
 	@PostConstruct
-	public void setUp() {
+	public void setUp() throws ClassNotFoundException {
 		DialectTransformer.init();
 		DeleteDialectAdapter.init();
 		PolicyInsert.init();
@@ -434,11 +435,14 @@ public class SessionFactory {
 
 	/**
 	 * <b>@description 启动分区表监控线程  </b>
+	 * @throws ClassNotFoundException 
 	 */
-	private void startShardedTableMonitor() {
+	private void startShardedTableMonitor() throws ClassNotFoundException {
 		// 预加载一下所有的数据源
 		getAllDataSources();
 		shardedTableMonitor = new ShardedTableMonitor(this);
+		// 预先加载一次分片表
+		shardedTableMonitor.reloadShardedTables();
 		shardedTableMonitor.start();
 	}
 	

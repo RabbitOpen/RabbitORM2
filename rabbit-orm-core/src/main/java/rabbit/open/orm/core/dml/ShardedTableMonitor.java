@@ -38,14 +38,14 @@ public class ShardedTableMonitor extends Thread {
 	public void run() {
 		while (true) {
 			try {
-				reloadShardedTables();
+				if (semaphore.tryAcquire(60, TimeUnit.MINUTES)) {
+					break;
+				}
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 			}
 			try {
-				if (semaphore.tryAcquire(60, TimeUnit.MINUTES)) {
-					break;
-				}
+				reloadShardedTables();
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 			}
@@ -57,7 +57,7 @@ public class ShardedTableMonitor extends Thread {
 	 * <b>@description 刷新实体对应的分片表 </b>
 	 * @throws ClassNotFoundException
 	 */
-	private void reloadShardedTables() throws ClassNotFoundException {
+	protected void reloadShardedTables() throws ClassNotFoundException {
 		for (String entity : factory.getEntities()) {
 			Class<?> clz = Class.forName(entity);
 			MetaData<?> meta = MetaData.getMetaByClass(clz);
