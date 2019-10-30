@@ -27,7 +27,7 @@ public class PrimaryKeyModShardingPolicy implements ShardingPolicy {
      * @return
      */
 	@Override
-	public List<TableMeta> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
+	public List<TableMeta> getHitTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
 			List<TableMeta> tableMetas) {
 		if (tableMetas.isEmpty()) {
 			throw new NoShardTableException(clz);
@@ -36,20 +36,20 @@ public class PrimaryKeyModShardingPolicy implements ShardingPolicy {
 		if (keyFactors.isEmpty()) {
 			return tableMetas;
 		} else {
-			Set<TableMeta> hittedTables = new HashSet<>(tableMetas);
+			Set<TableMeta> hitTables = new HashSet<>(tableMetas);
 			for (ShardFactor f : keyFactors) {
 				// 和命中的表取交集
-				hittedTables.retainAll(getHittedTablesByFactor(tableMetas, f));
+				hitTables.retainAll(getHitTablesByFactor(tableMetas, f));
 			}
-			if (hittedTables.isEmpty()) {
+			if (hitTables.isEmpty()) {
 				// 如果没有命中任何一张表 则随便取一个
-				hittedTables.add(tableMetas.get(0));
+				hitTables.add(tableMetas.get(0));
 			}
-			return new ArrayList<>(hittedTables);
+			return new ArrayList<>(hitTables);
 		}
 	}
 
-	protected Set<TableMeta> getHittedTablesByFactor(List<TableMeta> tableMetas, ShardFactor f) {
+	protected Set<TableMeta> getHitTablesByFactor(List<TableMeta> tableMetas, ShardFactor f) {
 		Set<TableMeta> tables = new HashSet<>();
 		if (FilterType.EQUAL.value().trim().equals(f.getFilter().trim())) {
 			tables.add(tableMetas.get(f.getValue().hashCode() % tableMetas.size()));

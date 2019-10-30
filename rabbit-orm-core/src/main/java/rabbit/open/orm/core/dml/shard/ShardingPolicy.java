@@ -17,6 +17,6 @@ public interface ShardingPolicy {
      * @param tableMetas
      * @return
      */
-    List<TableMeta> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors, List<TableMeta> tableMetas);
+    List<TableMeta> getHitTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors, List<TableMeta> tableMetas);
     
 }

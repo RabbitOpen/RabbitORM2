@@ -22,7 +22,7 @@ public class DemoShardingPolicy implements ShardingPolicy {
      * 	根据主键分表(奇偶 分表)
      */
     @Override
-    public List<TableMeta> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
+    public List<TableMeta> getHitTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
     		List<TableMeta> tableMetas) {
     	if (!DefaultShardingPolicy.class.equals(clz.getAnnotation(Entity.class).shardingPolicy())) {
             if (containShardFactor(factors)) {

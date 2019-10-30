@@ -43,9 +43,9 @@ public abstract class ShardedDMLObject<T> {
 		if (null != cursor.getNextShardingTableMeta()) {
 			return cursor.getNextShardingTableMeta();
 		}
-		List<TableMeta> hittedTables = getDMLObject().getShardingPolicy().getHittedTables(getDMLObject().getEntityClz(),
+		List<TableMeta> hitTables = getDMLObject().getShardingPolicy().getHitTables(getDMLObject().getEntityClz(),
 				getDMLObject().getDeclaredTableName(), factors, getDMLObject().getTableMetas());
-		return hittedTables.get(0);
+		return hitTables.get(0);
 	}
 	
 	protected void setCursor(Cursor<T> cursor) {

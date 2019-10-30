@@ -14,7 +14,7 @@ public abstract class Cursor<T> {
 	protected TableMeta nextShardingTableMeta = null;
 
 	// 所有符合条件的表
-	private List<TableMeta> hittedTables = new ArrayList<>();
+	private List<TableMeta> hitTables = new ArrayList<>();
 	
 	private boolean hasNext = true;
 	
@@ -60,18 +60,18 @@ public abstract class Cursor<T> {
 	 */
 	protected void calNextShardingTableMeta(TableMeta currentMeta) {
 		int metaIndex = getMetaIndex(currentMeta);
-		if (metaIndex == getHittedTables().size() - 1) {
+		if (metaIndex == getHitTables().size() - 1) {
 			setHasNext(false);
 			nextShardingTableMeta = null;
 		} else {
-			nextShardingTableMeta = getHittedTables().get(metaIndex + 1);
+			nextShardingTableMeta = getHitTables().get(metaIndex + 1);
 		}
 	}
 
 	protected int getMetaIndex(TableMeta meta) {
-		int size = getHittedTables().size();
+		int size = getHitTables().size();
 		for (int i = 0; i < size; i++) {
-			TableMeta tableMeta = getHittedTables().get(i);
+			TableMeta tableMeta = getHitTables().get(i);
 			if (tableMeta.getDataSource().equals(meta.getDataSource())
 					&& tableMeta.getTableName().equals(meta.getTableName())) {
 				return i;
@@ -114,11 +114,11 @@ public abstract class Cursor<T> {
 	 * <b>@description 获取被命中的表集合 </b>
 	 * @return
 	 */
-	protected List<TableMeta> getHittedTables() {
-		if (hittedTables.isEmpty()) {
+	protected List<TableMeta> getHitTables() {
+		if (hitTables.isEmpty()) {
 			ShardingPolicy shardingPolicy = getDMLObject().getMetaData().getShardingPolicy();
-			hittedTables = shardingPolicy.getHittedTables(getDMLObject().getEntityClz(), getDMLObject().getDeclaredTableName(), getDMLObject().getFactors(), getTableMetas());
+			hitTables = shardingPolicy.getHitTables(getDMLObject().getEntityClz(), getDMLObject().getDeclaredTableName(), getDMLObject().getFactors(), getTableMetas());
 		}
-		return hittedTables;
+		return hitTables;
 	}
 }

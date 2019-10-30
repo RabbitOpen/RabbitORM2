@@ -10,7 +10,7 @@ import rabbit.open.orm.core.dml.meta.TableMeta;
 public class DefaultShardingPolicy implements ShardingPolicy {
 
 	@Override
-	public List<TableMeta> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
+	public List<TableMeta> getHitTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
 			List<TableMeta> allTables) {
 		return allTables;
 	}

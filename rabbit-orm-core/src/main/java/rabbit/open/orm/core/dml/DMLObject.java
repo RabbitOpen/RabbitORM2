@@ -1008,8 +1008,8 @@ public abstract class DMLObject<T> {
      * @return
      */
 	protected TableMeta getCurrentShardedTableMeta(List<ShardFactor> factors) {
-		List<TableMeta> hittedTables = getShardingPolicy().getHittedTables(getEntityClz(), getDeclaredTableName(), factors, getTableMetas());
-		return hittedTables.get(0);
+		List<TableMeta> hitTables = getShardingPolicy().getHitTables(getEntityClz(), getDeclaredTableName(), factors, getTableMetas());
+		return hitTables.get(0);
 	}
 	
 	/**
