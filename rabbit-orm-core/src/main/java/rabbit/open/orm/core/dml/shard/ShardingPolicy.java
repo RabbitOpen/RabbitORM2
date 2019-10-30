@@ -1,6 +1,5 @@
 package rabbit.open.orm.core.dml.shard;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import rabbit.open.orm.core.dml.meta.TableMeta;
@@ -18,8 +17,6 @@ public interface ShardingPolicy {
      * @param tableMetas
      * @return
      */
-    default List<TableMeta> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors, List<TableMeta> tableMetas) {
-		return new ArrayList<>();
-	}
+    List<TableMeta> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors, List<TableMeta> tableMetas);
     
 }

@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.util.StringUtils;
@@ -80,9 +81,9 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 
 	protected boolean distinct = false;
 
-	protected Map<Class<?>, HashSet<String>> asc = new ConcurrentHashMap<>();
+	protected Map<Class<?>, Set<String>> asc = new ConcurrentHashMap<>();
 
-	protected Map<Class<?>, HashSet<String>> desc = new ConcurrentHashMap<>();
+	protected Map<Class<?>, Set<String>> desc = new ConcurrentHashMap<>();
 
 	// 缓存需要fetch的对象
 	private Map<Class<?>, Class<?>> fetchClasses = new ConcurrentHashMap<>();
@@ -97,7 +98,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	private Map<Class<?>, Integer> fetchTimesMappingTable = new HashMap<>();
 
 	//缓存当前查询对象关心的字段名
-	private Map<Class<?>, HashSet<String>> concernFields = new HashMap<>();
+	private Map<Class<?>, Set<String>> concernFields = new HashMap<>();
 
 	//默认允许查询时触发DMLFilter
 	private boolean enableGetFilter = true;
@@ -1495,7 +1496,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 * @param order		缓存排序数据的map
 	 * @return
 	 */
-	private AbstractQuery<T> orderBy(String fieldName, Class<?> targetClz, Map<Class<?>, HashSet<String>> order) {
+	private AbstractQuery<T> orderBy(String fieldName, Class<?> targetClz, Map<Class<?>, Set<String>> order) {
 		if (null == order.get(targetClz)) {
 			order.put(targetClz, new HashSet<>());
 		}
@@ -1649,7 +1650,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 */
 	protected void checkShardedFetch(Class<?> clz) {
 		Entity entity = clz.getAnnotation(Entity.class);
-		if (null != entity && !getEntityClz().equals(clz) && !DefaultShardingPolicy.class.equals(entity.policy())) {
+		if (null != entity && !getEntityClz().equals(clz) && !DefaultShardingPolicy.class.equals(entity.shardingPolicy())) {
 			throw new FetchShardEntityException(clz);
 		}
 	}

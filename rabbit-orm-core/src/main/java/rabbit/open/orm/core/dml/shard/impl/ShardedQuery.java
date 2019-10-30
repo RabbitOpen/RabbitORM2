@@ -1,9 +1,13 @@
 package rabbit.open.orm.core.dml.shard.impl;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import rabbit.open.orm.common.dml.FilterType;
+import rabbit.open.orm.core.dml.CallBackTask;
 import rabbit.open.orm.core.dml.DMLObject;
+import rabbit.open.orm.core.dml.DynamicFilterTask;
 import rabbit.open.orm.core.dml.Query;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.TableMeta;
@@ -21,6 +25,13 @@ public class ShardedQuery<T> extends ShardedDMLObject<T> {
 
 	private int pageSize = 500;
 
+	private Set<String> asc = new HashSet<>();
+	
+	private Set<String> desc = new HashSet<>();
+	
+	// 动态添加的分页过滤条件
+	private DynamicFilterTask<T> filterTask = null;
+	
 	public ShardedQuery(SessionFactory factory, Class<T> clz, T filter) {
 		query = new Query<T>(factory, filter, clz) {
 
@@ -32,7 +43,7 @@ public class ShardedQuery<T> extends ShardedDMLObject<T> {
 
 		};
 		validDMLObject();
-		setCursor(new QueryCursor<>(query, pageSize));
+		setCursor(new QueryCursor<>(this, pageSize));
 	}
 
 	@Override
@@ -62,14 +73,34 @@ public class ShardedQuery<T> extends ShardedDMLObject<T> {
 	public ShardedQuery<T> addFilter(String reg, Object value) {
 		return addFilter(reg, value, FilterType.EQUAL);
 	}
-
+	
 	/**
-	 * <b>@description 单表内部排序 </b>
-	 * @param fieldName
+	 * <b>@description 设置分页过滤条件 </b>
+	 * @param reg
+	 * @param value
+	 * @param ft
 	 * @return
 	 */
-	public ShardedQuery<T> asc(String fieldName) {
-		query.asc(fieldName);
+	@SuppressWarnings("unchecked")
+	protected ShardedQuery<T> setPageFilter(String reg, Object value, FilterType ft) {
+		if (null == filterTask) {
+			addFilter(reg, value, ft);
+			List<CallBackTask> filterTasks = query.getFilterTasks();
+			filterTask = (DynamicFilterTask<T>) filterTasks.get(filterTasks.size() - 1);
+			return this;
+		} else {
+			filterTask.setValue(value);
+			return this;
+		}
+	}
+
+	/**
+	 * <b>@description 移除分页过滤条件  </b>
+	 * @return
+	 */
+	protected ShardedQuery<T> removePageFilter() {
+		query.getFilterTasks().remove(filterTask);
+		filterTask = null;
 		return this;
 	}
 
@@ -78,8 +109,38 @@ public class ShardedQuery<T> extends ShardedDMLObject<T> {
 	 * @param fieldName
 	 * @return
 	 */
+	public ShardedQuery<T> asc(String fieldName) {
+		query.asc(fieldName);
+		asc.add(fieldName);
+		return this;
+	}
+
+	/**
+	 * <b>@description 判断字段是否已经排过升序 </b>
+	 * @param fieldName
+	 * @return
+	 */
+	protected boolean isAscOrdered(String fieldName) {
+		return asc.contains(fieldName);
+	}
+
+	/**
+	 * <b>@description 判断字段是否已经排过降序 </b>
+	 * @param fieldName
+	 * @return
+	 */
+	protected boolean isDescOrdered(String fieldName) {
+		return desc.contains(fieldName);
+	}
+	
+	/**
+	 * <b>@description 单表内部排序 </b>
+	 * @param fieldName
+	 * @return
+	 */
 	public ShardedQuery<T> desc(String fieldName) {
 		query.desc(fieldName);
+		desc.add(fieldName);
 		return this;
 	}
 

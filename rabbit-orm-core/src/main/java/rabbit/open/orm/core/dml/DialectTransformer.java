@@ -2,10 +2,10 @@ package rabbit.open.orm.core.dml;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -59,8 +59,8 @@ public abstract class DialectTransformer {
      * @return
      */
     public StringBuilder createOrderSql(AbstractQuery<?> query) {
-        Map<Class<?>, HashSet<String>> asc = getAsc(query);
-        Map<Class<?>, HashSet<String>> desc = getDesc(query);
+        Map<Class<?>, Set<String>> asc = getAsc(query);
+        Map<Class<?>, Set<String>> desc = getDesc(query);
         StringBuilder sql = new StringBuilder();
         if (asc.isEmpty() && desc.isEmpty()) {
             return sql;
@@ -69,7 +69,7 @@ public abstract class DialectTransformer {
         Iterator<Class<?>> it = asc.keySet().iterator();
         while (it.hasNext()) {
             Class<?> clz = it.next();
-            HashSet<String> fields = asc.get(clz);
+            Set<String> fields = asc.get(clz);
             for (String f : fields) {
                 sql.append(query.getAliasByTableName(query.getTableNameByClass(clz)) + "." + f + " ASC, ");
             }
@@ -77,7 +77,7 @@ public abstract class DialectTransformer {
         it = desc.keySet().iterator();
         while (it.hasNext()) {
             Class<?> clz = it.next();
-            HashSet<String> fields = desc.get(clz);
+            Set<String> fields = desc.get(clz);
             for (String f : fields) {
                 sql.append(query.getAliasByTableName(query.getTableNameByClass(clz)) + "." + f + " DESC, ");
             }
@@ -175,11 +175,11 @@ public abstract class DialectTransformer {
         return query.pageSize;
     }
 
-    public Map<Class<?>, HashSet<String>> getDesc(AbstractQuery<?> query) {
+    public Map<Class<?>, Set<String>> getDesc(AbstractQuery<?> query) {
         return query.desc;
     }
 
-    public Map<Class<?>, HashSet<String>> getAsc(AbstractQuery<?> query) {
+    public Map<Class<?>, Set<String>> getAsc(AbstractQuery<?> query) {
         return query.asc;
     }
 

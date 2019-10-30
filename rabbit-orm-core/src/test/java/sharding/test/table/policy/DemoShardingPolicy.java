@@ -24,7 +24,7 @@ public class DemoShardingPolicy implements ShardingPolicy {
     @Override
     public List<TableMeta> getHittedTables(Class<?> clz, String declaredTableName, List<ShardFactor> factors,
     		List<TableMeta> tableMetas) {
-    	if (!DefaultShardingPolicy.class.equals(clz.getAnnotation(Entity.class).policy())) {
+    	if (!DefaultShardingPolicy.class.equals(clz.getAnnotation(Entity.class).shardingPolicy())) {
             if (containShardFactor(factors)) {
                 return Arrays.asList(getShardingTableName(declaredTableName, factors));
             } else {

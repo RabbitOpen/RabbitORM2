@@ -10,7 +10,7 @@ import rabbit.open.orm.core.annotation.OneToMany;
 import rabbit.open.orm.core.annotation.PrimaryKey;
 import sharding.test.table.policy.DemoShardingPolicy;
 
-@Entity(value = "T_SHARD_USER", policy=DemoShardingPolicy.class)
+@Entity(value = "T_SHARD_USER", shardingPolicy=DemoShardingPolicy.class)
 public class ShardingUser {
 
     public List<ShardRoom> getRooms() {

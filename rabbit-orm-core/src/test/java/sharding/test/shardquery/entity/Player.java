@@ -3,17 +3,19 @@ package sharding.test.shardquery.entity;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.PrimaryKey;
+import rabbit.open.orm.core.dml.policy.PagePolicy;
 import rabbit.open.orm.core.dml.shard.impl.PrimaryKeyModShardingPolicy;
 
-@Entity(value = "T_XXPLANX", shardingPolicy = PrimaryKeyModShardingPolicy.class)
-public class PlanX {
+@Entity(value = "T_PLAYER", shardingPolicy = PrimaryKeyModShardingPolicy.class, 
+	pagePolicy = PagePolicy.UNIQUE_INDEX_ORDERED)
+public class Player {
 
 	@PrimaryKey
 	@Column("id")
 	private Integer id;
-	
-	@Column("username")
-	private String username;
+
+	@Column("playerName")
+	private String playerName;
 
 	public Integer getId() {
 		return id;
@@ -23,13 +25,12 @@ public class PlanX {
 		this.id = id;
 	}
 
-	public String getUsername() {
-		return username;
+	public String getPlayerName() {
+		return playerName;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public void setPlayerName(String playerName) {
+		this.playerName = playerName;
 	}
-	
-	
+
 }

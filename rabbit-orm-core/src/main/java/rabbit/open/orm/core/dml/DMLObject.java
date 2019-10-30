@@ -1151,4 +1151,8 @@ public abstract class DMLObject<T> {
 		return DialectTransformer.getTransformer(sessionFactory.getDialectType());
 	}
 	
+	public List<CallBackTask> getFilterTasks() {
+		return filterTasks;
+	}
+	
 }

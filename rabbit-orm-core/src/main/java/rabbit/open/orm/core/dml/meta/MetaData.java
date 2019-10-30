@@ -21,6 +21,7 @@ import rabbit.open.orm.core.annotation.OneToMany;
 import rabbit.open.orm.core.annotation.PrimaryKey;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.meta.proxy.GenericAnnotationProxy;
+import rabbit.open.orm.core.dml.policy.PagePolicy;
 import rabbit.open.orm.core.dml.shard.DefaultShardingPolicy;
 import rabbit.open.orm.core.dml.shard.ShardingPolicy;
 
@@ -69,6 +70,12 @@ public class MetaData<T> {
 		
 	//实体对应的类的class信息
 	protected Class<T> entityClz;
+	
+	// 分页策略
+	private PagePolicy pagePolicy;
+
+	// 默认排序字段
+	private String indexOrderedField;
 
 	// 缓存实体类的clz
 	private static Map<Class<?>, Boolean> entityClassCache = new ConcurrentHashMap<>();
@@ -157,9 +164,12 @@ public class MetaData<T> {
      * 
      */
     private void registClassTableMapping(Class<T> entityClz) {
-        tableName = entityClz.getAnnotation(Entity.class).value();
+        Entity entity = entityClz.getAnnotation(Entity.class);
+        pagePolicy = entity.pagePolicy();
+		tableName = entity.value();
         shardingPolicy = loadShardingPolicy(entityClz);
         primaryKey = getPrimaryKeyFieldMeta(entityClz).getColumn();
+        indexOrderedField = loadIndexOrderedField(entityClz, entity);
         if (!tableMapping.containsKey(tableName)) {
         	tableMapping.put(tableName, entityClz);
         } else {
@@ -172,21 +182,36 @@ public class MetaData<T> {
         fieldMetas = getMappingFieldMetas(entityClz).values();
     }
 
+	private String loadIndexOrderedField(Class<T> entityClz, Entity entity) {
+        if ("".equals(entity.orderIndexFieldName().trim())) {
+        	return getPrimaryKeyFieldMeta(entityClz).getField().getName();
+        }
+        return entity.orderIndexFieldName().trim();
+	}
+    
+    public PagePolicy getPagePolicy() {
+		return pagePolicy;
+	}
+    
+    public String getIndexOrderedField() {
+		return indexOrderedField;
+	}
+
     private ShardingPolicy loadShardingPolicy(Class<T> entityClz) {
         Entity entity = entityClz.getAnnotation(Entity.class);
-        if (policyMapping.containsKey(entity.policy())) {
-            return policyMapping.get(entity.policy());
+        if (policyMapping.containsKey(entity.shardingPolicy())) {
+            return policyMapping.get(entity.shardingPolicy());
         }
         try {
-        	if (DefaultShardingPolicy.class.equals(entity.policy())) {
-        		policyMapping.put(entity.policy(), new DefaultShardingPolicy());	
+        	if (DefaultShardingPolicy.class.equals(entity.shardingPolicy())) {
+        		policyMapping.put(entity.shardingPolicy(), new DefaultShardingPolicy());	
         	} else {
-        		policyMapping.put(entity.policy(), DMLObject.newInstance(entity.policy()));
+        		policyMapping.put(entity.shardingPolicy(), DMLObject.newInstance(entity.shardingPolicy()));
         	}
         } catch (Exception e) {
             throw new RabbitDMLException(e);
         }
-        return policyMapping.get(entity.policy());
+        return policyMapping.get(entity.shardingPolicy());
     }
 	/**
 	 * 

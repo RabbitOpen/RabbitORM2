@@ -20,20 +20,19 @@ import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
  * @param <T>
  * 
  */
-public class DynamicFilterTask<T> implements CallBackTask{
-	
+public class DynamicFilterTask<T> implements CallBackTask {
+
 	private final DMLObject<T> dmlAdapter;
 
 	private String reg;
-	
+
 	private Object value;
-	
+
 	private FilterType ft;
-	
+
 	private Class<?>[] depsPath;
-	
-	public DynamicFilterTask(DMLObject<T> adapter, String reg, Object value, FilterType ft,
-			Class<?>[] depsPath) {
+
+	public DynamicFilterTask(DMLObject<T> adapter, String reg, Object value, FilterType ft, Class<?>[] depsPath) {
 		this.dmlAdapter = adapter;
 		this.reg = reg;
 		this.value = value;
@@ -42,14 +41,24 @@ public class DynamicFilterTask<T> implements CallBackTask{
 	}
 
 	/**
-	 * 
-	 * <b>Description:	执行任务</b><br>	
-	 * 
+	 * <b>Description: 执行任务</b><br>
 	 */
 	@Override
 	public void run() {
 		doValueCheck(value, ft);
 		addFilter(reg, value, ft, depsPath);
+	}
+
+	public String getReg() {
+		return reg;
+	}
+
+	public FilterType getFilterType() {
+		return ft;
+	}
+
+	public void setValue(Object value) {
+		this.value = value;
 	}
 
 	// 输入校验
@@ -76,7 +85,7 @@ public class DynamicFilterTask<T> implements CallBackTask{
 	}
 
 	private void addFilter(String reg, Object value, FilterType ft, Class<?>... depsPath) {
-		if (depsPath.length == 0) {
+		if (0 == depsPath.length) {
 			addFilter(reg, value, ft, dmlAdapter.getMetaData().getEntityClz());
 			return;
 		}

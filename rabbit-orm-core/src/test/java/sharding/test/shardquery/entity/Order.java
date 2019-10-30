@@ -5,7 +5,7 @@ import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.PrimaryKey;
 import rabbit.open.orm.core.dml.shard.impl.PrimaryKeyModShardingPolicy;
 
-@Entity(value = "T_PRODUCT_ORDER", policy = PrimaryKeyModShardingPolicy.class)
+@Entity(value = "T_PRODUCT_ORDER", shardingPolicy = PrimaryKeyModShardingPolicy.class)
 public class Order {
 
 	@PrimaryKey

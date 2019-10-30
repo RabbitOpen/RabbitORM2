@@ -28,10 +28,14 @@ import rabbit.open.orm.core.dml.shard.impl.DeleteCursor;
 import rabbit.open.orm.core.dml.shard.impl.QueryCursor;
 import rabbit.open.orm.core.dml.shard.impl.ShardedQueryCursor;
 import rabbit.open.orm.core.dml.shard.impl.UpdateCursor;
+import sharding.test.shardquery.entity.Ball;
 import sharding.test.shardquery.entity.Order;
+import sharding.test.shardquery.entity.Player;
+import sharding.test.shardquery.service.BallService;
 import sharding.test.shardquery.service.OrderService;
 import sharding.test.shardquery.service.PlanService;
 import sharding.test.shardquery.service.PlanXService;
+import sharding.test.shardquery.service.PlayerService;
 
 /**
  * <b>Description: 分片表测试</b><br>
@@ -52,6 +56,12 @@ public class PrimaryKeyModShardingPolicyTest {
 	
 	@Autowired
 	PlanXService pxs;
+	
+	@Autowired
+	PlayerService playerService;
+
+	@Autowired
+	BallService bs;
 	
 	int scanCount = 0;
 	
@@ -442,18 +452,80 @@ public class PrimaryKeyModShardingPolicyTest {
 		}
 	}
 	
+	/**
+	 * <b>@description 分页策略测试 </b>
+	 */
+	@Test
+	public void shardPagePolicyTest() {
+		initTables(Player.class, 2);
+		for (int i = 0; i < 40; i++) {
+			Player p = new Player();
+			p.setId(i);
+			p.setPlayerName("player-" + i);
+			playerService.add(p);
+		}
+		QueryCursor<Player> cursor = playerService.createShardedQuery().setPageSize(3).addFilter("id", 3, FilterType.GTE).cursor();
+		scanCount = 0;
+		long count = cursor.next((list, tableMeta) -> {
+			scanCount++;
+		});
+		TestCase.assertEquals(37, count);
+		TestCase.assertEquals(scanCount, 16);
+		
+		cursor = playerService.createShardedQuery().setPageSize(4).addFilter("id", 3, FilterType.GTE).cursor();
+		scanCount = 0;
+		count = cursor.next((list, tableMeta) -> {
+			scanCount++;
+		});
+		TestCase.assertEquals(37, count);
+		TestCase.assertEquals(scanCount, 12);
+	}
+
+	/**
+	 * <b>@description 非主键分页策略测试 </b>
+	 */
+	@Test
+	public void indexShardPagePolicyTest() {
+		initTables(Ball.class, 2);
+		for (int i = 0; i < 40; i++) {
+			Ball b = new Ball();
+			b.setId(i);
+			b.setNumber(i);
+			b.setPlayerName("player-" + i);
+			bs.add(b);
+		}
+		QueryCursor<Ball> cursor = bs.createShardedQuery().desc("number").setPageSize(3).addFilter("id", 3, FilterType.GTE).cursor();
+		scanCount = 0;
+		long count = cursor.next((list, tableMeta) -> {
+			scanCount++;
+		});
+		TestCase.assertEquals(37, count);
+		TestCase.assertEquals(scanCount, 16);
+		
+		cursor = bs.createShardedQuery().setPageSize(4).addFilter("id", 3, FilterType.GTE).cursor();
+		scanCount = 0;
+		count = cursor.next((list, tableMeta) -> {
+			scanCount++;
+		});
+		TestCase.assertEquals(37, count);
+		TestCase.assertEquals(scanCount, 12);
+	}
 	
 	private void initTables() {
+		initTables(Order.class, 5);
+	}
+	
+	private void initTables(Class<?> clz, int count) {
 		try {
 			Connection read = os.getDs1().getConnection();
-			for (int i = 0; i < 5; i++) {
-				reCreateTable(MetaData.getMetaByClass(Order.class).getTableName() + String.format("_%04d", i), read);
+			for (int i = 0; i < count; i++) {
+				reCreateTable(MetaData.getMetaByClass(clz).getTableName() + String.format("_%04d", i), read, clz);
 			}
 			read.close();
 			
 			Connection write = os.getDs2().getConnection();
-			for (int i = 0; i < 5; i++) {
-				reCreateTable(MetaData.getMetaByClass(Order.class).getTableName() + String.format("_%04d", i), write);
+			for (int i = 0; i < count; i++) {
+				reCreateTable(MetaData.getMetaByClass(clz).getTableName() + String.format("_%04d", i), write, clz);
 			}
 			write.close();
 		} catch (SQLException e) {
@@ -461,10 +533,10 @@ public class PrimaryKeyModShardingPolicyTest {
 		}
 	}
 
-	private void reCreateTable(String tableName, Connection connection) {
+	private void reCreateTable(String tableName, Connection connection, Class<?> clz) {
 		try {
 			dropShardingTable(tableName, connection);
-			DDLHelper.createTable(connection, os.getFactory().getDialectType(), tableName, Order.class);
+			DDLHelper.createTable(connection, os.getFactory().getDialectType(), tableName, clz);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}

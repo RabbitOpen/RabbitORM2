@@ -10,13 +10,13 @@ import rabbit.open.orm.core.dml.meta.TableMeta;
  * <b>@description 分片命名查询游标 </b>
  * @param <T>
  */
-public class ShardedQueryCursor<T> extends QueryCursor<T> {
+public class ShardedQueryCursor<T> extends AbstractQueryCursor<T> {
 
 	private SQLQuery<T> query;
 
 	public ShardedQueryCursor(SQLQuery<T> query, int pageSize) {
-		super(pageSize);
 		this.query = query;
+		setPageSize(pageSize);
 	}
 
 	@Override
