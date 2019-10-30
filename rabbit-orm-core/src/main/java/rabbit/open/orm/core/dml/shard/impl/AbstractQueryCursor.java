@@ -27,22 +27,16 @@ public abstract class AbstractQueryCursor<T> extends Cursor<T> {
 		nextShardingTableMeta = null;
 		while (hasNext()) {
 			List<T> list = getDataList();
-			TableMeta meta = getCurrentTableMeta();
+			TableMeta currentMeta = getCurrentTableMeta();
 			pageIndex++;
 			if (list.size() < pageSize) {
 				pageIndex = 0;
-				int metaIndex = getMetaIndex(meta);
-				if (metaIndex == getHittedTables().size() - 1) {
-					setHasNext(false);
-					nextShardingTableMeta = null;
-				} else {
-					nextShardingTableMeta = getHittedTables().get(metaIndex + 1);
-				}
+				calNextShardingTableMeta(currentMeta);
 			} else {
-				nextShardingTableMeta = meta;
+				nextShardingTableMeta = currentMeta;
 			}
 			count += list.size();
-			processor.process(list, meta);
+			processor.process(list, currentMeta);
 		}
 		return count;
 	}
