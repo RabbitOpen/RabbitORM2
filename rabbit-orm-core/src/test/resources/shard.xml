@@ -130,6 +130,9 @@
 		<property name="maskPreparedSql">
 			<value>false</value>
 		</property>
+		<property name="mappingFiles">
+			<value>shard</value>
+		</property>
 		<!-- 配置复合数据源，该数据源优先级高于 datasource -->
 		<property name="combinedDataSource" ref="combinedDataSource1" />
 	</bean>

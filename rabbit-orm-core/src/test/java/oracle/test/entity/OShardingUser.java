@@ -5,7 +5,7 @@ import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.PrimaryKey;
 import sharding.test.table.policy.DemoShardingPolicy;
 
-@Entity(value = "TO_SHARD_USER", policy=DemoShardingPolicy.class)
+@Entity(value = "TO_SHARD_USER", policy = DemoShardingPolicy.class)
 public class OShardingUser {
 
     @PrimaryKey()

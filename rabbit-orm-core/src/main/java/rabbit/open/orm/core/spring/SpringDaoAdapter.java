@@ -24,6 +24,7 @@ import rabbit.open.orm.core.dml.Update;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.shard.impl.ShardedDelete;
 import rabbit.open.orm.core.dml.shard.impl.ShardedQuery;
+import rabbit.open.orm.core.dml.shard.impl.ShardedSQLQuery;
 import rabbit.open.orm.core.dml.shard.impl.ShardedUpdate;
 
 /**
@@ -147,6 +148,16 @@ public abstract class SpringDaoAdapter<T> {
 	 */
 	public SQLQuery<T> createSQLQuery(String sqlName) {
 		return new SQLQuery<>(sessionFactory, clz, sqlName);
+	}
+
+	/**
+	 * 
+	 * <b>Description:	创建一个分片sql查询</b><br>
+	 * @param sqlName
+	 * 
+	 */
+	public ShardedSQLQuery<T> createShardedSQLQuery(String sqlName) {
+		return new ShardedSQLQuery<>(sessionFactory, clz, sqlName);
 	}
 	
 	/**

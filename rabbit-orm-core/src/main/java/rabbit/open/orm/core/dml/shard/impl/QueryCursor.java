@@ -16,10 +16,15 @@ public class QueryCursor<T> extends Cursor<T> {
 
 	private Query<T> query;
 	
-	private int pageSize;
+	protected int pageSize;
 	
-	private int pageIndex = 0;
+	protected int pageIndex = 0;
 	
+	public QueryCursor(int pageSize) {
+		super();
+		this.pageSize = pageSize;
+	}
+
 	public QueryCursor(Query<T> query, int pageSize) {
 		super();
 		this.query = query;
@@ -41,8 +46,8 @@ public class QueryCursor<T> extends Cursor<T> {
 		long count = 0;
 		nextShardingTableMeta = null;
 		while (hasNext()) {
-			List<T> list = query.page(pageIndex, pageSize).list();
-			TableMeta meta = query.getCurrentTableMeta();
+			List<T> list = getDataList();
+			TableMeta meta = getCurrentTableMeta();
 			pageIndex++;
 			if (list.size() < pageSize) {
 				pageIndex = 0;
@@ -60,6 +65,14 @@ public class QueryCursor<T> extends Cursor<T> {
 			processor.process(list, meta);
 		}
 		return count;
+	}
+
+	protected TableMeta getCurrentTableMeta() {
+		return query.getCurrentTableMeta();
+	}
+
+	protected List<T> getDataList() {
+		return query.page(pageIndex, pageSize).list();
 	}
 	
 	@Override

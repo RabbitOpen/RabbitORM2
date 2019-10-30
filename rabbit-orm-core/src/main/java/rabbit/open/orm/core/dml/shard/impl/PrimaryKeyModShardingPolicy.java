@@ -32,24 +32,35 @@ public class PrimaryKeyModShardingPolicy implements ShardingPolicy {
 		if (tableMetas.isEmpty()) {
 			throw new NoShardTableException(clz);
 		}
-		ShardFactor factor = getShardFactor(clz, factors);
-		if (null == factor) {
+		List<ShardFactor> keyFactors = getShardFactor(clz, factors);
+		if (keyFactors.isEmpty()) {
 			return tableMetas;
 		} else {
-			Set<TableMeta> tables = new HashSet<>();
-			if (FilterType.EQUAL.value().trim().equals(factor.getFilter().trim())) {
-				tables.add(tableMetas.get(factor.getValue().hashCode() % tableMetas.size()));
-			} else if (FilterType.IN.value().trim().equals(factor.getFilter().trim())) {
-				for (Object v : getValueList(factor)) {
-					tables.add(tableMetas.get(v.hashCode() % tableMetas.size()));
-				}
-			} else {
-				tables.addAll(tableMetas);
+			Set<TableMeta> hittedTables = new HashSet<>(tableMetas);
+			for (ShardFactor f : keyFactors) {
+				// 和命中的表取交集
+				hittedTables.retainAll(getHittedTablesByFactor(tableMetas, f));
 			}
-			List<TableMeta> list = new ArrayList<>();
-			list.addAll(tables);
-			return list;
+			if (hittedTables.isEmpty()) {
+				// 如果没有命中任何一张表 则随便取一个
+				hittedTables.add(tableMetas.get(0));
+			}
+			return new ArrayList<>(hittedTables);
 		}
+	}
+
+	protected Set<TableMeta> getHittedTablesByFactor(List<TableMeta> tableMetas, ShardFactor f) {
+		Set<TableMeta> tables = new HashSet<>();
+		if (FilterType.EQUAL.value().trim().equals(f.getFilter().trim())) {
+			tables.add(tableMetas.get(f.getValue().hashCode() % tableMetas.size()));
+		} else if (FilterType.IN.value().trim().equals(f.getFilter().trim())) {
+			for (Object v : getValueList(f)) {
+				tables.add(tableMetas.get(v.hashCode() % tableMetas.size()));
+			}
+		} else {
+			tables.addAll(tableMetas);
+		}
+		return tables;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -60,19 +71,19 @@ public class PrimaryKeyModShardingPolicy implements ShardingPolicy {
 	/**
 	 * 
 	 * <b>@description 获取当前查询条件中的分表因子 </b>
-	 * 
 	 * @param clz
 	 * @param factors
 	 * @return
 	 */
-	private ShardFactor getShardFactor(Class<?> clz, List<ShardFactor> factors) {
+	private List<ShardFactor> getShardFactor(Class<?> clz, List<ShardFactor> factors) {
+		List<ShardFactor> keyFactors = new ArrayList<>();
 		Field pkFied = MetaData.getPrimaryKeyField(clz);
 		for (ShardFactor factor : factors) {
 			if (pkFied.equals(factor.getField())) {
-				return factor;
+				keyFactors.add(factor);
 			}
 		}
-		return null;
+		return keyFactors;
 	}
 
 }

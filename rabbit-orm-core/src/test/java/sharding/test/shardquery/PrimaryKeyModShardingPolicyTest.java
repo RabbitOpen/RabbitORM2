@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -27,6 +26,7 @@ import rabbit.open.orm.core.dml.shard.execption.InvalidShardedQueryException;
 import rabbit.open.orm.core.dml.shard.execption.NoShardTableException;
 import rabbit.open.orm.core.dml.shard.impl.DeleteCursor;
 import rabbit.open.orm.core.dml.shard.impl.QueryCursor;
+import rabbit.open.orm.core.dml.shard.impl.ShardedQueryCursor;
 import rabbit.open.orm.core.dml.shard.impl.UpdateCursor;
 import sharding.test.shardquery.entity.Order;
 import sharding.test.shardquery.service.OrderService;
@@ -54,11 +54,6 @@ public class PrimaryKeyModShardingPolicyTest {
 	PlanXService pxs;
 	
 	int scanCount = 0;
-	
-	@Before
-	public void init() {
-		initTables();
-	}
 	
 	/**
 	 * <b>@description 简单dml操作测试  </b>
@@ -116,9 +111,54 @@ public class PrimaryKeyModShardingPolicyTest {
 		cursor.next((list, tableMeta) -> {
 			TestCase.assertEquals(list.size(), names.get(tableMeta).intValue());
 		});
-		
 	}
 	
+	@Test
+	public void sqlQueryTest() {
+		initTables();
+		// add测试
+		for (int i = 0; i < 30; i++) {
+			Order o = new Order();
+			o.setId(i);
+			o.setUsername("order-" + i);
+			os.add(o);
+		}
+		ShardedQueryCursor<Order> cursor = os.createShardedSQLQuery("readFromOrder").set("id", 3, FilterType.GT).cursor();
+		scanCount = 0;
+		long count = cursor.next((list, tabMeta) -> {
+			scanCount++;
+		});
+		TestCase.assertEquals(10, scanCount);
+		TestCase.assertEquals(26, count);
+		scanCount = 0;
+		TestCase.assertEquals(26, cursor.count((num, tabMeta) -> {
+			scanCount++;
+		}));
+		TestCase.assertEquals(10, scanCount);
+		
+		cursor = os.createShardedSQLQuery("readFromOrder2")
+				.set("id", 3, FilterType.GT)
+				.set("username", "order-20")
+				.cursor();
+		scanCount = 0;
+		count = cursor.next((list, tabMeta) -> {
+			scanCount++;
+		});
+		TestCase.assertEquals(10, scanCount);
+		TestCase.assertEquals(1, count);
+		
+		// 测试分页
+		cursor = os.createShardedSQLQuery("readFromOrder")
+				.set("id", 9, FilterType.GT)
+				.setPageSize(2)
+				.cursor();
+		scanCount = 0;
+		count = cursor.next((list, tabMeta) -> {
+			scanCount++;
+		});
+		TestCase.assertEquals(20, scanCount);
+		TestCase.assertEquals(20, count);
+	}
 	
 	@Test
 	public void queryTest() {
@@ -165,6 +205,29 @@ public class PrimaryKeyModShardingPolicyTest {
 		TestCase.assertEquals(scanCount, 10);
 		TestCase.assertEquals(orders.size(), 50);
 		TestCase.assertEquals(cursor.count(), 50);
+		
+		// 多条件取交集
+		cursor = os.createShardedQuery()
+				.addFilter("id", new Integer[] {1, 2, 3}, FilterType.IN)
+				.addFilter("id", new Integer[] {4, 2, 3}, FilterType.IN)
+				.cursor();
+		scanCount = 0;
+		ret = cursor.next((list, tableMeta) -> {
+			scanCount++;
+		});
+		TestCase.assertEquals(scanCount, 2);
+		TestCase.assertEquals(ret, 2);
+		
+		cursor = os.createShardedQuery()
+				.addFilter("id", new Integer[] {1, 2, 3}, FilterType.IN)
+				.addFilter("id", new Integer[] {4, 5, 6}, FilterType.IN)
+				.cursor();
+		scanCount = 0;
+		ret = cursor.next((list, tableMeta) -> {
+			scanCount++;
+		});
+		TestCase.assertEquals(scanCount, 1);
+		TestCase.assertEquals(ret, 0);
 	}
 
 	
@@ -205,6 +268,7 @@ public class PrimaryKeyModShardingPolicyTest {
 	
 	@Test
 	public void inByListTest() {
+		initTables();
 		// add测试
 		for (int i = 0; i < 50; i++) {
 			Order o = new Order();
@@ -217,8 +281,6 @@ public class PrimaryKeyModShardingPolicyTest {
 				.desc("id").addNullFilter("username").cursor().count(), 0);
 		QueryCursor<Order> cursor = os.createShardedQuery().addFilter("id", idList, FilterType.IN)
 				.desc("id").addNullFilter("username", false).cursor();
-		
-		
 		
 		List<Order>  orders = new ArrayList<>();
 		scanCount = 0;
@@ -273,7 +335,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		o.setUsername("order-dd" + index);
 		DeleteCursor<Order> cursor = os.createShardedDelete(o).addFilter("id", index).cursor();
 		scanCount = 0;
-		long total = cursor.count((count, tableMeta) -> {
+		long total = cursor.next((count, tableMeta) -> {
 			scanCount++;
 			TestCase.assertEquals(1, count);
 		});
@@ -289,7 +351,7 @@ public class PrimaryKeyModShardingPolicyTest {
 		TestCase.assertEquals(40, total);
 		TestCase.assertEquals(10, scanCount);
 		
-		TestCase.assertEquals(os.createShardedDelete().addNullFilter("username").cursor().count(), 0);
+		TestCase.assertEquals(os.createShardedDelete().addNullFilter("username").cursor().next(), 0);
 		TestCase.assertEquals(os.createShardedDelete().addNullFilter("username", false).cursor().count(), 9);
 		
 	}
@@ -314,7 +376,7 @@ public class PrimaryKeyModShardingPolicyTest {
 				.addFilter("id", index)
 				.cursor();
 		scanCount = 0;
-		long total = cursor.count((count, tabMeta) -> {
+		long total = cursor.next((count, tabMeta) -> {
 			scanCount++;
 			TestCase.assertEquals(1, count);
 		});
@@ -338,7 +400,7 @@ public class PrimaryKeyModShardingPolicyTest {
 				.setNull("username")
 				.addFilter("id", 18)
 				.cursor();
-		TestCase.assertEquals(cursor.count(), 1);
+		TestCase.assertEquals(cursor.next(), 1);
 		TestCase.assertNull(os.getByID(18).getUsername());
 		TestCase.assertEquals(os.createShardedUpdate().set("username", "23").addNullFilter("username", false).cursor().count(), 49);
 		TestCase.assertEquals(os.createShardedUpdate().set("username", "23").addNullFilter("username").cursor().count(), 1);

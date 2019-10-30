@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rabbit-mapping PUBLIC "-//RABBIT/RABBIT Mapping DTD 1.0//EN" 
+	"http://www.rabbit-open.top/dtd/rabbit-mapping-3.0.dtd">
+
+<rabbit-mapping entity="sharding.test.shardquery.entity.Order">
+
+	<jdbc name="readFromOrder" alias ="a">
+		<![CDATA[
+			SELECT 
+				#{FIELDS}
+			FROM 
+				@{T_PRODUCT_ORDER} a
+			WHERE 
+				ID > ${id}	
+		]]>
+	</jdbc>
+
+	<jdbc name="readFromOrder2" alias ="b">
+		<![CDATA[
+			SELECT 
+				#{FIELDS}
+			FROM 
+				@{T_PRODUCT_ORDER} b
+			WHERE 
+				ID > ${id}	
+				and username = ${username}
+		]]>
+	</jdbc>
+
+</rabbit-mapping>	

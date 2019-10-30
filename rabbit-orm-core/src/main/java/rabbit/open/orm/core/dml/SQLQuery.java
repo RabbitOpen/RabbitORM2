@@ -14,10 +14,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import rabbit.open.orm.common.dml.DMLType;
+import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.SQLQueryFieldMeta;
 import rabbit.open.orm.core.dml.meta.TableMeta;
+import rabbit.open.orm.core.dml.shard.ShardFactor;
 import rabbit.open.orm.core.utils.ClassHelper;
 import rabbit.open.orm.datasource.Session;
 
@@ -89,21 +91,31 @@ public class SQLQuery<T> {
 				String sqlStr = query.namedObject.getSql().toLowerCase().trim().replaceAll("\\s+", " ");
 				sqlStr = "SELECT COUNT(1) " + query.namedObject.getSql().substring(sqlStr.indexOf("from"));
 				sql = new StringBuilder(sqlStr);
+				replaceTableName();
 				setPreparedValues();
 			}
 
 			@Override
 			public TableMeta getCurrentTableMeta() {
-				if (getMetaData().isShardingTable()) {
-					return super.getCurrentTableMeta();
-				}
-				return getTableMetaByNamedObject(namedObject);
+				return getShardedTableMeta(query.getFactors());
 			}
 		};
 		query.namedObject = query.getSessionFactory().getQueryByNameAndClass(queryName, clz);
 		query.fieldsValues = new TreeMap<>((o1, o2) -> o1.compareTo(o2));
 	}
 
+	/**
+	 * 
+	 * <b>@description 获取分片表信息 </b>
+	 * @return
+	 */
+	protected TableMeta getShardedTableMeta(List<ShardFactor> factors) {
+		if (query.isShardingOperation()) {
+            return query.getCurrentShardedTableMeta(factors);
+        }
+		return query.getTableMetaByNamedObject(query.namedObject);
+	}
+	
 	/***
 	 * 
 	 * <b>@description 获取结果集对应的sql片段信息 </b>
@@ -180,14 +192,19 @@ public class SQLQuery<T> {
 	 * @param value        字段的值
 	 * @param fieldName    字段在对应实体中的名字  	 如果当前主表有分表时参数必传
 	 * @param entityClz    字段所属的实体   			 如果当前主表有分表时参数必传
+	 * @param filterType   过滤条件
 	 * @return
 	 */
-	public SQLQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz) {
+	public SQLQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz, FilterType filterType) {
 		query.setVariable(fieldAlias, value, fieldName, entityClz);
 		if (query.getEntityClz().equals(entityClz)) {
-			query.addFilter(fieldName, value);
+			query.addFilter(fieldName, value, filterType);
 		}
 	    return this;
+	}
+
+	public SQLQuery<T> set(String fieldAlias, Object value, String fieldName, Class<?> entityClz) {
+		return set(fieldAlias, value, fieldName, entityClz, FilterType.EQUAL);
 	}
 
 	/**
@@ -333,5 +350,8 @@ public class SQLQuery<T> {
 		return headers;
 	}
 
+	public Query<T> getQuery() {
+		return query;
+	}
 
 }
