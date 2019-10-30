@@ -38,10 +38,6 @@ public abstract class Cursor<T> {
 	 * <b>@description 计算总条数 </b>
 	 * @return
 	 */
-	/**
-	 * <b>@description 计算总条数 </b>
-	 * @return
-	 */
 	public long count(ShardedResultCounter counter) {
 		setHasNext(true);
 		long total = 0L;
@@ -49,19 +45,27 @@ public abstract class Cursor<T> {
 		while (hasNext()) {
 			long count = getAffectedCount();
 			total += count;
-			TableMeta meta = getDMLObject().getCurrentTableMeta();
-			int metaIndex = getMetaIndex(meta);
-			if (metaIndex == getHittedTables().size() - 1) {
-				setHasNext(false);
-				nextShardingTableMeta = null;
-			} else {
-				nextShardingTableMeta = getHittedTables().get(metaIndex + 1);
-			}
+			TableMeta currentMeta = getDMLObject().getCurrentTableMeta();
+			calNextShardingTableMeta(currentMeta);
 			if (null != counter) {
-				counter.count(count, meta);
+				counter.count(count, currentMeta);
 			}
 		}
 		return total;
+	}
+
+	/**
+	 * <b>@description 计算下一次查询使用的表元信息 </b>
+	 * @param currentMeta
+	 */
+	protected void calNextShardingTableMeta(TableMeta currentMeta) {
+		int metaIndex = getMetaIndex(currentMeta);
+		if (metaIndex == getHittedTables().size() - 1) {
+			setHasNext(false);
+			nextShardingTableMeta = null;
+		} else {
+			nextShardingTableMeta = getHittedTables().get(metaIndex + 1);
+		}
 	}
 
 	protected int getMetaIndex(TableMeta meta) {

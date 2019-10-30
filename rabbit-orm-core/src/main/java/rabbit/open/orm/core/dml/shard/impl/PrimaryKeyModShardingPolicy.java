@@ -77,9 +77,9 @@ public class PrimaryKeyModShardingPolicy implements ShardingPolicy {
 	 */
 	private List<ShardFactor> getShardFactor(Class<?> clz, List<ShardFactor> factors) {
 		List<ShardFactor> keyFactors = new ArrayList<>();
-		Field pkFied = MetaData.getPrimaryKeyField(clz);
+		Field field = MetaData.getPrimaryKeyField(clz);
 		for (ShardFactor factor : factors) {
-			if (pkFied.equals(factor.getField())) {
+			if (field.equals(factor.getField())) {
 				keyFactors.add(factor);
 			}
 		}
