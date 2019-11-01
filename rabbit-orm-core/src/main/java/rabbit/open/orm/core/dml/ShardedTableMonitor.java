@@ -79,7 +79,7 @@ public class ShardedTableMonitor extends Thread {
 				conn = ds.getConnection();
 				Set<String> tables = DDLHelper.readTablesFromDB(conn);
 				for (String table : tables) {
-					if (factory.getShardedTableNameMatcher().match(meta.getTableName(), table)) {
+					if (factory.getShardedNameMatcher().match(meta.getEntityClz(), meta.getTableName(), table)) {
 						list.add(new TableMeta(table, ds));
 					}
 				}

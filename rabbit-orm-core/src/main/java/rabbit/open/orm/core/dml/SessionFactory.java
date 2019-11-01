@@ -33,8 +33,9 @@ import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.name.NamedSQL;
-import rabbit.open.orm.core.dml.shard.ShardedTableNameMatcher;
+import rabbit.open.orm.core.dml.shard.ShardedNameMatcher;
 import rabbit.open.orm.core.dml.shard.ShardingPolicy;
+import rabbit.open.orm.core.dml.shard.impl.DefaultShardedNameMatcher;
 import rabbit.open.orm.core.spring.TransactionObject;
 import rabbit.open.orm.core.utils.PackageScanner;
 import rabbit.open.orm.core.utils.XmlMapperParser;
@@ -95,7 +96,7 @@ public class SessionFactory {
 	// 分片策略和分片表集合之间的映射关系缓存
 	private Map<Class<? extends ShardingPolicy>, Map<Class<?>, List<TableMeta>>> shardedTablesCache = new ConcurrentHashMap<>();
 
-	private ShardedTableNameMatcher shardedTableNameMatcher;
+	private ShardedNameMatcher shardedNameMatcher;
 
 	public Connection getConnection() throws SQLException {
 		return getConnection(null, null, null);
@@ -637,15 +638,15 @@ public class SessionFactory {
 		return entities;
 	}
 	
-	public void setShardedTableNameMatcher(ShardedTableNameMatcher shardedTableNameMatcher) {
-		this.shardedTableNameMatcher = shardedTableNameMatcher;
+	public void setShardedNameMatcher(ShardedNameMatcher nameMatcher) {
+		this.shardedNameMatcher = nameMatcher;
 	}
 	
-	public ShardedTableNameMatcher getShardedTableNameMatcher() {
-		if (null == shardedTableNameMatcher) {
-			setShardedTableNameMatcher(new ShardedTableNameMatcher());
+	public ShardedNameMatcher getShardedNameMatcher() {
+		if (null == shardedNameMatcher) {
+			setShardedNameMatcher(new DefaultShardedNameMatcher());
 		}
-		return shardedTableNameMatcher;
+		return shardedNameMatcher;
 	}
 	
 	/**
