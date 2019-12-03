@@ -30,20 +30,20 @@ public class ShardedSQLQuery<T> extends ShardedDMLObject<T> {
 			}
 		};
 		validDMLObject();
-		setCursor(new ShardedQueryCursor<>(sqlQuery, pageSize));
+		setCursor(new SQLQueryCursor<>(sqlQuery, pageSize));
 	}
 	
 	/**
 	 * <b>@description 返回一个数据加载游标 </b>
 	 * @return
 	 */
-	public ShardedQueryCursor<T> cursor() {
-		return (ShardedQueryCursor<T>) cursor;
+	public SQLQueryCursor<T> cursor() {
+		return (SQLQueryCursor<T>) cursor;
 	}
 	
 	public ShardedSQLQuery<T> setPageSize(int pageSize) {
 		this.pageSize = pageSize;
-		((ShardedQueryCursor<T>)cursor).setPageSize(pageSize);
+		((SQLQueryCursor<T>)cursor).setPageSize(pageSize);
 		return this;
 	}
 	

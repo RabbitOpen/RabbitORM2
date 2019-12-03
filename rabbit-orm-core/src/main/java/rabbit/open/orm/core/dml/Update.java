@@ -506,7 +506,7 @@ public class Update<T> extends NonQueryAdapter<T> {
 	/**
 	 * 
 	 * <b>Description:	合并需要更新的值</b><br>
-	 * @param data
+	 * @param obj
 	 * @return
 	 * 
 	 */

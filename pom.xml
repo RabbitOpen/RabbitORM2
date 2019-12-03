@@ -23,7 +23,8 @@
 		<module>rabbit-orm-core</module>
 		<module>rabbit-orm-datasource</module>
 		<module>rabbit-agent</module>
-    </modules>
+		<module>distributed-transaction-support</module>
+	</modules>
 
 	<dependencies>
 		<dependency>

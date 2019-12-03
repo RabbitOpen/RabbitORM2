@@ -26,7 +26,7 @@ import rabbit.open.orm.core.dml.shard.execption.InvalidShardedQueryException;
 import rabbit.open.orm.core.dml.shard.execption.NoShardTableException;
 import rabbit.open.orm.core.dml.shard.impl.DeleteCursor;
 import rabbit.open.orm.core.dml.shard.impl.QueryCursor;
-import rabbit.open.orm.core.dml.shard.impl.ShardedQueryCursor;
+import rabbit.open.orm.core.dml.shard.impl.SQLQueryCursor;
 import rabbit.open.orm.core.dml.shard.impl.UpdateCursor;
 import sharding.test.shardquery.entity.Ball;
 import sharding.test.shardquery.entity.Order;
@@ -133,7 +133,7 @@ public class PrimaryKeyModShardingPolicyTest {
 			o.setUsername("order-" + i);
 			os.add(o);
 		}
-		ShardedQueryCursor<Order> cursor = os.createShardedSQLQuery("readFromOrder").set("id", 3, FilterType.GT).cursor();
+		SQLQueryCursor<Order> cursor = os.createShardedSQLQuery("readFromOrder").set("id", 3, FilterType.GT).cursor();
 		scanCount = 0;
 		long count = cursor.next((list, tabMeta) -> {
 			scanCount++;

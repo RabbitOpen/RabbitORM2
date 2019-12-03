@@ -240,7 +240,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	public void shutdown() {
 		logger.info("datasource is closing.....");
 		monitor.shutdown();
-		diableDataSource();
+		disableDataSource();
 		closeAllSessions();
 		logger.info("datasource is successfully closed!");
 	}
@@ -252,7 +252,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	 */
 	public synchronized void restart() {
 		logger.info("datasource is restarting.....");
-		diableDataSource();
+		disableDataSource();
 		closeAllSessions();
 		enableDataSource();
 		try {
@@ -268,7 +268,7 @@ public class RabbitDataSource extends AbstractDataSource {
 		setDataSourceClosed(false);
 	}
 
-	private void diableDataSource() {
+	private void disableDataSource() {
 		setDataSourceClosed(true);
 	}
 
