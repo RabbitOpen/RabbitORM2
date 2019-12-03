@@ -55,22 +55,19 @@ public class Update<T> extends NonQueryAdapter<T> {
 	public Update(SessionFactory sessionFactory, T filterData, Class<T> clz) {
 		super(sessionFactory, filterData, clz);
 		setDmlType(DMLType.UPDATE);
-		sqlOperation = new SQLOperation() {
-            @Override
-            public long executeSQL(Connection conn) throws SQLException {
-                PreparedStatement stmt = null;
-                try {
-                    sql.append(createUpdateSql(value2Update));
-                    sql.append(createFilterSql());
-                    replaceTableName();
-                    stmt = conn.prepareStatement(sql.toString());
-                    setPreparedStatementValue(stmt, DMLType.UPDATE);
-                    showSql();
-                    return stmt.executeUpdate();
-                } finally {
-                    closeStmt(stmt);
-                }
-            }
+		sqlOperation = conn -> {
+			PreparedStatement stmt = null;
+			try {
+				sql.append(createUpdateSql(value2Update));
+				sql.append(createFilterSql());
+				replaceTableName();
+				stmt = conn.prepareStatement(sql.toString());
+				setPreparedStatementValue(stmt, DMLType.UPDATE);
+				showSql();
+				return stmt.executeUpdate();
+			} finally {
+				closeStmt(stmt);
+			}
 		};
 	}
 
@@ -305,20 +302,17 @@ public class Update<T> extends NonQueryAdapter<T> {
 		        new FieldMetaData(pk, fmd.getColumn())), pk));
 		sql.append(WHERE + TARGET_TABLE_NAME + "." + getColumnName(metaData.getPrimaryKey()) 
 				+ " = " + PLACE_HOLDER);
-        sqlOperation = new SQLOperation() {
-            @Override
-            public long executeSQL(Connection conn) throws SQLException {
-                PreparedStatement stmt = null;
-                try {
-                    stmt = conn.prepareStatement(sql.toString());
-                    setPreparedStatementValue(stmt, DMLType.UPDATE);
-                    showSql();
-                    return stmt.executeUpdate();
-                } finally {
-                    closeStmt(stmt);
-                }
-            }
-        };
+        sqlOperation = conn -> {
+			PreparedStatement stmt = null;
+			try {
+				stmt = conn.prepareStatement(sql.toString());
+				setPreparedStatementValue(stmt, DMLType.UPDATE);
+				showSql();
+				return stmt.executeUpdate();
+			} finally {
+				closeStmt(stmt);
+			}
+		};
         factors.add(new ShardFactor(pk, FilterType.EQUAL.value(), pkValue));
         updateTargetTableName();
         return super.execute();
