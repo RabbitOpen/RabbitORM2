@@ -6,7 +6,7 @@
 
 	<groupId>rabbit.open</groupId>
 	<artifactId>orm</artifactId>
-	<version>3.2.0</version>
+	<version>3.3.0</version>
 	<packaging>pom</packaging>
 
 	<name>rabbit.open</name>
@@ -48,6 +48,7 @@
 			<groupId>cn.guoyukun.jdbc</groupId>
 			<artifactId>db2jcc</artifactId>
 			<version>1.4.2</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.mchange</groupId>
