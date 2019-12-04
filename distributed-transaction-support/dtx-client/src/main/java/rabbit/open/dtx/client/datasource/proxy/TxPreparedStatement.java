@@ -1,5 +1,6 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
+import rabbit.open.dts.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.dtx.client.context.DistributedTransactionContext;
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
 import rabbit.open.dtx.client.datasource.parser.SQLType;
@@ -7,13 +8,14 @@ import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
 import rabbit.open.dtx.client.datasource.proxy.ext.DeleteRollbackInfoGenerator;
 import rabbit.open.dtx.client.datasource.proxy.ext.InsertRollbackInfoGenerator;
 import rabbit.open.dtx.client.datasource.proxy.ext.UpdateRollbackInfoGenerator;
+import rabbit.open.dtx.client.enhance.ext.DistributedTransactionObject;
 
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.*;
 import java.sql.Date;
+import java.sql.*;
 import java.util.*;
 
 /**
@@ -31,12 +33,17 @@ public class TxPreparedStatement implements PreparedStatement {
 
     private String preparedSql;
 
-    private static Map<SQLType, RollbackInfoGenerator> generator = new EnumMap<>(SQLType.class);
+    private static Map<SQLType, RollbackInfoGenerator> generatorMap = new EnumMap<>(SQLType.class);
+
+    // 插入数据库的sql
+    private static final String INSERT_SQL = "insert into roll_back_info (tx_id, tx_group_id, rollback_info, " +
+            "datasource_name, rollback_status, created_date, modified_date) values (?, ?, ?, ?, ?, ?, ?)";
+
 
     static {
-        generator.put(SQLType.INSERT, new InsertRollbackInfoGenerator());
-        generator.put(SQLType.UPDATE, new UpdateRollbackInfoGenerator());
-        generator.put(SQLType.DELETE, new DeleteRollbackInfoGenerator());
+        generatorMap.put(SQLType.DELETE, new DeleteRollbackInfoGenerator());
+        generatorMap.put(SQLType.INSERT, new InsertRollbackInfoGenerator());
+        generatorMap.put(SQLType.UPDATE, new UpdateRollbackInfoGenerator());
     }
 
     public TxPreparedStatement(PreparedStatement realStmt, TxConnection txConn, String preparedSql) {
@@ -59,6 +66,48 @@ public class TxPreparedStatement implements PreparedStatement {
         }
         values.clear();
         return result;
+    }
+
+    /**
+     * 插入回滚信息
+     * @param	entity
+     * @author  xiaoqianbin
+     * @date    2019/12/4
+     **/
+    private void insertRollbackInfo(RollBackInfoEntity entity) throws SQLException {
+        PreparedStatement insertStmt = null;
+        try {
+            insertStmt = txConn.getRealConn().prepareStatement(INSERT_SQL);
+            insertStmt.setLong(1, entity.getTxId());
+            insertStmt.setLong(2, entity.getTxGroupId());
+            insertStmt.setBytes(3, entity.getRollbackInfo());
+            insertStmt.setString(4, entity.getDatasourceName());
+            insertStmt.setString(5, "INIT");
+            insertStmt.setTimestamp(6, new Timestamp(entity.getCreatedDate().getTime()));
+            insertStmt.setTimestamp(7, new Timestamp(entity.getModifiedDate().getTime()));
+            insertStmt.executeUpdate();
+        } finally {
+            if (null != insertStmt) {
+                insertStmt.close();
+            }
+        }
+    }
+
+    /**
+     * 创建回滚实体信息
+     * @author  xiaoqianbin
+     * @date    2019/12/4
+     **/
+    private RollBackInfoEntity createRollbackEntity() throws SQLException {
+        SQLMeta sqlMeta = SimpleSQLParser.parse(preparedSql);
+        byte[] rollbackInfoBytes = new KryoObjectSerializer().serialize(generatorMap.get(sqlMeta.getSqlType()).generate(sqlMeta, values, txConn));
+        DistributedTransactionObject transactionObject = txConn.getTxDataSource().getTransactionManger().newTransactionObject();
+        RollBackInfoEntity entity = new RollBackInfoEntity();
+        entity.setTxId(transactionObject.getTxId());
+        entity.setRollbackInfo(rollbackInfoBytes);
+        entity.setDatasourceName(txConn.getTxDataSource().getDataSourceName());
+        entity.setTxGroupId(DistributedTransactionContext.getDistributedTransactionObject().getTxId());
+        return entity;
     }
 
     @Override
@@ -149,13 +198,10 @@ public class TxPreparedStatement implements PreparedStatement {
         realStmt.setAsciiStream(parameterIndex, x, length);
     }
 
-    /**
-     * @deprecated (may be someday)
-     */
-    @Override
     @Deprecated
-    public void setUnicodeStream(int parameterIndex, InputStream x, int length) throws SQLException {
-        realStmt.setUnicodeStream(parameterIndex, x, length);
+    @Override
+    public void setUnicodeStream(int parameterIndex, InputStream x, int length) {
+        // TO DO deprecated
     }
 
     @Override

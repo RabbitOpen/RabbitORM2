@@ -10,14 +10,14 @@ public class ColumnMeta {
 
     private String value;
 
-    // 字段在sql中的位置信息
-    private int index;
-
     // '?'占位符在整个sql中的index
     private int placeHolderIndex;
 
     // 真实值
     private Object realValue;
+
+    public ColumnMeta() {
+    }
 
     public ColumnMeta(String columnName, String value, int placeHolderIndex) {
         this.columnName = columnName;
@@ -31,10 +31,6 @@ public class ColumnMeta {
 
     public String getValue() {
         return value;
-    }
-
-    public int getIndex() {
-        return index;
     }
 
     public Object getRealValue() {

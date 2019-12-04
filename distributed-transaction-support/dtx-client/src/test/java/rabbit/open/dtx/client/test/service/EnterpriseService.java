@@ -3,7 +3,6 @@ package rabbit.open.dtx.client.test.service;
 import junit.framework.TestCase;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rabbit.open.dtx.client.enhance.ext.DistributedTransaction;
 import rabbit.open.dtx.client.test.entity.Enterprise;
 
 /**

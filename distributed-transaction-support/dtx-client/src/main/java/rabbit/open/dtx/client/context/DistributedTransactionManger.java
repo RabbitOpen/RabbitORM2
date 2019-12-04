@@ -12,11 +12,11 @@ import java.io.Serializable;
 public interface DistributedTransactionManger extends Serializable {
 
     /**
-     * 获取一个事务对象
+     * 新建一个事务对象
      * @author  xiaoqianbin
      * @date    2019/12/4
      **/
-    DistributedTransactionObject getTransactionObject();
+    DistributedTransactionObject newTransactionObject();
 
     /**
      * 开启事务

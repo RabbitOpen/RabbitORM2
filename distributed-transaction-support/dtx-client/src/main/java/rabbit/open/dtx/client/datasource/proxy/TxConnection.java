@@ -21,6 +21,10 @@ public class TxConnection implements Connection {
         this.txDataSource = txDataSource;
     }
 
+    public Connection getRealConn() {
+        return realConn;
+    }
+
     public TxDataSource getTxDataSource() {
         return txDataSource;
     }

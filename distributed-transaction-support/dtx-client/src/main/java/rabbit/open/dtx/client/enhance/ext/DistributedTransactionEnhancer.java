@@ -32,7 +32,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     @Override
     protected PointCutHandler<DistributedTransaction> getHandler() {
         return (invocation, annotation) -> {
-            DistributedTransactionObject transactionObject = transactionManger.getTransactionObject();
+            DistributedTransactionObject transactionObject = transactionManger.newTransactionObject();
             if (annotation.timeoutSeconds() == Long.MAX_VALUE) {
                 return syncProcess(invocation, transactionObject);
             } else {

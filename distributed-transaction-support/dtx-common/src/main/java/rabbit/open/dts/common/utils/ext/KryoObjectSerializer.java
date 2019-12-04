@@ -3,7 +3,6 @@ package rabbit.open.dts.common.utils.ext;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.objenesis.strategy.StdInstantiatorStrategy;
 import rabbit.open.dts.common.utils.ObjectSerializer;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -22,10 +21,8 @@ public class KryoObjectSerializer implements ObjectSerializer {
         if (null != kryo) {
             return kryo;
         } else {
-            kryo = new Kryo() ;
+            kryo = new RabbitKryo();
             kryo.setClassLoader(Thread.currentThread().getContextClassLoader());
-            // 该策略支持对异常的序列化
-            kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
             return kryo;
         }
     }

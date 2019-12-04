@@ -1,5 +1,7 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
+import rabbit.open.dtx.client.context.DistributedTransactionManger;
+
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -20,9 +22,17 @@ public class TxDataSource implements DataSource {
     // 数据源名
     private String dataSourceName;
 
-    public TxDataSource(DataSource dataSource, String dataSourceName) {
+    // 事务管理器
+    private DistributedTransactionManger transactionManger;
+
+    public TxDataSource(DataSource dataSource, String dataSourceName, DistributedTransactionManger transactionManger) {
         this.dataSource = dataSource;
         this.dataSourceName = dataSourceName;
+        this.transactionManger = transactionManger;
+    }
+
+    public DistributedTransactionManger getTransactionManger() {
+        return transactionManger;
     }
 
     @Override

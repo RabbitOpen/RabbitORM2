@@ -70,9 +70,12 @@
 	</bean>
 
 	<bean id="txDataSource" class="rabbit.open.dtx.client.datasource.proxy.TxDataSource">
+		<!--真实数据源-->
 		<constructor-arg name="dataSource" ref="rabbit"/>
 		<!--一个应用下如果有多个数据源，那么这个名字不能重复-->
 		<constructor-arg name="dataSourceName" value="txDataSource"/>
+
+		<constructor-arg name="transactionManger" ref="simpleTransactionManger"/>
 	</bean>
 
 	<!-- 配置SessionFactory -->

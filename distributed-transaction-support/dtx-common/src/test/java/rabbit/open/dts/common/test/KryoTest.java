@@ -18,15 +18,24 @@ import java.util.concurrent.CountDownLatch;
 public class KryoTest {
 
     @Test
-    public void kryoObjectSerializerTest() {
-        for (int i = 0; i < 1000; i++) {
-            KryoObjectSerializer serializer = new KryoObjectSerializer();
-            Date date = new Date();
-            byte[] bytes = serializer.serialize(date);
-            Date s = serializer.deserialize(bytes, Date.class);
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            TestCase.assertTrue(sdf.format(date).equals(sdf.format(s)));
+    public void kryoObjectSerializerTest() throws InterruptedException {
+        CountDownLatch cdl = new CountDownLatch(50);
+        for (int c = 0; c < 50; c++) {
+            new Thread(() -> {
+                KryoObjectSerializer serializer = new KryoObjectSerializer();
+                for (int i = 0; i < 10000; i++) {
+                    Date date = new Date();
+                    byte[] bytes = serializer.serialize(date);
+                    Date s = serializer.deserialize(bytes, Date.class);
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    TestCase.assertTrue(sdf.format(date).equals(sdf.format(s)));
+                }
+                cdl.countDown();
+            }).start();
+
         }
+        cdl.await();
+
     }
 
     @Test

@@ -2,9 +2,8 @@ package rabbit.open.dtx.client.datasource.proxy;
 
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 回滚信息
@@ -17,12 +16,20 @@ public class RollbackInfo {
 
     private List<Object> preparedValues;
 
+    // 上个版本的数据信息
+    private List<Map<String, Object>> originalData;
+
     public RollbackInfo() {
     }
 
     public RollbackInfo(SQLMeta meta, List<Object> preparedValues) {
+        this(meta, preparedValues, null);
+    }
+
+    public RollbackInfo(SQLMeta meta, List<Object> preparedValues, List<Map<String, Object>> originalData) {
         this.meta = meta;
         this.preparedValues = preparedValues;
+        this.originalData = originalData;
     }
 
     public SQLMeta getMeta() {
@@ -41,10 +48,11 @@ public class RollbackInfo {
         this.preparedValues = preparedValues;
     }
 
-    public static void main(String[] args) {
-        List<Object> list = new ArrayList<>();
-        list.add(new Date());
-        list.add("s");
-        list.add(10L);
+    public List<Map<String, Object>> getOriginalData() {
+        return originalData;
+    }
+
+    public void setOriginalData(List<Map<String, Object>> originalData) {
+        this.originalData = originalData;
     }
 }
