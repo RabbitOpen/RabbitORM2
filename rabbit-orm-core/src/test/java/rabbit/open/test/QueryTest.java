@@ -158,6 +158,15 @@ public class QueryTest {
     }
 
     @Test
+    public void bytesTest() {
+        User user = new User();
+        user.setBytes("hello".getBytes());
+        us.add(user);
+        User usByID = us.getByID(user.getId());
+        TestCase.assertEquals(new String(usByID.getBytes()), "hello");
+    }
+
+    @Test
     public void invalidFetchOperationExceptionTest() {
         User u = new User();
         u.setId(10L);

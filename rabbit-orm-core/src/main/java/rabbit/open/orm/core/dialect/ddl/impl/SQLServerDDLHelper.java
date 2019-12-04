@@ -25,6 +25,7 @@ public class SQLServerDDLHelper extends OracleDDLHelper {
 		typeStringCache.put(Integer.class, BIGINT);
 		typeStringCache.put(Short.class, BIGINT);
 		typeStringCache.put(Long.class, BIGINT);
+		typeStringCache.put(byte[].class, IMAGE);
 	}
 
 	@Override

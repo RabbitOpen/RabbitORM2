@@ -38,6 +38,7 @@ public class OracleDDLHelper extends DDLHelper {
         typeStringCache.put(Integer.class, NUMBER20);
         typeStringCache.put(Short.class, NUMBER20);
         typeStringCache.put(Long.class, NUMBER20);
+        typeStringCache.put(byte[].class, BLOB);
     }
 	
     /**

@@ -29,7 +29,7 @@ public class SQLiteDDLHelper extends OracleDDLHelper {
 		typeStringCache.put(Float.class, FLOAT);
 		typeStringCache.put(Integer.class, INTEGER);
 		typeStringCache.put(Short.class, INTEGER);
-		typeStringCache.put(Long.class, INTEGER);
+		typeStringCache.put(byte[].class, BLOB);
 	}
 
 	@Override

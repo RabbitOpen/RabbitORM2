@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.stereotype.Component;
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
@@ -79,6 +80,9 @@ public class User {
 	//描述，关键字
 	@Column(value="DESC", keyWord=true)
 	private String desc;
+
+	@Column(value = "BYTE_FIELD")
+	private byte[] bytes;
 
 	/**
 	 * 角色列表
@@ -190,5 +194,16 @@ public class User {
     public void setZone(Zone zone) {
         this.zone = zone;
     }
-    
+
+    public byte[] getBytes() {
+        return bytes;
+    }
+
+    public void setBytes(byte[] bytes) {
+        this.bytes = bytes;
+    }
+
+    public Zone getZone() {
+        return zone;
+    }
 }

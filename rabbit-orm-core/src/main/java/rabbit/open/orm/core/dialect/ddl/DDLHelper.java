@@ -52,7 +52,7 @@ public abstract class DDLHelper {
 
     protected Map<Class<?>, String> typeStringCache = new HashMap<>();
 
-    // 缓存所有dllhelper
+    // 缓存所有dll helper
     private static Map<DialectType, DDLHelper> helpers = new ConcurrentHashMap<>();
 
     protected static final String DATETIME = "DATETIME";
@@ -66,6 +66,9 @@ public abstract class DDLHelper {
     protected static final String DOUBLE = "DOUBLE";
     protected static final String NUMBER20 = "NUMBER(20, 0)";
     protected static final String NUMBER8_5 = "NUMBER(8, 5)";
+    protected static final String LONG_BLOB = "LONGBLOB";
+    protected static final String BLOB = "BLOB";
+    protected static final String IMAGE = "IMAGE";
 
     public static void init() {
         helpers.put(DialectType.MYSQL, new MySQLDDLHelper());

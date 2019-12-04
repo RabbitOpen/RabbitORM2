@@ -40,6 +40,7 @@ public class MySQLDDLHelper extends DDLHelper {
         typeStringCache.put(Short.class, BIGINT);
         typeStringCache.put(Long.class, BIGINT);
         typeStringCache.put(Boolean.class, TINYINT);
+        typeStringCache.put(byte[].class, LONG_BLOB);
     }
     
     /**
