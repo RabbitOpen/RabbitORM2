@@ -270,6 +270,8 @@ public abstract class DMLObject<T> {
 				stmt.setFloat(i, (float) value);
 			} else if (value instanceof Enum) {
 				stmt.setString(i, ((Enum) value).name());
+			} else if (value instanceof byte[]) {
+				stmt.setBytes(i, (byte[]) value);
 			} else {
 				stmt.setObject(i, value);
 			}
