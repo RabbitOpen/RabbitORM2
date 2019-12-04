@@ -7,11 +7,11 @@ import rabbit.open.dtx.client.datasource.proxy.RollbackInfoGenerator;
 import java.util.List;
 
 /**
- * 更新操作回滚数据生成器
+ * 删除操作回滚数据生成器
  * @author xiaoqianbin
  * @date 2019/12/4
  **/
-public class UpdateRollbackInfoGenerator extends RollbackInfoGenerator {
+public class DeleteRollbackInfoGenerator extends RollbackInfoGenerator {
 
     @Override
     public RollbackInfo generate(SQLMeta sqlMeta, List<Object> preparedStatementValues) {

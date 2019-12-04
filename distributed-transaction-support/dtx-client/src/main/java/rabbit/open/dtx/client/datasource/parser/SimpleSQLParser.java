@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  **/
 public class SimpleSQLParser {
 
-    private static Map<String, SQLStructure> structureMap = new ConcurrentHashMap<>();
+    private static Map<String, SQLMeta> structureMap = new ConcurrentHashMap<>();
 
     private static Map<SQLType, Parser> sqlParser = new EnumMap<>(SQLType.class);
 
@@ -37,30 +37,30 @@ public class SimpleSQLParser {
      * @author  xiaoqianbin
      * @date    2019/12/3
      **/
-    public static SQLStructure parse(String sql) {
+    public static SQLMeta parse(String sql) {
         if (structureMap.containsKey(sql)) {
             return structureMap.get(sql);
         }
-        SQLStructure structure = new SQLStructure();
+        SQLMeta sqlMeta = new SQLMeta();
         // 去除多余的空白
         String formattedSql = sql.trim().replaceAll("\\s+", " ");
-        structure.setFormattedSql(formattedSql);
+        sqlMeta.setFormattedSql(formattedSql);
         String upperCase = formattedSql.toUpperCase();
-        setSqlType(structure, upperCase);
-        sqlParser.get(structure.getSqlType()).parse(structure, upperCase);
-        structureMap.put(sql, structure);
-        return structure;
+        setSqlType(sqlMeta, upperCase);
+        sqlParser.get(sqlMeta.getSqlType()).parse(sqlMeta, upperCase);
+        structureMap.put(sql, sqlMeta);
+        return sqlMeta;
     }
 
-    private static void setSqlType(SQLStructure structure, String upperCase) {
+    private static void setSqlType(SQLMeta sqlMeta, String upperCase) {
         if (upperCase.startsWith(SQLType.UPDATE.name())) {
-            structure.setSqlType(SQLType.UPDATE);
+            sqlMeta.setSqlType(SQLType.UPDATE);
         } else if (upperCase.startsWith(SQLType.DELETE.name())) {
-            structure.setSqlType(SQLType.DELETE);
+            sqlMeta.setSqlType(SQLType.DELETE);
         } else if (upperCase.startsWith(SQLType.INSERT.name())) {
-            structure.setSqlType(SQLType.INSERT);
+            sqlMeta.setSqlType(SQLType.INSERT);
         } else {
-            structure.setSqlType(SQLType.SELECT);
+            sqlMeta.setSqlType(SQLType.SELECT);
         }
     }
 }

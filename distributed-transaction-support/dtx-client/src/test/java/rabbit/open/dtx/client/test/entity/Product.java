@@ -9,12 +9,12 @@ import rabbit.open.orm.core.annotation.PrimaryKey;
  * @author xiaoqianbin
  * @date 2019/12/3
  **/
-@Entity("T_ENTERPRISE")
-public class Enterprise {
+@Entity("T_PRODUCT_INFO")
+public class Product {
 
-    @PrimaryKey(policy= Policy.AUTOINCREMENT)
+    @PrimaryKey(policy= Policy.UUID)
     @Column("ID")
-    private Long id;
+    private String id;
 
     @Column(value = "ENTERPRISE_NAME", comment = "名字")
     private String name;
@@ -25,11 +25,11 @@ public class Enterprise {
     @Column(value = "OWNER", comment = "拥有者")
     private String owner;
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

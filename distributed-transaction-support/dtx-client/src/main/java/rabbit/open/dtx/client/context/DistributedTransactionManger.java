@@ -1,8 +1,11 @@
 package rabbit.open.dtx.client.context;
 
+import rabbit.open.dtx.client.enhance.ext.DistributedTransactionObject;
+
 import java.io.Serializable;
 
 /**
+ * 分布式事务管理器
  * @author xiaoqianbin
  * @date 2019/12/4
  **/

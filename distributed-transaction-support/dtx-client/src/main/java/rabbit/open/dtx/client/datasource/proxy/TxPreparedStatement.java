@@ -1,17 +1,20 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
 import rabbit.open.dtx.client.context.DistributedTransactionContext;
-import rabbit.open.dtx.client.datasource.parser.SQLStructure;
+import rabbit.open.dtx.client.datasource.parser.SQLMeta;
+import rabbit.open.dtx.client.datasource.parser.SQLType;
 import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
+import rabbit.open.dtx.client.datasource.proxy.ext.DeleteRollbackInfoGenerator;
+import rabbit.open.dtx.client.datasource.proxy.ext.InsertRollbackInfoGenerator;
+import rabbit.open.dtx.client.datasource.proxy.ext.UpdateRollbackInfoGenerator;
 
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.sql.Date;
+import java.util.*;
 
 /**
  * prepared statement proxy
@@ -28,14 +31,18 @@ public class TxPreparedStatement implements PreparedStatement {
 
     private String preparedSql;
 
+    private static Map<SQLType, RollbackInfoGenerator> generator = new EnumMap<>(SQLType.class);
+
+    static {
+        generator.put(SQLType.INSERT, new InsertRollbackInfoGenerator());
+        generator.put(SQLType.UPDATE, new UpdateRollbackInfoGenerator());
+        generator.put(SQLType.DELETE, new DeleteRollbackInfoGenerator());
+    }
+
     public TxPreparedStatement(PreparedStatement realStmt, TxConnection txConn, String preparedSql) {
         this.realStmt = realStmt;
         this.txConn = txConn;
         this.preparedSql = preparedSql;
-    }
-
-    public TxConnection getTxConn() {
-        return txConn;
     }
 
     @Override
@@ -45,12 +52,13 @@ public class TxPreparedStatement implements PreparedStatement {
 
     @Override
     public int executeUpdate() throws SQLException {
-        int i = realStmt.executeUpdate();
-        if (null != DistributedTransactionContext.getTransactionContext()) {
-            SQLStructure parse = SimpleSQLParser.parse(preparedSql);
-
+        int result = realStmt.executeUpdate();
+        if (null != DistributedTransactionContext.getDistributedTransactionObject()) {
+            SQLMeta sqlMeta = SimpleSQLParser.parse(preparedSql);
+            generator.get(sqlMeta.getSqlType()).generate(sqlMeta, values);
         }
-        return i;
+        values.clear();
+        return result;
     }
 
     @Override

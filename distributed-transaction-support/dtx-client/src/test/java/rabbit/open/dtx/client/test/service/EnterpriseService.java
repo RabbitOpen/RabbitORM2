@@ -3,6 +3,7 @@ package rabbit.open.dtx.client.test.service;
 import junit.framework.TestCase;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import rabbit.open.dtx.client.enhance.ext.DistributedTransaction;
 import rabbit.open.dtx.client.test.entity.Enterprise;
 
 /**
@@ -10,7 +11,7 @@ import rabbit.open.dtx.client.test.entity.Enterprise;
  * @date 2019/12/3
  **/
 @Service
-public class EnterpriseService extends BaseService<Enterprise> {
+public class EnterpriseService extends GenericService<Enterprise> {
 
     private int count = 0;
 

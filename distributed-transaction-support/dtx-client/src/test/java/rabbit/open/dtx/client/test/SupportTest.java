@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.dtx.client.test.entity.Enterprise;
+import rabbit.open.dtx.client.test.entity.Product;
 import rabbit.open.dtx.client.test.impl.FirstEnhancer;
 import rabbit.open.dtx.client.test.impl.LastEnhancer;
 import rabbit.open.dtx.client.test.service.EnterpriseService;
+import rabbit.open.dtx.client.test.service.ProductService;
 
 
 /**
@@ -30,6 +32,9 @@ public class SupportTest {
     @Autowired
     private EnterpriseService es;
 
+    @Autowired
+    private ProductService productService;
+
     @Test
     public void handlerTest() {
         String name = " zhangsan ";
@@ -46,4 +51,14 @@ public class SupportTest {
         es.addEnterprise(enterprise);
         TestCase.assertEquals(1, es.getCount());
     }
+
+    @Test
+    public void enhancerTest() {
+        Product product = new Product();
+        product.setName("ZD-0013");
+        product.setAddr("chengdu");
+        productService.addProduct(product);
+    }
+
+
 }

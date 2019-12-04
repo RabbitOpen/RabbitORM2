@@ -7,7 +7,7 @@ import java.util.List;
  * @author xiaoqianbin
  * @date 2019/12/3
  **/
-public class SQLStructure {
+public class SQLMeta {
 
     // sql 类型
     private SQLType sqlType;

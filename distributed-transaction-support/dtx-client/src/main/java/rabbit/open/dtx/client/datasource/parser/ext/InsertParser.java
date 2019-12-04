@@ -2,7 +2,7 @@ package rabbit.open.dtx.client.datasource.parser.ext;
 
 import rabbit.open.dtx.client.datasource.parser.ColumnMeta;
 import rabbit.open.dtx.client.datasource.parser.Parser;
-import rabbit.open.dtx.client.datasource.parser.SQLStructure;
+import rabbit.open.dtx.client.datasource.parser.SQLMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,16 +19,17 @@ public class InsertParser implements Parser {
     public static final String VALUES = "VALUES";
 
     @Override
-    public void parse(SQLStructure structure, String upperCaseSql) {
-        setTableName(structure, upperCaseSql);
+    public void parse(SQLMeta sqlMeta, String upperCaseSql) {
+        setTableName(sqlMeta, upperCaseSql);
         int values = upperCaseSql.indexOf(VALUES);
-        setColumns(structure, upperCaseSql, values);
+        setColumns(sqlMeta, upperCaseSql, values);
     }
 
-    private void setColumns(SQLStructure structure, String upperCaseSql, int values) {
-        String columnsSegment = structure.getFormattedSql().substring(upperCaseSql.indexOf('('), values).trim();
+    private void setColumns(SQLMeta sqlMeta, String upperCaseSql, int values) {
+        String columnsSegment = sqlMeta.getFormattedSql().substring(upperCaseSql.indexOf('('), values).trim();
         columnsSegment = columnsSegment.substring(1, columnsSegment.length() - 1);
-        String valuesSegment = structure.getFormattedSql().substring(values + VALUES.length() + 1, upperCaseSql.lastIndexOf(')'));
+        String valuesSegment = sqlMeta.getFormattedSql().substring(values + VALUES.length() + 1, upperCaseSql.length()).trim();
+        valuesSegment = valuesSegment.substring(1, valuesSegment.lastIndexOf(')'));
         List<ColumnMeta> columns = new ArrayList<>();
         int placeHolderIndex = 0;
         String[] valueSegments = valuesSegment.split(",");
@@ -40,10 +41,10 @@ public class InsertParser implements Parser {
                 placeHolderIndex++;
             }
         }
-        structure.setColumns(columns);
+        sqlMeta.setColumns(columns);
     }
 
-    private void setTableName(SQLStructure structure, String upperCaseSql) {
+    private void setTableName(SQLMeta structure, String upperCaseSql) {
         String sql = structure.getFormattedSql();
         if (upperCaseSql.startsWith(INSERT_INTO)) {
             structure.setTargetTables(sql.substring(INSERT_INTO.length(), sql.indexOf('(')).trim());

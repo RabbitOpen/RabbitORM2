@@ -2,7 +2,6 @@ package rabbit.open.dtx.client.enhance.ext;
 
 import org.aopalliance.intercept.MethodInvocation;
 import rabbit.open.dtx.client.context.DistributedTransactionManger;
-import rabbit.open.dtx.client.context.DistributedTransactionObject;
 import rabbit.open.dtx.client.enhance.AbstractAnnotationEnhancer;
 import rabbit.open.dtx.client.enhance.PointCutHandler;
 import rabbit.open.dtx.client.exception.DistributedTransactionException;
@@ -20,15 +19,15 @@ import java.util.concurrent.TimeUnit;
 public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<DistributedTransaction> {
 
     // 异步处理的核心线程数
-    private int core = 5;
+    protected int core = 5;
 
     // 异步处理的最大线程数
-    private int maxConcurrence = 20;
+    protected int maxConcurrence = 20;
 
-    private transient ThreadPoolExecutor tpe;
+    protected transient ThreadPoolExecutor tpe;
 
     // 事务管理器
-    private DistributedTransactionManger transactionManger;
+    protected DistributedTransactionManger transactionManger;
 
     @Override
     protected PointCutHandler<DistributedTransaction> getHandler() {

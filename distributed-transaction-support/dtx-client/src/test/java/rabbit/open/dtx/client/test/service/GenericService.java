@@ -10,7 +10,7 @@ import javax.annotation.Resource;
  * @author xiaoqianbin
  * @date 2019/12/3
  **/
-public abstract class BaseService<T> extends SpringDaoAdapter<T> {
+public abstract class GenericService<T> extends SpringDaoAdapter<T> {
 
     @Resource(name = "sessionFactory")
     private SessionFactory factory;
