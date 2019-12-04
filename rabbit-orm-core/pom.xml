@@ -88,30 +88,6 @@
 				</executions>
 			</plugin>
 
-			<!-- 打包时将common和datasource的包一并打入 -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.1</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<createDependencyReducedPom>false</createDependencyReducedPom>
-					<artifactSet>
-						<includes>
-							<include>rabbit.open:rabbit-orm-common:jar:</include>
-							<include>rabbit.open:rabbit-orm-datasource:jar:</include>
-						</includes>
-					</artifactSet>
-				</configuration>
-			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
