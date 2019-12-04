@@ -1,4 +1,4 @@
-package rabbit.open.dts.test;
+package rabbit.open.dtx.client.test;
 
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -8,10 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import rabbit.open.dts.test.entity.Enterprise;
-import rabbit.open.dts.test.impl.FirstEnhancer;
-import rabbit.open.dts.test.impl.LastEnhancer;
-import rabbit.open.dts.test.service.EnterpriseService;
+import rabbit.open.dtx.client.test.entity.Enterprise;
+import rabbit.open.dtx.client.test.impl.FirstEnhancer;
+import rabbit.open.dtx.client.test.impl.LastEnhancer;
+import rabbit.open.dtx.client.test.service.EnterpriseService;
+
 
 /**
  * @author xiaoqianbin

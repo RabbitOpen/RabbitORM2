@@ -1,4 +1,4 @@
-package rabbit.open.dts.test.impl;
+package rabbit.open.dtx.client.test.impl;
 
 import org.springframework.stereotype.Component;
 import rabbit.open.dtx.client.enhance.AbstractAnnotationEnhancer;

@@ -1,4 +1,4 @@
-package rabbit.open.dts.test.service;
+package rabbit.open.dtx.client.test.service;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,7 +1,7 @@
-package rabbit.open.dts.test;
+package rabbit.open.dtx.client.test;
 
 import org.springframework.stereotype.Component;
-import rabbit.open.dts.test.impl.MyAop;
+import rabbit.open.dtx.client.test.impl.MyAop;
 
 /**
  * @author xiaoqianbin

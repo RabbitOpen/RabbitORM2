@@ -1,4 +1,4 @@
-package rabbit.open.dts.test.entity;
+package rabbit.open.dtx.client.test.entity;
 
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.core.annotation.Column;

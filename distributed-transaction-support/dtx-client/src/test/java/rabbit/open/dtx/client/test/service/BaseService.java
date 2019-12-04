@@ -1,4 +1,4 @@
-package rabbit.open.dts.test.service;
+package rabbit.open.dtx.client.test.service;
 
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.spring.SpringDaoAdapter;

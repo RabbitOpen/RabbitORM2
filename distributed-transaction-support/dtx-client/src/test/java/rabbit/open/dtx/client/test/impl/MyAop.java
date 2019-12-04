@@ -1,4 +1,4 @@
-package rabbit.open.dts.test.impl;
+package rabbit.open.dtx.client.test.impl;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
