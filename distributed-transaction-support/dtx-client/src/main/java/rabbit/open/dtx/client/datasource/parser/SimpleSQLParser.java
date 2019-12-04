@@ -1,9 +1,9 @@
 package rabbit.open.dtx.client.datasource.parser;
 
-import rabbit.open.dtx.client.datasource.parser.impl.DeleteParser;
-import rabbit.open.dtx.client.datasource.parser.impl.InsertParser;
-import rabbit.open.dtx.client.datasource.parser.impl.SelectParser;
-import rabbit.open.dtx.client.datasource.parser.impl.UpdateParser;
+import rabbit.open.dtx.client.datasource.parser.ext.DeleteParser;
+import rabbit.open.dtx.client.datasource.parser.ext.InsertParser;
+import rabbit.open.dtx.client.datasource.parser.ext.SelectParser;
+import rabbit.open.dtx.client.datasource.parser.ext.UpdateParser;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -25,6 +25,10 @@ public class SimpleSQLParser {
         sqlParser.put(SQLType.SELECT, new SelectParser());
         sqlParser.put(SQLType.UPDATE, new UpdateParser());
         sqlParser.put(SQLType.DELETE, new DeleteParser());
+    }
+
+    private SimpleSQLParser() {
+
     }
 
     /**

@@ -13,18 +13,17 @@ import rabbit.open.dtx.client.enhance.PointCutHandler;
 public class DBEnhancer extends AbstractAnnotationEnhancer<Transactional> {
 
     @Override
-    protected Class<Transactional> getTargetAnnotation() {
-        return Transactional.class;
-    }
-
-    @Override
     protected PointCutHandler<Transactional> getHandler() {
         return (invocation, annotation) -> {
             if (invocation.getThis() instanceof EnterpriseService) {
                 EnterpriseService es = (EnterpriseService) invocation.getThis();
                 es.increase();
             }
-            return invocation.proceed();
+            try {
+                return invocation.proceed();
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
         };
     }
 }

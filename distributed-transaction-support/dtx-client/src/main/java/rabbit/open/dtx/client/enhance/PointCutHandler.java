@@ -13,11 +13,11 @@ public interface PointCutHandler<T extends Annotation> {
 
     /**
      * 自定义注解环绕处理
-     * @param	invocation
-     * @param	annotation
-     * @author  xiaoqianbin
-     * @date    2019/12/3
+     * @param    invocation
+     * @param    annotation
+     * @author xiaoqianbin
+     * @date 2019/12/3
      **/
-    Object process(MethodInvocation invocation, T annotation) throws Throwable;
+    Object process(MethodInvocation invocation, T annotation);
 
 }

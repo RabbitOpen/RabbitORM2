@@ -1,4 +1,4 @@
-package rabbit.open.dtx.client.datasource.parser.impl;
+package rabbit.open.dtx.client.datasource.parser.ext;
 
 import rabbit.open.dtx.client.datasource.parser.Parser;
 import rabbit.open.dtx.client.datasource.parser.SQLStructure;

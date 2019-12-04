@@ -5,12 +5,12 @@ import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.AdvisedSupport;
 import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,25 +23,41 @@ public abstract class AbstractAnnotationEnhancer<T extends Annotation> extends A
 
     private Set<String> beans2Enhance = new HashSet<>();
 
-    private Object[] pointCuts;
+    private transient Object[] pointCuts;
+
+    private Class<T> clz;
+
+    public AbstractAnnotationEnhancer() {
+        try {
+            Class<?> cls = getClass();
+            while (!(cls.getGenericSuperclass() instanceof ParameterizedType)) {
+                cls = cls.getSuperclass();
+            }
+            this.clz = (Class<T>) ((ParameterizedType) (cls.getGenericSuperclass())).getActualTypeArguments()[0];
+        } catch (Exception e) {
+            // TO DO : ignore
+        }
+    }
 
     // 获取目标注解
-    protected abstract Class<T> getTargetAnnotation();
+    protected final Class<T> getTargetAnnotation() {
+        return clz;
+    }
 
     // 获取切面处理器
     protected abstract PointCutHandler<T> getHandler();
 
     /**
      * 设置切点位置
-     * @author  xiaoqianbin
-     * @date    2019/12/3
+     * @author xiaoqianbin
+     * @date 2019/12/3
      **/
     protected PointCutPosition getPointCutPosition() {
         return PointCutPosition.FIRST;
     }
 
     @Override
-    protected Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName, TargetSource customTargetSource) throws BeansException {
+    protected Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName, TargetSource customTargetSource) {
         if (beans2Enhance.contains(beanName)) {
             return getPointCuts();
         }
@@ -80,7 +96,7 @@ public abstract class AbstractAnnotationEnhancer<T extends Annotation> extends A
         } else {
             AdvisedSupport support = getAdvisedSupport(bean);
             Advisor[] advisors = buildAdvisors(beanName, getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null));
-            for(int i = 0; i < advisors.length; ++i) {
+            for (int i = 0; i < advisors.length; ++i) {
                 Advisor advisor = advisors[i];
                 if (PointCutPosition.FIRST == getPointCutPosition()) {
                     support.addAdvisor(0, advisor);
@@ -107,7 +123,7 @@ public abstract class AbstractAnnotationEnhancer<T extends Annotation> extends A
             // 获取advised对象信息
             Field advised = proxy.getClass().getDeclaredField("advised");
             advised.setAccessible(true);
-            return (AdvisedSupport)advised.get(proxy);
+            return (AdvisedSupport) advised.get(proxy);
         } catch (Exception e) {
             throw new BeanCreationException(e.getMessage(), e);
         }
@@ -115,8 +131,8 @@ public abstract class AbstractAnnotationEnhancer<T extends Annotation> extends A
 
     /**
      * 切点位置
-     * @author  xiaoqianbin
-     * @date    2019/12/3
+     * @author xiaoqianbin
+     * @date 2019/12/3
      **/
     public enum PointCutPosition {
         FIRST, LAST

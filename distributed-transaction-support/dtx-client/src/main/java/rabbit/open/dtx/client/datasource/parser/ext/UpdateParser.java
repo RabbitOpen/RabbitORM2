@@ -1,9 +1,9 @@
-package rabbit.open.dtx.client.datasource.parser.impl;
+package rabbit.open.dtx.client.datasource.parser.ext;
 
+import rabbit.open.dtx.client.datasource.parser.ColumnMeta;
 import rabbit.open.dtx.client.datasource.parser.Parser;
 import rabbit.open.dtx.client.datasource.parser.SQLStructure;
 import rabbit.open.dtx.client.datasource.parser.SQLType;
-import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,29 +20,36 @@ public class UpdateParser implements Parser {
         int where = upperCaseSql.indexOf("WHERE");
         int set = upperCaseSql.indexOf("SET");
         // where
-        structure.setCondition(structure.getFormattedSql().substring(where));
+        if (-1 != where) {
+            structure.setCondition(structure.getFormattedSql().substring(where));
+        } else {
+            where = upperCaseSql.length();
+        }
         // 表名
         structure.setTargetTables(structure.getFormattedSql().substring(SQLType.UPDATE.name().length(), set).trim());
-        setColumns(structure, upperCaseSql, where, set);
+        setColumns(structure, where, set);
     }
 
     /**
      * 设置要更新的字段信息
      * @param	structure
-	 * @param	upperCaseSql
 	 * @param	where
 	 * @param	set
      * @author  xiaoqianbin
      * @date    2019/12/3
      **/
-    private void setColumns(SQLStructure structure, String upperCaseSql, int where, int set) {
+    private void setColumns(SQLStructure structure, int where, int set) {
         String updateColumns = structure.getFormattedSql().substring(set + "SET".length(), where).trim();
-        List<String> list = new ArrayList<>();
+        List<ColumnMeta> list = new ArrayList<>();
+        int placeHolderIndex = 0;
         for (String column : updateColumns.split(",")) {
-            list.add(column.split("=")[0].trim());
+            String value = column.split("=")[1].trim();
+            list.add(new ColumnMeta(column.split("=")[0].trim(), value, placeHolderIndex));
+            if ("?".equals(value)) {
+                placeHolderIndex++;
+            }
         }
         structure.setColumns(list);
     }
-
 
 }

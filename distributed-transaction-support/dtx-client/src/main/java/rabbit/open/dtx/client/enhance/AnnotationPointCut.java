@@ -20,7 +20,6 @@ class AnnotationPointCut<T extends Annotation> implements MethodInterceptor {
 
     public AnnotationPointCut(Class<T> targetAnnotation, PointCutHandler<T> pointCutHandler) {
         assertField(targetAnnotation, "targetAnnotation can not be empty!");
-        assertField(pointCutHandler, "pointCutHandler can not be empty!");
         this.targetAnnotation = targetAnnotation;
         this.pointCutHandler = pointCutHandler;
     }
@@ -28,7 +27,7 @@ class AnnotationPointCut<T extends Annotation> implements MethodInterceptor {
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         T annotation = invocation.getMethod().getAnnotation(targetAnnotation);
-        if (null != annotation) {
+        if (null != annotation && null != pointCutHandler) {
             return pointCutHandler.process(invocation, annotation);
         } else {
             return invocation.proceed();

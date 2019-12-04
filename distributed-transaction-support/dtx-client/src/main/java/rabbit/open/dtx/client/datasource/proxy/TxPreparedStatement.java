@@ -1,11 +1,17 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
+import rabbit.open.dtx.client.context.DistributedTransactionContext;
+import rabbit.open.dtx.client.datasource.parser.SQLStructure;
+import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
+
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * prepared statement proxy
@@ -18,9 +24,14 @@ public class TxPreparedStatement implements PreparedStatement {
 
     private TxConnection txConn;
 
-    public TxPreparedStatement(PreparedStatement realStmt, TxConnection txConn) {
+    private List<Object> values = new ArrayList<>();
+
+    private String preparedSql;
+
+    public TxPreparedStatement(PreparedStatement realStmt, TxConnection txConn, String preparedSql) {
         this.realStmt = realStmt;
         this.txConn = txConn;
+        this.preparedSql = preparedSql;
     }
 
     public TxConnection getTxConn() {
@@ -35,6 +46,10 @@ public class TxPreparedStatement implements PreparedStatement {
     @Override
     public int executeUpdate() throws SQLException {
         int i = realStmt.executeUpdate();
+        if (null != DistributedTransactionContext.getTransactionContext()) {
+            SQLStructure parse = SimpleSQLParser.parse(preparedSql);
+
+        }
         return i;
     }
 
@@ -46,66 +61,79 @@ public class TxPreparedStatement implements PreparedStatement {
     @Override
     public void setBoolean(int parameterIndex, boolean x) throws SQLException {
         realStmt.setBoolean(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setByte(int parameterIndex, byte x) throws SQLException {
         realStmt.setByte(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setShort(int parameterIndex, short x) throws SQLException {
         realStmt.setShort(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setInt(int parameterIndex, int x) throws SQLException {
         realStmt.setInt(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setLong(int parameterIndex, long x) throws SQLException {
         realStmt.setLong(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setFloat(int parameterIndex, float x) throws SQLException {
         realStmt.setFloat(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setDouble(int parameterIndex, double x) throws SQLException {
         realStmt.setDouble(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setBigDecimal(int parameterIndex, BigDecimal x) throws SQLException {
         realStmt.setBigDecimal(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setString(int parameterIndex, String x) throws SQLException {
         realStmt.setString(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setBytes(int parameterIndex, byte[] x) throws SQLException {
         realStmt.setBytes(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setDate(int parameterIndex, Date x) throws SQLException {
         realStmt.setDate(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setTime(int parameterIndex, Time x) throws SQLException {
         realStmt.setTime(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setTimestamp(int parameterIndex, Timestamp x) throws SQLException {
         realStmt.setTimestamp(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
@@ -113,7 +141,11 @@ public class TxPreparedStatement implements PreparedStatement {
         realStmt.setAsciiStream(parameterIndex, x, length);
     }
 
+    /**
+     * @deprecated (may be someday)
+     */
     @Override
+    @Deprecated
     public void setUnicodeStream(int parameterIndex, InputStream x, int length) throws SQLException {
         realStmt.setUnicodeStream(parameterIndex, x, length);
     }
@@ -131,11 +163,13 @@ public class TxPreparedStatement implements PreparedStatement {
     @Override
     public void setObject(int parameterIndex, Object x, int targetSqlType) throws SQLException {
         realStmt.setObject(parameterIndex, x, targetSqlType);
+        values.add(x);
     }
 
     @Override
     public void setObject(int parameterIndex, Object x) throws SQLException {
         realStmt.setObject(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
@@ -156,21 +190,25 @@ public class TxPreparedStatement implements PreparedStatement {
     @Override
     public void setRef(int parameterIndex, Ref x) throws SQLException {
         realStmt.setRef(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setBlob(int parameterIndex, Blob x) throws SQLException {
         realStmt.setBlob(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setClob(int parameterIndex, Clob x) throws SQLException {
         realStmt.setClob(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setArray(int parameterIndex, Array x) throws SQLException {
         realStmt.setArray(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
@@ -181,16 +219,19 @@ public class TxPreparedStatement implements PreparedStatement {
     @Override
     public void setDate(int parameterIndex, Date x, Calendar cal) throws SQLException {
         realStmt.setDate(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setTime(int parameterIndex, Time x, Calendar cal) throws SQLException {
         realStmt.setTime(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
     public void setTimestamp(int parameterIndex, Timestamp x, Calendar cal) throws SQLException {
         realStmt.setTimestamp(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
@@ -201,6 +242,7 @@ public class TxPreparedStatement implements PreparedStatement {
     @Override
     public void setURL(int parameterIndex, URL x) throws SQLException {
         realStmt.setURL(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
@@ -211,11 +253,13 @@ public class TxPreparedStatement implements PreparedStatement {
     @Override
     public void setRowId(int parameterIndex, RowId x) throws SQLException {
         realStmt.setRowId(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
-    public void setNString(int parameterIndex, String value) throws SQLException {
-        realStmt.setNString(parameterIndex, value);
+    public void setNString(int parameterIndex, String x) throws SQLException {
+        realStmt.setNString(parameterIndex, x);
+        values.add(x);
     }
 
     @Override
@@ -226,6 +270,7 @@ public class TxPreparedStatement implements PreparedStatement {
     @Override
     public void setNClob(int parameterIndex, NClob value) throws SQLException {
         realStmt.setNClob(parameterIndex, value);
+        values.add(value);
     }
 
     @Override
@@ -246,6 +291,7 @@ public class TxPreparedStatement implements PreparedStatement {
     @Override
     public void setSQLXML(int parameterIndex, SQLXML xmlObject) throws SQLException {
         realStmt.setSQLXML(parameterIndex, xmlObject);
+        values.add(xmlObject);
     }
 
     @Override

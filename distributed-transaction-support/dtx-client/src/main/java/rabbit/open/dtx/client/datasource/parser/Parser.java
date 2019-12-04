@@ -8,4 +8,5 @@ package rabbit.open.dtx.client.datasource.parser;
 public interface Parser {
 
     void parse(SQLStructure structure, String upperCaseSql);
+
 }

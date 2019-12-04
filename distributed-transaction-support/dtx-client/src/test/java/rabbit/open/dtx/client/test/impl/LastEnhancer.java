@@ -13,13 +13,14 @@ import rabbit.open.dtx.client.enhance.PointCutHandler;
 public class LastEnhancer extends AbstractAnnotationEnhancer<MyAop> {
 
     @Override
-    protected Class<MyAop> getTargetAnnotation() {
-        return MyAop.class;
-    }
-
-    @Override
     protected PointCutHandler<MyAop> getHandler() {
-        return (invocation, annotation) -> getClass().getSimpleName() + invocation.proceed();
+        return (invocation, annotation) -> {
+            try {
+                return getClass().getSimpleName() + invocation.proceed();
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
     @Override

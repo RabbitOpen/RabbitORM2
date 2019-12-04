@@ -22,7 +22,7 @@ public class SQLStructure {
     private String targetTables;
 
     // 字段信息
-    private List<String> columns;
+    private List<ColumnMeta> columns;
 
     public SQLType getSqlType() {
         return sqlType;
@@ -56,11 +56,11 @@ public class SQLStructure {
         this.targetTables = targetTables;
     }
 
-    public List<String> getColumns() {
+    public List<ColumnMeta> getColumns() {
         return columns;
     }
 
-    public void setColumns(List<String> columns) {
+    public void setColumns(List<ColumnMeta> columns) {
         this.columns = columns;
     }
 }

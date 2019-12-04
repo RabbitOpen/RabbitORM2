@@ -21,9 +21,15 @@ public class ParserTest {
 
     @Test
     public void updateParserTest() {
-        SQLStructure structure = SimpleSQLParser.parse(" update \r user set user.name = 'zhans', user.age = 10 where user.id = 1");
-        TestCase.assertEquals(structure.getColumns().get(0), "user.name");
-        TestCase.assertEquals(structure.getColumns().get(1), "user.age");
+        SQLStructure structure = SimpleSQLParser.parse(" update \r user set user.name = 'zhans', user.age = ?, user.sex = ? where user.id = 1");
+        TestCase.assertEquals(structure.getColumns().get(0).getColumnName(), "user.name");
+        TestCase.assertEquals(structure.getColumns().get(0).getValue(), "'zhans'");
+        TestCase.assertEquals(structure.getColumns().get(1).getColumnName(), "user.age");
+        TestCase.assertEquals(structure.getColumns().get(1).getValue(), "?");
+        TestCase.assertEquals(structure.getColumns().get(1).getPlaceHolderIndex(), 0);
+        TestCase.assertEquals(structure.getColumns().get(2).getColumnName(), "user.sex");
+        TestCase.assertEquals(structure.getColumns().get(2).getValue(), "?");
+        TestCase.assertEquals(structure.getColumns().get(2).getPlaceHolderIndex(), 1);
         TestCase.assertEquals(structure.getTargetTables(), "user");
         TestCase.assertEquals(structure.getSqlType(), SQLType.UPDATE);
         TestCase.assertEquals(structure.getCondition(), "where user.id = 1");
@@ -43,17 +49,23 @@ public class ParserTest {
     public void insertParserTest() {
         SQLStructure structure = SimpleSQLParser.parse(" insert user(id, name) values\n(1, 'hello')");
         TestCase.assertEquals(structure.getTargetTables(), "user");
-        TestCase.assertEquals(structure.getColumns().get(0), "id");
-        TestCase.assertEquals(structure.getColumns().get(1), "name");
+        TestCase.assertEquals(structure.getColumns().get(0).getColumnName(), "id");
+        TestCase.assertEquals(structure.getColumns().get(1).getColumnName(), "name");
         TestCase.assertEquals(structure.getSqlType(), SQLType.INSERT);
         logger.info("insert --> {}", structure.getFormattedSql());
 
-        structure = SimpleSQLParser.parse(" insert into user(ids, name) values\n(1, 'hello')");
+        structure = SimpleSQLParser.parse(" insert into user(ids, name, age, home) values\n(1, 'hello', ?, ?)");
         TestCase.assertEquals(structure.getTargetTables(), "user");
-        TestCase.assertEquals(structure.getColumns().get(0), "ids");
-        TestCase.assertEquals(structure.getColumns().get(1), "name");
+        TestCase.assertEquals(structure.getColumns().get(0).getColumnName(), "ids");
+        TestCase.assertEquals(structure.getColumns().get(1).getColumnName(), "name");
+        TestCase.assertEquals(structure.getColumns().get(2).getColumnName(), "age");
+        TestCase.assertEquals(structure.getColumns().get(2).getValue(), "?");
+        TestCase.assertEquals(structure.getColumns().get(2).getPlaceHolderIndex(), 0);
+        TestCase.assertEquals(structure.getColumns().get(3).getColumnName(), "home");
+        TestCase.assertEquals(structure.getColumns().get(3).getValue(), "?");
+        TestCase.assertEquals(structure.getColumns().get(3).getPlaceHolderIndex(), 1);
         TestCase.assertEquals(structure.getSqlType(), SQLType.INSERT);
         logger.info("insert --> {}", structure.getFormattedSql());
-        TestCase.assertTrue(structure == SimpleSQLParser.parse(" insert into user(ids, name) values\n(1, 'hello')"));
+        TestCase.assertTrue(structure == SimpleSQLParser.parse(" insert into user(ids, name, age, home) values\n(1, 'hello', ?, ?)"));
     }
 }
