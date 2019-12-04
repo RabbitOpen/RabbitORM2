@@ -1,0 +1,59 @@
+package rabbit.open.dts.test;
+
+import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rabbit.open.dtx.client.datasource.parser.SQLStructure;
+import rabbit.open.dtx.client.datasource.parser.SQLType;
+import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
+
+/**
+ * @author xiaoqianbin
+ * @date 2019/12/3
+ **/
+@RunWith(JUnit4.class)
+public class ParserTest {
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Test
+    public void updateParserTest() {
+        SQLStructure structure = SimpleSQLParser.parse(" update \r user set user.name = 'zhans', user.age = 10 where user.id = 1");
+        TestCase.assertEquals(structure.getColumns().get(0), "user.name");
+        TestCase.assertEquals(structure.getColumns().get(1), "user.age");
+        TestCase.assertEquals(structure.getTargetTables(), "user");
+        TestCase.assertEquals(structure.getSqlType(), SQLType.UPDATE);
+        TestCase.assertEquals(structure.getCondition(), "where user.id = 1");
+        logger.info("update --> {}", structure.getFormattedSql());
+    }
+
+    @Test
+    public void deleteParserTest() {
+        SQLStructure structure = SimpleSQLParser.parse(" delete \n\r from user where user.id > 1");
+        TestCase.assertEquals(structure.getTargetTables(), "user");
+        TestCase.assertEquals(structure.getSqlType(), SQLType.DELETE);
+        TestCase.assertEquals(structure.getCondition(), "where user.id > 1");
+        logger.info("delete --> {}", structure.getFormattedSql());
+    }
+
+    @Test
+    public void insertParserTest() {
+        SQLStructure structure = SimpleSQLParser.parse(" insert user(id, name) values\n(1, 'hello')");
+        TestCase.assertEquals(structure.getTargetTables(), "user");
+        TestCase.assertEquals(structure.getColumns().get(0), "id");
+        TestCase.assertEquals(structure.getColumns().get(1), "name");
+        TestCase.assertEquals(structure.getSqlType(), SQLType.INSERT);
+        logger.info("insert --> {}", structure.getFormattedSql());
+
+        structure = SimpleSQLParser.parse(" insert into user(ids, name) values\n(1, 'hello')");
+        TestCase.assertEquals(structure.getTargetTables(), "user");
+        TestCase.assertEquals(structure.getColumns().get(0), "ids");
+        TestCase.assertEquals(structure.getColumns().get(1), "name");
+        TestCase.assertEquals(structure.getSqlType(), SQLType.INSERT);
+        logger.info("insert --> {}", structure.getFormattedSql());
+        TestCase.assertTrue(structure == SimpleSQLParser.parse(" insert into user(ids, name) values\n(1, 'hello')"));
+    }
+}
