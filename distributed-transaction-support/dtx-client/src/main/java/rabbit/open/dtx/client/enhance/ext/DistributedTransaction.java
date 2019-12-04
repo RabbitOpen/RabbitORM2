@@ -1,5 +1,8 @@
 package rabbit.open.dtx.client.enhance.ext;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -11,6 +14,7 @@ import java.lang.annotation.Target;
  **/
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.METHOD)
+@Transactional(propagation = Propagation.REQUIRED)
 public @interface DistributedTransaction {
 
     // 任务超时时间, 默认永不超时

@@ -6,9 +6,14 @@ import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfoGenerator;
 import rabbit.open.dtx.client.datasource.proxy.TxConnection;
 
-import java.sql.*;
-import java.util.*;
-import java.util.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 更新回滚信息生成器
@@ -19,9 +24,7 @@ public class UpdateRollbackInfoGenerator extends RollbackInfoGenerator {
 
     @Override
     public RollbackInfo generate(SQLMeta sqlMeta, List<Object> preparedStatementValues, TxConnection txConn) throws SQLException {
-        RollbackInfo rollbackInfo = new RollbackInfo();
-        rollbackInfo.setMeta(sqlMeta);
-        rollbackInfo.setPreparedValues(preparedStatementValues);
+        RollbackInfo rollbackInfo = createRollbackInfo(sqlMeta, preparedStatementValues);
         String sql = "select * from " + sqlMeta.getTargetTables() + " " + sqlMeta.getCondition();
         PreparedStatement stmt = null;
         ResultSet resultSet = null;
@@ -61,7 +64,7 @@ public class UpdateRollbackInfoGenerator extends RollbackInfoGenerator {
      * @author xiaoqianbin
      * @date 2019/12/4
      **/
-    private void setPlaceHolderValues(SQLMeta sqlMeta, List<Object> preparedStatementValues, PreparedStatement stmt) throws SQLException {
+    protected void setPlaceHolderValues(SQLMeta sqlMeta, List<Object> preparedStatementValues, PreparedStatement stmt) throws SQLException {
         int index = 0;
         for (ColumnMeta column : sqlMeta.getColumns()) {
             if (column.getPlaceHolderIndex() > index) {
@@ -73,21 +76,6 @@ public class UpdateRollbackInfoGenerator extends RollbackInfoGenerator {
         }
     }
 
-    private void setPreparedStatementValue(PreparedStatement stmt, int index, Object value) throws SQLException {
-        if (value instanceof byte[]) {
-            stmt.setBytes(index, (byte[])value);
-        }
-        if (value instanceof Date) {
-            stmt.setTimestamp(index, new Timestamp(((Date) value).getTime()));
-        } else if (value instanceof Float) {
-            stmt.setFloat(index, (float) value);
-        } else if (value instanceof Double) {
-            stmt.setDouble(index, (double) value);
-        } else if (value instanceof Enum) {
-            stmt.setString(index, ((Enum) value).name());
-        } else {
-            stmt.setObject(index, value);
-        }
-    }
+
 
 }

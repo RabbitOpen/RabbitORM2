@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 import rabbit.open.dts.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
 import rabbit.open.dtx.client.test.entity.Enterprise;
@@ -18,8 +19,7 @@ import rabbit.open.dtx.client.test.impl.LastEnhancer;
 import rabbit.open.dtx.client.test.service.EnterpriseService;
 import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.client.test.service.RollbackInfoService;
-
-import java.util.List;
+import rabbit.open.orm.core.dml.meta.MetaData;
 
 
 /**
@@ -99,7 +99,30 @@ public class SupportTest {
         RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txGroupId", product.getTxId()).unique();
         KryoObjectSerializer serializer = new KryoObjectSerializer();
         RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
-        // 回滚信息中包含3个字段
+        // 回滚信息中包含2个字段
         TestCase.assertEquals(rollbackInfo.getMeta().getColumns().size(), 2);
+    }
+
+    /**
+     * 删除增强测试
+     * @author  xiaoqianbin
+     * @date    2019/12/4
+     **/
+    @Test
+    public void deleteEnhancerTest() {
+        // 创建原始信息
+        Product product = new Product();
+        product.setName("ZD-0214");
+        product.setAddr("CDX");
+        productService.add(product);
+
+        long txId = productService.deleteProduct(product.getId());
+        RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txGroupId", txId).unique();
+        KryoObjectSerializer serializer = new KryoObjectSerializer();
+        RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
+        TestCase.assertEquals(rollbackInfo.getOriginalData().get(0).get(MetaData.getCachedFieldsMeta(Product.class,
+                "name").getColumn().value()), product.getName());
+        TestCase.assertEquals(rollbackInfo.getOriginalData().get(0).get(MetaData.getCachedFieldsMeta(Product.class,
+                "addr").getColumn().value()), product.getAddr());
     }
 }

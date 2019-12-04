@@ -59,11 +59,11 @@ public class TxPreparedStatement implements PreparedStatement {
 
     @Override
     public int executeUpdate() throws SQLException {
-        int result = realStmt.executeUpdate();
         if (null != DistributedTransactionContext.getDistributedTransactionObject()) {
             RollBackInfoEntity entity = createRollbackEntity();
             insertRollbackInfo(entity);
         }
+        int result = realStmt.executeUpdate();
         values.clear();
         return result;
     }
@@ -198,7 +198,6 @@ public class TxPreparedStatement implements PreparedStatement {
         realStmt.setAsciiStream(parameterIndex, x, length);
     }
 
-    @Deprecated
     @Override
     public void setUnicodeStream(int parameterIndex, InputStream x, int length) {
         // TO DO deprecated
