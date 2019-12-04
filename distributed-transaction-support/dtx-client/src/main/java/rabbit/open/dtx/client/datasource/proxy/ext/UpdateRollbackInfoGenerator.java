@@ -24,10 +24,11 @@ public class UpdateRollbackInfoGenerator extends RollbackInfoGenerator {
         rollbackInfo.setPreparedValues(preparedStatementValues);
         String sql = "select * from " + sqlMeta.getTargetTables() + " " + sqlMeta.getCondition();
         PreparedStatement stmt = null;
+        ResultSet resultSet = null;
         try {
             stmt = txConn.getRealConn().prepareStatement(sql);
             setPlaceHolderValues(sqlMeta, preparedStatementValues, stmt);
-            ResultSet resultSet = stmt.executeQuery();
+            resultSet = stmt.executeQuery();
             ResultSetMetaData metaData = resultSet.getMetaData();
             List<Map<String, Object>> list = new ArrayList<>();
             while (resultSet.next()) {
@@ -42,6 +43,9 @@ public class UpdateRollbackInfoGenerator extends RollbackInfoGenerator {
             rollbackInfo.setOriginalData(list);
             resultSet.close();
         } finally {
+            if (null != resultSet) {
+                resultSet.close();
+            }
             if (null != stmt) {
                 stmt.close();
             }
