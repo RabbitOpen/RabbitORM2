@@ -61,8 +61,8 @@ public class TxPreparedStatement implements PreparedStatement {
     public int executeUpdate() throws SQLException {
         int result = realStmt.executeUpdate();
         if (null != DistributedTransactionContext.getDistributedTransactionObject()) {
-            SQLMeta sqlMeta = SimpleSQLParser.parse(preparedSql);
-            generator.get(sqlMeta.getSqlType()).generate(sqlMeta, values);
+            RollBackInfoEntity entity = createRollbackEntity();
+            insertRollbackInfo(entity);
         }
         values.clear();
         return result;
