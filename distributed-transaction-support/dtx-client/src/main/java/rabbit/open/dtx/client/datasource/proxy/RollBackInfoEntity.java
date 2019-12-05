@@ -9,7 +9,7 @@ import java.util.Date;
  **/
 public class RollBackInfoEntity {
 
-    private Long txId;
+    private Long txBranchId;
 
     private Long txGroupId;
 
@@ -23,51 +23,62 @@ public class RollBackInfoEntity {
     // 数据源名
     private String datasourceName;
 
-    public Long getTxId() {
-        return txId;
-    }
+    // 应用名
+    private String applicationName;
 
-    public void setTxId(Long txId) {
-        this.txId = txId;
-    }
-
-    public Long getTxGroupId() {
-        return txGroupId;
+    public void setTxBranchId(Long txBranchId) {
+        this.txBranchId = txBranchId;
     }
 
     public void setTxGroupId(Long txGroupId) {
         this.txGroupId = txGroupId;
     }
 
-    public byte[] getRollbackInfo() {
-        return rollbackInfo;
-    }
-
     public void setRollbackInfo(byte[] rollbackInfo) {
         this.rollbackInfo = rollbackInfo;
-    }
-
-    public Date getCreatedDate() {
-        return createdDate;
     }
 
     public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
     }
 
-    public Date getModifiedDate() {
-        return modifiedDate;
-    }
-
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    public void setDatasourceName(String datasourceName) {
+        this.datasourceName = datasourceName;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
+
+    public Long getTxBranchId() {
+        return txBranchId;
+    }
+
+    public Long getTxGroupId() {
+        return txGroupId;
+    }
+
+    public byte[] getRollbackInfo() {
+        return rollbackInfo;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
     }
 
     public String getDatasourceName() {
         return datasourceName;
     }
 
-    public void setDatasourceName(String datasourceName) {
-        this.datasourceName = datasourceName;
+    public String getApplicationName() {
+        return applicationName;
     }
 }

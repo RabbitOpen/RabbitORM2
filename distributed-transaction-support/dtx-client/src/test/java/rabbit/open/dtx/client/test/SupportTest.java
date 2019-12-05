@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
 import rabbit.open.dts.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
 import rabbit.open.dtx.client.test.entity.Enterprise;
@@ -19,6 +18,7 @@ import rabbit.open.dtx.client.test.impl.LastEnhancer;
 import rabbit.open.dtx.client.test.service.EnterpriseService;
 import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.client.test.service.RollbackInfoService;
+import rabbit.open.dtx.client.test.service.SimpleTransactionManger;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
 
@@ -43,6 +43,9 @@ public class SupportTest {
 
     @Autowired
     private RollbackInfoService rbs;
+
+    @Autowired
+    private SimpleTransactionManger transactionManger;
 
     @Test
     public void handlerTest() {
@@ -72,7 +75,7 @@ public class SupportTest {
         product.setName("ZD-0013");
         product.setAddr("chengdu");
         productService.addProduct(product);
-        RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txGroupId", product.getTxId()).unique();
+        RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txBranchId", transactionManger.getLastBranchId()).unique();
         KryoObjectSerializer serializer = new KryoObjectSerializer();
         RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
         // 回滚信息中包含3个字段
@@ -96,7 +99,9 @@ public class SupportTest {
         product.setName("ZD-0015");
         product.setAddr("CD1");
         productService.updateProduct(product);
-        RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txGroupId", product.getTxId()).unique();
+
+        //！！！！ 因为单元测试是串行运行，transactionManger.getLastBranchId()不存在并发问题，所以可以这样用
+        RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txBranchId", transactionManger.getLastBranchId()).unique();
         KryoObjectSerializer serializer = new KryoObjectSerializer();
         RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
         // 回滚信息中包含2个字段
@@ -115,14 +120,21 @@ public class SupportTest {
         product.setName("ZD-0214");
         product.setAddr("CDX");
         productService.add(product);
-
-        long txId = productService.deleteProduct(product.getId());
-        RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txGroupId", txId).unique();
+        productService.deleteProduct(product.getId());
+        RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txBranchId", transactionManger.getLastBranchId()).unique();
         KryoObjectSerializer serializer = new KryoObjectSerializer();
         RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
         TestCase.assertEquals(rollbackInfo.getOriginalData().get(0).get(MetaData.getCachedFieldsMeta(Product.class,
                 "name").getColumn().value()), product.getName());
         TestCase.assertEquals(rollbackInfo.getOriginalData().get(0).get(MetaData.getCachedFieldsMeta(Product.class,
                 "addr").getColumn().value()), product.getAddr());
+    }
+
+    @Test
+    public void multiAddTest() {
+        long before = rbs.createQuery().count();
+        int count = 5;
+        productService.multiAdd(count);
+        TestCase.assertEquals(rbs.createQuery().count() - before, count);
     }
 }

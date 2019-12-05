@@ -25,16 +25,6 @@ public class Product {
     @Column(value = "OWNER", comment = "拥有者")
     private String owner;
 
-    private Long txId;
-
-    public Long getTxId() {
-        return txId;
-    }
-
-    public void setTxId(Long txId) {
-        this.txId = txId;
-    }
-
     public String getId() {
         return id;
     }

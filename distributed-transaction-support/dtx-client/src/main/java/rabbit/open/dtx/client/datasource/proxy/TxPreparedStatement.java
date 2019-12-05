@@ -1,14 +1,13 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
 import rabbit.open.dts.common.utils.ext.KryoObjectSerializer;
-import rabbit.open.dtx.client.context.DistributedTransactionContext;
+import rabbit.open.dtx.client.context.DistributedTransactionManger;
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
 import rabbit.open.dtx.client.datasource.parser.SQLType;
 import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
 import rabbit.open.dtx.client.datasource.proxy.ext.DeleteRollbackInfoGenerator;
 import rabbit.open.dtx.client.datasource.proxy.ext.InsertRollbackInfoGenerator;
 import rabbit.open.dtx.client.datasource.proxy.ext.UpdateRollbackInfoGenerator;
-import rabbit.open.dtx.client.enhance.ext.DistributedTransactionObject;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -36,8 +35,8 @@ public class TxPreparedStatement implements PreparedStatement {
     private static Map<SQLType, RollbackInfoGenerator> generatorMap = new EnumMap<>(SQLType.class);
 
     // 插入数据库的sql
-    private static final String INSERT_SQL = "insert into roll_back_info (tx_id, tx_group_id, rollback_info, " +
-            "datasource_name, rollback_status, created_date, modified_date) values (?, ?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_SQL = "insert into roll_back_info (tx_branch_id, tx_group_id, rollback_info, " +
+            "datasource_name, application_name, rollback_status, created_date, modified_date) values (?, ?, ?, ?, ?, ?, ?, ?)";
 
 
     static {
@@ -59,13 +58,17 @@ public class TxPreparedStatement implements PreparedStatement {
 
     @Override
     public int executeUpdate() throws SQLException {
-        if (null != DistributedTransactionContext.getDistributedTransactionObject()) {
+        if (getTransactionManger().isTransactionOpen()) {
             RollBackInfoEntity entity = createRollbackEntity();
             insertRollbackInfo(entity);
         }
         int result = realStmt.executeUpdate();
         values.clear();
         return result;
+    }
+
+    private DistributedTransactionManger getTransactionManger() {
+        return txConn.getTxDataSource().getTransactionManger();
     }
 
     /**
@@ -78,13 +81,14 @@ public class TxPreparedStatement implements PreparedStatement {
         PreparedStatement insertStmt = null;
         try {
             insertStmt = txConn.getRealConn().prepareStatement(INSERT_SQL);
-            insertStmt.setLong(1, entity.getTxId());
+            insertStmt.setLong(1, entity.getTxBranchId());
             insertStmt.setLong(2, entity.getTxGroupId());
             insertStmt.setBytes(3, entity.getRollbackInfo());
             insertStmt.setString(4, entity.getDatasourceName());
-            insertStmt.setString(5, "INIT");
-            insertStmt.setTimestamp(6, new Timestamp(entity.getCreatedDate().getTime()));
-            insertStmt.setTimestamp(7, new Timestamp(entity.getModifiedDate().getTime()));
+            insertStmt.setString(5, entity.getApplicationName());
+            insertStmt.setString(6, "INIT");
+            insertStmt.setTimestamp(7, new Timestamp(entity.getCreatedDate().getTime()));
+            insertStmt.setTimestamp(8, new Timestamp(entity.getModifiedDate().getTime()));
             insertStmt.executeUpdate();
         } finally {
             if (null != insertStmt) {
@@ -101,12 +105,12 @@ public class TxPreparedStatement implements PreparedStatement {
     private RollBackInfoEntity createRollbackEntity() throws SQLException {
         SQLMeta sqlMeta = SimpleSQLParser.parse(preparedSql);
         byte[] rollbackInfoBytes = new KryoObjectSerializer().serialize(generatorMap.get(sqlMeta.getSqlType()).generate(sqlMeta, values, txConn));
-        DistributedTransactionObject transactionObject = txConn.getTxDataSource().getTransactionManger().newTransactionObject();
         RollBackInfoEntity entity = new RollBackInfoEntity();
-        entity.setTxId(transactionObject.getTxId());
+        entity.setTxBranchId(getTransactionManger().getTransactionBranchId());
+        entity.setApplicationName(getTransactionManger().getApplicationName());
         entity.setRollbackInfo(rollbackInfoBytes);
         entity.setDatasourceName(txConn.getTxDataSource().getDataSourceName());
-        entity.setTxGroupId(DistributedTransactionContext.getDistributedTransactionObject().getTxId());
+        entity.setTxGroupId(getTransactionManger().getCurrentTransactionObject().getTxGroupId());
         return entity;
     }
 

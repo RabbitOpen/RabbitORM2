@@ -1,12 +1,16 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
+import org.springframework.beans.factory.BeanCreationException;
 import rabbit.open.dtx.client.context.DistributedTransactionManger;
+import rabbit.open.dtx.client.exception.DistributedTransactionException;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -16,6 +20,7 @@ import java.util.logging.Logger;
  **/
 public class TxDataSource implements DataSource {
 
+    private static Map<String, DataSource> dataSourceMap = new ConcurrentHashMap<>();
     // 真实数据源
     private DataSource dataSource;
 
@@ -29,6 +34,23 @@ public class TxDataSource implements DataSource {
         this.dataSource = dataSource;
         this.dataSourceName = dataSourceName;
         this.transactionManger = transactionManger;
+        if (dataSourceMap.containsKey(dataSourceName)) {
+            throw new BeanCreationException(String.format("repeated datasource name '%s'", dataSourceName));
+        }
+        dataSourceMap.put(dataSourceName, this.dataSource);
+    }
+
+    /**
+     * 根据数据源名获取数据源
+     * @param	dataSourceName
+     * @author  xiaoqianbin
+     * @date    2019/12/5
+     **/
+    public static DataSource getDataSource(String dataSourceName) {
+        if (!dataSourceMap.containsKey(dataSourceName)) {
+            throw new DistributedTransactionException(String.format("unknown datasource '%s'", dataSourceName));
+        }
+        return dataSourceMap.get(dataSourceName);
     }
 
     public DistributedTransactionManger getTransactionManger() {

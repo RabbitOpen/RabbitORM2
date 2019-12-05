@@ -21,5 +21,7 @@ public class MyDistributedTransactionEnhancer extends DistributedTransactionEnha
     @PostConstruct
     public void init() {
         setTransactionManger(simpleTransactionManger);
+        setCore(5);
+        setMaxConcurrence(20);
     }
 }

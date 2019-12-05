@@ -1,6 +1,7 @@
 package rabbit.open.dtx.client.enhance.ext;
 
 import org.aopalliance.intercept.MethodInvocation;
+import rabbit.open.dtx.client.context.DistributedTransactionContext;
 import rabbit.open.dtx.client.context.DistributedTransactionManger;
 import rabbit.open.dtx.client.enhance.AbstractAnnotationEnhancer;
 import rabbit.open.dtx.client.enhance.PointCutHandler;
@@ -32,11 +33,10 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     @Override
     protected PointCutHandler<DistributedTransaction> getHandler() {
         return (invocation, annotation) -> {
-            DistributedTransactionObject transactionObject = transactionManger.newTransactionObject();
             if (annotation.timeoutSeconds() == Long.MAX_VALUE) {
-                return syncProcess(invocation, transactionObject);
+                return syncProcess(invocation);
             } else {
-                return asyncProcess(invocation, annotation, transactionObject);
+                return asyncProcess(invocation, annotation);
             }
         };
     }
@@ -45,25 +45,28 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
      * 异步处理
      * @param	invocation
 	 * @param	annotation
-	 * @param	transactionObject
      * @author  xiaoqianbin
      * @date    2019/12/4
      **/
-    private Object asyncProcess(MethodInvocation invocation, DistributedTransaction annotation, DistributedTransactionObject transactionObject) {
+    private Object asyncProcess(MethodInvocation invocation, DistributedTransaction annotation) {
+        transactionManger.beginTransaction(invocation.getMethod());
+        DistributedTransactionObject currentTransactionObject = transactionManger.getCurrentTransactionObject();
         Future<Object> future = getExecutor().submit(() -> {
             try {
-                transactionManger.beginTransaction(transactionObject);
+                DistributedTransactionContext.setDistributedTransactionObject(currentTransactionObject);
                 return invocation.proceed();
             } catch (Throwable e) {
                 throw new DistributedTransactionException(e);
+            } finally {
+                DistributedTransactionContext.clear();
             }
         });
         try {
             Object result = future.get(annotation.timeoutSeconds(), TimeUnit.SECONDS);
-            transactionManger.commit(transactionObject);
+            transactionManger.commit(invocation.getMethod());
             return result;
         } catch (Exception e) {
-            transactionManger.rollback(transactionObject);
+            transactionManger.rollback(invocation.getMethod());
             throw new DistributedTransactionException(e);
         }
     }
@@ -71,18 +74,17 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     /**
      * 同步处理
      * @param	invocation
-	 * @param	transactionObject
      * @author  xiaoqianbin
      * @date    2019/12/4
      **/
-    private Object syncProcess(MethodInvocation invocation, DistributedTransactionObject transactionObject) {
+    private Object syncProcess(MethodInvocation invocation) {
         try {
-            transactionManger.beginTransaction(transactionObject);
+            transactionManger.beginTransaction(invocation.getMethod());
             Object result = invocation.proceed();
-            transactionManger.commit(transactionObject);
+            transactionManger.commit(invocation.getMethod());
             return result;
         } catch (Throwable e) {
-            transactionManger.rollback(transactionObject);
+            transactionManger.rollback(invocation.getMethod());
             throw new DistributedTransactionException(e);
         }
     }

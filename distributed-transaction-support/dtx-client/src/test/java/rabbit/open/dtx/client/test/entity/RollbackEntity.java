@@ -1,5 +1,6 @@
 package rabbit.open.dtx.client.test.entity;
 
+import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.PrimaryKey;
@@ -13,17 +14,20 @@ import java.util.Date;
 @Entity("roll_back_info")
 public class RollbackEntity {
 
-    @PrimaryKey
-    @Column("tx_id")
-    private Long txId;
+    @PrimaryKey(policy = Policy.AUTOINCREMENT)
+    @Column(value = "id", comment = "主键")
+    private Long id;
 
-    @Column("tx_group_id")
+    @Column(value = "tx_branch_id", comment = "事务分支id")
+    private Long txBranchId;
+
+    @Column(value = "tx_group_id", comment = "事务组id")
     private Long txGroupId;
 
-    @Column("rollback_info")
+    @Column(value = "rollback_info", comment = "回滚信息")
     private byte[] rollbackInfo;
 
-    @Column(value = "rollback_status", length = 16)
+    @Column(value = "rollback_status", length = 16, comment = "回滚状态")
     private String rollbackStatus;
 
     @Column(value = "created_date", comment = "创建时间")
@@ -32,12 +36,18 @@ public class RollbackEntity {
     @Column(value = "modified_date", comment = "创建时间")
     private Date modifiedDate = new Date();
 
-    // 数据源名
-    @Column(value = "datasource_name", length = 50)
+    @Column(value = "datasource_name", length = 50, comment = "数据源名字")
     private String datasourceName;
 
-    public Long getTxId() {
-        return txId;
+    @Column(value = "application_name", length = 50, comment = "应用名字")
+    private String applicationName;
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getTxBranchId() {
+        return txBranchId;
     }
 
     public Long getTxGroupId() {
