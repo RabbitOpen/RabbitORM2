@@ -57,6 +57,9 @@
         <property name="showSlowSql">
             <value>${jdbc.showSlowSql}</value>
         </property>
+        <property name="dumpSuspectedFetch">
+            <value>true</value>
+        </property>
         <property name="threshold">
             <value>${jdbc.threshold}</value>
         </property>

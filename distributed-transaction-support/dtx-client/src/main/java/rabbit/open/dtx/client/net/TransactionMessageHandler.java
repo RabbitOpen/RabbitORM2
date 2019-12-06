@@ -1,5 +1,7 @@
 package rabbit.open.dtx.client.net;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rabbit.open.dts.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.dtx.client.datasource.proxy.RollBackRecord;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
@@ -7,7 +9,6 @@ import rabbit.open.dtx.client.datasource.proxy.RollbackInfoProcessor;
 import rabbit.open.dtx.client.datasource.proxy.TxDataSource;
 import rabbit.open.dtx.client.exception.DistributedTransactionException;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,14 +23,32 @@ import java.util.List;
  **/
 public class TransactionMessageHandler implements MessageHandler {
 
+    private Logger logger = LoggerFactory.getLogger(getClass());
+
+    /**
+     * 处理提交
+     * @param    applicationName
+     * @param    txGroupId
+     * @param    txBranchId
+     * @author xiaoqianbin
+     * @date 2019/12/6
+     **/
     @Override
     public void rollback(String applicationName, Long txGroupId, Long txBranchId) {
+        doTransaction(applicationName, txGroupId, txBranchId, (records, conn)
+                -> doRollback(records, conn));
+    }
+
+    private void doTransaction(String applicationName, Long txGroupId, Long txBranchId, CallBack callBack) {
         for (TxDataSource dataSource : TxDataSource.getDataSources()) {
             Connection conn = null;
             PreparedStatement stmt = null;
             ResultSet rs = null;
             try {
                 conn = dataSource.getRealDataSource().getConnection();
+                if (conn.getAutoCommit()) {
+                    conn.setAutoCommit(false);
+                }
                 stmt = conn.prepareStatement(RollBackRecord.QUERY_SQL);
                 stmt.setLong(1, txGroupId);
                 stmt.setLong(2, txBranchId);
@@ -45,8 +64,14 @@ public class TransactionMessageHandler implements MessageHandler {
                     info.setTxBranchId(rs.getLong(RollBackRecord.TX_BRANCH_ID));
                     records.add(info);
                 }
-                doRollback(records, dataSource.getRealDataSource());
+                callBack.call(records, conn);
+                conn.commit();
             } catch (Exception e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException e1) {
+                    logger.error(e.getMessage(), e);
+                }
                 throw new DistributedTransactionException(e);
             } finally {
                 safeClose(rs);
@@ -62,23 +87,21 @@ public class TransactionMessageHandler implements MessageHandler {
                 c.close();
             }
         } catch (Exception e) {
-            // TO DO : ignore
+
         }
     }
 
     /**
      * 逐条回滚
-     * @param    records
-     * @param    dataSource
+     * @param records
+     * @param conn
      * @author xiaoqianbin
      * @date 2019/12/5
      **/
-    private void doRollback(List<RollBackRecord> records, DataSource dataSource) throws SQLException {
+    private void doRollback(List<RollBackRecord> records, Connection conn) throws SQLException {
         KryoObjectSerializer serializer = new KryoObjectSerializer();
-        Connection conn = null;
         PreparedStatement stmt = null;
         try {
-            conn = dataSource.getConnection();
             for (RollBackRecord record : records) {
                 RollbackInfo info = serializer.deserialize(record.getRollbackInfo(), RollbackInfo.class);
                 if (RollbackInfoProcessor.getRollbackInfoProcessor(info.getMeta().getSqlType()).processRollbackInfo(record, info, conn)) {
@@ -92,12 +115,37 @@ public class TransactionMessageHandler implements MessageHandler {
             }
         } finally {
             safeClose(stmt);
-            safeClose(conn);
         }
     }
 
+    /**
+     * 提交事务，直接删除回滚信息
+     * @param    applicationName
+     * @param    txGroupId
+     * @param    txBranchId
+     * @author xiaoqianbin
+     * @date 2019/12/6
+     **/
     @Override
     public void commit(String applicationName, Long txGroupId, Long txBranchId) {
+        doTransaction(applicationName, txGroupId, txBranchId, (records, conn) -> {
+            PreparedStatement stmt = null;
+            try {
+                for (RollBackRecord record : records) {
+                    stmt = conn.prepareStatement(RollBackRecord.DELETE_SQL);
+                    stmt.setLong(1, record.getId());
+                    stmt.executeUpdate();
+                    stmt.close();
+                }
+            } finally {
+                safeClose(stmt);
+            }
+        });
+    }
 
+    // 回调接口
+    @FunctionalInterface
+    private interface CallBack {
+        void call(List<RollBackRecord> records, Connection conn) throws SQLException;
     }
 }

@@ -111,13 +111,30 @@ public class SupportTest {
         RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
         // 回滚信息中包含2个字段
         TestCase.assertEquals(rollbackInfo.getMeta().getColumns().size(), 2);
+
+        // 开始回滚
         TransactionMessageHandler handler = new TransactionMessageHandler();
         handler.rollback(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
-
         // 验证回滚
         byID = productService.getByID(product.getId());
         TestCase.assertEquals(byID.getName(), "ZD-0014");
         TestCase.assertEquals(byID.getAddr(), "CD");
+
+        //更新对象
+        product.setName("ZD-0016");
+        product.setAddr("CD16");
+        productService.updateProduct(product);
+
+        byID = productService.getByID(product.getId());
+        TestCase.assertEquals(byID.getName(), product.getName());
+        TestCase.assertEquals(byID.getAddr(), product.getAddr());
+        handler = new TransactionMessageHandler();
+        handler.commit(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
+
+        // 验证提交
+        byID = productService.getByID(product.getId());
+        TestCase.assertEquals(byID.getName(), product.getName());
+        TestCase.assertEquals(byID.getAddr(), product.getAddr());
     }
 
     /**
