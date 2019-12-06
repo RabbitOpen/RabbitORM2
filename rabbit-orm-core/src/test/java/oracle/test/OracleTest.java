@@ -88,7 +88,7 @@ public class OracleTest {
     public void simpleQueryTest() {
         OUser user = addInitData(100);
         List<OUser> list = us.createQuery(user).joinFetch(ORole.class)
-                .fetch(OracleOrganization.class).distinct().execute().list();
+                .fetch(OracleOrganization.class).execute().list();
         TestCase.assertTrue(list.size() > 0);
     }
 
