@@ -7,11 +7,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Delete回滚信息生成器
+ * Delete回滚信息处理器
  * @author xiaoqianbin
  * @date 2019/12/4
  **/
-public class DeleteRollbackInfoGenerator extends UpdateRollbackInfoGenerator {
+public class DeleteRollbackInfoProcessor extends UpdateRollbackInfoProcessor {
 
     @Override
     protected void setPlaceHolderValues(SQLMeta sqlMeta, List<Object> preparedStatementValues, PreparedStatement stmt) throws SQLException {

@@ -3,19 +3,16 @@ package rabbit.open.dtx.client.datasource.proxy;
 import rabbit.open.dts.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.dtx.client.context.DistributedTransactionManger;
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
-import rabbit.open.dtx.client.datasource.parser.SQLType;
 import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
-import rabbit.open.dtx.client.datasource.proxy.ext.DeleteRollbackInfoGenerator;
-import rabbit.open.dtx.client.datasource.proxy.ext.InsertRollbackInfoGenerator;
-import rabbit.open.dtx.client.datasource.proxy.ext.UpdateRollbackInfoGenerator;
 
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.Date;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 /**
  * prepared statement proxy
@@ -32,19 +29,6 @@ public class TxPreparedStatement implements PreparedStatement {
 
     private String preparedSql;
 
-    private static Map<SQLType, RollbackInfoGenerator> generatorMap = new EnumMap<>(SQLType.class);
-
-    // 插入数据库的sql
-    private static final String INSERT_SQL = "insert into roll_back_info (tx_branch_id, tx_group_id, rollback_info, " +
-            "datasource_name, application_name, rollback_status, created_date, modified_date) values (?, ?, ?, ?, ?, ?, ?, ?)";
-
-
-    static {
-        generatorMap.put(SQLType.DELETE, new DeleteRollbackInfoGenerator());
-        generatorMap.put(SQLType.INSERT, new InsertRollbackInfoGenerator());
-        generatorMap.put(SQLType.UPDATE, new UpdateRollbackInfoGenerator());
-    }
-
     public TxPreparedStatement(PreparedStatement realStmt, TxConnection txConn, String preparedSql) {
         this.realStmt = realStmt;
         this.txConn = txConn;
@@ -59,8 +43,8 @@ public class TxPreparedStatement implements PreparedStatement {
     @Override
     public int executeUpdate() throws SQLException {
         if (getTransactionManger().isTransactionOpen()) {
-            RollBackInfoEntity entity = createRollbackEntity();
-            insertRollbackInfo(entity);
+            RollBackRecord entity = createRollbackEntity();
+            saveRollbackInfo(entity);
         }
         int result = realStmt.executeUpdate();
         values.clear();
@@ -77,10 +61,10 @@ public class TxPreparedStatement implements PreparedStatement {
      * @author  xiaoqianbin
      * @date    2019/12/4
      **/
-    private void insertRollbackInfo(RollBackInfoEntity entity) throws SQLException {
+    private void saveRollbackInfo(RollBackRecord entity) throws SQLException {
         PreparedStatement insertStmt = null;
         try {
-            insertStmt = txConn.getRealConn().prepareStatement(INSERT_SQL);
+            insertStmt = txConn.getRealConn().prepareStatement(RollBackRecord.INSERT_SQL);
             insertStmt.setLong(1, entity.getTxBranchId());
             insertStmt.setLong(2, entity.getTxGroupId());
             insertStmt.setBytes(3, entity.getRollbackInfo());
@@ -102,10 +86,10 @@ public class TxPreparedStatement implements PreparedStatement {
      * @author  xiaoqianbin
      * @date    2019/12/4
      **/
-    private RollBackInfoEntity createRollbackEntity() throws SQLException {
+    private RollBackRecord createRollbackEntity() throws SQLException {
         SQLMeta sqlMeta = SimpleSQLParser.parse(preparedSql);
-        byte[] rollbackInfoBytes = new KryoObjectSerializer().serialize(generatorMap.get(sqlMeta.getSqlType()).generate(sqlMeta, values, txConn));
-        RollBackInfoEntity entity = new RollBackInfoEntity();
+        byte[] rollbackInfoBytes = new KryoObjectSerializer().serialize(RollbackInfoProcessor.getRollbackInfoProcessor(sqlMeta.getSqlType()).generateRollbackInfo(sqlMeta, values, txConn));
+        RollBackRecord entity = new RollBackRecord();
         entity.setTxBranchId(getTransactionManger().getTransactionBranchId());
         entity.setApplicationName(getTransactionManger().getApplicationName());
         entity.setRollbackInfo(rollbackInfoBytes);

@@ -10,6 +10,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.dts.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
+import rabbit.open.dtx.client.net.TransactionMessageHandler;
 import rabbit.open.dtx.client.test.entity.Enterprise;
 import rabbit.open.dtx.client.test.entity.Product;
 import rabbit.open.dtx.client.test.entity.RollbackEntity;
@@ -66,8 +67,8 @@ public class SupportTest {
 
     /**
      * 插入增强测试
-     * @author  xiaoqianbin
-     * @date    2019/12/4
+     * @author xiaoqianbin
+     * @date 2019/12/4
      **/
     @Test
     public void insertEnhancerTest() {
@@ -84,8 +85,8 @@ public class SupportTest {
 
     /**
      * 更新增强测试
-     * @author  xiaoqianbin
-     * @date    2019/12/4
+     * @author xiaoqianbin
+     * @date 2019/12/4
      **/
     @Test
     public void updateEnhancerTest() {
@@ -100,18 +101,29 @@ public class SupportTest {
         product.setAddr("CD1");
         productService.updateProduct(product);
 
+        Product byID = productService.getByID(product.getId());
+        TestCase.assertEquals(byID.getName(), product.getName());
+        TestCase.assertEquals(byID.getAddr(), product.getAddr());
+
         //！！！！ 因为单元测试是串行运行，transactionManger.getLastBranchId()不存在并发问题，所以可以这样用
         RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txBranchId", transactionManger.getLastBranchId()).unique();
         KryoObjectSerializer serializer = new KryoObjectSerializer();
         RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
         // 回滚信息中包含2个字段
         TestCase.assertEquals(rollbackInfo.getMeta().getColumns().size(), 2);
+        TransactionMessageHandler handler = new TransactionMessageHandler();
+        handler.rollback(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
+
+        // 验证回滚
+        byID = productService.getByID(product.getId());
+        TestCase.assertEquals(byID.getName(), "ZD-0014");
+        TestCase.assertEquals(byID.getAddr(), "CD");
     }
 
     /**
      * 删除增强测试
-     * @author  xiaoqianbin
-     * @date    2019/12/4
+     * @author xiaoqianbin
+     * @date 2019/12/4
      **/
     @Test
     public void deleteEnhancerTest() {

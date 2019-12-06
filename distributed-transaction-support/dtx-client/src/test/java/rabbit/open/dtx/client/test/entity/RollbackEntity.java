@@ -15,31 +15,31 @@ import java.util.Date;
 public class RollbackEntity {
 
     @PrimaryKey(policy = Policy.AUTOINCREMENT)
-    @Column(value = "id", comment = "主键")
+    @Column(value = "ID", comment = "主键")
     private Long id;
 
-    @Column(value = "tx_branch_id", comment = "事务分支id")
+    @Column(value = "TX_BRANCH_ID", comment = "事务分支id")
     private Long txBranchId;
 
-    @Column(value = "tx_group_id", comment = "事务组id")
+    @Column(value = "TX_GROUP_ID", comment = "事务组id")
     private Long txGroupId;
 
-    @Column(value = "rollback_info", comment = "回滚信息")
+    @Column(value = "ROLLBACK_INFO", comment = "回滚信息")
     private byte[] rollbackInfo;
 
-    @Column(value = "rollback_status", length = 16, comment = "回滚状态")
+    @Column(value = "ROLLBACK_STATUS", length = 16, comment = "回滚状态")
     private String rollbackStatus;
 
-    @Column(value = "created_date", comment = "创建时间")
+    @Column(value = "CREATED_DATE", comment = "创建时间")
     private Date createdDate = new Date();
 
-    @Column(value = "modified_date", comment = "创建时间")
+    @Column(value = "MODIFIED_DATE", comment = "创建时间")
     private Date modifiedDate = new Date();
 
-    @Column(value = "datasource_name", length = 50, comment = "数据源名字")
+    @Column(value = "DATASOURCE_NAME", length = 50, comment = "数据源名字")
     private String datasourceName;
 
-    @Column(value = "application_name", length = 50, comment = "应用名字")
+    @Column(value = "APPLICATION_NAME", length = 50, comment = "应用名字")
     private String applicationName;
 
     public Long getId() {

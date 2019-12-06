@@ -8,6 +8,7 @@ public class ColumnMeta {
 
     private String columnName;
 
+    // sql中column对应的值
     private String value;
 
     // '?'占位符在整个sql中的index
