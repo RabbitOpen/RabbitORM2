@@ -10,6 +10,7 @@ import rabbit.open.dtx.client.enhance.PointCutHandler;
  * @date 2019/12/3
  **/
 @Component
+@SuppressWarnings("serial")
 public class DBEnhancer extends AbstractAnnotationEnhancer<Transactional> {
 
     @Override

@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @date 2019/12/4
  **/
 @Component
+@SuppressWarnings("serial")
 public class SimpleTransactionManger extends AbstractTransactionManger {
 
     AtomicLong idGenerator = new AtomicLong(0);

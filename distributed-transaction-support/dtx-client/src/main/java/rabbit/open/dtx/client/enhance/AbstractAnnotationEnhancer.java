@@ -19,6 +19,7 @@ import java.util.Set;
  * @author xiaoqianbin
  * @date 2019/12/3
  **/
+@SuppressWarnings({"serial", "unchecked"})
 public abstract class AbstractAnnotationEnhancer<T extends Annotation> extends AbstractAutoProxyCreator {
 
     private Set<String> beans2Enhance = new HashSet<>();
@@ -27,7 +28,7 @@ public abstract class AbstractAnnotationEnhancer<T extends Annotation> extends A
 
     private Class<T> clz;
 
-    public AbstractAnnotationEnhancer() {
+	public AbstractAnnotationEnhancer() {
         try {
             Class<?> cls = getClass();
             while (!(cls.getGenericSuperclass() instanceof ParameterizedType)) {

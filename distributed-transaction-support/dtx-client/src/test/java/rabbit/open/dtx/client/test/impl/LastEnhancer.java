@@ -9,6 +9,7 @@ import rabbit.open.dtx.client.enhance.PointCutHandler;
  * @author xiaoqianbin
  * @date 2019/12/3
  **/
+@SuppressWarnings("serial")
 @Component
 public class LastEnhancer extends AbstractAnnotationEnhancer<MyAop> {
 

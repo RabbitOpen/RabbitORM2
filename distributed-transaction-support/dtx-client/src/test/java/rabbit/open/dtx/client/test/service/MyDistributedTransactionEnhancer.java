@@ -12,6 +12,7 @@ import javax.annotation.PostConstruct;
  * @date 2019/12/4
  **/
 @Component
+@SuppressWarnings("serial")
 public class MyDistributedTransactionEnhancer extends DistributedTransactionEnhancer {
 
     @Autowired

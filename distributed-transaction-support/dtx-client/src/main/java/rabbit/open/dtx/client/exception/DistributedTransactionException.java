@@ -5,6 +5,7 @@ package rabbit.open.dtx.client.exception;
  * @author xiaoqianbin
  * @date 2019/12/4
  **/
+@SuppressWarnings("serial")
 public class DistributedTransactionException extends RuntimeException {
 
     public DistributedTransactionException(String message) {

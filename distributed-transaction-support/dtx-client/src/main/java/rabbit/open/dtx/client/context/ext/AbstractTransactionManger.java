@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
  * @author xiaoqianbin
  * @date 2019/12/4
  **/
+@SuppressWarnings("serial")
 public abstract class AbstractTransactionManger implements DistributedTransactionManger {
 
     @Override

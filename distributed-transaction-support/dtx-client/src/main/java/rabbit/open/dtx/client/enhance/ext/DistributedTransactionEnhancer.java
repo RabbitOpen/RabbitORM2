@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
  * @author xiaoqianbin
  * @date 2019/12/4
  **/
+@SuppressWarnings("serial")
 public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<DistributedTransaction> {
 
     // 异步处理的核心线程数
