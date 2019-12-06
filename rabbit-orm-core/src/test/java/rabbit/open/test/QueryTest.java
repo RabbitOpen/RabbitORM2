@@ -149,7 +149,7 @@ public class QueryTest {
         List<User> list = us.createQuery(user).joinFetch(Role.class)
                 .fetch(Organization.class)
                 .addFilter("id", user.getOrg().getId(), Organization.class, User.class)
-                .distinct().execute().list();
+                .execute().list();
         TestCase.assertTrue(list.size() > 0);
         TestCase.assertEquals(user.getBigField(), list.get(0).getBigField());
         TestCase.assertEquals(user.getDoubleField(), list.get(0).getDoubleField());
@@ -685,6 +685,7 @@ public class QueryTest {
         user.setShortField((short) 1);
         user.setDoubleField(0.2);
         user.setFloatField(0.1f);
+        user.setBytes("hello".getBytes());
 
         user.setName("zhangsan" + System.currentTimeMillis());
         user.setBirth(new Date());

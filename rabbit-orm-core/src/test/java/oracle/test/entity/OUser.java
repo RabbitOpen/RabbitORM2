@@ -61,6 +61,9 @@ public class OUser {
 	@Column(value = "BIRTH_DAY", pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date birth;
 
+//	@Column(value = "BYTES_DATA", comment = "BLOB类型")
+//	private byte[] bytes;
+
 	// 描述，关键字
 	@Column(value = "DESC", keyWord = true)
 	private String desc;
@@ -90,6 +93,14 @@ public class OUser {
 	public Long getId() {
 		return id;
 	}
+
+//	public byte[] getBytes() {
+//		return bytes;
+//	}
+//
+//	public void setBytes(byte[] bytes) {
+//		this.bytes = bytes;
+//	}
 
 	public void setId(Long id) {
 		this.id = id;

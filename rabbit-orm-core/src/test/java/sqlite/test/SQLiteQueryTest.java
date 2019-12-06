@@ -287,7 +287,6 @@ public class SQLiteQueryTest {
         TestCase.assertEquals(u.getCars().size(), 1);
         TestCase.assertEquals(u.getCars().get(0).getCarNo(), user.getCars()
                 .get(0).getCarNo());
-        System.out.println(u);
     }
 
     /**
@@ -353,6 +352,7 @@ public class SQLiteQueryTest {
     @Test
     public void addJoinFilterTest() {
         SQLiteUser user = addInitData(150);
+        TestCase.assertEquals(new String(us.getByID(user.getId()).getBytes()), "hello");
         SQLiteCar c = new SQLiteCar();
         String carNo = "川A110";
         c.setCarNo(carNo);
@@ -635,6 +635,7 @@ public class SQLiteQueryTest {
         user.setShortField((short) 1);
         user.setDoubleField(0.2);
         user.setFloatField(0.1f);
+        user.setBytes("hello".getBytes());
 
         user.setName("zhangsan" + System.currentTimeMillis());
         user.setBirth(new Date());

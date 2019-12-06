@@ -48,7 +48,9 @@ public class SqlServerRegQueryTest {
 		user.setEnd(end);
 		user.setFrom(100);
 		user.setTo(200);
+		user.setBytes("hello".getBytes());
 		rus.add(user);
+		TestCase.assertEquals(new String(rus.getByID(user.getId()).getBytes()), "hello");
 		
 		RegRoom r1 = new RegRoom();
 		r1.setStart(start);

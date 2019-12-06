@@ -743,7 +743,7 @@ public abstract class DMLObject<T> {
             preparedValues.add(new PreparedValue(null, field));
             return;
         }
-        if (value.getClass().isArray()) {
+        if (!byte[].class.equals(value.getClass()) && value.getClass().isArray()) {
             Object[] vs = (Object[]) value;
             for (Object v : vs) {
                 preparedValues.add(new PreparedValue(v, field));

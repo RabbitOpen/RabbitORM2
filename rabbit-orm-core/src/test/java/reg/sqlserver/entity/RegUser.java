@@ -27,6 +27,9 @@ public class RegUser {
 
 	@Column("TO_")
 	private Integer to;
+	
+	@Column("BYTES_X")
+	private byte[] bytes;
 
 	@OneToMany(joinColumn = "USER_ID")
 	private List<RegRoom> rooms;
@@ -65,6 +68,14 @@ public class RegUser {
 
 	public void setEnd(Date end) {
 		this.end = end;
+	}
+
+	public byte[] getBytes() {
+		return bytes;
+	}
+
+	public void setBytes(byte[] bytes) {
+		this.bytes = bytes;
 	}
 
 	public Integer getFrom() {

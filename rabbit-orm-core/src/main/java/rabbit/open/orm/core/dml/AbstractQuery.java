@@ -463,7 +463,12 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	private void readEntity(ResultSet rs, Map<String, Object> fetchEntity,
 							Map<String, Object> joinFetchEntity) throws SQLException {
 		for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-			Object colValue = rs.getObject(i);
+			Object colValue = null;
+			if (rs.getMetaData().getColumnType(i) == java.sql.Types.BLOB) {
+				colValue = rs.getBytes(i);
+			} else {
+				colValue = rs.getObject(i);
+			}
 			if (null == colValue) {
 				continue;
 			}
@@ -478,7 +483,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 			}
 		}
 	}
-
+	
 	private void readMany2ManyEntity(Map<String, Object> entityMap, Object colValue, String[] colNames) {
 		// joinFetch出来的数据
 		String tableAlias = colNames[1];

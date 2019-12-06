@@ -27,6 +27,17 @@ public class RegUser {
 
 	@Column("TO_")
 	private Integer to;
+	
+	@Column("BYTES_X")
+	private byte[] bytes;
+
+	public byte[] getBytes() {
+		return bytes;
+	}
+
+	public void setBytes(byte[] bytes) {
+		this.bytes = bytes;
+	}
 
 	@OneToMany(joinColumn = "USER_ID")
 	private List<RegRoom> rooms;
