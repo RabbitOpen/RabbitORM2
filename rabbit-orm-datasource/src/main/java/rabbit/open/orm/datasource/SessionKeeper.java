@@ -4,6 +4,7 @@ import java.sql.Connection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rabbit.open.orm.common.exception.RabbitDMLException;
 
 
 public class SessionKeeper {
@@ -26,7 +27,7 @@ public class SessionKeeper {
 			if (dataSource.isDumpSuspectedFetch()) {
 				showFetchTrace(stacks.get(), "");
 			} else {
-				logger.warn("suspective fetch operation is found!");
+				logger.warn("suspect fetch operation is found!");
 			}
 		}
 		if (dataSource.isDumpSuspectedFetch()) {
@@ -41,7 +42,7 @@ public class SessionKeeper {
 
 	public static void showFetchTrace(StackTraceElement[] stackTraceElements, String prefixMsg) {
 		StringBuilder sb = new StringBuilder(prefixMsg);
-		sb.append("suspective fetch operation 1: \n");
+		sb.append("suspect fetch operation 1: \n");
 		for (int i = 1; i < stackTraceElements.length; i++) {
 			StackTraceElement ste = stackTraceElements[i];
 			sb.append("\t" + ste.toString() + "\r\n");
@@ -65,6 +66,12 @@ public class SessionKeeper {
 			keeper.remove();
 			stacks.remove();
 			dataSource.monitor.removeSnapshot(conn);
+		} else {
+			if (null == keeper.get()) {
+				return;
+			}
+			throw new RabbitDMLException(String.format("session type mismatch exception, {%s} is found, {%s} is expected",
+					conn.getClass().getName(), keeper.get().getClass().getName()));
 		}
 	}
 	
