@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 分布式事务注解
  * @author xiaoqianbin
  * @date 2019/12/4
  **/
@@ -14,5 +15,8 @@ import java.lang.annotation.Target;
 public @interface DistributedTransaction {
 
     // 任务超时时间, 默认永不超时
-    long timeoutSeconds() default Long.MAX_VALUE;
+    long transactionTimeoutSeconds() default Long.MAX_VALUE;
+
+    // 回滚超时时间
+    long rollbackTimeoutSeconds() default 10L;
 }

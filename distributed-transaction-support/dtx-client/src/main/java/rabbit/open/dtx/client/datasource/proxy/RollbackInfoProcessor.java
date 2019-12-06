@@ -12,10 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * sql 回滚信息处理器
@@ -39,12 +36,12 @@ public abstract class RollbackInfoProcessor {
 
     /**
      * 处理回滚消息
-     * @param	record
-     * @param	info
-     * @param	connection
-     * @author  xiaoqianbin
-     * @date    2019/12/5
-     * @return  true:成功
+     * @param record
+     * @param info
+     * @param connection
+     * @return true:成功
+     * @author xiaoqianbin
+     * @date 2019/12/5
      **/
 
     public abstract boolean processRollbackInfo(RollBackRecord record, RollbackInfo info, Connection connection);
@@ -52,6 +49,8 @@ public abstract class RollbackInfoProcessor {
     protected void setPreparedStatementValue(PreparedStatement stmt, int index, Object value) throws SQLException {
         if (value instanceof byte[]) {
             stmt.setBytes(index, (byte[]) value);
+        } else if (value instanceof Timestamp) {
+            stmt.setTimestamp(index, (Timestamp) value);
         } else if (value instanceof Date) {
             stmt.setTimestamp(index, new Timestamp(((Date) value).getTime()));
         } else if (value instanceof Float) {
@@ -92,7 +91,24 @@ public abstract class RollbackInfoProcessor {
                 c.close();
             }
         } catch (Exception e) {
-            // TO DO : ignore
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 打印回滚日志
+     * @param record         回滚记录
+     * @param sql            sql信息
+     * @param preparedValues sql的值
+     * @param effectDataSize 回滚操作影响的数据条数
+     * @author xiaoqianbin
+     * @date 2019/12/6
+     **/
+    protected void printRollbackLog(RollBackRecord record, String sql, Collection<Object> preparedValues, int effectDataSize) {
+        if (0 == effectDataSize) {
+            logger.error("distributed transaction[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back failed: {}, \n preparedValues: {}", record.getTxGroupId(), record.getTxBranchId(), record.getId(), sql, preparedValues);
+        } else {
+            logger.info("distributed transaction[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back success: {}, \n preparedValues: {}", record.getTxGroupId(), record.getTxBranchId(), record.getId(), sql, preparedValues);
         }
     }
 }

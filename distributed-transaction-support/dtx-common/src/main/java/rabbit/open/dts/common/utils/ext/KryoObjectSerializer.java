@@ -28,25 +28,24 @@ public class KryoObjectSerializer implements ObjectSerializer {
     }
 
     private boolean release(Kryo kryo) {
-        return cache.add(kryo);
+        try {
+            return cache.add(kryo);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
      * 序列化（对象 -> 字节数组）
      */
     public byte[] serialize(Object obj) {
-        Output output = null;
         Kryo kryo = getKryo();
-        try {
-            output = new Output(4 * 1024, 8 * 1024 * 1024);
+        try (Output output = new Output(4 * 1024, 8 * 1024 * 1024)) {
             kryo.writeObject(output, obj);
             output.flush();
             return output.toBytes();
         } finally {
             release(kryo);
-            if (null != output) {
-                output.close();
-            }
         }
     }
 
@@ -54,16 +53,11 @@ public class KryoObjectSerializer implements ObjectSerializer {
      * 反序列化（字节数组 -> 对象）
      */
     public <T> T deserialize(byte[] data, Class<T> cls) {
-        Input input = null;
         Kryo kryo = getKryo();
-        try {
-            input = new Input(data);
+        try (Input input = new Input(data)) {
             return (T) kryo.readObject(input, kryo.getRegistration(cls).getType());
         } finally {
             release(kryo);
-            if (null != input) {
-                input.close();
-            }
         }
     }
 

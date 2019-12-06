@@ -27,16 +27,15 @@ public class TransactionMessageHandler implements MessageHandler {
 
     /**
      * 处理提交
-     * @param    applicationName
-     * @param    txGroupId
-     * @param    txBranchId
+     * @param applicationName
+     * @param txGroupId
+     * @param txBranchId
      * @author xiaoqianbin
      * @date 2019/12/6
      **/
     @Override
     public void rollback(String applicationName, Long txGroupId, Long txBranchId) {
-        doTransaction(applicationName, txGroupId, txBranchId, (records, conn)
-                -> doRollback(records, conn));
+        doTransaction(applicationName, txGroupId, txBranchId, this::doRollback);
     }
 
     private void doTransaction(String applicationName, Long txGroupId, Long txBranchId, CallBack callBack) {
@@ -67,11 +66,7 @@ public class TransactionMessageHandler implements MessageHandler {
                 callBack.call(records, conn);
                 conn.commit();
             } catch (Exception e) {
-                try {
-                    conn.rollback();
-                } catch (SQLException e1) {
-                    logger.error(e.getMessage(), e);
-                }
+                rollback(conn);
                 throw new DistributedTransactionException(e);
             } finally {
                 safeClose(rs);
@@ -81,13 +76,24 @@ public class TransactionMessageHandler implements MessageHandler {
         }
     }
 
-    private void safeClose(AutoCloseable c) {
+    private void rollback(Connection conn) {
+        if (null == conn) {
+            return;
+        }
+        try {
+            conn.rollback();
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    protected void safeClose(AutoCloseable c) {
         try {
             if (null != c) {
                 c.close();
             }
         } catch (Exception e) {
-
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -120,9 +126,9 @@ public class TransactionMessageHandler implements MessageHandler {
 
     /**
      * 提交事务，直接删除回滚信息
-     * @param    applicationName
-     * @param    txGroupId
-     * @param    txBranchId
+     * @param applicationName
+     * @param txGroupId
+     * @param txBranchId
      * @author xiaoqianbin
      * @date 2019/12/6
      **/
@@ -145,7 +151,7 @@ public class TransactionMessageHandler implements MessageHandler {
 
     // 回调接口
     @FunctionalInterface
-    private interface CallBack {
+    interface CallBack {
         void call(List<RollBackRecord> records, Connection conn) throws SQLException;
     }
 }

@@ -22,6 +22,9 @@ import rabbit.open.dtx.client.test.service.RollbackInfoService;
 import rabbit.open.dtx.client.test.service.SimpleTransactionManger;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 /**
  * @author xiaoqianbin
@@ -81,6 +84,13 @@ public class SupportTest {
         RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
         // 回滚信息中包含3个字段
         TestCase.assertEquals(rollbackInfo.getMeta().getColumns().size(), 3);
+
+        // 开始回滚
+        TransactionMessageHandler handler = new TransactionMessageHandler();
+        handler.rollback(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
+
+        // 验证回滚已经删除掉数据了
+        TestCase.assertNull(productService.getByID(product.getId()));
     }
 
     /**
@@ -148,8 +158,13 @@ public class SupportTest {
         Product product = new Product();
         product.setName("ZD-0214");
         product.setAddr("CDX");
+        product.setDate(new Date());
         productService.add(product);
         productService.deleteProduct(product.getId());
+
+        // 验证数据已经删除了
+        TestCase.assertNull(productService.getByID(product.getId()));
+
         RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txBranchId", transactionManger.getLastBranchId()).unique();
         KryoObjectSerializer serializer = new KryoObjectSerializer();
         RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
@@ -157,6 +172,16 @@ public class SupportTest {
                 "name").getColumn().value()), product.getName());
         TestCase.assertEquals(rollbackInfo.getOriginalData().get(0).get(MetaData.getCachedFieldsMeta(Product.class,
                 "addr").getColumn().value()), product.getAddr());
+        // 开始回滚
+        TransactionMessageHandler handler = new TransactionMessageHandler();
+        handler.rollback(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
+
+        // 验证数据已经回滚了
+        Product byID = productService.getByID(product.getId());
+        TestCase.assertEquals(byID.getAddr(), product.getAddr());
+        TestCase.assertEquals(byID.getName(), product.getName());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        TestCase.assertEquals(sdf.format(byID.getDate()), sdf.format(product.getDate()));
     }
 
     @Test

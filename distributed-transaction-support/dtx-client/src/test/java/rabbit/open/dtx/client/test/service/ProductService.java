@@ -24,13 +24,13 @@ public class ProductService extends GenericService<Product> {
         updateByID(product);
     }
 
-    @DistributedTransaction(timeoutSeconds = 5)
+    @DistributedTransaction(transactionTimeoutSeconds = 5)
     @Transactional
     public void deleteProduct(String id) {
         deleteByID(id);
     }
 
-    @DistributedTransaction(timeoutSeconds = 5)
+    @DistributedTransaction(transactionTimeoutSeconds = 5)
     @Transactional
     public void multiAdd(int count) {
         for (int i = 0; i < count; i++) {

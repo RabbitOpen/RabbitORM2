@@ -62,9 +62,10 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
     @Override
     public boolean processRollbackInfo(RollBackRecord record, RollbackInfo info, Connection conn) {
         if (info.getOriginalData().isEmpty()) {
+            logger.warn("distributed transaction[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back success: {}, \n no data needs to rollback", record.getTxGroupId(), record.getTxBranchId(), record.getId());
             return true;
         }
-        String sql = createUpdateSql(info);
+        String sql = createRollbackUpdateSql(info);
         PreparedStatement stmt = null;
         List<Object> preparedValues = new ArrayList<>();
         try {
@@ -78,12 +79,7 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
                 for (int i = 0; i < preparedValues.size(); i++) {
                     setPreparedStatementValue(stmt, i + 1, preparedValues.get(i));
                 }
-                int effectDataSize = stmt.executeUpdate();
-                if (0 == effectDataSize) {
-                    logger.error("transaction[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back failed: {}, \n preparedValues: {}", record.getTxGroupId(), record.getTxBranchId(), record.getId(), sql, preparedValues);
-                } else {
-                    logger.info("transaction[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back success: {}, \n preparedValues: {}", record.getTxGroupId(), record.getTxBranchId(), record.getId(), sql, preparedValues);
-                }
+                printRollbackLog(record, sql, preparedValues, stmt.executeUpdate());
                 stmt.close();
             }
         } catch (Exception e) {
@@ -136,7 +132,13 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
         return list;
     }
 
-    private String createUpdateSql(RollbackInfo info) {
+    /**
+     * 创建回滚时的update sql信息
+     * @param	info
+     * @author  xiaoqianbin
+     * @date    2019/12/6
+     **/
+    private String createRollbackUpdateSql(RollbackInfo info) {
         SQLMeta meta = info.getMeta();
         List<Map<String, Object>> originalData = info.getOriginalData();
         StringBuilder sql = new StringBuilder("update " + meta.getTargetTables() + " set ");

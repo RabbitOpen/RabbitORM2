@@ -5,6 +5,8 @@ import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.PrimaryKey;
 
+import java.util.Date;
+
 /**
  * @author xiaoqianbin
  * @date 2019/12/3
@@ -24,6 +26,9 @@ public class Product {
 
     @Column(value = "OWNER", comment = "拥有者")
     private String owner;
+
+    @Column(value = "X_DATE")
+    private Date date;
 
     public String getId() {
         return id;
@@ -55,5 +60,13 @@ public class Product {
 
     public void setOwner(String owner) {
         this.owner = owner;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 }

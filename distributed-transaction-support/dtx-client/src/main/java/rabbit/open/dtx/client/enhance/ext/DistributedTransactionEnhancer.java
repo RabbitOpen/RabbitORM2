@@ -33,7 +33,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     @Override
     protected PointCutHandler<DistributedTransaction> getHandler() {
         return (invocation, annotation) -> {
-            if (annotation.timeoutSeconds() == Long.MAX_VALUE) {
+            if (annotation.transactionTimeoutSeconds() == Long.MAX_VALUE) {
                 return syncProcess(invocation);
             } else {
                 return asyncProcess(invocation, annotation);
@@ -62,7 +62,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
             }
         });
         try {
-            Object result = future.get(annotation.timeoutSeconds(), TimeUnit.SECONDS);
+            Object result = future.get(annotation.transactionTimeoutSeconds(), TimeUnit.SECONDS);
             transactionManger.commit(invocation.getMethod());
             return result;
         } catch (Exception e) {
