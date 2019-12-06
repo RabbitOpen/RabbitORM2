@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
-import org.springframework.stereotype.Component;
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
