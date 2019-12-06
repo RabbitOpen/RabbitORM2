@@ -21,7 +21,7 @@ public class DB2DDLHelper extends SQLServerDDLHelper {
         typeStringCache.put(Integer.class, BIGINT);
         typeStringCache.put(Short.class, BIGINT);
         typeStringCache.put(Long.class, BIGINT);
-        typeStringCache.put(byte[].class, BIGINT);
+        typeStringCache.put(byte[].class, BLOB);
     }
     
 	/**

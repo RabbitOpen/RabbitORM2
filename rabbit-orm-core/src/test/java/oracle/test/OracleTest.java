@@ -54,12 +54,18 @@ public class OracleTest {
         OUser u = new OUser();
         u.setAge(10);
         u.setIndex("myindex");
+        u.setBytes("hello oracle".getBytes());
         us.add(u);
+        byte[] bytes = us.getByID(u.getId()).getBytes();
+		TestCase.assertEquals("hello oracle", new String(bytes));
+		
+		// 包含blob字段时如果表太多时distinct会报错，"数据类型不一致: 应为 -, 但却获得 BLOB", 见鬼了
         List<OUser> list = us.createQuery().page(0, 10)
                 .addFilter("index", u.getIndex()).joinFetch(ORole.class)
-                .fetch(OracleOrganization.class).distinct().execute().list();
+                .fetch(OracleOrganization.class).execute().list();
         list.forEach(us -> System.out.println(us));
         TestCase.assertTrue(list.size() > 0);
+       
     }
 
 	/**

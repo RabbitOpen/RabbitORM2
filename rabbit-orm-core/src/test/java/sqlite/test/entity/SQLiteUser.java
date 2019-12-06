@@ -46,7 +46,26 @@ public class SQLiteUser {
 	@Column("ID")
 	private Long id;
 	
-    //名字
+    @Column(value = "BYTES_DATA", comment = "BLOB类型")
+	private byte[] bytes;
+    
+    public byte[] getBytes() {
+		return bytes;
+	}
+
+	public void setBytes(byte[] bytes) {
+		this.bytes = bytes;
+	}
+
+	public SQLiteZone getZone() {
+		return zone;
+	}
+
+	public void setZone(SQLiteZone zone) {
+		this.zone = zone;
+	}
+
+	//名字
 	@Column("NAME")
 	private String name;
 	
