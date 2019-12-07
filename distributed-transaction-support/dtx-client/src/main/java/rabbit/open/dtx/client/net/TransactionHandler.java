@@ -43,4 +43,11 @@ public interface TransactionHandler {
      **/
     Long getTransactionBranchId(Long txGroupId, String applicationName);
 
+    /**
+     * 获取事务组id
+     * @author  xiaoqianbin
+     * @date    2019/12/7
+     **/
+    Long getTransactionGroupId();
+
 }

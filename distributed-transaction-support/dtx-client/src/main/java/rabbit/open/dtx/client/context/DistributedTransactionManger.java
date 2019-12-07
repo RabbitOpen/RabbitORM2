@@ -58,6 +58,13 @@ public interface DistributedTransactionManger extends Serializable {
     Long getTransactionBranchId();
 
     /**
+     * 获取事务组id
+     * @author  xiaoqianbin
+     * @date    2019/12/7
+     **/
+    Long getTransactionGroupId();
+
+    /**
      * 获取app名字
      * @author  xiaoqianbin
      * @date    2019/12/5

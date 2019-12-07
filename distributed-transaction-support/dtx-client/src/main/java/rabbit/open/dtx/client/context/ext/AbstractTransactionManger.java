@@ -91,7 +91,9 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    protected abstract DistributedTransactionObject newTransactionObject();
+    protected DistributedTransactionObject newTransactionObject() {
+        return new DistributedTransactionObject(getTransactionGroupId());
+    }
 
     @Override
     public Long getTransactionBranchId() {
@@ -100,6 +102,11 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
             getCurrentTransactionObject().setTxBranchId(txBranchId);
         }
         return getCurrentTransactionObject().getTxBranchId();
+    }
+
+    @Override
+    public final Long getTransactionGroupId() {
+        return getTransactionHandler().getTransactionGroupId();
     }
 
     /**

@@ -26,4 +26,9 @@ public class TestTransactionHandler implements TransactionHandler {
     public Long getTransactionBranchId(Long txGroupId, String applicationName) {
         return null;
     }
+
+    @Override
+    public Long getTransactionGroupId() {
+        return null;
+    }
 }

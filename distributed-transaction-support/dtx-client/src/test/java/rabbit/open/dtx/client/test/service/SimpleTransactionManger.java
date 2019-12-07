@@ -2,7 +2,6 @@ package rabbit.open.dtx.client.test.service;
 
 import org.springframework.stereotype.Component;
 import rabbit.open.dtx.client.context.ext.AbstractTransactionManger;
-import rabbit.open.dtx.client.enhance.ext.DistributedTransactionObject;
 import rabbit.open.dtx.client.net.TransactionHandler;
 
 import java.lang.reflect.Method;
@@ -19,6 +18,8 @@ public class SimpleTransactionManger extends AbstractTransactionManger {
 
     AtomicLong idGenerator = new AtomicLong(0);
 
+    private long lastBranchId;
+
     // 事务消息处理器
     private TransactionHandler transactionHandler = new TestTransactionHandler() {
 
@@ -27,18 +28,16 @@ public class SimpleTransactionManger extends AbstractTransactionManger {
             // 这个id应该从服务端统一获取
             return idGenerator.getAndAdd(1L);
         }
+
+        @Override
+        public Long getTransactionGroupId() {
+            return idGenerator.getAndAdd(1L);
+        }
     };
 
     @Override
     protected TransactionHandler getTransactionHandler() {
         return transactionHandler;
-    }
-
-    private long lastBranchId;
-
-    @Override
-    public DistributedTransactionObject newTransactionObject() {
-        return new DistributedTransactionObject(idGenerator.getAndAdd(1L));
     }
 
     @Override
