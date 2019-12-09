@@ -1,9 +1,9 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
-import rabbit.open.dts.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.dtx.client.context.DistributedTransactionManger;
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
 import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
+import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 
 import java.io.InputStream;
 import java.io.Reader;

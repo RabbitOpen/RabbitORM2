@@ -8,18 +8,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import rabbit.open.dts.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
 import rabbit.open.dtx.client.net.TransactionMessageHandler;
 import rabbit.open.dtx.client.test.entity.Enterprise;
 import rabbit.open.dtx.client.test.entity.Product;
 import rabbit.open.dtx.client.test.entity.RollbackEntity;
-import rabbit.open.dtx.client.test.impl.FirstEnhancer;
-import rabbit.open.dtx.client.test.impl.LastEnhancer;
 import rabbit.open.dtx.client.test.service.EnterpriseService;
 import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.client.test.service.RollbackInfoService;
 import rabbit.open.dtx.client.test.service.SimpleTransactionManger;
+import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
 import java.text.SimpleDateFormat;
@@ -34,11 +32,6 @@ import java.util.Date;
 @ContextConfiguration(locations = {"classpath:support.xml"})
 public class SupportTest {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
-
-    @Autowired
-    private HelloService helloService;
-
     @Autowired
     private EnterpriseService es;
 
@@ -50,15 +43,6 @@ public class SupportTest {
 
     @Autowired
     private SimpleTransactionManger transactionManger;
-
-    @Test
-    public void handlerTest() {
-        String name = " zhangsan ";
-        String result = helloService.sayHello(name);
-        logger.info(result);
-        TestCase.assertEquals(FirstEnhancer.class.getSimpleName() + LastEnhancer.class.getSimpleName()
-                + "hello" + name, result);
-    }
 
     @Test
     public void dbTest() {

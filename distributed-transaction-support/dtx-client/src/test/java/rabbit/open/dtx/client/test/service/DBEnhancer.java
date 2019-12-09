@@ -2,8 +2,8 @@ package rabbit.open.dtx.client.test.service;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import rabbit.open.dts.common.spring.enhance.AbstractAnnotationEnhancer;
-import rabbit.open.dts.common.spring.enhance.PointCutHandler;
+import rabbit.open.dtx.common.spring.enhance.AbstractAnnotationEnhancer;
+import rabbit.open.dtx.common.spring.enhance.PointCutHandler;
 
 /**
  * @author xiaoqianbin

@@ -1,12 +1,14 @@
-package rabbit.open.dtx.client.test.service;
+package rabbit.open.dtx.common.spring;
 
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 
 /**
+ * 基于内存的事务处理器
  * @author xiaoqianbin
- * @date 2019/12/5
+ * @date 2019/12/7
  **/
-public class TestTransactionHandler implements TransactionHandler {
+public class MemoryTransactionHandler implements TransactionHandler {
+
     @Override
     public void doBranchCommit(Long txGroupId, Long txBranchId, String applicationName) {
 
@@ -31,4 +33,5 @@ public class TestTransactionHandler implements TransactionHandler {
     public Long getTransactionGroupId() {
         return null;
     }
+
 }
