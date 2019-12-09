@@ -1,6 +1,6 @@
 package rabbit.open.dtx.client.context;
 
-import rabbit.open.dtx.client.enhance.ext.DistributedTransactionObject;
+import rabbit.open.dtx.client.enhance.DistributedTransactionObject;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;

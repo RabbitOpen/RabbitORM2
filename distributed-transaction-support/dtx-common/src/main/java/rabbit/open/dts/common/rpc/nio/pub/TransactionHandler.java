@@ -1,10 +1,13 @@
-package rabbit.open.dtx.client.net;
+package rabbit.open.dts.common.rpc.nio.pub;
+
+import rabbit.open.dts.common.spring.anno.Namespace;
 
 /**
  * 事务消息处理接口
  * @author xiaoqianbin
  * @date 2019/12/5
  **/
+@Namespace("dtxTransactionHandler")
 public interface TransactionHandler {
 
     /**
@@ -15,7 +18,7 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    void doBranchCommit(Long txGroupId, Long txBranchId, String applicationName);
+    default void doBranchCommit(Long txGroupId, Long txBranchId, String applicationName) {}
 
     /**
      * 提交整个事务
@@ -24,7 +27,7 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    void doCommit(Long txGroupId, Long txBranchId);
+    default void doCommit(Long txGroupId, Long txBranchId) {}
 
     /**
      * 回滚整个事务
@@ -32,7 +35,7 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    void doRollback(Long txGroupId);
+    default void doRollback(Long txGroupId) {}
 
     /**
      * 获取{txGroupId}下的事务分支id
@@ -41,13 +44,17 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    Long getTransactionBranchId(Long txGroupId, String applicationName);
+    default Long getTransactionBranchId(Long txGroupId, String applicationName) {
+        return 0L;
+    }
 
     /**
      * 获取事务组id
      * @author  xiaoqianbin
      * @date    2019/12/7
      **/
-    Long getTransactionGroupId();
+    default Long getTransactionGroupId() {
+        return 0L;
+    }
 
 }

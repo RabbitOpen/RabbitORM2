@@ -19,11 +19,11 @@ public class KryoTest {
 
     @Test
     public void kryoObjectSerializerTest() throws InterruptedException {
-        CountDownLatch cdl = new CountDownLatch(50);
-        for (int c = 0; c < 50; c++) {
+        CountDownLatch cdl = new CountDownLatch(20);
+        for (int c = 0; c < 20; c++) {
             new Thread(() -> {
                 KryoObjectSerializer serializer = new KryoObjectSerializer();
-                for (int i = 0; i < 10000; i++) {
+                for (int i = 0; i < 50000; i++) {
                     Date date = new Date();
                     byte[] bytes = serializer.serialize(date);
                     Date s = serializer.deserialize(bytes, Date.class);
@@ -44,7 +44,7 @@ public class KryoTest {
         for (int c = 0; c < 20; c++) {
             new Thread(() -> {
                 KryoObjectSerializer serializer = new KryoObjectSerializer();
-                for (int i = 0; i < 10000; i++) {
+                for (int i = 0; i < 50000; i++) {
                     Exception e = new Exception("hello");
                     byte[] bytes = serializer.serialize(e);
                     Exception s = serializer.deserialize(bytes, Exception.class);

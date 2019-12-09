@@ -1,4 +1,4 @@
-package rabbit.open.dtx.client.enhance;
+package rabbit.open.dts.common.spring.enhance;
 
 
 import org.aopalliance.intercept.MethodInterceptor;
@@ -8,17 +8,17 @@ import org.springframework.beans.factory.BeanCreationException;
 import java.lang.annotation.Annotation;
 
 /**
- * 切点
+ * DistributedTransaction切点
  * @author xiaoqianbin
  * @date 2019/12/3
  **/
-class AnnotationPointCut<T extends Annotation> implements MethodInterceptor {
+public class DistributedTransactionPointCut<T extends Annotation> implements MethodInterceptor {
 
-    private Class<T> targetAnnotation;
+    protected Class<T> targetAnnotation;
 
-    private PointCutHandler<T> pointCutHandler;
+    protected PointCutHandler<T> pointCutHandler;
 
-    public AnnotationPointCut(Class<T> targetAnnotation, PointCutHandler<T> pointCutHandler) {
+    public DistributedTransactionPointCut(Class<T> targetAnnotation, PointCutHandler<T> pointCutHandler) {
         assertField(targetAnnotation, "targetAnnotation can not be empty!");
         this.targetAnnotation = targetAnnotation;
         this.pointCutHandler = pointCutHandler;
@@ -34,7 +34,7 @@ class AnnotationPointCut<T extends Annotation> implements MethodInterceptor {
         }
     }
 
-    private void assertField(Object targetAnnotation, String msg) {
+    protected void assertField(Object targetAnnotation, String msg) {
         if (null == targetAnnotation) {
             throw new BeanCreationException(msg);
         }

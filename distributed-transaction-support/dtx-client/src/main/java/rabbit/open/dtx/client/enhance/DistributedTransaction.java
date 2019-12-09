@@ -1,4 +1,4 @@
-package rabbit.open.dtx.client.enhance.ext;
+package rabbit.open.dtx.client.enhance;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,8 +1,8 @@
 package rabbit.open.dtx.client.test.impl;
 
 import org.springframework.stereotype.Component;
-import rabbit.open.dtx.client.enhance.AbstractAnnotationEnhancer;
-import rabbit.open.dtx.client.enhance.PointCutHandler;
+import rabbit.open.dts.common.spring.enhance.AbstractAnnotationEnhancer;
+import rabbit.open.dts.common.spring.enhance.PointCutHandler;
 
 /**
  * 自定义增强器

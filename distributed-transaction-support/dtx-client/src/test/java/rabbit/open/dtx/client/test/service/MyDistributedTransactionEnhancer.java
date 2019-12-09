@@ -2,7 +2,7 @@ package rabbit.open.dtx.client.test.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import rabbit.open.dtx.client.enhance.ext.DistributedTransactionEnhancer;
+import rabbit.open.dtx.client.enhance.DistributedTransactionEnhancer;
 
 import javax.annotation.PostConstruct;
 

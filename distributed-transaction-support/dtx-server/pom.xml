@@ -11,5 +11,11 @@
 
     <artifactId>dtx-server</artifactId>
 
-
+    <dependencies>
+        <dependency>
+            <groupId>rabbit.open</groupId>
+            <artifactId>dtx-common</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+    </dependencies>
 </project>

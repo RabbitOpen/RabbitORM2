@@ -1,4 +1,4 @@
-package rabbit.open.dtx.client.enhance;
+package rabbit.open.dts.common.spring.enhance;
 
 import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
@@ -22,9 +22,9 @@ import java.util.Set;
 @SuppressWarnings({"serial", "unchecked"})
 public abstract class AbstractAnnotationEnhancer<T extends Annotation> extends AbstractAutoProxyCreator {
 
-    private Set<String> beans2Enhance = new HashSet<>();
+    protected transient Set<String> beans2Enhance = new HashSet<>();
 
-    private transient Object[] pointCuts;
+    protected transient Object[] pointCuts;
 
     private Class<T> clz;
 
@@ -77,11 +77,11 @@ public abstract class AbstractAnnotationEnhancer<T extends Annotation> extends A
         return super.postProcessBeforeInstantiation(beanClass, beanName);
     }
 
-    private synchronized Object[] getPointCuts() {
+    protected synchronized Object[] getPointCuts() {
         if (null != pointCuts) {
             return pointCuts;
         }
-        pointCuts = new Object[]{new AnnotationPointCut<>(getTargetAnnotation(), getHandler())};
+        pointCuts = new Object[]{new DistributedTransactionPointCut<>(getTargetAnnotation(), getHandler())};
         return pointCuts;
     }
 
