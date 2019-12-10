@@ -1,7 +1,7 @@
 package rabbit.open.dtx.client.enhance;
 
 import org.aopalliance.intercept.MethodInvocation;
-import rabbit.open.dtx.client.context.DistributedTransactionContext;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.client.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
@@ -43,7 +43,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
                 }
             }
             if (annotation.transactionTimeoutSeconds() == Long.MAX_VALUE) {
-                return syncProcess(invocation);
+                return syncProcess(invocation, annotation);
             } else {
                 return asyncProcess(invocation, annotation);
             }
@@ -75,7 +75,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
             transactionManger.commit(invocation.getMethod());
             return result;
         } catch (Exception e) {
-            transactionManger.rollback(invocation.getMethod());
+            transactionManger.rollback(invocation.getMethod(), annotation.rollbackTimeoutSeconds());
             throw new DistributedTransactionException(e);
         }
     }
@@ -83,17 +83,18 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     /**
      * 同步处理
      * @param invocation
+     * @param annotation
      * @author xiaoqianbin
      * @date 2019/12/4
      **/
-    private Object syncProcess(MethodInvocation invocation) {
+    private Object syncProcess(MethodInvocation invocation, DistributedTransaction annotation) {
         try {
             transactionManger.beginTransaction(invocation.getMethod());
             Object result = invocation.proceed();
             transactionManger.commit(invocation.getMethod());
             return result;
         } catch (Throwable e) {
-            transactionManger.rollback(invocation.getMethod());
+            transactionManger.rollback(invocation.getMethod(), annotation.rollbackTimeoutSeconds());
             throw new DistributedTransactionException(e);
         }
     }

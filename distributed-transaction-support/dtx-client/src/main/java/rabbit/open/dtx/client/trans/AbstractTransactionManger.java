@@ -1,6 +1,6 @@
 package rabbit.open.dtx.client.trans;
 
-import rabbit.open.dtx.client.context.DistributedTransactionContext;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
@@ -29,10 +29,11 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
     }
 
     @Override
-    public final void rollback(Method method) {
+    public final void rollback(Method method, long timeoutSeconds) {
         if (isTransactionPromoter(method)) {
             // 只有最外层的发起者才能回滚事务
             try {
+                DistributedTransactionContext.setRollbackTimeout(timeoutSeconds);
                 doRollback();
             } finally {
                 DistributedTransactionContext.clear();

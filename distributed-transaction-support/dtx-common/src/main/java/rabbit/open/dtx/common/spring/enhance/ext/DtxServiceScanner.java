@@ -4,6 +4,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
 import rabbit.open.dtx.common.nio.client.DtxClient;
 import rabbit.open.dtx.common.nio.client.FutureResult;
@@ -78,7 +79,8 @@ public class DtxServiceScanner extends AbstractAnnotationEnhancer<Reference> imp
             dtxClient = poolCache.get(annotation.transactionManager()).getResource(50);
             FutureResult result = dtxClient.send(protocol);
             dtxClient.release();
-            data = result.getData(annotation.timeoutSeconds());
+            Long timeout = DistributedTransactionContext.getRollbackTimeout();
+            data = result.getData(null == timeout ? annotation.timeoutSeconds() : timeout);
         } catch (TimeoutException e) {
             throw e;
         } catch (InterruptedException e) {

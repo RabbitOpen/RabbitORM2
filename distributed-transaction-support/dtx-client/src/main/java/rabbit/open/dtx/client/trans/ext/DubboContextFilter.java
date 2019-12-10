@@ -3,7 +3,7 @@ package rabbit.open.dtx.client.trans.ext;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.extension.Activate;
 import com.alibaba.dubbo.rpc.*;
-import rabbit.open.dtx.client.context.DistributedTransactionContext;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 
 /**

@@ -1,6 +1,6 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
-import rabbit.open.dtx.client.context.DistributedTransactionContext;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
 import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;

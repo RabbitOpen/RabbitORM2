@@ -25,7 +25,7 @@ public class RpcTransactionManger implements DistributedTransactionManger {
     }
 
     @Override
-    public void rollback(Method method) {
+    public void rollback(Method method, long timeoutSeconds) {
 
     }
 

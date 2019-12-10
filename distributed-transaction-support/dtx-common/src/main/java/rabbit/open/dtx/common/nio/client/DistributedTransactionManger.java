@@ -23,10 +23,11 @@ public interface DistributedTransactionManger extends Serializable {
     /**
      * 回滚事务
      * @param   method  开启事务的方法
+     * @param   timeoutSeconds  回滚超时时间
      * @author  xiaoqianbin
      * @date    2019/12/4
      **/
-    void rollback(Method method);
+    void rollback(Method method, long timeoutSeconds);
 
     /**
      * 提交事务
