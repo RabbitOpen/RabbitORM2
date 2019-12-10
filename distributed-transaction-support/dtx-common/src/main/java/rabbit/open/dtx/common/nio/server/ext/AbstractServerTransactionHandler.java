@@ -1,5 +1,7 @@
 package rabbit.open.dtx.common.nio.server.ext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 import rabbit.open.dtx.common.nio.server.TxStatus;
 
@@ -10,9 +12,12 @@ import rabbit.open.dtx.common.nio.server.TxStatus;
  **/
 public abstract class AbstractServerTransactionHandler implements TransactionHandler {
 
+    protected Logger logger = LoggerFactory.getLogger(getClass());
+
     @Override
     public void doBranchCommit(Long txGroupId, Long txBranchId, String applicationName) {
         persistBranchInfo(txGroupId, txBranchId, applicationName, TxStatus.COMMIT);
+        logger.info("{} doBranchCommit, txGroupId: {},  txBranchId: {}", applicationName, txGroupId, txBranchId);
     }
 
     @Override
@@ -20,18 +25,21 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
         doBranchCommit(txGroupId, txBranchId, applicationName);
         persistGroupId(txGroupId, TxStatus.COMMIT);
         doCommitByGroupId(txGroupId);
+        logger.info("{} doGroupCommit, txGroupId: {},  txBranchId: {}", applicationName, txGroupId, txBranchId);
     }
 
     @Override
     public void doRollback(Long txGroupId) {
         persistGroupId(txGroupId, TxStatus.ROLLBACK);
         doRollbackByGroupId(txGroupId);
+        logger.info("doRollback txGroupId: {}", txGroupId);
     }
 
     @Override
     public Long getTransactionBranchId(Long txGroupId, String applicationName) {
         Long txBranchId = getNextGlobalId();
         persistBranchInfo(txGroupId, txBranchId, applicationName, TxStatus.OPEN);
+        logger.info("'{}' getTransactionBranchId, txGroupId: {}", applicationName, txGroupId);
         return txBranchId;
     }
 
@@ -39,6 +47,7 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
     public Long getTransactionGroupId() {
         Long txGroupId = getNextGlobalId();
         persistGroupId(txGroupId, TxStatus.OPEN);
+        logger.info("open transaction, txGroupId: {}", txGroupId);
         return txGroupId;
     }
 

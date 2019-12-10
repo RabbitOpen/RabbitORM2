@@ -1,7 +1,5 @@
 package rabbit.open.dtx.server.tx;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
@@ -22,8 +20,6 @@ import java.util.concurrent.atomic.AtomicLong;
  **/
 public class MemoryBasedTransactionHandler extends AbstractServerTransactionHandler {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
-
     // 事务id生成器
     private AtomicLong idGenerator = new AtomicLong(0);
 
@@ -40,6 +36,7 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
         TransactionContext context = contextCache.get(txGroupId);
         if (null != context) {
             removeBranchTransactionData(txBranchId, context);
+            logger.info("confirmBranchCommit [{} - {}] ", txGroupId, txBranchId);
             if (context.getBranchApp().isEmpty()) {
                 contextCache.remove(txGroupId);
                 logger.info("tx [{}] commit success", txGroupId);
@@ -58,6 +55,7 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
         TransactionContext context = contextCache.get(txGroupId);
         if (null != context) {
             removeBranchTransactionData(txBranchId, context);
+            logger.info("confirmBranchRollback [{} - {}] ", txGroupId, txBranchId);
             if (context.getBranchApp().isEmpty()) {
                 contextCache.remove(txGroupId);
                 logger.info("tx [{}] rollback success", txGroupId);
@@ -83,7 +81,7 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
             if (!agent.isClosed()) {
                 agent.response(TxStatus.COMMIT == txStatus ? new CommitMessage(app, txGroupId, txBranchId)
                         : new RollBackMessage(app, txGroupId, txBranchId), null);
-                logger.info("{} branch ({} --> {}) ", txStatus, txGroupId, txBranchId);
+                logger.info("delivery {} branch ({} --> {}) ", txStatus, txGroupId, txBranchId);
                 break;
             }
         }
