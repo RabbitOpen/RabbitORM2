@@ -1,6 +1,5 @@
 package rabbit.open.dtx.common.test;
 
-import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
 import java.util.concurrent.ArrayBlockingQueue;

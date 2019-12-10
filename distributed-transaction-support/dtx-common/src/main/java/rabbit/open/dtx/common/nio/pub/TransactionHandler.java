@@ -24,10 +24,29 @@ public interface TransactionHandler {
      * 提交整个事务
      * @param	txGroupId   事务组id
      * @param	txBranchId  当前分支id
+     * @param	applicationName
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    default void doCommit(Long txGroupId, Long txBranchId) {}
+    default void doCommit(Long txGroupId, Long txBranchId, String applicationName) {}
+
+    /**
+     * 确认分支的提交
+     * @param	txGroupId
+	 * @param	txBranchId
+     * @author  xiaoqianbin
+     * @date    2019/12/10
+     **/
+    default void confirmBranchCommit(Long txGroupId, Long txBranchId) {}
+
+    /**
+     * 确认分支的回滚
+     * @param	txGroupId
+	 * @param	txBranchId
+     * @author  xiaoqianbin
+     * @date    2019/12/10
+     **/
+    default void confirmBranchRollback(Long txGroupId, Long txBranchId) {}
 
     /**
      * 回滚整个事务

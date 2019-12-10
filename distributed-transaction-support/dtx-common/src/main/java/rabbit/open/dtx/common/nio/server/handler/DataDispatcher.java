@@ -1,12 +1,12 @@
-package rabbit.open.dtx.common.nio.server.ext;
+package rabbit.open.dtx.common.nio.server.handler;
 
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
-import rabbit.open.dtx.common.nio.pub.KeepAlive;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
-import rabbit.open.dtx.common.nio.pub.RabbitProtocol;
+import rabbit.open.dtx.common.nio.pub.protocol.Application;
+import rabbit.open.dtx.common.nio.pub.protocol.KeepAlive;
+import rabbit.open.dtx.common.nio.pub.protocol.RabbitProtocol;
 
-import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,10 +22,11 @@ public class DataDispatcher implements DataHandler {
     public DataDispatcher() {
         handlerMap.put(RabbitProtocol.class, new RpcRequestHandler());
         handlerMap.put(KeepAlive.class, new KeepAliveHandler());
+        handlerMap.put(Application.class, new ApplicationDataHandler());
     }
 
     @Override
-    public Serializable process(ProtocolData protocolData) {
+    public Object process(ProtocolData protocolData) {
         if (null == protocolData.getData()) {
             throw new RpcException("protocol data can't be empty");
         }

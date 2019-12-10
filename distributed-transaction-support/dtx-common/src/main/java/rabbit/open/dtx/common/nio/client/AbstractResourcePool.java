@@ -33,6 +33,11 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
         this.maxConcurrenceSize = maxConcurrenceSize;
     }
 
+    // 获取当前连接数
+    public int getCount() {
+        return count;
+    }
+
     /**
      * 获取一个资源
      * @param    timeoutMills 超时时间

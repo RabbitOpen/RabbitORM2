@@ -1,4 +1,4 @@
-package rabbit.open.dtx.common.nio.pub;
+package rabbit.open.dtx.common.nio.pub.protocol;
 
 import java.io.Serializable;
 

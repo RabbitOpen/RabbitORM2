@@ -1,8 +1,8 @@
-package rabbit.open.dtx.client.context.ext;
+package rabbit.open.dtx.client.trans;
 
 import rabbit.open.dtx.client.context.DistributedTransactionContext;
-import rabbit.open.dtx.client.context.DistributedTransactionManger;
-import rabbit.open.dtx.client.enhance.DistributedTransactionObject;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 
 import java.lang.reflect.Method;
@@ -17,7 +17,7 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
 
     @Override
     public final void beginTransaction(Method method) {
-        if (isTransactionOpen()) {
+        if (isTransactionOpen(method)) {
             return;
         }
         if (null == getCurrentTransactionObject()) {
@@ -57,7 +57,7 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
      * @date    2019/12/5
      **/
     protected final boolean isBranchPromoter(Method method) {
-        return isTransactionOpen() && getCurrentTransactionObject().getTransactionOwner().equals(method);
+        return isTransactionOpen(method) && getCurrentTransactionObject().getTransactionOwner().equals(method);
     }
 
     @Override
@@ -73,11 +73,12 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
 
     /**
      * 判断是否已经开启事务
+     * @param   method
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
     @Override
-    public boolean isTransactionOpen() {
+    public boolean isTransactionOpen(Method method) {
         return null != getCurrentTransactionObject();
     }
 
@@ -117,7 +118,7 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
     protected void doCommit(Method method) {
         DistributedTransactionObject tranObj = getCurrentTransactionObject();
         if (isTransactionPromoter(method)) {
-            getTransactionHandler().doCommit(tranObj.getTxGroupId(), tranObj.getTxBranchId());
+            getTransactionHandler().doCommit(tranObj.getTxGroupId(), tranObj.getTxBranchId(), getApplicationName());
         } else {
             getTransactionHandler().doBranchCommit(tranObj.getTxGroupId(), tranObj.getTxBranchId(), getApplicationName());
         }

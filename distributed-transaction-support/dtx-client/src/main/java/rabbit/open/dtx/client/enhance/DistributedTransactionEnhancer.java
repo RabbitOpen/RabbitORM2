@@ -2,8 +2,9 @@ package rabbit.open.dtx.client.enhance;
 
 import org.aopalliance.intercept.MethodInvocation;
 import rabbit.open.dtx.client.context.DistributedTransactionContext;
-import rabbit.open.dtx.client.context.DistributedTransactionManger;
 import rabbit.open.dtx.client.exception.DistributedTransactionException;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.spring.enhance.AbstractAnnotationEnhancer;
 import rabbit.open.dtx.common.spring.enhance.PointCutHandler;
 
@@ -34,6 +35,13 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     @Override
     protected PointCutHandler<DistributedTransaction> getHandler() {
         return (invocation, annotation) -> {
+            if (Propagation.NESTED == annotation.propagation() && !transactionManger.isTransactionOpen()) {
+                try {
+                    return invocation.proceed();
+                } catch (Throwable e) {
+                    throw new DistributedTransactionException(e);
+                }
+            }
             if (annotation.transactionTimeoutSeconds() == Long.MAX_VALUE) {
                 return syncProcess(invocation);
             } else {
@@ -44,10 +52,10 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
 
     /***
      * 异步处理
-     * @param	invocation
-	 * @param	annotation
-     * @author  xiaoqianbin
-     * @date    2019/12/4
+     * @param    invocation
+     * @param    annotation
+     * @author xiaoqianbin
+     * @date 2019/12/4
      **/
     private Object asyncProcess(MethodInvocation invocation, DistributedTransaction annotation) {
         transactionManger.beginTransaction(invocation.getMethod());
@@ -74,9 +82,9 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
 
     /**
      * 同步处理
-     * @param	invocation
-     * @author  xiaoqianbin
-     * @date    2019/12/4
+     * @param invocation
+     * @author xiaoqianbin
+     * @date 2019/12/4
      **/
     private Object syncProcess(MethodInvocation invocation) {
         try {
@@ -100,8 +108,8 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
             } else {
                 tpe = new ThreadPoolExecutor(core, maxConcurrence, 5, TimeUnit.MINUTES,
                         new ArrayBlockingQueue<>(1000), (r, executor) -> {
-                        throw new DistributedTransactionException("DTX task pool is full!");
-                    });
+                    throw new DistributedTransactionException("DTX task pool is full!");
+                });
                 return tpe;
             }
         }

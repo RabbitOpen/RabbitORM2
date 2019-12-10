@@ -19,4 +19,7 @@ public @interface DistributedTransaction {
 
     // 回滚超时时间
     long rollbackTimeoutSeconds() default 10L;
+
+    // 事务传播特性，默认没有事务就直接开启事务
+    Propagation propagation() default Propagation.REQUIRED;
 }

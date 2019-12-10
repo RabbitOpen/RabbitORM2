@@ -4,15 +4,15 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
 import rabbit.open.dtx.common.nio.client.DtxClient;
 import rabbit.open.dtx.common.nio.client.FutureResult;
-import rabbit.open.dtx.common.nio.client.Registry;
 import rabbit.open.dtx.common.nio.client.ext.DtxResourcePool;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
-import rabbit.open.dtx.common.nio.exception.RegistryNotFoundException;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.exception.TimeoutException;
-import rabbit.open.dtx.common.nio.pub.RabbitProtocol;
+import rabbit.open.dtx.common.nio.exception.TransactionManagerNotFoundException;
+import rabbit.open.dtx.common.nio.pub.protocol.RabbitProtocol;
 import rabbit.open.dtx.common.spring.anno.DtxService;
 import rabbit.open.dtx.common.spring.anno.Namespace;
 import rabbit.open.dtx.common.spring.anno.Reference;
@@ -75,7 +75,7 @@ public class DtxServiceScanner extends AbstractAnnotationEnhancer<Reference> imp
             Method method = invocation.getMethod();
             String namespace = namespaceCache.get(invocation.getThis().getClass());
             RabbitProtocol protocol = new RabbitProtocol(namespace, method.getName(), method.getParameterTypes(), invocation.getArguments());
-            dtxClient = poolCache.get(annotation.registryBeanName()).getResource(50);
+            dtxClient = poolCache.get(annotation.transactionManager()).getResource(50);
             FutureResult result = dtxClient.send(protocol);
             dtxClient.release();
             data = result.getData(annotation.timeoutSeconds());
@@ -103,18 +103,18 @@ public class DtxServiceScanner extends AbstractAnnotationEnhancer<Reference> imp
      * @date 2019/12/9
      **/
     private void checkAndRegisterResourcePool(Reference annotation) {
-        Registry bean = (Registry) context.getBean(annotation.registryBeanName());
-        if (null == bean) {
-            throw new RegistryNotFoundException(annotation.registryBeanName());
+        DistributedTransactionManger manger = (DistributedTransactionManger) context.getBean(annotation.transactionManager());
+        if (null == manger) {
+            throw new TransactionManagerNotFoundException(annotation.transactionManager());
         }
-        if (!poolCache.containsKey(annotation.registryBeanName())) {
+        if (!poolCache.containsKey(annotation.transactionManager())) {
             synchronized (DtxServiceScanner.class) {
-                if (poolCache.containsKey(annotation.registryBeanName())) {
+                if (poolCache.containsKey(annotation.transactionManager())) {
                     return;
                 }
                 try {
-                    poolCache.put(annotation.registryBeanName(), new DtxResourcePool(bean.getMaxConcurrenceSize(),
-                            bean.getNodes(), annotation.registryBeanName()));
+                    DtxResourcePool dtxResourcePool = new DtxResourcePool(manger);
+                    poolCache.put(annotation.transactionManager(), dtxResourcePool);
                 } catch (IOException e) {
                     logger.error(e.getMessage(), e);
                 }

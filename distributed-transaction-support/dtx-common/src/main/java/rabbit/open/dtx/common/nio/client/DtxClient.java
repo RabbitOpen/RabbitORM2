@@ -3,6 +3,7 @@ package rabbit.open.dtx.common.nio.client;
 import rabbit.open.dtx.common.nio.client.ext.DtxResourcePool;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
+import rabbit.open.dtx.common.nio.pub.protocol.Application;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;
@@ -50,6 +51,8 @@ public class DtxClient implements PooledResource {
             // 客户端连接服务器,其实方法执行并没有实现连接
             channel.connect(new InetSocketAddress(this.node.getHost(), this.node.getPort()));
             channelAgent.ensureConnected();
+            // 通报应用名
+            send(new Application(pool.getTransactionManger().getApplicationName())).getData();
         } catch (Exception e) {
             closeQuietly(channel);
             throw new NetworkException(e);

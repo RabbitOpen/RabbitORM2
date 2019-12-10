@@ -5,30 +5,52 @@ import rabbit.open.dtx.common.nio.client.FutureResult;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
-import rabbit.open.dtx.common.nio.server.ext.DataDispatcher;
-
-import java.io.Serializable;
+import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
 
 /**
  * 客户端读事件处理器
  * @author xiaoqianbin
  * @date 2019/12/8
  **/
-public class ClientNetEventHandler extends AbstractNetEventHandler {
+class ClientNetEventHandler extends AbstractNetEventHandler {
+
+    private DtxResourcePool dtxResourcePool;
 
     private DataDispatcher dispatcher = new DataDispatcher() {
 
         @Override
-        public Serializable process(ProtocolData protocolData) {
-            FutureResult result = DtxClient.findFutureResult(protocolData.getRequestId());
-            if (null != result) {
-                result.wakeUp(protocolData.getData());
+        public Object process(ProtocolData protocolData) {
+            if (isNotifyMessage(protocolData)) {
+                if (null != dtxResourcePool.getTransactionManger().getMessageListener()) {
+                    dtxResourcePool.getTransactionManger().getMessageListener().onMessageReceived(protocolData.getData());
+                } else {
+                    logger.info("discard notify info: {}", protocolData.getData());
+                }
             } else {
-                logger.error("unknown protocol data, {}", protocolData.getRequestId());
+                FutureResult result = DtxClient.findFutureResult(protocolData.getRequestId());
+                if (null != result) {
+                    result.wakeUp(protocolData.getData());
+                } else {
+                    logger.error("unknown protocol data, {}", protocolData.getRequestId());
+                }
             }
             return null;
         }
+
+        /**
+         * 是通知消息
+         * @param	protocolData
+         * @author  xiaoqianbin
+         * @date    2019/12/10
+         **/
+        private boolean isNotifyMessage(ProtocolData protocolData) {
+            return null == protocolData.getRequestId();
+        }
     };
+
+    public ClientNetEventHandler(DtxResourcePool dtxResourcePool) {
+        this.dtxResourcePool = dtxResourcePool;
+    }
 
     /**
      * 重写基类，不再返回信息

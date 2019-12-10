@@ -1,7 +1,5 @@
 package rabbit.open.dtx.common.nio.pub;
 
-import java.io.Serializable;
-
 /**
  * 数据处理接口
  * @author xiaoqianbin
@@ -15,6 +13,6 @@ public interface DataHandler {
      * @author  xiaoqianbin
      * @date    2019/12/7
      **/
-    Serializable process(ProtocolData protocolData);
+    Object process(ProtocolData protocolData);
 
 }

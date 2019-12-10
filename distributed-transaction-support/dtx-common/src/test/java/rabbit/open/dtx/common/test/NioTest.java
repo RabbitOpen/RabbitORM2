@@ -6,16 +6,14 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.dtx.common.nio.client.AbstractResourcePool;
 import rabbit.open.dtx.common.nio.client.DtxClient;
 import rabbit.open.dtx.common.nio.client.FutureResult;
-import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.DtxResourcePool;
-import rabbit.open.dtx.common.nio.pub.KeepAlive;
+import rabbit.open.dtx.common.nio.pub.protocol.KeepAlive;
 import rabbit.open.dtx.common.nio.server.DtxServer;
+import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -39,7 +37,8 @@ public class NioTest {
         ServerNetEventHandler handler = new ServerNetEventHandler();
         DtxServer server = new DtxServer(port, handler);
         server.start();
-        AbstractResourcePool<DtxClient> arp = new DtxResourcePool(5, Arrays.asList(new Node("localhost", port)), "testPool");
+        TestTransactionManger manger = new TestTransactionManger();
+        DtxResourcePool arp = new DtxResourcePool(manger);
         int count = 100;
         CountDownLatch cdl = new CountDownLatch(count);
         long start = System.currentTimeMillis();
@@ -60,6 +59,8 @@ public class NioTest {
         }
         cdl.await();
         logger.info("cost: {}", (System.currentTimeMillis() - start));
+        TestCase.assertEquals(ApplicationDataHandler.getAgents(manger.getApplicationName()).size(),
+                ((DtxResourcePool) arp).getCount());
         StringBuilder longStr = new StringBuilder();
         for (int i = 0 ; i < 1024; i++) {
             longStr.append("hellox+x");
@@ -67,11 +68,13 @@ public class NioTest {
         DtxClient dtxClient = arp.getResource(50);
         FutureResult result = dtxClient.send(longStr.toString());
         dtxClient.release();
-        logger.info(" 异常{} ", result.getData().toString());
+        Object data = result.getData();
+        TestCase.assertTrue(data instanceof Exception);
+        logger.info("{} ", data.toString());
         arp.gracefullyShutdown();
-
         server.shutdown();
         TestCase.assertEquals(DtxClient.getLeftMessages(), 0);
+        TestCase.assertEquals(ApplicationDataHandler.getAgents(manger.getApplicationName()).size(), 0);
     }
 
 

@@ -1,7 +1,7 @@
 package rabbit.open.dtx.client.test.service;
 
 import org.springframework.stereotype.Component;
-import rabbit.open.dtx.client.context.ext.AbstractTransactionManger;
+import rabbit.open.dtx.client.trans.AbstractTransactionManger;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 
 import java.lang.reflect.Method;
@@ -21,7 +21,7 @@ public class SimpleTransactionManger extends AbstractTransactionManger {
     private long lastBranchId;
 
     // 事务消息处理器
-    private TransactionHandler transactionHandler = new TestTransactionHandler() {
+    private TransactionHandler transactionHandler = new TransactionHandler() {
 
         @Override
         public Long getTransactionBranchId(Long txGroupId, String applicationName) {

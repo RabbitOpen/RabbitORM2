@@ -1,10 +1,9 @@
-package rabbit.open.dtx.common.nio.server.ext;
+package rabbit.open.dtx.server;
 
-import rabbit.open.dtx.common.nio.pub.ChannelAgent;
+import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -27,12 +26,7 @@ public final class DtxServerEventHandler extends AbstractServerEventHandler {
     @PostConstruct
     public void init() {
         tpe = new ThreadPoolExecutor(coreSize, maxConcurrence, 5, TimeUnit.MINUTES,
-                new ArrayBlockingQueue<>(1000), new RejectedExecutionHandler() {
-            @Override
-            public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                r.run();
-            }
-        });
+                new ArrayBlockingQueue<>(1000), (r, executor) -> r.run());
     }
 
     /**

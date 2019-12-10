@@ -15,8 +15,8 @@ import java.lang.annotation.*;
 @Inherited
 public @interface Reference {
 
-    // 注册中心配置对象的spring bean名字
-    String registryBeanName();
+    // 事务管理器的名字
+    String transactionManager();
 
     // rpc等待超时秒数
     long timeoutSeconds() default 0L;

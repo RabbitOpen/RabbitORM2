@@ -1,6 +1,6 @@
 package rabbit.open.dtx.client.context;
 
-import rabbit.open.dtx.client.enhance.DistributedTransactionObject;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 
 /**
  * 环境上下文

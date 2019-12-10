@@ -1,6 +1,7 @@
 package rabbit.open.dtx.common.nio.client.ext;
 
 import rabbit.open.dtx.common.nio.client.AbstractResourcePool;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
 import rabbit.open.dtx.common.nio.client.DtxClient;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -32,14 +34,14 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
 
     protected boolean run = true;
 
-    private NetEventHandler netEventHandler = new ClientNetEventHandler();
+    private NetEventHandler netEventHandler = new ClientNetEventHandler(this);
 
-    private String name;
+    private DistributedTransactionManger transactionManger;
 
-    public DtxResourcePool(int maxConcurrenceSize, List<Node> nodes, String name) throws IOException {
-        super(maxConcurrenceSize);
-        this.name = name;
-        this.nodes = nodes;
+    public DtxResourcePool(DistributedTransactionManger transactionManger) throws IOException {
+        super(transactionManger.getMaxConcurrenceSize());
+        this.transactionManger = transactionManger;
+        this.nodes = new ArrayList<>(transactionManger.getServerNodes());
         selector = Selector.open();
         readThread = new Thread(() -> {
             while (run) {
@@ -51,6 +53,10 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
             }
         });
         readThread.start();
+    }
+
+    public DistributedTransactionManger getTransactionManger() {
+        return transactionManger;
     }
 
     /**
@@ -101,7 +107,7 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
 
     @Override
     protected DtxClient newResource() {
-        logger.info("{} created a connection, current size {}", name, count);
+        logger.info("{} created a connection, current size {}", transactionManger.getApplicationName(), count);
         return new DtxClient(nodes.get(nodeIndex), this);
     }
 

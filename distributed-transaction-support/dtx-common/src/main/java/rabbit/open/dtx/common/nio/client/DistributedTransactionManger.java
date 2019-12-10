@@ -1,9 +1,9 @@
-package rabbit.open.dtx.client.context;
-
-import rabbit.open.dtx.client.enhance.DistributedTransactionObject;
+package rabbit.open.dtx.common.nio.client;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 分布式事务管理器
@@ -38,10 +38,11 @@ public interface DistributedTransactionManger extends Serializable {
 
     /**
      * 判断当前业务是否处于事务开启状态
+     * @param   method  开启事务的方法
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    boolean isTransactionOpen();
+    boolean isTransactionOpen(Method method);
 
     /**
      * 获取事务对象
@@ -70,4 +71,25 @@ public interface DistributedTransactionManger extends Serializable {
      * @date    2019/12/5
      **/
     String getApplicationName();
+
+    /**
+     * 获取消息监听器
+     * @author  xiaoqianbin
+     * @date    2019/12/10
+     **/
+    default MessageListener getMessageListener() {return null;}
+
+    /**
+     * 分布式事务 tcp客户端最大并发连接数
+     * @author  xiaoqianbin
+     * @date    2019/12/10
+     **/
+    default int getMaxConcurrenceSize() {return 5;}
+
+    /**
+     * 分布式事务服务端信息
+     * @author  xiaoqianbin
+     * @date    2019/12/10
+     **/
+    default List<Node> getServerNodes() {return new ArrayList<>();}
 }

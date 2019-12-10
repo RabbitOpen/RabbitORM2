@@ -7,7 +7,7 @@ import rabbit.open.dtx.common.nio.exception.InvalidPackageSizeException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.NetEventHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
-import rabbit.open.dtx.common.nio.server.ext.DataDispatcher;
+import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 
 import java.io.IOException;
@@ -28,7 +28,7 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
     private ThreadLocal<ByteBuffer> switchRegion = new ThreadLocal<>();
 
     // agent缓存
-    protected ThreadLocal<ChannelAgent> agentContext = new ThreadLocal<>();
+    private static final ThreadLocal<ChannelAgent> agentContext = new ThreadLocal<>();
 
     /**
      * 获取数据分发器
@@ -139,7 +139,7 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
      * @author  xiaoqianbin
      * @date    2019/12/9
      **/
-    public ChannelAgent getCurrentAgent() {
+    public static ChannelAgent getCurrentAgent() {
         return agentContext.get();
     }
 

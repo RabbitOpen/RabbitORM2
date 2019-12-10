@@ -1,10 +1,8 @@
-package rabbit.open.dtx.common.nio.server.ext;
+package rabbit.open.dtx.common.nio.server.handler;
 
 import rabbit.open.dtx.common.nio.pub.DataHandler;
-import rabbit.open.dtx.common.nio.pub.KeepAlive;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
-
-import java.io.Serializable;
+import rabbit.open.dtx.common.nio.pub.protocol.KeepAlive;
 
 /**
  * 心跳数据处理器
@@ -20,7 +18,7 @@ class KeepAliveHandler implements DataHandler {
      * @date    2019/12/7
      **/
     @Override
-    public Serializable process(ProtocolData protocolData) {
+    public Object process(ProtocolData protocolData) {
         return new KeepAlive();
     }
 }

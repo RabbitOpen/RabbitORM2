@@ -5,7 +5,6 @@ import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -35,6 +34,9 @@ public class ChannelAgent {
 
     // 等待agent正确连接上
     private Semaphore semaphore = new Semaphore(0);
+
+    // 应用名
+    private String appName;
 
     // agent是否已经关闭
     private boolean closed = false;
@@ -99,7 +101,7 @@ public class ChannelAgent {
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
-    public final void response(Serializable data, Long requestId) {
+    public final void response(Object data, Long requestId) {
         send(data, requestId);
     }
 
@@ -177,5 +179,13 @@ public class ChannelAgent {
 
     public void setClosed(boolean closed) {
         this.closed = closed;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public void setAppName(String appName) {
+        this.appName = appName;
     }
 }

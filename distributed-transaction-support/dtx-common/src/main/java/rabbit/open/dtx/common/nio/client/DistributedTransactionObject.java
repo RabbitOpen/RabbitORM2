@@ -1,4 +1,4 @@
-package rabbit.open.dtx.client.enhance;
+package rabbit.open.dtx.common.nio.client;
 
 import java.lang.reflect.Method;
 
@@ -19,7 +19,7 @@ public class DistributedTransactionObject {
     private Method transactionOwner;
 
     // 是任务的发起人
-    private boolean promoter;
+    private boolean promoter = false;
 
     public DistributedTransactionObject(Long txGroupId) {
         setTxGroupId(txGroupId);

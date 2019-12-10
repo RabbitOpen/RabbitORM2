@@ -3,6 +3,8 @@ package rabbit.open.dtx.common.nio.server.ext;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
 import rabbit.open.dtx.common.nio.server.DtxServer;
+import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
+import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
 
 /**
  * 抽象服务端时间处理器
@@ -29,6 +31,18 @@ public abstract class AbstractServerEventHandler extends AbstractNetEventHandler
     @Override
     protected void wakeUpSelector(ChannelAgent agent) {
         getDtxServer().wakeup();
+    }
+
+    /**
+     * 移除缓存的agent
+     * @param	agent
+     * @author  xiaoqianbin
+     * @date    2019/12/10
+     **/
+    @Override
+    public void onDisconnected(ChannelAgent agent) {
+        super.onDisconnected(agent);
+        ApplicationDataHandler.removeAgent(agent);
     }
 
     @Override
