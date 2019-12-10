@@ -15,7 +15,7 @@ import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 public class DubboContextFilter implements Filter {
 
     @Override
-    public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+    public Result invoke(Invoker<?> invoker, Invocation invocation) {
         try {
             DistributedTransactionObject transactionObject = DistributedTransactionContext.getDistributedTransactionObject();
             if (null != transactionObject) {

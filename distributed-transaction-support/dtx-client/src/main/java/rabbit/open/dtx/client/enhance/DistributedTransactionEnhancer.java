@@ -35,7 +35,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     @Override
     protected PointCutHandler<DistributedTransaction> getHandler() {
         return (invocation, annotation) -> {
-            if (Propagation.NESTED == annotation.propagation() && !transactionManger.isTransactionOpen()) {
+            if (Propagation.NESTED == annotation.propagation() && !transactionManger.isTransactionOpen(invocation.getMethod())) {
                 try {
                     return invocation.proceed();
                 } catch (Throwable e) {

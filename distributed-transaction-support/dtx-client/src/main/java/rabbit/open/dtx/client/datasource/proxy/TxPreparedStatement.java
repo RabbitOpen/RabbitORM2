@@ -1,5 +1,6 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
+import rabbit.open.dtx.client.context.DistributedTransactionContext;
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
 import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
@@ -42,7 +43,7 @@ public class TxPreparedStatement implements PreparedStatement {
 
     @Override
     public int executeUpdate() throws SQLException {
-        if (getTransactionManger().isTransactionOpen()) {
+        if (null != DistributedTransactionContext.getDistributedTransactionObject()) {
             RollBackRecord entity = createRollbackEntity();
             saveRollbackInfo(entity);
         }

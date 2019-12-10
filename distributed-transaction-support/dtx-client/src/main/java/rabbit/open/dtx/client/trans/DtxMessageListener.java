@@ -28,13 +28,16 @@ public class DtxMessageListener implements MessageListener {
     @Override
     public void onMessageReceived(Object msg) {
         TransactionHandler transactionHandler = transactionManger.getTransactionHandler();
+        CommitMessage cm;
         try {
             if (msg instanceof RollBackMessage) {
-                RollBackMessage rbm = (RollBackMessage) msg;
-                tmh.rollback(rbm.getApplicationName(), rbm.getTxGroupId(), rbm.getTxBranchId());
-            } else if (msg instanceof CommitMessage) {
-                CommitMessage cm = (CommitMessage) msg;
+                cm = (RollBackMessage) msg;
                 tmh.rollback(cm.getApplicationName(), cm.getTxGroupId(), cm.getTxBranchId());
+                transactionHandler.confirmBranchRollback(cm.getTxGroupId(), cm.getTxBranchId());
+            } else if (msg instanceof CommitMessage) {
+                cm = (CommitMessage) msg;
+                tmh.commit(cm.getApplicationName(), cm.getTxGroupId(), cm.getTxBranchId());
+                transactionHandler.confirmBranchCommit(cm.getTxGroupId(), cm.getTxBranchId());
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

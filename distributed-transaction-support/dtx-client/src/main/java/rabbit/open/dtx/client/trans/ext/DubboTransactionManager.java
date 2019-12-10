@@ -22,11 +22,11 @@ public class DubboTransactionManager extends AbstractTransactionManger {
 
     public static final String TRANSACTION_GROUP_ID = "_DTX_TRANSACTION_GROUP_ID";
 
-    private TransactionHandler transactionHandler;
+    private transient TransactionHandler transactionHandler;
 
-    private MessageListener messageListener = new DtxMessageListener(this);
+    private transient MessageListener messageListener = new DtxMessageListener(this);
 
-    private List<Node> nodes;
+    private transient List<Node> nodes;
 
     private String applicationName;
 

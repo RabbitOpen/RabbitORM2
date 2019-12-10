@@ -35,7 +35,7 @@ public class RpcTransactionManger implements DistributedTransactionManger {
     }
 
     @Override
-    public boolean isTransactionOpen() {
+    public boolean isTransactionOpen(Method method) {
         return false;
     }
 
