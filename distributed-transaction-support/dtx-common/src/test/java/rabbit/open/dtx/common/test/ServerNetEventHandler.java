@@ -23,11 +23,6 @@ public class ServerNetEventHandler extends AbstractServerEventHandler {
     });
 
     @Override
-    public void onConnected(ChannelAgent agent) {
-        logger.info("{} connected ", agent.getRemote());
-    }
-
-    @Override
     protected void executeReadTask(Runnable task) {
         tpe.submit(task);
     }

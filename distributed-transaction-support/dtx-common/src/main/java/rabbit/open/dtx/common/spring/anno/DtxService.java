@@ -1,6 +1,6 @@
 package rabbit.open.dtx.common.spring.anno;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.lang.annotation.*;
 
@@ -11,7 +11,7 @@ import java.lang.annotation.*;
  **/
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Component
+@Service
 @Inherited
 public @interface DtxService {
 

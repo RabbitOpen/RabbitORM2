@@ -35,23 +35,26 @@ public class RpcTest {
     @Autowired
     private HelloService helloService;
 
+    static long groupId;
 
     @Test
     public void rpcTest() throws IOException, InterruptedException {
         serverWrapper.start(10086, new ServerNetEventHandler());
         int count = 100;
+        int loop = 200000;
         CountDownLatch cdl = new CountDownLatch(count);
         long start = System.currentTimeMillis();
         for (int index = 0; index < count; index++) {
             new Thread(() -> {
-                for (int i = 0; i < 10000; i++) {
-                    Long groupId = client.getTransactionGroupId();
+                for (int i = 0; i < loop; i++) {
+                    groupId = client.getTransactionGroupId();
                 };
                 cdl.countDown();
             }).start();
         }
         cdl.await();
         logger.info("cost {}", System.currentTimeMillis() - start);
+        TestCase.assertEquals(groupId, count * loop - 1);
     }
 
     @Test

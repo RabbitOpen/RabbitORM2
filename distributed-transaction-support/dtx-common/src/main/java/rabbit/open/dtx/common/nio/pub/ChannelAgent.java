@@ -36,6 +36,9 @@ public class ChannelAgent {
     // 等待agent正确连接上
     private Semaphore semaphore = new Semaphore(0);
 
+    // agent是否已经关闭
+    private boolean closed = false;
+
     // 连接上次活跃时间
     private long lastActiveTime = 0;
 
@@ -166,5 +169,13 @@ public class ChannelAgent {
         } finally {
             lock.unlock();
         }
+    }
+
+    public boolean isClosed() {
+        return closed;
+    }
+
+    public void setClosed(boolean closed) {
+        this.closed = closed;
     }
 }

@@ -30,21 +30,16 @@ public class ClientNetEventHandler extends AbstractNetEventHandler {
         }
     };
 
-    @Override
-    public void onDisconnected(ChannelAgent agent) {
-        // TO DO: ignore disconnection
-    }
-
     /**
      * 重写基类，不再返回信息
-     * @param	protocolData
-	 * @param	agent
-     * @author  xiaoqianbin
-     * @date    2019/12/8
+     * @param    protocolData
+     * @param    agent
+     * @author xiaoqianbin
+     * @date 2019/12/8
      **/
     @Override
     protected void processData(ProtocolData protocolData, ChannelAgent agent) {
-        dispatcher.process(protocolData);
+        getDispatcher().process(protocolData);
     }
 
     @Override
@@ -63,7 +58,8 @@ public class ClientNetEventHandler extends AbstractNetEventHandler {
     }
 
     @Override
-    protected void closeChannel(ChannelAgent agent) {
+    protected void closeAgentChannel(ChannelAgent agent) {
+        agent.setClosed(true);
         agent.getResource().destroy();
     }
 

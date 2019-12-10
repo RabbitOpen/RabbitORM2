@@ -44,12 +44,9 @@ public class SessionTest {
         TestCase.assertEquals(conn.getClientInfo("xx"), session.getClientInfo("xx"));
         TestCase.assertEquals(conn.getCatalog(), session.getCatalog());
         TestCase.assertEquals(conn.getHoldability(), session.getHoldability());
-        session.setNetworkTimeout(new Executor() {
-			@Override
-			public void execute(Runnable command) {
-				
-			}
-		}, 1000);
+        session.setNetworkTimeout(command -> {
+
+        }, 1000);
         TestCase.assertEquals(conn.getNetworkTimeout(), session.getNetworkTimeout());
         TestCase.assertEquals(conn.getTypeMap(), session.getTypeMap());
         TestCase.assertEquals(conn.getSchema(), session.getSchema());

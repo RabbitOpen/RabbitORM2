@@ -32,7 +32,8 @@ public abstract class AbstractServerEventHandler extends AbstractNetEventHandler
     }
 
     @Override
-    protected void closeChannel(ChannelAgent agent) {
+    protected void closeAgentChannel(ChannelAgent agent) {
+        agent.setClosed(true);
         getDtxServer().closeChannelKey(agent.getSelectionKey());
     }
 

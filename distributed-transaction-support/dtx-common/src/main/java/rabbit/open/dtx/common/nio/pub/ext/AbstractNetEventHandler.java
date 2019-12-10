@@ -27,11 +27,20 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
     // 数据接收缓冲区(默认的缓冲区只有8K, 接收大数据时会临时开辟一个大的缓冲区，用完后直接回收)
     private ThreadLocal<ByteBuffer> switchRegion = new ThreadLocal<>();
 
+    // agent缓存
+    protected ThreadLocal<ChannelAgent> agentContext = new ThreadLocal<>();
 
+    /**
+     * 获取数据分发器
+     * @author  xiaoqianbin
+     * @date    2019/12/9
+     **/
     protected abstract DataDispatcher getDispatcher();
 
     @Override
-    public void onConnected(ChannelAgent agent) { }
+    public void onConnected(ChannelAgent agent) {
+        logger.info("{} connected!", agent.getRemote());
+    }
 
     /**
      * 处理读事件
@@ -72,7 +81,7 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
      * @author xiaoqianbin
      * @date 2019/12/8
      **/
-    protected abstract void closeChannel(ChannelAgent agent);
+    protected abstract void closeAgentChannel(ChannelAgent agent);
 
     @Override
     public void onDisconnected(ChannelAgent agent) {
@@ -90,6 +99,7 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
         agent.active();
         executeReadTask(() -> {
             try {
+                agentContext.set(agent);
                 // 再次激活，减低monitor误判死连接的几率
                 agent.active();
                 switchRegion.set(agent.getDataBuffer(getDefaultBufferSize()));
@@ -97,14 +107,15 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
                 agent.getSelectionKey().interestOps(SelectionKey.OP_READ);
                 wakeUpSelector(agent);
             } catch (ClientClosedException e) {
+                closeAgentChannel(agent);
                 onDisconnected(agent);
-                closeChannel(agent);
             } catch (Exception e) {
+                closeAgentChannel(agent);
                 onDisconnected(agent);
-                closeChannel(agent);
                 logger.error(e.getMessage(), e);
             } finally {
                 switchRegion.remove();
+                agentContext.remove();
             }
         });
     }
@@ -121,6 +132,15 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
                 return;
             }
         }
+    }
+
+    /**
+     * 获取当前请求业务的agent信息
+     * @author  xiaoqianbin
+     * @date    2019/12/9
+     **/
+    public ChannelAgent getCurrentAgent() {
+        return agentContext.get();
     }
 
     /**
