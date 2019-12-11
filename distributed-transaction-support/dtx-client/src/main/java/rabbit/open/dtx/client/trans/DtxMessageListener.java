@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.client.net.TransactionMessageHandler;
 import rabbit.open.dtx.common.nio.client.MessageListener;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;

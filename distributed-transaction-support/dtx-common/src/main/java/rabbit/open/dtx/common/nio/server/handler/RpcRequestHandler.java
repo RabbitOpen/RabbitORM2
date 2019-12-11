@@ -8,6 +8,9 @@ import rabbit.open.dtx.common.nio.pub.protocol.RabbitProtocol;
 import rabbit.open.dtx.common.spring.enhance.ext.DtxServiceScanner;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * RPC调用数据处理器
@@ -61,7 +64,13 @@ class RpcRequestHandler implements DataHandler {
 
     // 从接口中读取该方法
     private Method getMethodFromInterface(RabbitProtocol protocol, Object dtxService, NoSuchMethodException e) {
-        for (Class<?> anInterface : dtxService.getClass().getInterfaces()) {
+        List<Class<?>> allInterfaces = new ArrayList<>();
+        Class<?> clz = dtxService.getClass();
+        while (!clz.equals(Object.class)) {
+            allInterfaces.addAll(Arrays.asList(clz.getInterfaces()));
+            clz = clz.getSuperclass();
+        }
+        for (Class<?> anInterface : allInterfaces) {
             try {
                 return anInterface.getDeclaredMethod(protocol.getMethodName(), protocol.getArgTypes());
             } catch (NoSuchMethodException ex) {

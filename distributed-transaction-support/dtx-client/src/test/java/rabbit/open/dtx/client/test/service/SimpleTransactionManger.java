@@ -1,7 +1,7 @@
 package rabbit.open.dtx.client.test.service;
 
 import org.springframework.stereotype.Component;
-import rabbit.open.dtx.client.trans.AbstractTransactionManger;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 
 import java.lang.reflect.Method;
@@ -36,8 +36,13 @@ public class SimpleTransactionManger extends AbstractTransactionManger {
     };
 
     @Override
-    protected TransactionHandler getTransactionHandler() {
+    public TransactionHandler getTransactionHandler() {
         return transactionHandler;
+    }
+
+    @Override
+    protected long getDefaultTimeoutSeconds() {
+        return 3L;
     }
 
     @Override

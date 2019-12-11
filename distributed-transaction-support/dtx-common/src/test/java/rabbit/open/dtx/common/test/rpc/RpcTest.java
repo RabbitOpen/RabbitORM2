@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.dtx.common.nio.exception.RpcException;
@@ -15,6 +14,7 @@ import rabbit.open.dtx.common.test.enhance.FirstEnhancer;
 import rabbit.open.dtx.common.test.enhance.HelloService;
 import rabbit.open.dtx.common.test.enhance.LastEnhancer;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
@@ -28,13 +28,13 @@ public class RpcTest {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
+    @Resource
     private TestServerWrapper serverWrapper;
 
-    @Autowired
-    DtxTransactionClient client;
+    @Resource
+    RpcTransactionManger rtm;
 
-    @Autowired
+    @Resource
     private HelloService helloService;
 
     static long groupId;
@@ -49,7 +49,7 @@ public class RpcTest {
         for (int index = 0; index < count; index++) {
             new Thread(() -> {
                 for (int i = 0; i < loop; i++) {
-                    groupId = client.getTransactionGroupId();
+                    groupId = rtm.getTransactionHandler().getTransactionGroupId();
                 }
                 cdl.countDown();
             }).start();
@@ -58,16 +58,16 @@ public class RpcTest {
         logger.info("cost {}", System.currentTimeMillis() - start);
         TestCase.assertEquals(groupId, count * loop - 1);
 
-        client.doBranchCommit(1L, 2L, "rpcTest");
-        client.doCommit(11L, 3L, "rpcTest");
+        rtm.getTransactionHandler().doBranchCommit(1L, 2L, "rpcTest");
+        rtm.getTransactionHandler().doCommit(11L, 3L, "rpcTest");
 
         //超时
         try {
-            client.doRollback(100L);
+            rtm.getTransactionHandler().doRollback(100L);
             throw new RpcException("");
-        } catch (Exception e) {
+        } catch (TimeoutException e) {
             logger.warn(e.getMessage());
-            TestCase.assertEquals(e.getClass(), TimeoutException.class);
+            TestCase.assertEquals(e.getTimeoutSeconds(), rtm.getDefaultTimeoutSeconds());
         }
     }
 

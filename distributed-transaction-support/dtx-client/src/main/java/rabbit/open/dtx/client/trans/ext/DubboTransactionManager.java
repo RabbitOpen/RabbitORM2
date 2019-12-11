@@ -2,13 +2,12 @@ package rabbit.open.dtx.client.trans.ext;
 
 import com.alibaba.dubbo.rpc.RpcContext;
 import org.springframework.util.StringUtils;
-import rabbit.open.dtx.client.trans.AbstractTransactionManger;
 import rabbit.open.dtx.client.trans.DtxMessageListener;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.client.MessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
-import rabbit.open.dtx.common.nio.pub.TransactionHandler;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -21,8 +20,6 @@ import java.util.List;
 public class DubboTransactionManager extends AbstractTransactionManger {
 
     public static final String TRANSACTION_GROUP_ID = "_DTX_TRANSACTION_GROUP_ID";
-
-    private transient TransactionHandler transactionHandler;
 
     private transient MessageListener messageListener = new DtxMessageListener(this);
 
@@ -49,8 +46,8 @@ public class DubboTransactionManager extends AbstractTransactionManger {
     }
 
     @Override
-    protected TransactionHandler getTransactionHandler() {
-        return transactionHandler;
+    protected long getDefaultTimeoutSeconds() {
+        return 3L;
     }
 
     @Override

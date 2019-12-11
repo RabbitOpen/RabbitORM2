@@ -8,8 +8,14 @@ package rabbit.open.dtx.common.nio.exception;
 @SuppressWarnings("serial")
 public class TimeoutException extends RuntimeException {
 
+    private final long timeoutSeconds;
+
     public TimeoutException(long seconds) {
         super(String.format("timeout %ss", seconds));
+        this.timeoutSeconds = seconds;
     }
 
+    public long getTimeoutSeconds() {
+        return timeoutSeconds;
+    }
 }

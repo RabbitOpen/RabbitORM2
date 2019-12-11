@@ -1,11 +1,9 @@
 package rabbit.open.dtx.common.test.rpc;
 
 import org.springframework.stereotype.Component;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.client.Node;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,42 +14,12 @@ import java.util.List;
  **/
 @Component("rpcTransactionManger")
 @SuppressWarnings("serial")
-public class RpcTransactionManger implements DistributedTransactionManger {
+public class RpcTransactionManger extends AbstractTransactionManger {
 
 
     @Override
-    public void beginTransaction(Method method) {
-
-    }
-
-    @Override
-    public void rollback(Method method, long timeoutSeconds) {
-
-    }
-
-    @Override
-    public void commit(Method method) {
-
-    }
-
-    @Override
-    public boolean isTransactionOpen(Method method) {
-        return false;
-    }
-
-    @Override
-    public DistributedTransactionObject getCurrentTransactionObject() {
-        return null;
-    }
-
-    @Override
-    public Long getTransactionBranchId() {
-        return null;
-    }
-
-    @Override
-    public Long getTransactionGroupId() {
-        return null;
+    protected long getDefaultTimeoutSeconds() {
+        return 2;
     }
 
     @Override
