@@ -30,7 +30,7 @@ public class SimpleTransactionManger extends AbstractTransactionManger {
         }
 
         @Override
-        public Long getTransactionGroupId() {
+        public Long getTransactionGroupId(String applicationName) {
             return idGenerator.getAndAdd(1L);
         }
     };

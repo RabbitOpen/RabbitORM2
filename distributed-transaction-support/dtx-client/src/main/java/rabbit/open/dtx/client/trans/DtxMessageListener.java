@@ -1,47 +1,51 @@
 package rabbit.open.dtx.client.trans;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.client.net.TransactionMessageHandler;
 import rabbit.open.dtx.common.nio.client.MessageListener;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
-import rabbit.open.dtx.common.nio.pub.TransactionHandler;
-import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
-import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
 
 /**
- * 消息处理器
+ * 异步消息处理器， 同步消息会阻塞其它请求的数据读取
  * @author xiaoqianbin
  * @date 2019/12/10
  **/
-public class DtxMessageListener implements MessageListener {
+public class DtxMessageListener extends MessageListener {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private TransactionMessageHandler tmh = new TransactionMessageHandler();
 
-    TransactionMessageHandler tmh = new TransactionMessageHandler();
-
-    AbstractTransactionManger transactionManger;
+    private AbstractTransactionManger transactionManger;
 
     public DtxMessageListener(AbstractTransactionManger transactionManger) {
         this.transactionManger = transactionManger;
     }
 
     @Override
-    public void onMessageReceived(Object msg) {
-        TransactionHandler transactionHandler = transactionManger.getTransactionHandler();
-        CommitMessage cm;
-        try {
-            if (msg instanceof RollBackMessage) {
-                cm = (RollBackMessage) msg;
-                tmh.rollback(cm.getApplicationName(), cm.getTxGroupId(), cm.getTxBranchId());
-                transactionHandler.confirmBranchRollback(cm.getTxGroupId(), cm.getTxBranchId());
-            } else if (msg instanceof CommitMessage) {
-                cm = (CommitMessage) msg;
-                tmh.commit(cm.getApplicationName(), cm.getTxGroupId(), cm.getTxBranchId());
-                transactionHandler.confirmBranchCommit(cm.getTxGroupId(), cm.getTxBranchId());
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
+    protected int getMaxThreadSize() {
+        return 5;
+    }
+
+    @Override
+    protected int getCoreSize() {
+        return 3;
+    }
+
+    @Override
+    protected int getQueueSize() {
+        return 1000;
+    }
+
+    @Override
+    protected void rollback(String applicationName, Long txGroupId, Long txBranchId) {
+        tmh.rollback(applicationName, txGroupId, txBranchId);
+    }
+
+    @Override
+    protected void commit(String applicationName, Long txGroupId, Long txBranchId) {
+        tmh.commit(applicationName, txGroupId, txBranchId);
+    }
+
+    @Override
+    protected AbstractTransactionManger getTransactionManger() {
+        return transactionManger;
     }
 }

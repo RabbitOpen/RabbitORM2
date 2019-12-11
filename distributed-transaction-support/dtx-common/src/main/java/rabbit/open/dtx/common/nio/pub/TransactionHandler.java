@@ -69,10 +69,11 @@ public interface TransactionHandler {
 
     /**
      * 获取事务组id
+     * @param applicationName
      * @author  xiaoqianbin
      * @date    2019/12/7
      **/
-    default Long getTransactionGroupId() {
+    default Long getTransactionGroupId(String applicationName) {
         return 0L;
     }
 

@@ -1,9 +1,8 @@
-package rabbit.open.dtx.server.tx;
+package rabbit.open.dtx.common.nio.server;
 
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
-import rabbit.open.dtx.common.nio.server.TxStatus;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerTransactionHandler;
 import rabbit.open.dtx.common.nio.server.ext.TransactionContext;
 import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
@@ -98,14 +97,24 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
     }
 
     @Override
-    protected void persistGroupId(Long txGroupId, TxStatus txStatus) {
+    protected void persistGroupId(Long txGroupId, String applicationName, TxStatus txStatus) {
         if (TxStatus.OPEN == txStatus) {
-            contextCache.put(txGroupId, new TransactionContext(txStatus));
+            TransactionContext context = new TransactionContext(txStatus);
+            context.setApplicationName(applicationName);
+            contextCache.put(txGroupId, context);
         } else {
             TransactionContext context = contextCache.get(txGroupId);
             if (null != context) {
                 context.setTxStatus(txStatus);
             }
+        }
+    }
+
+    @Override
+    protected void persistGroupId(Long txGroupId, TxStatus txStatus) {
+        TransactionContext context = contextCache.get(txGroupId);
+        if (null != context) {
+            context.setTxStatus(txStatus);
         }
     }
 

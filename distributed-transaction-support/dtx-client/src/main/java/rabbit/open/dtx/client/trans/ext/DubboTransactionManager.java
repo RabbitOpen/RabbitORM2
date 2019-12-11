@@ -10,6 +10,7 @@ import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,13 +22,21 @@ public class DubboTransactionManager extends AbstractTransactionManger {
 
     public static final String TRANSACTION_GROUP_ID = "_DTX_TRANSACTION_GROUP_ID";
 
-    private transient MessageListener messageListener = new DtxMessageListener(this);
+    protected transient MessageListener messageListener = new DtxMessageListener(this);
 
-    private transient List<Node> nodes;
+    private String hosts;
 
     private String applicationName;
 
     private int maxConcurrenceSize;
+
+    private long defaultTimeoutSeconds = 3L;
+
+    public DubboTransactionManager(String hosts, String applicationName, int maxConcurrenceSize) {
+        this.hosts = hosts;
+        this.applicationName = applicationName;
+        this.maxConcurrenceSize = maxConcurrenceSize;
+    }
 
     @Override
     public boolean isTransactionOpen(Method method) {
@@ -47,7 +56,7 @@ public class DubboTransactionManager extends AbstractTransactionManger {
 
     @Override
     protected long getDefaultTimeoutSeconds() {
-        return 3L;
+        return defaultTimeoutSeconds;
     }
 
     @Override
@@ -67,7 +76,15 @@ public class DubboTransactionManager extends AbstractTransactionManger {
 
     @Override
     public List<Node> getServerNodes() {
-        return nodes;
+        List<Node> list = new ArrayList<>();
+        for (String host : hosts.split(",")) {
+            String[] hp = host.trim().split(":");
+            list.add(new Node(hp[0].trim(), Integer.parseInt(hp[1].trim())));
+        }
+        return list;
     }
 
+    public void setDefaultTimeoutSeconds(long defaultTimeoutSeconds) {
+        this.defaultTimeoutSeconds = defaultTimeoutSeconds;
+    }
 }

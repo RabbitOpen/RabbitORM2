@@ -33,6 +33,8 @@ public class DtxServer {
     // 网络事件接口
     private AbstractServerEventHandler netEventHandler;
 
+    private int port;
+
     public DtxServer(int port, AbstractServerEventHandler netEventHandler) throws IOException {
         this.netEventHandler = netEventHandler;
         this.netEventHandler.setDtxServer(this);
@@ -43,6 +45,7 @@ public class DtxServer {
         listenChannel.socket().bind(new InetSocketAddress(port));
         //注册接收事件
         listenChannel.register(readSelector, SelectionKey.OP_ACCEPT);
+        this.port = port;
     }
 
     /**
@@ -55,6 +58,7 @@ public class DtxServer {
             return;
         }
         listener = new Thread(() -> {
+            logger.info("dtx server is listening on port: {}", port);
             while (true) {
                 try {
                     Iterator<SelectionKey> keys = selectKeys(1000);

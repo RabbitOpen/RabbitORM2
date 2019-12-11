@@ -19,6 +19,9 @@ public class TransactionContext {
     // 分支应用缓存
     private Map<Long, String> branchApp;
 
+    // 开启事务的应用
+    private String applicationName;
+
     public TransactionContext(TxStatus txStatus) {
         this.txStatus = txStatus;
         branchStatus = new ConcurrentHashMap<>();
@@ -44,5 +47,13 @@ public class TransactionContext {
 
     public Map<Long, String> getBranchApp() {
         return branchApp;
+    }
+
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
     }
 }

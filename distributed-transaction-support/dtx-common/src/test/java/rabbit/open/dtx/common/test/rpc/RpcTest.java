@@ -41,7 +41,9 @@ public class RpcTest {
 
     @Test
     public void rpcTest() throws IOException, InterruptedException {
-        serverWrapper.start(10086, new ServerNetEventHandler());
+        ServerNetEventHandler handler = new ServerNetEventHandler();
+        handler.setTransactionHandler(new MyTransactionService());
+        serverWrapper.start(10086, handler);
         int count = 100;
         int loop = 10000;
         CountDownLatch cdl = new CountDownLatch(count);
@@ -49,7 +51,7 @@ public class RpcTest {
         for (int index = 0; index < count; index++) {
             new Thread(() -> {
                 for (int i = 0; i < loop; i++) {
-                    groupId = rtm.getTransactionHandler().getTransactionGroupId();
+                    groupId = rtm.getTransactionHandler().getTransactionGroupId(rtm.getApplicationName());
                 }
                 cdl.countDown();
             }).start();

@@ -124,7 +124,7 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
 
     @Override
     public final Long getTransactionGroupId() {
-        return getTransactionHandler().getTransactionGroupId();
+        return getTransactionHandler().getTransactionGroupId(getApplicationName());
     }
 
     /**

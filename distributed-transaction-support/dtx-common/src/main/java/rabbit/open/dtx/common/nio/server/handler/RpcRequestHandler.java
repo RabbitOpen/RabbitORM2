@@ -1,11 +1,13 @@
 package rabbit.open.dtx.common.nio.server.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.protocol.RabbitProtocol;
-import rabbit.open.dtx.common.spring.enhance.ext.DtxServiceScanner;
+import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -19,6 +21,13 @@ import java.util.List;
  **/
 class RpcRequestHandler implements DataHandler {
 
+    AbstractServerEventHandler eventHandler;
+
+    public RpcRequestHandler(AbstractServerEventHandler eventHandler) {
+        this.eventHandler = eventHandler;
+    }
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
     /***
      * 处理rpc调用
      * @param    protocolData
@@ -31,13 +40,16 @@ class RpcRequestHandler implements DataHandler {
         if (StringUtils.isEmpty(protocol.getNamespace())) {
             throw new RpcException("namespace can't be empty");
         }
-        Object dtxService = DtxServiceScanner.getDtxService(protocol.getNamespace());
+        Object dtxService = eventHandler.getTransactionHandler();
         if (null == dtxService) {
             throw new RpcException(String.format("namespace [%s] not existed", protocol.getNamespace()));
         }
         try {
             Method method = dtxService.getClass().getDeclaredMethod(protocol.getMethodName(), protocol.getArgTypes());
-            return method.invoke(dtxService, protocol.getValues());
+            logger.info("request {} , id {} ", protocol.getMethodName(), protocolData.getRequestId());
+            Object invoke = method.invoke(dtxService, protocol.getValues());
+            logger.info("request {} , resp {}", protocol.getMethodName(), invoke);
+            return invoke;
         } catch (NoSuchMethodException e) {
             return tryInvokeDefaultInterfaceMethod(protocol, dtxService, e);
         } catch (Exception e) {
@@ -57,8 +69,8 @@ class RpcRequestHandler implements DataHandler {
         try {
             Method method = getMethodFromInterface(protocol, dtxService, e);
             return method.invoke(dtxService, protocol.getValues());
-        } catch (Exception e1) {
-            throw new RpcException(e);
+        } catch (Exception ex) {
+            throw new RpcException(ex);
         }
     }
 

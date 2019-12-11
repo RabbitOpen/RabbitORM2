@@ -16,6 +16,9 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
 
     @Override
     public void doBranchCommit(Long txGroupId, Long txBranchId, String applicationName) {
+        if (null == txBranchId) {
+            return;
+        }
         persistBranchInfo(txGroupId, txBranchId, applicationName, TxStatus.COMMIT);
         logger.info("{} doBranchCommit, txGroupId: {},  txBranchId: {}", applicationName, txGroupId, txBranchId);
     }
@@ -44,10 +47,10 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
     }
 
     @Override
-    public Long getTransactionGroupId() {
+    public Long getTransactionGroupId(String applicationName) {
         Long txGroupId = getNextGlobalId();
-        persistGroupId(txGroupId, TxStatus.OPEN);
-        logger.info("open transaction, txGroupId: {}", txGroupId);
+        persistGroupId(txGroupId, applicationName, TxStatus.OPEN);
+        logger.info("{} open transaction, txGroupId: {}", applicationName, txGroupId);
         return txGroupId;
     }
 
@@ -73,6 +76,16 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
      * @date    2019/12/9
      **/
     protected abstract Long getNextGlobalId();
+
+    /**
+     * 持久化分组id信息
+     * @param	txGroupId
+     * @param   applicationName
+     * @param	txStatus 事务状态
+     * @author  xiaoqianbin
+     * @date    2019/12/9
+     **/
+    protected abstract void persistGroupId(Long txGroupId, String applicationName, TxStatus txStatus);
 
     /**
      * 持久化分组id信息

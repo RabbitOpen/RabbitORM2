@@ -2,8 +2,8 @@ package rabbit.open.dtx.common.test.rpc;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.dtx.common.nio.pub.TransactionHandler;
-import rabbit.open.dtx.common.spring.anno.DtxService;
+import rabbit.open.dtx.common.nio.server.TxStatus;
+import rabbit.open.dtx.common.nio.server.ext.AbstractServerTransactionHandler;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -14,8 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author xiaoqianbin
  * @date 2019/12/9
  **/
-@DtxService
-public class MyTransactionService implements TransactionHandler {
+public class MyTransactionService extends AbstractServerTransactionHandler {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -24,8 +23,38 @@ public class MyTransactionService implements TransactionHandler {
     private Semaphore semaphore = new Semaphore(0);
 
     @Override
-    public Long getTransactionGroupId() {
+    public Long getTransactionGroupId(String applicationName) {
         return atomicLong.getAndAdd(1);
+    }
+
+    @Override
+    protected void doCommitByGroupId(Long txGroupId) {
+
+    }
+
+    @Override
+    protected void doRollbackByGroupId(Long txGroupId) {
+
+    }
+
+    @Override
+    protected Long getNextGlobalId() {
+        return null;
+    }
+
+    @Override
+    protected void persistGroupId(Long txGroupId, String applicationName, TxStatus txStatus) {
+
+    }
+
+    @Override
+    protected void persistGroupId(Long txGroupId, TxStatus txStatus) {
+
+    }
+
+    @Override
+    protected void persistBranchInfo(Long txGroupId, Long txBranchId, String applicationName, TxStatus txStatus) {
+
     }
 
     @Override

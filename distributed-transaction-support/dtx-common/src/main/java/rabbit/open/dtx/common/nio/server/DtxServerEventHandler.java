@@ -1,4 +1,4 @@
-package rabbit.open.dtx.server;
+package rabbit.open.dtx.common.nio.server;
 
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
@@ -43,5 +43,13 @@ public final class DtxServerEventHandler extends AbstractServerEventHandler {
     @Override
     public void onServerClosed() {
         tpe.shutdown();
+    }
+
+    public void setCoreSize(int coreSize) {
+        this.coreSize = coreSize;
+    }
+
+    public void setMaxConcurrence(int maxConcurrence) {
+        this.maxConcurrence = maxConcurrence;
     }
 }

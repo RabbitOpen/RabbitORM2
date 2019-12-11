@@ -14,9 +14,11 @@ import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
 public abstract class AbstractServerEventHandler extends AbstractNetEventHandler {
 
     // 单例dispatcher
-    protected DataDispatcher dispatcher = new DataDispatcher();
+    protected DataDispatcher dispatcher = new DataDispatcher(this);
 
     protected DtxServer dtxServer;
+
+    private AbstractServerTransactionHandler transactionHandler;
 
     @Override
     protected DataDispatcher getDispatcher() {
@@ -70,4 +72,12 @@ public abstract class AbstractServerEventHandler extends AbstractNetEventHandler
      * @date    2019/12/9
      **/
     public abstract void onServerClosed();
+
+    public AbstractServerTransactionHandler getTransactionHandler() {
+        return transactionHandler;
+    }
+
+    public void setTransactionHandler(AbstractServerTransactionHandler transactionHandler) {
+        this.transactionHandler = transactionHandler;
+    }
 }
