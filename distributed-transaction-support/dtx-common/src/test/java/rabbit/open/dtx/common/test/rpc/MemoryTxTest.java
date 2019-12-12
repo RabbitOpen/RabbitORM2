@@ -37,10 +37,8 @@ public class MemoryTxTest {
         handler.init();
         handler.setTransactionHandler(new MemoryBasedTransactionHandler());
         DtxServerWrapper dtxServerWrapper = new DtxServerWrapper(10021, handler);
-
         // 重写了init， server没启动，无法连接server
         rtm.manualInit();
-
         int count = 1;
         int loop = 10;
         CountDownLatch cdl = new CountDownLatch(count);
@@ -57,12 +55,10 @@ public class MemoryTxTest {
         cdl.await();
         logger.info("cost {}", System.currentTimeMillis() - start);
         TestCase.assertEquals(groupId, count * loop - 1);
-
         String applicationName = "cx";
         Long groupId = clientTransactionHandler.getTransactionGroupId(applicationName);
         clientTransactionHandler.doBranchCommit(groupId, 2L, "cx");
         clientTransactionHandler.doCommit(groupId, null, "cx");
-        clientTransactionHandler.doRollback(100L, applicationName);
         dtxServerWrapper.close();
         handler.onServerClosed();
     }

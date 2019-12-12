@@ -1,1 +1,1 @@
-dubboDtxContextFilter=rabbit.open.dtx.client.trans.ext.DubboContextFilter
+dubboDtxContextFilter=rabbit.open.dtx.client.rpc.support.DubboContextFilter

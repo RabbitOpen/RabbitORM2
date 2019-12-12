@@ -34,8 +34,8 @@ public class RpcTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
-    public void init() throws IOException {
-
+    public void init() {
+        // TO DO : DO nothing
     }
 
     public void  manualInit() throws IOException {

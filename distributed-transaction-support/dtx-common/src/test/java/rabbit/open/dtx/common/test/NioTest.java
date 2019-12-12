@@ -46,7 +46,7 @@ public class NioTest {
             new Thread(() -> {
                 for (int i = 0; i < 10000; i++) {
                     try {
-                        DtxClient dtxClient = arp.getResource(50);
+                        DtxClient dtxClient = arp.getResource();
                         FutureResult result = dtxClient.send(new KeepAlive());
                         dtxClient.release();
                         result.getData();
@@ -65,7 +65,7 @@ public class NioTest {
         for (int i = 0 ; i < 1024; i++) {
             longStr.append("hello world");
         }
-        DtxClient dtxClient = arp.getResource(50);
+        DtxClient dtxClient = arp.getResource();
         FutureResult result = dtxClient.send(longStr.toString());
         dtxClient.release();
         Object data = result.getData();

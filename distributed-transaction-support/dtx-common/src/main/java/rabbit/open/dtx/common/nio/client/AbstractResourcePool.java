@@ -40,18 +40,27 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
 
     /**
      * 获取一个资源
-     * @param    timeoutMills 超时时间
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
-    public T getResource(int timeoutMills) {
+    public T getResource() {
+        return getResource(0L);
+    }
+
+    /**
+     * 获取一个资源
+     * @param	timeoutMilliSeconds
+     * @author  xiaoqianbin
+     * @date    2019/12/12
+     **/
+    private T getResource(long timeoutMilliSeconds) {
         if (!isRunning()) {
             throw new RpcException("resource pool is closed");
         }
         T resource = null;
         try {
-            if (0 != timeoutMills) {
-                resource = queue.pollFirst(timeoutMills, TimeUnit.MILLISECONDS);
+            if (0 != timeoutMilliSeconds) {
+                resource = queue.pollFirst(timeoutMilliSeconds, TimeUnit.MILLISECONDS);
             } else {
                 resource = queue.pollFirst();
             }
@@ -61,7 +70,8 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
         if (null != resource) {
             return resource;
         } else {
-            return tryNewResource(50);
+            tryCreateResource();
+            return getResource(5);
         }
     }
 
@@ -92,26 +102,29 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
 
     /**
      * 尝试新建一个资源
-     * @param    timeout
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
-    private T tryNewResource(int timeout) {
+    private void tryCreateResource() {
+        if (!canCreate()) {
+            return;
+        }
         try {
             createLock.lock();
-            if (count >= maxConcurrenceSize) {
-                return getResource(timeout);
+            if (canCreate()) {
+                T resource = newResource();
+                release(resource);
+                count++;
             }
-            T resource = newResource();
-            onNetWorkRecovered();
-            count++;
-            return resource;
         } catch (NetworkException e) {
             onNetWorkException(e);
-            return getResource(timeout);
         } finally {
             createLock.unlock();
         }
+    }
+
+    private boolean canCreate() {
+        return count < maxConcurrenceSize;
     }
 
     /**

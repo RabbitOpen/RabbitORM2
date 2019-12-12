@@ -17,9 +17,9 @@ public class DubboContextFilter implements Filter {
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) {
         try {
-            DistributedTransactionObject transactionObject = DistributedTransactionContext.getDistributedTransactionObject();
-            if (null != transactionObject) {
-                RpcContext.getContext().setAttachment(DubboTransactionManager.TRANSACTION_GROUP_ID, transactionObject.getTxGroupId().toString());
+            DistributedTransactionObject dtxObj = DistributedTransactionContext.getDistributedTransactionObject();
+            if (null != dtxObj) {
+                RpcContext.getContext().setAttachment(DubboTransactionManager.TRANSACTION_GROUP_ID, dtxObj.getTxGroupId().toString());
             }
             return invoker.invoke(invocation);
         } finally {

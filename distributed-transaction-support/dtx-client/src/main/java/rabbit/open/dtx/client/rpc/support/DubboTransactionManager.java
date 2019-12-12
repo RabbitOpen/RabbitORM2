@@ -1,6 +1,8 @@
 package rabbit.open.dtx.client.rpc.support;
 
 import com.alibaba.dubbo.rpc.RpcContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import rabbit.open.dtx.client.net.DtxMessageListener;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
@@ -19,6 +21,8 @@ import java.util.List;
  * @date 2019/12/10
  **/
 public class DubboTransactionManager extends AbstractTransactionManager {
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String TRANSACTION_GROUP_ID = "_DTX_TRANSACTION_GROUP_ID";
 
@@ -45,8 +49,10 @@ public class DubboTransactionManager extends AbstractTransactionManager {
         }
         String txGroupId = RpcContext.getContext().getAttachment(TRANSACTION_GROUP_ID);
         if (StringUtils.isEmpty(txGroupId)) {
+            logger.debug("open original transaction");
             return false;
         }
+        logger.debug("'{}' open nested transaction, txGroupId is '{}'", method.getName(), txGroupId);
         DistributedTransactionObject tranObj = new DistributedTransactionObject(Long.parseLong(txGroupId));
         tranObj.setPromoter(false);
         tranObj.setTransactionOwner(method);

@@ -57,7 +57,7 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
     }
 
     private void initConnection() {
-        DtxClient resource = getResource(50);
+        DtxClient resource = getResource();
         resource.release();
     }
 

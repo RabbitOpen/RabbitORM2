@@ -26,8 +26,8 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
     private static final Map<Long, TransactionContext> contextCache = new ConcurrentHashMap<>();
 
     @Override
-    protected void doCommitByGroupId(Long txGroupId) {
-        doTransactionByGroupId(txGroupId, TxStatus.COMMIT);
+    protected void doCommitByGroupId(Long txGroupId, String applicationName) {
+        doTransactionByGroupId(txGroupId, applicationName, TxStatus.COMMIT);
     }
 
     @Override
@@ -35,7 +35,7 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
         TransactionContext context = contextCache.get(txGroupId);
         if (null != context) {
             removeBranchTransactionData(txBranchId, context);
-            logger.debug("{} confirmBranchCommit [{} - {}] ", applicationName, txGroupId, txBranchId);
+            logger.debug("{} confirmBranchCommit [{} --> {}] ", applicationName, txGroupId, txBranchId);
             if (context.getBranchApp().isEmpty()) {
                 contextCache.remove(txGroupId);
                 logger.debug("tx [{}] commit success", txGroupId);
@@ -54,19 +54,31 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
         TransactionContext context = contextCache.get(txGroupId);
         if (null != context) {
             removeBranchTransactionData(txBranchId, context);
-            logger.debug("{} confirmBranchRollback [{} - {}] ", applicationName, txGroupId, txBranchId);
+            logger.debug("{} confirmBranchRollback [{} --> {}] ", applicationName, txGroupId, txBranchId);
             if (context.getBranchApp().isEmpty()) {
                 contextCache.remove(txGroupId);
-                logger.debug("tx [{}] rollback success", txGroupId);
+                boolean result = rollbackCompleted(txGroupId);
+                logger.debug("tx [{}] rollback completed, rollback result: {}", txGroupId, result);
             }
         }
     }
 
-    private void doTransactionByGroupId(Long txGroupId, TxStatus txStatus) {
+    private void doTransactionByGroupId(Long txGroupId, String applicationName, TxStatus txStatus) {
         TransactionContext context = contextCache.get(txGroupId);
+        if (!context.getApplicationName().equals(applicationName)) {
+            logger.error("txGroupId({}) is created by '{}', but {} by '{}'", txGroupId,
+                    context.getApplicationName(), txStatus, applicationName);
+            return;
+        }
         if (null != context) {
-            for (Map.Entry<Long, String> entry : context.getBranchApp().entrySet()) {
-                doBranchTransaction(txGroupId, entry, txStatus);
+            if (context.getBranchApp().isEmpty()) {
+                contextCache.remove(txGroupId);
+                boolean result = rollbackCompleted(txGroupId);
+                logger.debug("tx [{}] rollback completed, rollback result: {}", txGroupId, result);
+            } else {
+                for (Map.Entry<Long, String> entry : context.getBranchApp().entrySet()) {
+                    doBranchTransaction(txGroupId, entry, txStatus);
+                }
             }
         }
     }
@@ -87,8 +99,8 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
     }
 
     @Override
-    protected void doRollbackByGroupId(Long txGroupId) {
-        doTransactionByGroupId(txGroupId, TxStatus.ROLLBACK);
+    protected void doRollbackByGroupId(Long txGroupId, String applicationName) {
+        doTransactionByGroupId(txGroupId, applicationName, TxStatus.ROLLBACK);
     }
 
     @Override

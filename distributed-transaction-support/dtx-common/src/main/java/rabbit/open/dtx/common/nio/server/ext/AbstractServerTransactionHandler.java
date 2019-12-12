@@ -3,7 +3,11 @@ package rabbit.open.dtx.common.nio.server.ext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
+import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
 import rabbit.open.dtx.common.nio.server.TxStatus;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 抽象服务端事务处理器
@@ -14,28 +18,43 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
+    protected Map<Long, RollbackListener> rollbackListenerMap = new ConcurrentHashMap<>();
+
     @Override
     public void doBranchCommit(Long txGroupId, Long txBranchId, String applicationName) {
         if (null == txBranchId) {
             return;
         }
         persistBranchInfo(txGroupId, txBranchId, applicationName, TxStatus.COMMIT);
-        logger.debug("{} doBranchCommit, txGroupId: {},  txBranchId: {}", applicationName, txGroupId, txBranchId);
+        logger.debug("{} doBranchCommit, txGroupId: {}, txBranchId: {}", applicationName, txGroupId, txBranchId);
     }
 
     @Override
     public void doCommit(Long txGroupId, Long txBranchId, String applicationName) {
         doBranchCommit(txGroupId, txBranchId, applicationName);
         persistGroupId(txGroupId, TxStatus.COMMIT);
-        logger.debug("{} doGroupCommit, txGroupId: {},  txBranchId: {}", applicationName, txGroupId, txBranchId);
-        doCommitByGroupId(txGroupId);
+        logger.debug("{} doGroupCommit, txGroupId: {}, txBranchId: {}", applicationName, txGroupId, txBranchId);
+        doCommitByGroupId(txGroupId, applicationName);
     }
 
     @Override
     public void doRollback(Long txGroupId, String applicationName) {
         persistGroupId(txGroupId, TxStatus.ROLLBACK);
         logger.debug("{} doRollback txGroupId: {}", applicationName, txGroupId);
-        doRollbackByGroupId(txGroupId);
+        rollbackListenerMap.put(txGroupId, new RollbackListener(AbstractNetEventHandler.getCurrentAgent(),
+                AbstractServerEventHandler.getCurrentRequestId()));
+        doRollbackByGroupId(txGroupId, applicationName);
+        AbstractServerEventHandler.suspendRequest();
+    }
+
+    protected boolean rollbackCompleted(Long txGroupId) {
+        RollbackListener listener = rollbackListenerMap.get(txGroupId);
+        if (null != listener) {
+            boolean result = listener.rollbackCompleted();
+            logger.debug("roll back tx({}), result: {}", txGroupId, result);
+            return result;
+        }
+        return false;
     }
 
     @Override
@@ -57,18 +76,20 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
     /**
      * 根据事务组id进行提交
      * @param	txGroupId
+     * @param	applicationName
      * @author  xiaoqianbin
      * @date    2019/12/10
      **/
-    protected abstract void doCommitByGroupId(Long txGroupId);
+    protected abstract void doCommitByGroupId(Long txGroupId, String applicationName);
 
     /**
      * 根据事务组id进行回滚
      * @param	txGroupId
+     * @param	applicationName
      * @author  xiaoqianbin
      * @date    2019/12/10
      **/
-    protected abstract void doRollbackByGroupId(Long txGroupId);
+    protected abstract void doRollbackByGroupId(Long txGroupId, String applicationName);
 
     /**
      * 生成一个全局唯一的id

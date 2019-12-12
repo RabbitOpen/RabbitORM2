@@ -28,13 +28,11 @@ public class MyTransactionService extends AbstractServerTransactionHandler {
     }
 
     @Override
-    protected void doCommitByGroupId(Long txGroupId) {
-
+    protected void doCommitByGroupId(Long txGroupId, String applicationName) {
     }
 
     @Override
-    protected void doRollbackByGroupId(Long txGroupId) {
-
+    protected void doRollbackByGroupId(Long txGroupId, String applicationName) {
     }
 
     @Override

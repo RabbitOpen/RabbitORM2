@@ -78,7 +78,7 @@
         <!--一个应用下如果有多个数据源，那么这个名字不能重复-->
         <constructor-arg name="dataSourceName" value="txDataSource"/>
 
-        <constructor-arg name="transactionManger" ref="simpleTransactionManger"/>
+        <constructor-arg name="transactionManger" ref="simpleTransactionManager"/>
     </bean>
 
     <!-- 配置SessionFactory -->

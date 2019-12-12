@@ -1,6 +1,7 @@
 package rabbit.open.dtx.common.nio.server.ext;
 
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
+import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
 import rabbit.open.dtx.common.nio.server.DtxServer;
 import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
@@ -20,6 +21,12 @@ public abstract class AbstractServerEventHandler extends AbstractNetEventHandler
 
     private AbstractServerTransactionHandler transactionHandler;
 
+    // 是否返回值的开关
+    private static final ThreadLocal<Boolean> ackValveContext = new ThreadLocal<>();
+
+    // 请求id
+    private static final ThreadLocal<Long> requestIdContext = new ThreadLocal<>();
+
     @Override
     protected DataDispatcher getDispatcher() {
         return dispatcher;
@@ -33,6 +40,42 @@ public abstract class AbstractServerEventHandler extends AbstractNetEventHandler
     @Override
     protected void wakeUpSelector(ChannelAgent agent) {
         getDtxServer().wakeup();
+    }
+
+    /**
+     * 重写数据处理流程, 支持挂起连接
+     * @param	protocolData
+	 * @param	agent
+     * @author  xiaoqianbin
+     * @date    2019/12/12
+     **/
+    @Override
+    protected void processData(ProtocolData protocolData, ChannelAgent agent) {
+        try {
+            requestIdContext.set(protocolData.getRequestId());
+            Object result = getDispatcher().process(protocolData);
+            if (null == ackValveContext.get()) {
+                agent.response(result, protocolData.getRequestId());
+            }
+        } catch (Exception e) {
+            agent.responseError(e, protocolData.getRequestId());
+        } finally {
+            ackValveContext.remove();
+            requestIdContext.remove();
+        }
+    }
+
+    public static Long getCurrentRequestId() {
+        return requestIdContext.get();
+    }
+
+    /**
+     * 挂起当前请求
+     * @author  xiaoqianbin
+     * @date    2019/12/12
+     **/
+    public static void suspendRequest() {
+        ackValveContext.set(true);
     }
 
     /**

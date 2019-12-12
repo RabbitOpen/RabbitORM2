@@ -216,7 +216,7 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
             DtxClient dtxClient = null;
             try {
                 RpcProtocol protocol = new RpcProtocol(namespace, method.getName(), method.getParameterTypes(), args);
-                dtxClient = this.pool.getResource(50);
+                dtxClient = this.pool.getResource();
                 FutureResult result = dtxClient.send(protocol);
                 dtxClient.release();
                 Long timeout = DistributedTransactionContext.getRollbackTimeout();
