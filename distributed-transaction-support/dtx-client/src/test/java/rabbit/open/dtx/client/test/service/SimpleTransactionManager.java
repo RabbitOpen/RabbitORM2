@@ -1,7 +1,7 @@
 package rabbit.open.dtx.client.test.service;
 
 import org.springframework.stereotype.Component;
-import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 
 import java.io.IOException;
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
  **/
 @Component
 @SuppressWarnings("serial")
-public class SimpleTransactionManger extends AbstractTransactionManger {
+public class SimpleTransactionManager extends AbstractTransactionManager {
 
     AtomicLong idGenerator = new AtomicLong(0);
 

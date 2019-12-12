@@ -1,7 +1,7 @@
 package rabbit.open.dtx.common.test;
 
 import org.springframework.stereotype.Component;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.client.Node;
 
@@ -16,7 +16,7 @@ import java.util.List;
  **/
 @Component("testTransactionManger")
 @SuppressWarnings("serial")
-public class TestTransactionManger implements DistributedTransactionManger {
+public class TestTransactionManager implements DistributedTransactionManager {
 
 
     @Override

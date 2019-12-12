@@ -5,7 +5,7 @@ package rabbit.open.dtx.common.nio.pub.protocol;
  * @author xiaoqianbin
  * @date 2019/12/7
  **/
-public class RabbitProtocol {
+public class RpcProtocol {
 
     // 调用的rpc服务的namespace
     private String namespace;
@@ -19,14 +19,14 @@ public class RabbitProtocol {
     // 值
     private Object[] values;
 
-    public RabbitProtocol(String namespace, String methodName, Class<?>[] argTypes, Object[] values) {
+    public RpcProtocol(String namespace, String methodName, Class<?>[] argTypes, Object[] values) {
         this.namespace = namespace;
         this.methodName = methodName;
         this.argTypes = argTypes;
         this.values = values;
     }
 
-    public RabbitProtocol() {
+    public RpcProtocol() {
 
     }
 

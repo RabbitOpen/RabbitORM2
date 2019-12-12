@@ -14,7 +14,7 @@ import rabbit.open.dtx.client.test.entity.RollbackEntity;
 import rabbit.open.dtx.client.test.service.EnterpriseService;
 import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.client.test.service.RollbackInfoService;
-import rabbit.open.dtx.client.test.service.SimpleTransactionManger;
+import rabbit.open.dtx.client.test.service.SimpleTransactionManager;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
@@ -40,7 +40,7 @@ public class SupportTest {
     private RollbackInfoService rbs;
 
     @Autowired
-    private SimpleTransactionManger transactionManger;
+    private SimpleTransactionManager transactionManger;
 
     @Test
     public void dbTest() {

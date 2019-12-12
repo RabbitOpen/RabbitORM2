@@ -1,7 +1,7 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
 import org.springframework.beans.factory.BeanCreationException;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
@@ -28,9 +28,9 @@ public class TxDataSource implements DataSource {
     private String dataSourceName;
 
     // 事务管理器
-    private DistributedTransactionManger transactionManger;
+    private DistributedTransactionManager transactionManger;
 
-    public TxDataSource(DataSource dataSource, String dataSourceName, DistributedTransactionManger transactionManger) {
+    public TxDataSource(DataSource dataSource, String dataSourceName, DistributedTransactionManager transactionManger) {
         this.dataSource = dataSource;
         this.dataSourceName = dataSourceName;
         this.transactionManger = transactionManger;
@@ -53,7 +53,7 @@ public class TxDataSource implements DataSource {
         return dataSourceMap.values();
     }
 
-    public DistributedTransactionManger getTransactionManger() {
+    public DistributedTransactionManager getTransactionManger() {
         return transactionManger;
     }
 

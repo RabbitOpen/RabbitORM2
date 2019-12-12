@@ -1,13 +1,13 @@
-package rabbit.open.dtx.client.trans.ext;
+package rabbit.open.dtx.client.rpc.support;
 
 import com.alibaba.dubbo.rpc.RpcContext;
 import org.springframework.util.StringUtils;
-import rabbit.open.dtx.client.trans.DtxMessageListener;
+import rabbit.open.dtx.client.net.DtxMessageListener;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.client.MessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
-import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.List;
  * @author xiaoqianbin
  * @date 2019/12/10
  **/
-public class DubboTransactionManager extends AbstractTransactionManger {
+public class DubboTransactionManager extends AbstractTransactionManager {
 
     public static final String TRANSACTION_GROUP_ID = "_DTX_TRANSACTION_GROUP_ID";
 

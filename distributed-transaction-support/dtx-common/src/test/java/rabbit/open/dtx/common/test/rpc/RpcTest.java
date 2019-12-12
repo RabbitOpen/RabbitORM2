@@ -32,7 +32,7 @@ public class RpcTest {
     private TestServerWrapper serverWrapper;
 
     @Resource
-    RpcTransactionManger rtm;
+    RpcTransactionManager rtm;
 
     @Resource
     private HelloService helloService;

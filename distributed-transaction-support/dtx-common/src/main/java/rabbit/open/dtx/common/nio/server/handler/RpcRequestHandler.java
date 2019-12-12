@@ -1,12 +1,10 @@
 package rabbit.open.dtx.common.nio.server.handler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
-import rabbit.open.dtx.common.nio.pub.protocol.RabbitProtocol;
+import rabbit.open.dtx.common.nio.pub.protocol.RpcProtocol;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
 import java.lang.reflect.Method;
@@ -35,7 +33,7 @@ class RpcRequestHandler implements DataHandler {
      **/
     @Override
     public Object process(ProtocolData protocolData) {
-        RabbitProtocol protocol = (RabbitProtocol) protocolData.getData();
+        RpcProtocol protocol = (RpcProtocol) protocolData.getData();
         if (StringUtils.isEmpty(protocol.getNamespace())) {
             throw new RpcException("namespace can't be empty");
         }
@@ -61,7 +59,7 @@ class RpcRequestHandler implements DataHandler {
      * @author  xiaoqianbin
      * @date    2019/12/10
      **/
-    private Object tryInvokeDefaultInterfaceMethod(RabbitProtocol protocol, Object dtxService, NoSuchMethodException e) {
+    private Object tryInvokeDefaultInterfaceMethod(RpcProtocol protocol, Object dtxService, NoSuchMethodException e) {
         try {
             Method method = getMethodFromInterface(protocol, dtxService, e);
             return method.invoke(dtxService, protocol.getValues());
@@ -71,7 +69,7 @@ class RpcRequestHandler implements DataHandler {
     }
 
     // 从接口中读取该方法
-    private Method getMethodFromInterface(RabbitProtocol protocol, Object dtxService, NoSuchMethodException e) {
+    private Method getMethodFromInterface(RpcProtocol protocol, Object dtxService, NoSuchMethodException e) {
         List<Class<?>> allInterfaces = new ArrayList<>();
         Class<?> clz = dtxService.getClass();
         while (!clz.equals(Object.class)) {

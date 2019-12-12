@@ -16,7 +16,7 @@ import javax.annotation.PostConstruct;
 public class MyDistributedTransactionEnhancer extends DistributedTransactionEnhancer {
 
     @Autowired
-    SimpleTransactionManger simpleTransactionManger;
+    SimpleTransactionManager simpleTransactionManger;
 
     // 注入事务管理器
     @PostConstruct

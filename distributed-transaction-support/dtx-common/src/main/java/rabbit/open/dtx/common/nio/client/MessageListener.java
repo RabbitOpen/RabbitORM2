@@ -2,7 +2,7 @@ package rabbit.open.dtx.common.nio.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
@@ -40,7 +40,7 @@ public abstract class MessageListener implements Closeable {
 
     protected abstract void commit(String applicationName, Long txGroupId, Long txBranchId);
 
-    protected abstract AbstractTransactionManger getTransactionManger();
+    protected abstract AbstractTransactionManager getTransactionManger();
 
     public final void onMessageReceived(Object msg) {
         tpe.submit(() -> {

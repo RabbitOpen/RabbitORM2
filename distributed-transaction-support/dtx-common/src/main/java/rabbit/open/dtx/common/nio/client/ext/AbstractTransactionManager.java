@@ -1,7 +1,7 @@
 package rabbit.open.dtx.common.nio.client.ext;
 
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.client.DtxClient;
 import rabbit.open.dtx.common.nio.client.FutureResult;
@@ -9,7 +9,7 @@ import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.exception.TimeoutException;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
-import rabbit.open.dtx.common.nio.pub.protocol.RabbitProtocol;
+import rabbit.open.dtx.common.nio.pub.protocol.RpcProtocol;
 import rabbit.open.dtx.common.spring.anno.Namespace;
 
 import javax.annotation.PostConstruct;
@@ -25,7 +25,7 @@ import java.lang.reflect.Proxy;
  * @date 2019/12/4
  **/
 @SuppressWarnings("serial")
-public abstract class AbstractTransactionManger implements DistributedTransactionManger {
+public abstract class AbstractTransactionManager implements DistributedTransactionManager {
 
     private transient TransactionHandler defaultHandler;
 
@@ -215,7 +215,7 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
             Object data;
             DtxClient dtxClient = null;
             try {
-                RabbitProtocol protocol = new RabbitProtocol(namespace, method.getName(), method.getParameterTypes(), args);
+                RpcProtocol protocol = new RpcProtocol(namespace, method.getName(), method.getParameterTypes(), args);
                 dtxClient = this.pool.getResource(50);
                 FutureResult result = dtxClient.send(protocol);
                 dtxClient.release();

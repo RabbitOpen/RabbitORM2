@@ -1,8 +1,7 @@
-package rabbit.open.dtx.client.trans;
+package rabbit.open.dtx.client.net;
 
-import rabbit.open.dtx.client.net.TransactionMessageHandler;
 import rabbit.open.dtx.common.nio.client.MessageListener;
-import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 
 /**
  * 异步消息处理器， 同步消息会阻塞其它请求的数据读取
@@ -13,9 +12,9 @@ public class DtxMessageListener extends MessageListener {
 
     private TransactionMessageHandler tmh = new TransactionMessageHandler();
 
-    private AbstractTransactionManger transactionManger;
+    private AbstractTransactionManager transactionManger;
 
-    public DtxMessageListener(AbstractTransactionManger transactionManger) {
+    public DtxMessageListener(AbstractTransactionManager transactionManger) {
         this.transactionManger = transactionManger;
     }
 
@@ -45,7 +44,7 @@ public class DtxMessageListener extends MessageListener {
     }
 
     @Override
-    protected AbstractTransactionManger getTransactionManger() {
+    protected AbstractTransactionManager getTransactionManger() {
         return transactionManger;
     }
 }

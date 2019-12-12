@@ -1,7 +1,7 @@
 package rabbit.open.dtx.common.nio.client.ext;
 
 import rabbit.open.dtx.common.nio.client.AbstractResourcePool;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
 import rabbit.open.dtx.common.nio.client.DtxClient;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
@@ -36,9 +36,9 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
 
     private NetEventHandler netEventHandler = new ClientNetEventHandler(this);
 
-    private DistributedTransactionManger transactionManger;
+    private DistributedTransactionManager transactionManger;
 
-    public DtxResourcePool(DistributedTransactionManger transactionManger) throws IOException {
+    public DtxResourcePool(DistributedTransactionManager transactionManger) throws IOException {
         super(transactionManger.getMaxConcurrenceSize());
         this.transactionManger = transactionManger;
         this.nodes = new ArrayList<>(transactionManger.getServerNodes());
@@ -61,7 +61,7 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
         resource.release();
     }
 
-    public DistributedTransactionManger getTransactionManger() {
+    public DistributedTransactionManager getTransactionManger() {
         return transactionManger;
     }
 

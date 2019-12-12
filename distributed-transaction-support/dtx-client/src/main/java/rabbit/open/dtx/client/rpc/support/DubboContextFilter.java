@@ -1,4 +1,4 @@
-package rabbit.open.dtx.client.trans.ext;
+package rabbit.open.dtx.client.rpc.support;
 
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.extension.Activate;

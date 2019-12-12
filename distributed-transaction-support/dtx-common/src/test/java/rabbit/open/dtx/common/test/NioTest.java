@@ -37,8 +37,8 @@ public class NioTest {
         ServerNetEventHandler handler = new ServerNetEventHandler();
         DtxServer server = new DtxServer(port, handler);
         server.start();
-        TestTransactionManger manger = new TestTransactionManger();
-        DtxResourcePool arp = new DtxResourcePool(manger);
+        TestTransactionManager manager = new TestTransactionManager();
+        DtxResourcePool arp = new DtxResourcePool(manager);
         int count = 100;
         CountDownLatch cdl = new CountDownLatch(count);
         long start = System.currentTimeMillis();
@@ -59,11 +59,11 @@ public class NioTest {
         }
         cdl.await();
         logger.info("cost: {}", (System.currentTimeMillis() - start));
-        TestCase.assertEquals(ApplicationDataHandler.getAgents(manger.getApplicationName()).size(),
+        TestCase.assertEquals(ApplicationDataHandler.getAgents(manager.getApplicationName()).size(),
                 ((DtxResourcePool) arp).getCount());
         StringBuilder longStr = new StringBuilder();
         for (int i = 0 ; i < 1024; i++) {
-            longStr.append("hellox+x");
+            longStr.append("hello world");
         }
         DtxClient dtxClient = arp.getResource(50);
         FutureResult result = dtxClient.send(longStr.toString());
@@ -74,7 +74,7 @@ public class NioTest {
         arp.gracefullyShutdown();
         server.shutdown();
         TestCase.assertEquals(DtxClient.getLeftMessages(), 0);
-        TestCase.assertEquals(ApplicationDataHandler.getAgents(manger.getApplicationName()).size(), 0);
+        TestCase.assertEquals(ApplicationDataHandler.getAgents(manager.getApplicationName()).size(), 0);
     }
 
 

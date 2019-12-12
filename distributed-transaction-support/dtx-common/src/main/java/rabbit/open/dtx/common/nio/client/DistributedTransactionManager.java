@@ -10,7 +10,7 @@ import java.util.List;
  * @author xiaoqianbin
  * @date 2019/12/4
  **/
-public interface DistributedTransactionManger extends Serializable {
+public interface DistributedTransactionManager extends Serializable {
 
     /**
      * 开启事务

@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.client.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.spring.enhance.AbstractAnnotationEnhancer;
 import rabbit.open.dtx.common.spring.enhance.PointCutHandler;
@@ -34,7 +34,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     protected transient ThreadPoolExecutor tpe;
 
     // 事务管理器
-    protected DistributedTransactionManger transactionManger;
+    protected DistributedTransactionManager transactionManger;
 
     @Override
     protected PointCutHandler<DistributedTransaction> getHandler() {
@@ -145,7 +145,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
         this.maxConcurrence = maxConcurrence;
     }
 
-    public void setTransactionManger(DistributedTransactionManger transactionManger) {
+    public void setTransactionManger(DistributedTransactionManager transactionManger) {
         this.transactionManger = transactionManger;
     }
 }

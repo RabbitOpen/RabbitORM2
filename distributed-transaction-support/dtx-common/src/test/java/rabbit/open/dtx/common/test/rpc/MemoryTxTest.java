@@ -27,7 +27,7 @@ public class MemoryTxTest {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Resource
-    MemoryTransactionManger rtm;
+    MemoryTransactionManager rtm;
 
     static long groupId;
 

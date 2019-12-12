@@ -3,7 +3,7 @@ package rabbit.open.dtx.client.datasource.proxy;
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
 import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 
 import java.io.InputStream;
@@ -52,7 +52,7 @@ public class TxPreparedStatement implements PreparedStatement {
         return result;
     }
 
-    private DistributedTransactionManger getTransactionManger() {
+    private DistributedTransactionManager getTransactionManger() {
         return txConn.getTxDataSource().getTransactionManger();
     }
 
