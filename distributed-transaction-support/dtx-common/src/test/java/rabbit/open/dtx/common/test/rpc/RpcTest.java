@@ -9,7 +9,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.exception.TimeoutException;
-import rabbit.open.dtx.common.test.ServerNetEventHandler;
+import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 import rabbit.open.dtx.common.test.enhance.FirstEnhancer;
 import rabbit.open.dtx.common.test.enhance.HelloService;
 import rabbit.open.dtx.common.test.enhance.HerService;
@@ -45,7 +45,8 @@ public class RpcTest {
 
     @Test
     public void rpcTest() throws IOException, InterruptedException {
-        ServerNetEventHandler handler = new ServerNetEventHandler();
+        DtxServerEventHandler handler = new DtxServerEventHandler();
+        handler.init();
         handler.setTransactionHandler(new MyTransactionService());
         serverWrapper.start(10086, handler);
         rtm.manualInit();
@@ -76,6 +77,7 @@ public class RpcTest {
             logger.warn(e.getMessage());
             TestCase.assertEquals(e.getTimeoutSeconds(), rtm.getRpcTimeoutSeconds());
         }
+        rtm.destroy();
     }
 
     @Test

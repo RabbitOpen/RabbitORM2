@@ -86,8 +86,6 @@ public class DtxServer {
                     acceptConnection();
                 }
                 if (key.isReadable()) {
-                    // disable read事件
-                    // key.interestOps(0);
                     cnt++;
                     ChannelAgent agent = (ChannelAgent) key.attachment();
                     netEventHandler.onDataReceived(agent);

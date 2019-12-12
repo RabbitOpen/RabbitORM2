@@ -75,8 +75,13 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
     }
 
     @Override
+    public void onDisconnected(ChannelAgent agent) {
+        logger.info("client channel closed!");
+    }
+
+    @Override
     protected void wakeUpSelector(ChannelAgent agent) {
-        // client是同步读写，所以不需要唤醒 agent.getSelectionKey().selector().wakeup();
+        // client是同步读写，所以不需要唤醒
     }
 
     @Override

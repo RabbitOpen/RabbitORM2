@@ -12,7 +12,6 @@ import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 /**
@@ -104,7 +103,6 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
                 agent.active();
                 switchRegion.set(agent.getDataBuffer(getDefaultBufferSize()));
                 readData(agent);
-                agent.getSelectionKey().interestOps(SelectionKey.OP_READ);
             } catch (ClientClosedException e) {
                 closeAgentChannel(agent);
                 onDisconnected(agent);

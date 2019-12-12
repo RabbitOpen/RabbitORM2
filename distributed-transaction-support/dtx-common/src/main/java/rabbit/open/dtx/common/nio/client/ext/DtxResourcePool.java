@@ -88,7 +88,6 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
                 agent.connected();
             }
             if (key.isReadable()) {
-                // 单线程读写，就不需要取消读事件了   key.interestOps(0);
                 ChannelAgent agent = (ChannelAgent) key.attachment();
                 netEventHandler.onDataReceived(agent);
             }
