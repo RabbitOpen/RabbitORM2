@@ -76,7 +76,7 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
 
     @Override
     protected void wakeUpSelector(ChannelAgent agent) {
-        agent.getSelectionKey().selector().wakeup();
+        // client是同步读写，所以不需要唤醒 agent.getSelectionKey().selector().wakeup();
     }
 
     @Override

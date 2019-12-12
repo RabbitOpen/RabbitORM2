@@ -1,5 +1,7 @@
 package rabbit.open.dtx.common.nio.server;
 
+import rabbit.open.dtx.common.nio.pub.ChannelAgent;
+import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
 import javax.annotation.PostConstruct;
@@ -12,23 +14,47 @@ import java.util.concurrent.TimeUnit;
  * @author xiaoqianbin
  * @date 2019/12/9
  **/
-public final class DtxServerEventHandler extends AbstractServerEventHandler {
+public class DtxServerEventHandler extends AbstractServerEventHandler {
 
     // 核心线程数
-    private int coreSize = 10;
+    private int bossCoreSize = 3;
 
     // 最大并发数
-    private int maxConcurrence = 30;
+    private int maxBossConcurrence = 5;
 
-    private int maxQueueSize = 1000;
+    private int maxBossQueueSize = 1000;
+
+    // 核心线程数
+    private int workerCoreSize = 10;
+
+    // 最大并发数
+    private int maxWorkerConcurrence = 30;
+
+    private int maxWorkerQueueSize = 1000;
 
     // 线程池
-    private ThreadPoolExecutor tpe;
+    private ThreadPoolExecutor bossPool;
+
+    private ThreadPoolExecutor workerPool;
 
     @PostConstruct
     public void init() {
-        tpe = new ThreadPoolExecutor(coreSize, maxConcurrence, 5, TimeUnit.MINUTES,
-                new ArrayBlockingQueue<>(maxQueueSize), (r, executor) -> r.run());
+        bossPool = new ThreadPoolExecutor(bossCoreSize, maxBossConcurrence, 5, TimeUnit.MINUTES,
+                new ArrayBlockingQueue<>(maxBossQueueSize), (r, executor) -> r.run());
+        workerPool = new ThreadPoolExecutor(workerCoreSize, maxWorkerConcurrence, 5, TimeUnit.MINUTES,
+                new ArrayBlockingQueue<>(maxWorkerQueueSize), (r, executor) -> r.run());
+    }
+
+    @Override
+    protected void processData(ProtocolData protocolData, ChannelAgent agent) {
+        workerPool.submit(() -> {
+            try {
+                cacheAgent(agent);
+                super.processData(protocolData, agent);
+            } finally {
+                clearAgent();
+            }
+        });
     }
 
     /**
@@ -39,23 +65,28 @@ public final class DtxServerEventHandler extends AbstractServerEventHandler {
      **/
     @Override
     protected void executeReadTask(Runnable task) {
-        tpe.submit(task);
+        bossPool.submit(task);
     }
 
     @Override
     public void onServerClosed() {
-        tpe.shutdown();
+        logger.info("begin to close boss pool");
+        bossPool.shutdown();
+        logger.info("boss pool closed");
+        logger.info("begin to close worker pool");
+        workerPool.shutdown();
+        logger.info("worker pool closed");
     }
 
-    public void setCoreSize(int coreSize) {
-        this.coreSize = coreSize;
+    public void setBossCoreSize(int bossCoreSize) {
+        this.bossCoreSize = bossCoreSize;
     }
 
-    public void setMaxConcurrence(int maxConcurrence) {
-        this.maxConcurrence = maxConcurrence;
+    public void setMaxBossConcurrence(int maxBossConcurrence) {
+        this.maxBossConcurrence = maxBossConcurrence;
     }
 
-    public void setMaxQueueSize(int maxQueueSize) {
-        this.maxQueueSize = maxQueueSize;
+    public void setMaxBossQueueSize(int maxBossQueueSize) {
+        this.maxBossQueueSize = maxBossQueueSize;
     }
 }

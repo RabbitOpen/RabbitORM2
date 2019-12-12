@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.*;
 import java.util.Iterator;
+import java.util.concurrent.Semaphore;
 
 /**
  * nio server
@@ -30,6 +31,9 @@ public class DtxServer {
 
     private boolean close = false;
 
+    // 同步等待处理事件
+    private Semaphore semaphore = new Semaphore(0);
+
     // 网络事件接口
     private AbstractServerEventHandler netEventHandler;
 
@@ -47,7 +51,8 @@ public class DtxServer {
             logger.info("dtx server is listening on port: {}", port);
             while (true) {
                 try {
-                    Iterator<SelectionKey> keys = selectKeys(1000);
+                    readSelector.select();
+                    Iterator<SelectionKey> keys = readSelector.selectedKeys().iterator();
                     handleRequest(keys);
                     if (close) {
                         break;
@@ -68,7 +73,8 @@ public class DtxServer {
         listener.start();
     }
 
-    private void handleRequest(Iterator<SelectionKey> keys) {
+    private void handleRequest(Iterator<SelectionKey> keys) throws InterruptedException {
+        int cnt = 0;
         while (keys.hasNext()) {
             SelectionKey key = keys.next();
             try {
@@ -81,7 +87,8 @@ public class DtxServer {
                 }
                 if (key.isReadable()) {
                     // disable read事件
-                    key.interestOps(0);
+                    // key.interestOps(0);
+                    cnt++;
                     ChannelAgent agent = (ChannelAgent) key.attachment();
                     netEventHandler.onDataReceived(agent);
                 }
@@ -92,7 +99,9 @@ public class DtxServer {
                 logger.error(e.getMessage(), e);
             }
         }
+        semaphore.acquire(cnt);
     }
+
 
     /**
      * 唤醒selector
@@ -100,12 +109,12 @@ public class DtxServer {
      * @date 2019/12/7
      **/
     public void wakeup() {
-        readSelector.wakeup();
+        semaphore.release();
     }
 
     /**
      * 关闭连接
-     * @param    key
+     * @param key
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
@@ -134,15 +143,6 @@ public class DtxServer {
     }
 
     /**
-     * 获取当前已经处理IO就绪的keys
-     * @throws IOException
-     */
-    private Iterator<SelectionKey> selectKeys(long timeoutMilliseconds) throws IOException {
-        readSelector.select(timeoutMilliseconds);
-        return readSelector.selectedKeys().iterator();
-    }
-
-    /**
      * 安全关闭 nio server
      * @author xiaoqianbin
      * @date 2019/12/7
@@ -151,15 +151,22 @@ public class DtxServer {
         logger.info("dtx server is closing....");
         close = true;
         try {
-            wakeup();
+            readSelector.wakeup();
             listener.join();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+        closeAllSelectionKeys();
         netEventHandler.onServerClosed();
         closeResource(listenChannel);
         closeResource(readSelector);
         logger.info("dtx server is closed!");
+    }
+
+    private void closeAllSelectionKeys() {
+        for (SelectionKey key : readSelector.keys()) {
+            closeChannelKey(key);
+        }
     }
 
     private void closeResource(Closeable closeable) {

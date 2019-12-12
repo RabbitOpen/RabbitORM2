@@ -11,6 +11,7 @@ import rabbit.open.dtx.common.nio.client.FutureResult;
 import rabbit.open.dtx.common.nio.client.ext.DtxResourcePool;
 import rabbit.open.dtx.common.nio.pub.protocol.KeepAlive;
 import rabbit.open.dtx.common.nio.server.DtxServer;
+import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
 
 import java.io.IOException;
@@ -34,7 +35,8 @@ public class NioTest {
     @Test
     public void nio1000kTest() throws IOException, InterruptedException {
         int port = 10000;
-        ServerNetEventHandler handler = new ServerNetEventHandler();
+        DtxServerEventHandler handler = new DtxServerEventHandler();
+        handler.init();
         DtxServer server = new DtxServer(port, handler);
         server.start();
         TestTransactionManager manager = new TestTransactionManager();
@@ -59,8 +61,7 @@ public class NioTest {
         }
         cdl.await();
         logger.info("cost: {}", (System.currentTimeMillis() - start));
-        TestCase.assertEquals(ApplicationDataHandler.getAgents(manager.getApplicationName()).size(),
-                ((DtxResourcePool) arp).getCount());
+        TestCase.assertEquals(ApplicationDataHandler.getAgents(manager.getApplicationName()).size(), arp.getResourceCount());
         StringBuilder longStr = new StringBuilder();
         for (int i = 0 ; i < 1024; i++) {
             longStr.append("hello world");

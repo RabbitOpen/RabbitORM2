@@ -3,7 +3,6 @@ package rabbit.open.dtx.common.test;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -14,20 +13,16 @@ import java.util.concurrent.TimeUnit;
  **/
 public class ServerNetEventHandler extends AbstractServerEventHandler {
 
-    ThreadPoolExecutor tpe = new ThreadPoolExecutor(10, 20, 5, TimeUnit.MINUTES, new ArrayBlockingQueue<>(1000), new RejectedExecutionHandler() {
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            r.run();
-        }
-    });
+    ThreadPoolExecutor bossPool = new ThreadPoolExecutor(3, 5, 5,
+            TimeUnit.MINUTES, new ArrayBlockingQueue<>(10), (r, executor) -> r.run());
 
     @Override
     protected void executeReadTask(Runnable task) {
-        tpe.submit(task);
+        bossPool.submit(task);
     }
 
     @Override
     public void onServerClosed() {
-        tpe.shutdown();
+        bossPool.shutdown();
     }
 }

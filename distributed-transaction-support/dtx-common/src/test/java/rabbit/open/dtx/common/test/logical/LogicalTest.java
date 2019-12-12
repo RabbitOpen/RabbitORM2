@@ -34,9 +34,9 @@ public class LogicalTest {
     @Test
     public void transactionTest() throws IOException, NoSuchMethodException, InterruptedException {
         DtxServerEventHandler serverEventHandler = new DtxServerEventHandler();
-        serverEventHandler.setCoreSize(1);
-        serverEventHandler.setMaxConcurrence(2);
-        serverEventHandler.setMaxQueueSize(10);
+        serverEventHandler.setBossCoreSize(1);
+        serverEventHandler.setMaxBossConcurrence(2);
+        serverEventHandler.setMaxBossQueueSize(10);
         MemoryBasedTransactionHandler memTxHandler = new MemoryBasedTransactionHandler();
         serverEventHandler.setTransactionHandler(memTxHandler);
         serverEventHandler.init();

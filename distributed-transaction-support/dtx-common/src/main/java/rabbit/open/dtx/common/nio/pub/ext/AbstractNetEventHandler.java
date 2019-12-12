@@ -99,13 +99,12 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
         agent.active();
         executeReadTask(() -> {
             try {
-                agentContext.set(agent);
+                cacheAgent(agent);
                 // 再次激活，减低monitor误判死连接的几率
                 agent.active();
                 switchRegion.set(agent.getDataBuffer(getDefaultBufferSize()));
                 readData(agent);
                 agent.getSelectionKey().interestOps(SelectionKey.OP_READ);
-                wakeUpSelector(agent);
             } catch (ClientClosedException e) {
                 closeAgentChannel(agent);
                 onDisconnected(agent);
@@ -114,10 +113,19 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
                 onDisconnected(agent);
                 logger.error(e.getMessage(), e);
             } finally {
+                wakeUpSelector(agent);
                 switchRegion.remove();
-                agentContext.remove();
+                clearAgent();
             }
         });
+    }
+
+    protected void clearAgent() {
+        agentContext.remove();
+    }
+
+    protected void cacheAgent(ChannelAgent agent) {
+        agentContext.set(agent);
     }
 
     // 读数据

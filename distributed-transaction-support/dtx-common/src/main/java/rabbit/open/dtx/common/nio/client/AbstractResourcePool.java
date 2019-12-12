@@ -34,7 +34,7 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
     }
 
     // 获取当前连接数
-    public int getCount() {
+    public int getResourceCount() {
         return count;
     }
 

@@ -50,7 +50,7 @@ public class RpcTest {
         serverWrapper.start(10086, handler);
         rtm.manualInit();
         int count = 100;
-        int loop = 1000;
+        int loop = 100;
         CountDownLatch cdl = new CountDownLatch(count);
         long start = System.currentTimeMillis();
         for (int index = 0; index < count; index++) {
