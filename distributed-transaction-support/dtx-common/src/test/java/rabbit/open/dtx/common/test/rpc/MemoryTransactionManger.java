@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,5 +31,13 @@ public class MemoryTransactionManger extends AbstractTransactionManger {
     @Override
     public List<Node> getServerNodes() {
         return Arrays.asList(new Node("localhost", 10021));
+    }
+
+    @Override
+    public void init() {
+    }
+
+    public void  manualInit() throws IOException {
+        super.init();
     }
 }

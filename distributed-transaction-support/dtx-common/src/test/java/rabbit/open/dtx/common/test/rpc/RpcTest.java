@@ -44,6 +44,7 @@ public class RpcTest {
         ServerNetEventHandler handler = new ServerNetEventHandler();
         handler.setTransactionHandler(new MyTransactionService());
         serverWrapper.start(10086, handler);
+        rtm.manualInit();
         int count = 100;
         int loop = 10000;
         CountDownLatch cdl = new CountDownLatch(count);
@@ -65,7 +66,7 @@ public class RpcTest {
 
         //超时
         try {
-            rtm.getTransactionHandler().doRollback(100L);
+            rtm.getTransactionHandler().doRollback(100L, "rpcTest");
             throw new RpcException("");
         } catch (TimeoutException e) {
             logger.warn(e.getMessage());

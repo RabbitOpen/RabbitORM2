@@ -51,7 +51,7 @@ public class RollBackRecord {
                     .append(TX_GROUP_ID + AND)
                     .append(TX_BRANCH_ID + AND)
                     .append(APPLICATION_NAME + AND)
-                    .append(DATASOURCE_NAME + " = ?")
+                    .append(DATASOURCE_NAME + " = ? order by " + CREATED_DATE + " desc ")
                     .toString();
     // 删除sql
     public static final String DELETE_SQL = new StringBuilder("delete from roll_back_info where ")

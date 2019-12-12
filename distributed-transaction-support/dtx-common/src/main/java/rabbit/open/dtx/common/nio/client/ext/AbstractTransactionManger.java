@@ -127,6 +127,11 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
         return getTransactionHandler().getTransactionGroupId(getApplicationName());
     }
 
+    @Override
+    public String getApplicationName() {
+        return null;
+    }
+
     /**
      * 提交
      * @author xiaoqianbin
@@ -147,7 +152,7 @@ public abstract class AbstractTransactionManger implements DistributedTransactio
      * @date 2019/12/5
      **/
     protected void doRollback() {
-        getTransactionHandler().doRollback(getCurrentTransactionObject().getTxGroupId());
+        getTransactionHandler().doRollback(getCurrentTransactionObject().getTxGroupId(), getApplicationName());
     }
 
     /**

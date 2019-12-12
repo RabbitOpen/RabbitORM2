@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManger;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -59,5 +60,10 @@ public class SimpleTransactionManger extends AbstractTransactionManger {
     @Override
     public String getApplicationName() {
         return "test-app";
+    }
+
+    @Override
+    public void init() throws IOException {
+
     }
 }

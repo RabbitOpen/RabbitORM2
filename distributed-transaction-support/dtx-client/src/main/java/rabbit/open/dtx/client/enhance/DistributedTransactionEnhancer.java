@@ -1,6 +1,8 @@
 package rabbit.open.dtx.client.enhance;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.client.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManger;
@@ -21,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("serial")
 public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<DistributedTransaction> {
 
+    private transient Logger log = LoggerFactory.getLogger(getClass());
+
     // 异步处理的核心线程数
     protected int core = 5;
 
@@ -36,6 +40,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     protected PointCutHandler<DistributedTransaction> getHandler() {
         return (invocation, annotation) -> {
             if (Propagation.NESTED == annotation.propagation() && !transactionManger.isTransactionOpen(invocation.getMethod())) {
+                log.debug("execute {} without transaction", invocation.getMethod().getName());
                 try {
                     return invocation.proceed();
                 } catch (Throwable e) {
@@ -58,7 +63,9 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
      * @date 2019/12/4
      **/
     private Object asyncProcess(MethodInvocation invocation, DistributedTransaction annotation) {
+        log.debug("{} beginTransaction", invocation.getMethod().getName());
         transactionManger.beginTransaction(invocation.getMethod());
+        log.debug("{} begin to execute business", invocation.getMethod().getName());
         DistributedTransactionObject currentTransactionObject = transactionManger.getCurrentTransactionObject();
         Future<Object> future = getExecutor().submit(() -> {
             try {
@@ -72,12 +79,18 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
         });
         try {
             Object result = future.get(annotation.transactionTimeoutSeconds(), TimeUnit.SECONDS);
-            transactionManger.commit(invocation.getMethod());
+            doCommit(invocation);
             return result;
         } catch (Exception e) {
-            transactionManger.rollback(invocation.getMethod(), annotation.rollbackTimeoutSeconds());
+            doRollback(invocation, annotation);
             throw new DistributedTransactionException(e);
         }
+    }
+
+    private void doCommit(MethodInvocation invocation) {
+        log.debug("{} begin to commit ", invocation.getMethod().getName());
+        transactionManger.commit(invocation.getMethod());
+        log.debug("{} commit success ", invocation.getMethod().getName());
     }
 
     /**
@@ -89,14 +102,22 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
      **/
     private Object syncProcess(MethodInvocation invocation, DistributedTransaction annotation) {
         try {
+            log.debug("{} beginTransaction", invocation.getMethod().getName());
             transactionManger.beginTransaction(invocation.getMethod());
+            log.debug("{} begin to execute business", invocation.getMethod().getName());
             Object result = invocation.proceed();
-            transactionManger.commit(invocation.getMethod());
+            doCommit(invocation);
             return result;
         } catch (Throwable e) {
-            transactionManger.rollback(invocation.getMethod(), annotation.rollbackTimeoutSeconds());
+            doRollback(invocation, annotation);
             throw new DistributedTransactionException(e);
         }
+    }
+
+    private void doRollback(MethodInvocation invocation, DistributedTransaction annotation) {
+        log.debug("{} begin to rollback ", invocation.getMethod().getName());
+        transactionManger.rollback(invocation.getMethod(), annotation.rollbackTimeoutSeconds());
+        log.debug("{} rollback end ", invocation.getMethod().getName());
     }
 
     private ThreadPoolExecutor getExecutor() {

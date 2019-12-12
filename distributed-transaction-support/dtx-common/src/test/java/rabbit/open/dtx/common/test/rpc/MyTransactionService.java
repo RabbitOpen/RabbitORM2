@@ -63,7 +63,7 @@ public class MyTransactionService extends AbstractServerTransactionHandler {
     }
 
     @Override
-    public void doRollback(Long txGroupId) {
+    public void doRollback(Long txGroupId, String applicationName) {
         try {
             if (semaphore.tryAcquire(4, TimeUnit.SECONDS)){
                 logger.info("timeout");

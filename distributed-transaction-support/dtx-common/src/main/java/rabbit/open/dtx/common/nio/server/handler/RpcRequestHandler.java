@@ -27,7 +27,6 @@ class RpcRequestHandler implements DataHandler {
         this.eventHandler = eventHandler;
     }
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
     /***
      * 处理rpc调用
      * @param    protocolData
@@ -46,10 +45,7 @@ class RpcRequestHandler implements DataHandler {
         }
         try {
             Method method = dtxService.getClass().getDeclaredMethod(protocol.getMethodName(), protocol.getArgTypes());
-            logger.info("request {} , id {} ", protocol.getMethodName(), protocolData.getRequestId());
-            Object invoke = method.invoke(dtxService, protocol.getValues());
-            logger.info("request {} , resp {}", protocol.getMethodName(), invoke);
-            return invoke;
+            return method.invoke(dtxService, protocol.getValues());
         } catch (NoSuchMethodException e) {
             return tryInvokeDefaultInterfaceMethod(protocol, dtxService, e);
         } catch (Exception e) {

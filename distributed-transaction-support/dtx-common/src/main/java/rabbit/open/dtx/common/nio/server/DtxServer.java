@@ -33,8 +33,6 @@ public class DtxServer {
     // 网络事件接口
     private AbstractServerEventHandler netEventHandler;
 
-    private int port;
-
     public DtxServer(int port, AbstractServerEventHandler netEventHandler) throws IOException {
         this.netEventHandler = netEventHandler;
         this.netEventHandler.setDtxServer(this);
@@ -45,18 +43,6 @@ public class DtxServer {
         listenChannel.socket().bind(new InetSocketAddress(port));
         //注册接收事件
         listenChannel.register(readSelector, SelectionKey.OP_ACCEPT);
-        this.port = port;
-    }
-
-    /**
-     * 启动nio server
-     * @author xiaoqianbin
-     * @date 2019/12/7
-     **/
-    public synchronized void start() {
-        if (null != listener) {
-            return;
-        }
         listener = new Thread(() -> {
             logger.info("dtx server is listening on port: {}", port);
             while (true) {
@@ -71,6 +57,14 @@ public class DtxServer {
                 }
             }
         });
+    }
+
+    /**
+     * 启动nio server
+     * @author xiaoqianbin
+     * @date 2019/12/7
+     **/
+    public void start() {
         listener.start();
     }
 
@@ -102,8 +96,8 @@ public class DtxServer {
 
     /**
      * 唤醒selector
-     * @author  xiaoqianbin
-     * @date    2019/12/7
+     * @author xiaoqianbin
+     * @date 2019/12/7
      **/
     public void wakeup() {
         readSelector.wakeup();
@@ -111,9 +105,9 @@ public class DtxServer {
 
     /**
      * 关闭连接
-     * @param	key
-     * @author  xiaoqianbin
-     * @date    2019/12/7
+     * @param    key
+     * @author xiaoqianbin
+     * @date 2019/12/7
      **/
     public void closeChannelKey(SelectionKey key) {
         try {
@@ -126,8 +120,8 @@ public class DtxServer {
 
     /**
      * 处理连接请求
-     * @author  xiaoqianbin
-     * @date    2019/12/7
+     * @author xiaoqianbin
+     * @date 2019/12/7
      **/
     private void acceptConnection() throws IOException {
         SocketChannel channel = listenChannel.accept();

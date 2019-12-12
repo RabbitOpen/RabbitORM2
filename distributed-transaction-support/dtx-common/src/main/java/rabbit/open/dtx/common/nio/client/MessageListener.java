@@ -50,11 +50,11 @@ public abstract class MessageListener implements Closeable {
                 if (msg instanceof RollBackMessage) {
                     cm = (RollBackMessage) msg;
                     rollback(cm.getApplicationName(), cm.getTxGroupId(), cm.getTxBranchId());
-                    transactionHandler.confirmBranchRollback(cm.getTxGroupId(), cm.getTxBranchId());
+                    transactionHandler.confirmBranchRollback(cm.getApplicationName(),cm.getTxGroupId(), cm.getTxBranchId());
                 } else if (msg instanceof CommitMessage) {
                     cm = (CommitMessage) msg;
                     commit(cm.getApplicationName(), cm.getTxGroupId(), cm.getTxBranchId());
-                    transactionHandler.confirmBranchCommit(cm.getTxGroupId(), cm.getTxBranchId());
+                    transactionHandler.confirmBranchCommit(cm.getApplicationName(),cm.getTxGroupId(), cm.getTxBranchId());
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);

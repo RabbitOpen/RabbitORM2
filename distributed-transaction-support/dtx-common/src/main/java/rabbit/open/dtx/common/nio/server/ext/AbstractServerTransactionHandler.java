@@ -20,29 +20,29 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
             return;
         }
         persistBranchInfo(txGroupId, txBranchId, applicationName, TxStatus.COMMIT);
-        logger.info("{} doBranchCommit, txGroupId: {},  txBranchId: {}", applicationName, txGroupId, txBranchId);
+        logger.debug("{} doBranchCommit, txGroupId: {},  txBranchId: {}", applicationName, txGroupId, txBranchId);
     }
 
     @Override
     public void doCommit(Long txGroupId, Long txBranchId, String applicationName) {
         doBranchCommit(txGroupId, txBranchId, applicationName);
         persistGroupId(txGroupId, TxStatus.COMMIT);
+        logger.debug("{} doGroupCommit, txGroupId: {},  txBranchId: {}", applicationName, txGroupId, txBranchId);
         doCommitByGroupId(txGroupId);
-        logger.info("{} doGroupCommit, txGroupId: {},  txBranchId: {}", applicationName, txGroupId, txBranchId);
     }
 
     @Override
-    public void doRollback(Long txGroupId) {
+    public void doRollback(Long txGroupId, String applicationName) {
         persistGroupId(txGroupId, TxStatus.ROLLBACK);
+        logger.debug("{} doRollback txGroupId: {}", applicationName, txGroupId);
         doRollbackByGroupId(txGroupId);
-        logger.info("doRollback txGroupId: {}", txGroupId);
     }
 
     @Override
     public Long getTransactionBranchId(Long txGroupId, String applicationName) {
         Long txBranchId = getNextGlobalId();
         persistBranchInfo(txGroupId, txBranchId, applicationName, TxStatus.OPEN);
-        logger.info("'{}' getTransactionBranchId, txGroupId: {}", applicationName, txGroupId);
+        logger.debug("'{} |'txGroupId({}) | getTransactionBranchId | {}", applicationName, txGroupId, txBranchId);
         return txBranchId;
     }
 
@@ -50,7 +50,7 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
     public Long getTransactionGroupId(String applicationName) {
         Long txGroupId = getNextGlobalId();
         persistGroupId(txGroupId, applicationName, TxStatus.OPEN);
-        logger.info("{} open transaction, txGroupId: {}", applicationName, txGroupId);
+        logger.debug("{} open transaction, txGroupId: {}", applicationName, txGroupId);
         return txGroupId;
     }
 

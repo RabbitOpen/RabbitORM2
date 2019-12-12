@@ -53,6 +53,12 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
             }
         });
         readThread.start();
+        initConnection();
+    }
+
+    private void initConnection() {
+        DtxClient resource = getResource(50);
+        resource.release();
     }
 
     public DistributedTransactionManger getTransactionManger() {

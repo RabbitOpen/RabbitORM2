@@ -31,14 +31,14 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
     }
 
     @Override
-    public void confirmBranchCommit(Long txGroupId, Long txBranchId) {
+    public void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId) {
         TransactionContext context = contextCache.get(txGroupId);
         if (null != context) {
             removeBranchTransactionData(txBranchId, context);
-            logger.info("confirmBranchCommit [{} - {}] ", txGroupId, txBranchId);
+            logger.debug("{} confirmBranchCommit [{} - {}] ", applicationName, txGroupId, txBranchId);
             if (context.getBranchApp().isEmpty()) {
                 contextCache.remove(txGroupId);
-                logger.info("tx [{}] commit success", txGroupId);
+                logger.debug("tx [{}] commit success", txGroupId);
             }
         }
     }
@@ -50,14 +50,14 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
     }
 
     @Override
-    public void confirmBranchRollback(Long txGroupId, Long txBranchId) {
+    public void confirmBranchRollback(String applicationName, Long txGroupId, Long txBranchId) {
         TransactionContext context = contextCache.get(txGroupId);
         if (null != context) {
             removeBranchTransactionData(txBranchId, context);
-            logger.info("confirmBranchRollback [{} - {}] ", txGroupId, txBranchId);
+            logger.debug("{} confirmBranchRollback [{} - {}] ", applicationName, txGroupId, txBranchId);
             if (context.getBranchApp().isEmpty()) {
                 contextCache.remove(txGroupId);
-                logger.info("tx [{}] rollback success", txGroupId);
+                logger.debug("tx [{}] rollback success", txGroupId);
             }
         }
     }
@@ -80,7 +80,7 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
             if (!agent.isClosed()) {
                 agent.response(TxStatus.COMMIT == txStatus ? new CommitMessage(app, txGroupId, txBranchId)
                         : new RollBackMessage(app, txGroupId, txBranchId), null);
-                logger.info("delivery {} branch ({} --> {}) ", txStatus, txGroupId, txBranchId);
+                logger.debug("delivery {} branch ({} --> {}) ", txStatus, txGroupId, txBranchId);
                 break;
             }
         }
