@@ -31,7 +31,7 @@ public class DtxServer {
 
     private boolean close = false;
 
-    // 同步等待处理事件
+    // boss线程等待信号
     private Semaphore semaphore = new Semaphore(0);
 
     // 网络事件接口
