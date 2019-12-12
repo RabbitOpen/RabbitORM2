@@ -127,11 +127,6 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
         return getTransactionHandler().getTransactionGroupId(getApplicationName());
     }
 
-    @Override
-    public String getApplicationName() {
-        return null;
-    }
-
     /**
      * 提交
      * @author xiaoqianbin
@@ -169,7 +164,7 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
      * @author xiaoqianbin
      * @date 2019/12/11
      **/
-    protected abstract long getDefaultTimeoutSeconds();
+    protected abstract long getRpcTimeoutSeconds();
 
     @PostConstruct
     public void init() throws IOException {
@@ -220,7 +215,7 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
                 FutureResult result = dtxClient.send(protocol);
                 dtxClient.release();
                 Long timeout = DistributedTransactionContext.getRollbackTimeout();
-                data = result.getData(null == timeout ? getDefaultTimeoutSeconds() : timeout);
+                data = result.getData(null == timeout ? getRpcTimeoutSeconds() : timeout);
             } catch (TimeoutException e) {
                 throw e;
             } catch (InterruptedException e) {
@@ -232,8 +227,8 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
                 }
                 throw e;
             }
-            if (data instanceof Exception) {
-                throw new RpcException((Exception) data);
+            if (data instanceof RpcException) {
+                throw (RpcException) data;
             }
             return data;
         }

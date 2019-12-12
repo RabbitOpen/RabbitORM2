@@ -19,7 +19,7 @@ public class RpcTransactionManager extends AbstractTransactionManager {
 
 
     @Override
-    protected long getDefaultTimeoutSeconds() {
+    protected long getRpcTimeoutSeconds() {
         return 2;
     }
 

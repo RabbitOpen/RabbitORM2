@@ -1,5 +1,6 @@
 package rabbit.open.dtx.common.nio.server;
 
+import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
@@ -43,6 +44,15 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
         }
     }
 
+    /**
+     * 获取开启的事务个数(计划放入meta信息)
+     * @author  xiaoqianbin
+     * @date    2019/12/12
+     **/
+    public long getOpenedTransactionCount() {
+        return contextCache.size();
+    }
+
     // 删除分支事务数据
     private void removeBranchTransactionData(Long txBranchId, TransactionContext context) {
         context.getBranchApp().remove(txBranchId);
@@ -65,13 +75,14 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
 
     private void doTransactionByGroupId(Long txGroupId, String applicationName, TxStatus txStatus) {
         TransactionContext context = contextCache.get(txGroupId);
-        if (!context.getApplicationName().equals(applicationName)) {
-            logger.error("txGroupId({}) is created by '{}', but {} by '{}'", txGroupId,
-                    context.getApplicationName(), txStatus, applicationName);
-            return;
-        }
         if (null != context) {
-            if (context.getBranchApp().isEmpty()) {
+            if (!context.getApplicationName().equals(applicationName)) {
+                String errMsg = String.format("txGroupId(%s) is created by '%s', but %s by '%s'", txGroupId,
+                        context.getApplicationName(), txStatus, applicationName);
+                logger.error(errMsg);
+                throw new DistributedTransactionException(errMsg);
+            }
+            if (txStatus == TxStatus.ROLLBACK && context.getBranchApp().isEmpty()) {
                 contextCache.remove(txGroupId);
                 boolean result = rollbackCompleted(txGroupId);
                 logger.debug("tx [{}] rollback completed, rollback result: {}", txGroupId, result);

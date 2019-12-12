@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
+import rabbit.open.dtx.common.utils.ext.RabbitKryo;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -62,10 +63,22 @@ public class KryoTest {
 
     @Test
     public void exceptionFieldTest() {
-        KryoObjectSerializer serializer = new KryoObjectSerializer();
+        MyKryoObjectSerializer serializer = new MyKryoObjectSerializer();
         ProtocolData data = new ProtocolData();
         data.setData(new Exception());
         byte[] bytes = serializer.serialize(data);
-        ProtocolData protocolData = serializer.deserialize(bytes, ProtocolData.class, true);
+        serializer.deserialize(bytes, ProtocolData.class, true);
+
+        for (int i = 0; i < 2000; i++) {
+            serializer.release(new RabbitKryo());
+        }
+        TestCase.assertTrue(!serializer.release(new RabbitKryo()));
+    }
+
+    class MyKryoObjectSerializer extends KryoObjectSerializer {
+        @Override
+        public boolean release(RabbitKryo kryo) {
+            return super.release(kryo);
+        }
     }
 }

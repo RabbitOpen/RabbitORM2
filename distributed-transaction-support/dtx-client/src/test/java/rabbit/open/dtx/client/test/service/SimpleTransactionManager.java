@@ -42,7 +42,7 @@ public class SimpleTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
-    protected long getDefaultTimeoutSeconds() {
+    protected long getRpcTimeoutSeconds() {
         return 3L;
     }
 

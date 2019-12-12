@@ -22,7 +22,7 @@ import java.util.List;
  **/
 public class DubboTransactionManager extends AbstractTransactionManager {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private transient Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String TRANSACTION_GROUP_ID = "_DTX_TRANSACTION_GROUP_ID";
 
@@ -34,7 +34,7 @@ public class DubboTransactionManager extends AbstractTransactionManager {
 
     private int maxConcurrenceSize;
 
-    private long defaultTimeoutSeconds = 3L;
+    private long rpcTimeoutSeconds = 3L;
 
     public DubboTransactionManager(String hosts, String applicationName, int maxConcurrenceSize) {
         this.hosts = hosts;
@@ -61,8 +61,8 @@ public class DubboTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
-    protected long getDefaultTimeoutSeconds() {
-        return defaultTimeoutSeconds;
+    protected long getRpcTimeoutSeconds() {
+        return rpcTimeoutSeconds;
     }
 
     @Override
@@ -90,7 +90,7 @@ public class DubboTransactionManager extends AbstractTransactionManager {
         return list;
     }
 
-    public void setDefaultTimeoutSeconds(long defaultTimeoutSeconds) {
-        this.defaultTimeoutSeconds = defaultTimeoutSeconds;
+    public void setRpcTimeoutSeconds(long rpcTimeoutSeconds) {
+        this.rpcTimeoutSeconds = rpcTimeoutSeconds;
     }
 }

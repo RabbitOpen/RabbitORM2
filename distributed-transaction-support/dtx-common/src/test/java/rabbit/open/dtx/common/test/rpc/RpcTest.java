@@ -12,6 +12,7 @@ import rabbit.open.dtx.common.nio.exception.TimeoutException;
 import rabbit.open.dtx.common.test.ServerNetEventHandler;
 import rabbit.open.dtx.common.test.enhance.FirstEnhancer;
 import rabbit.open.dtx.common.test.enhance.HelloService;
+import rabbit.open.dtx.common.test.enhance.HerService;
 import rabbit.open.dtx.common.test.enhance.LastEnhancer;
 
 import javax.annotation.Resource;
@@ -36,6 +37,9 @@ public class RpcTest {
 
     @Resource
     private HelloService helloService;
+
+    @Resource
+    private HerService herService;
 
     static long groupId;
 
@@ -70,7 +74,7 @@ public class RpcTest {
             throw new RpcException("");
         } catch (TimeoutException e) {
             logger.warn(e.getMessage());
-            TestCase.assertEquals(e.getTimeoutSeconds(), rtm.getDefaultTimeoutSeconds());
+            TestCase.assertEquals(e.getTimeoutSeconds(), rtm.getRpcTimeoutSeconds());
         }
     }
 
@@ -81,5 +85,8 @@ public class RpcTest {
         logger.info(result);
         TestCase.assertEquals(FirstEnhancer.class.getSimpleName() + LastEnhancer.class.getSimpleName()
                 + "hello" + name, result);
+
+        // 自定义增强和aop并不冲突
+        TestCase.assertEquals(herService.sayHello(name), result);
     }
 }

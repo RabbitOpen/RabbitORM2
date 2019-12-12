@@ -29,7 +29,7 @@ public class KryoObjectSerializer implements ObjectSerializer {
     }
 
     // 释放对象，如果池子满了就直接丢弃
-    private boolean release(RabbitKryo kryo) {
+    protected boolean release(RabbitKryo kryo) {
         try {
             return cache.add(kryo);
         } catch (Exception e) {

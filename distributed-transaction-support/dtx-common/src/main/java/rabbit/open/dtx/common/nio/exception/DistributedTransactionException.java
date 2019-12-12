@@ -1,4 +1,4 @@
-package rabbit.open.dtx.client.exception;
+package rabbit.open.dtx.common.nio.exception;
 
 /**
  * DTX异常基类
@@ -6,7 +6,7 @@ package rabbit.open.dtx.client.exception;
  * @date 2019/12/4
  **/
 @SuppressWarnings("serial")
-public class DistributedTransactionException extends RuntimeException {
+public class DistributedTransactionException extends RpcException {
 
     public DistributedTransactionException(String message) {
         super(message);

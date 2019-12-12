@@ -20,13 +20,15 @@ public final class DtxServerEventHandler extends AbstractServerEventHandler {
     // 最大并发数
     private int maxConcurrence = 30;
 
+    private int maxQueueSize = 1000;
+
     // 线程池
     private ThreadPoolExecutor tpe;
 
     @PostConstruct
     public void init() {
         tpe = new ThreadPoolExecutor(coreSize, maxConcurrence, 5, TimeUnit.MINUTES,
-                new ArrayBlockingQueue<>(1000), (r, executor) -> r.run());
+                new ArrayBlockingQueue<>(maxQueueSize), (r, executor) -> r.run());
     }
 
     /**
@@ -51,5 +53,9 @@ public final class DtxServerEventHandler extends AbstractServerEventHandler {
 
     public void setMaxConcurrence(int maxConcurrence) {
         this.maxConcurrence = maxConcurrence;
+    }
+
+    public void setMaxQueueSize(int maxQueueSize) {
+        this.maxQueueSize = maxQueueSize;
     }
 }

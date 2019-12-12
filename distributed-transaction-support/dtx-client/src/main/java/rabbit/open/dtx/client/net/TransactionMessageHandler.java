@@ -6,7 +6,7 @@ import rabbit.open.dtx.client.datasource.proxy.RollBackRecord;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfoProcessor;
 import rabbit.open.dtx.client.datasource.proxy.TxDataSource;
-import rabbit.open.dtx.client.exception.DistributedTransactionException;
+import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 
 import java.sql.Connection;

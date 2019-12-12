@@ -151,6 +151,7 @@ public class DtxServer {
         logger.info("dtx server is closing....");
         close = true;
         try {
+            wakeup();
             listener.join();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

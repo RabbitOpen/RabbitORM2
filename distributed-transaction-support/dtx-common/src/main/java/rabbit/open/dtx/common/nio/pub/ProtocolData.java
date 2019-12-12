@@ -12,9 +12,6 @@ public class ProtocolData {
 
     private Object data;
 
-    // 发生异常
-    private boolean occurException = false;
-
     // 请求id
     private Long requestId;
 
@@ -34,11 +31,4 @@ public class ProtocolData {
         this.requestId = requestId;
     }
 
-    public boolean isOccurException() {
-        return occurException;
-    }
-
-    public void setOccurException(boolean occurException) {
-        this.occurException = occurException;
-    }
 }

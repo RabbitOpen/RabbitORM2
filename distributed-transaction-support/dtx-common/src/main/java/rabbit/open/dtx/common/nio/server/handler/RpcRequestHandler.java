@@ -7,6 +7,7 @@ import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.protocol.RpcProtocol;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,6 +47,8 @@ class RpcRequestHandler implements DataHandler {
             return method.invoke(dtxService, protocol.getValues());
         } catch (NoSuchMethodException e) {
             return tryInvokeDefaultInterfaceMethod(protocol, dtxService, e);
+        } catch (RpcException e) {
+            throw e;
         } catch (Exception e) {
             throw new RpcException(e);
         }
@@ -53,16 +56,23 @@ class RpcRequestHandler implements DataHandler {
 
     /**
      * 尝试调用default方法
-     * @param	protocol
-	 * @param	dtxService
-	 * @param	e
-     * @author  xiaoqianbin
-     * @date    2019/12/10
+     * @param protocol
+     * @param dtxService
+     * @param e
+     * @author xiaoqianbin
+     * @date 2019/12/10
      **/
     private Object tryInvokeDefaultInterfaceMethod(RpcProtocol protocol, Object dtxService, NoSuchMethodException e) {
         try {
             Method method = getMethodFromInterface(protocol, dtxService, e);
             return method.invoke(dtxService, protocol.getValues());
+        } catch (InvocationTargetException ex) {
+            Throwable cause = ex.getTargetException();
+            if (cause instanceof RpcException) {
+                throw (RpcException) cause;
+            } else {
+                throw new RpcException(cause);
+            }
         } catch (Exception ex) {
             throw new RpcException(ex);
         }
