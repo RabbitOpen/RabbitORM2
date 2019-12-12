@@ -25,4 +25,8 @@ public class TestServerWrapper {
     public void close() {
         server.shutdown();
     }
+
+    public DtxServer getServer() {
+        return server;
+    }
 }

@@ -33,7 +33,7 @@ public class NioTest {
      * @date    2019/12/9
      **/
     @Test
-    public void nio1000kTest() throws IOException, InterruptedException {
+    public void nio1000kTest() throws IOException, InterruptedException, NoSuchFieldException {
         int port = 10000;
         DtxServerEventHandler handler = new DtxServerEventHandler();
         handler.init();
@@ -44,6 +44,7 @@ public class NioTest {
         int count = 100;
         CountDownLatch cdl = new CountDownLatch(count);
         long start = System.currentTimeMillis();
+
         for (int c = 0; c < count; c++) {
             new Thread(() -> {
                 for (int i = 0; i < 10000; i++) {

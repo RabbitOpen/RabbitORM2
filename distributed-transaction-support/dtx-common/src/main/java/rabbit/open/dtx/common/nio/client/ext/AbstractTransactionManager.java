@@ -178,6 +178,9 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
         if (null != pool) {
             pool.gracefullyShutdown();
         }
+        if (null != getMessageListener()) {
+            getMessageListener().close();
+        }
     }
 
     private class TransactionClientProxy implements InvocationHandler {

@@ -14,9 +14,6 @@ public class ColumnMeta {
     // '?'占位符在整个sql中的index
     private int placeHolderIndex;
 
-    // 真实值
-    private Object realValue;
-
     public ColumnMeta() {
     }
 
@@ -32,10 +29,6 @@ public class ColumnMeta {
 
     public String getValue() {
         return value;
-    }
-
-    public Object getRealValue() {
-        return realValue;
     }
 
     public int getPlaceHolderIndex() {

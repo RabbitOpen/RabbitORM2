@@ -37,6 +37,11 @@ public class DtxServer {
     // 网络事件接口
     private AbstractServerEventHandler netEventHandler;
 
+    private int errCount = 0;
+
+    // 错误阈值
+    private int errCountThreshold = 100;
+
     public DtxServer(int port, AbstractServerEventHandler netEventHandler) throws IOException {
         this.netEventHandler = netEventHandler;
         this.netEventHandler.setDtxServer(this);
@@ -51,17 +56,44 @@ public class DtxServer {
             logger.info("dtx server is listening on port: {}", port);
             while (true) {
                 try {
-                    readSelector.select();
+                    if (0 == readSelector.select()) {
+                        errCount++;
+                    }
                     Iterator<SelectionKey> keys = readSelector.selectedKeys().iterator();
                     handleRequest(keys);
                     if (close) {
                         break;
                     }
+                    epollBugDetection();
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }
             }
         });
+    }
+
+    /**
+     * epoll 空循环bug检测
+     * @author  xiaoqianbin
+     * @date    2019/12/13
+     **/
+    private void epollBugDetection() throws IOException {
+        if (errCount < errCountThreshold) {
+            return;
+        }
+        logger.error("epoll bug is detected, errCount: {}", errCount);
+        errCount = 0;
+        Selector newSelector = Selector.open();
+        for (SelectionKey key : readSelector.keys()) {
+            if (!key.isValid()) {
+                continue;
+            }
+            int ops = key.interestOps();
+            key.channel().register(newSelector, ops, key.attachment());
+            key.cancel();
+        }
+        closeResource(readSelector);
+        readSelector = newSelector;
     }
 
     /**
