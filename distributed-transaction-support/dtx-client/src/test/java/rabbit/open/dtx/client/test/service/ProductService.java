@@ -16,6 +16,8 @@ public class ProductService extends GenericService<Product> {
     @Transactional
     public void addProduct(Product product) {
         add(product);
+        product.setId(null);
+        add(product);
     }
 
     @DistributedTransaction

@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
+import rabbit.open.dtx.common.nio.client.ext.DtxResourcePool;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.exception.TimeoutException;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
@@ -64,12 +66,12 @@ public class RpcTest {
         nioSelector.setAccessible(true);
         Object selector = nioSelector.get(serverWrapper.getServer());
         Field errCount = NioSelector.class.getDeclaredField("errCount");
+        errCount.setAccessible(true);
         new Thread(() -> {
             Semaphore s = new Semaphore(0);
             for (int i = 0; i < 10; i++) {
                 try {
                     s.tryAcquire(new Random().nextInt(500), TimeUnit.MILLISECONDS);
-                    errCount.setAccessible(true);
                     errCount.set(selector, 110);
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
@@ -88,6 +90,15 @@ public class RpcTest {
         cdl.await();
         logger.info("cost {}", System.currentTimeMillis() - start);
         TestCase.assertEquals(groupId, count * loop - 1);
+
+        // 多次 epoll bug 后 errorCount应该恢复0
+        Field poolField = AbstractTransactionManager.class.getDeclaredField("pool");
+        poolField.setAccessible(true);
+        Object pool = poolField.get(rtm);
+        Field selectorField = DtxResourcePool.class.getDeclaredField("nioSelector");
+        selectorField.setAccessible(true);
+        NioSelector nioSelectorObj = (NioSelector) selectorField.get(pool);
+        TestCase.assertEquals(errCount.get(nioSelectorObj), 0);
 
         rtm.getTransactionHandler().doBranchCommit(1L, 2L, "rpcTest");
         rtm.getTransactionHandler().doCommit(11L, 3L, "rpcTest");

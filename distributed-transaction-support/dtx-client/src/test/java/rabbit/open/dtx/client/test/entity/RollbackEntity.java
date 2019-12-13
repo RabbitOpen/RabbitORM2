@@ -42,6 +42,9 @@ public class RollbackEntity {
     @Column(value = "APPLICATION_NAME", length = 50, comment = "应用名字")
     private String applicationName;
 
+    @Column(value = "ROLLBACK_ORDER", comment = "回滚顺序")
+    private Long rollbackOrder;
+
     public Long getId() {
         return id;
     }

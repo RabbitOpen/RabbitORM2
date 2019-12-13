@@ -74,6 +74,7 @@ public class TxPreparedStatement implements PreparedStatement {
             insertStmt.setString(6, "INIT");
             insertStmt.setTimestamp(7, new Timestamp(entity.getCreatedDate().getTime()));
             insertStmt.setTimestamp(8, new Timestamp(entity.getModifiedDate().getTime()));
+            insertStmt.setLong(9, entity.getRollBackOrder());
             insertStmt.executeUpdate();
         } finally {
             if (null != insertStmt) {
@@ -96,6 +97,7 @@ public class TxPreparedStatement implements PreparedStatement {
         entity.setRollbackInfo(rollbackInfoBytes);
         entity.setDatasourceName(txConn.getTxDataSource().getDataSourceName());
         entity.setTxGroupId(getTransactionManger().getCurrentTransactionObject().getTxGroupId());
+        entity.setRollBackOrder(getTransactionManger().getCurrentTransactionObject().getNextOrder());
         return entity;
     }
 

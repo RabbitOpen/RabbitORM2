@@ -23,11 +23,15 @@ public class RollBackRecord {
 
     public static final String ROLLBACK_STATUS = "ROLLBACK_STATUS";
 
+    public static final String ROLLBACK_ORDER = "ROLLBACK_ORDER";
+
     public static final String CREATED_DATE = "CREATED_DATE";
 
     public static final String MODIFIED_DATE = "MODIFIED_DATE";
 
     private static final String SEPARATOR = ", ";
+
+    private static final String AND = " = ? and ";
 
     // 插入数据库的sql
     public static final String INSERT_SQL = new StringBuilder("insert into roll_back_info (")
@@ -38,9 +42,8 @@ public class RollBackRecord {
                     .append(APPLICATION_NAME + SEPARATOR)
                     .append(ROLLBACK_STATUS + SEPARATOR)
                     .append(CREATED_DATE + SEPARATOR)
-                    .append(MODIFIED_DATE + ") values (?, ?, ?, ?, ?, ?, ?, ?)").toString();
-
-    private static final String AND = " = ? and ";
+                    .append(MODIFIED_DATE + SEPARATOR)
+                    .append(ROLLBACK_ORDER + ") values (?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
     // 查询sql
     public static final String QUERY_SQL = new StringBuilder("select ")
@@ -51,7 +54,7 @@ public class RollBackRecord {
                     .append(TX_GROUP_ID + AND)
                     .append(TX_BRANCH_ID + AND)
                     .append(APPLICATION_NAME + AND)
-                    .append(DATASOURCE_NAME + " = ? order by " + CREATED_DATE + " desc ")
+                    .append(DATASOURCE_NAME + " = ? order by " + ROLLBACK_ORDER + " desc ")
                     .toString();
     // 删除sql
     public static final String DELETE_SQL = new StringBuilder("delete from roll_back_info where ")
@@ -79,6 +82,8 @@ public class RollBackRecord {
 
     private Date modifiedDate = new Date();
 
+    private Long rollBackOrder;
+
     // 数据源名
     private String datasourceName;
 
@@ -95,14 +100,6 @@ public class RollBackRecord {
 
     public void setRollbackInfo(byte[] rollbackInfo) {
         this.rollbackInfo = rollbackInfo;
-    }
-
-    public void setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public void setModifiedDate(Date modifiedDate) {
-        this.modifiedDate = modifiedDate;
     }
 
     public void setDatasourceName(String datasourceName) {
@@ -147,5 +144,13 @@ public class RollBackRecord {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public void setRollBackOrder(Long rollBackOrder) {
+        this.rollBackOrder = rollBackOrder;
+    }
+
+    public Long getRollBackOrder() {
+        return rollBackOrder;
     }
 }

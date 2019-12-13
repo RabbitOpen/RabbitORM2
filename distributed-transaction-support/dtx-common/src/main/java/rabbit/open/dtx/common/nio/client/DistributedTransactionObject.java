@@ -15,6 +15,9 @@ public class DistributedTransactionObject {
     // 事务分支id
     private Long txBranchId;
 
+    // 同一个branch下的回滚信息顺序
+    private Long order = 0L;
+
     // 事务开启方法
     private Method transactionOwner;
 
@@ -56,4 +59,9 @@ public class DistributedTransactionObject {
     public void setPromoter(boolean promoter) {
         this.promoter = promoter;
     }
+
+    public Long getNextOrder() {
+        return order++;
+    }
+
 }
