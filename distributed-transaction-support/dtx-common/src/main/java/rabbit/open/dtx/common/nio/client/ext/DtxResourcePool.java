@@ -7,6 +7,7 @@ import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.NetEventHandler;
+import rabbit.open.dtx.common.nio.pub.NioSelector;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
@@ -15,6 +16,9 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -28,7 +32,7 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
 
     protected int nodeIndex = 0;
 
-    protected Selector selector;
+    protected NioSelector nioSelector;
 
     protected Thread readThread;
 
@@ -38,11 +42,14 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
 
     private DistributedTransactionManager transactionManger;
 
+    // 链接channel注册任务
+    private ArrayBlockingQueue<FutureTask<SelectionKey>> channelRegistryTasks = new ArrayBlockingQueue<>(100);
+
     public DtxResourcePool(DistributedTransactionManager transactionManger) throws IOException {
         super(transactionManger.getMaxConcurrenceSize());
         this.transactionManger = transactionManger;
         this.nodes = new ArrayList<>(transactionManger.getServerNodes());
-        selector = Selector.open();
+        nioSelector = new NioSelector(Selector.open());
         readThread = new Thread(() -> {
             while (run) {
                 try {
@@ -65,14 +72,21 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
         return transactionManger;
     }
 
+    public FutureTask<SelectionKey> addTask(Callable<SelectionKey> task) throws InterruptedException {
+        FutureTask<SelectionKey> selectionKeyTask = new FutureTask<>(task);
+        this.channelRegistryTasks.put(selectionKeyTask);
+        return selectionKeyTask;
+    }
+
     /**
      * 读数据
      * @author  xiaoqianbin
      * @date    2019/12/8
      **/
     private void read() throws IOException {
-        selector.select(500);
-        Iterator<?> iterator = selector.selectedKeys().iterator();
+        nioSelector.select();
+        executeRegistryTask();
+        Iterator<?> iterator = nioSelector.selectedKeys().iterator();
         while (iterator.hasNext()) {
             SelectionKey key = (SelectionKey) iterator.next();
             iterator.remove();
@@ -82,7 +96,7 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
             SocketChannel channel = (SocketChannel) key.channel();
             if (channel.finishConnect()) {
                 ChannelAgent agent = (ChannelAgent) key.attachment();
-                channel.register(selector, SelectionKey.OP_READ);
+                channel.register(nioSelector.getRealSelector(), SelectionKey.OP_READ);
                 // 重新attach
                 key.attach(agent);
                 agent.connected();
@@ -91,6 +105,17 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
                 ChannelAgent agent = (ChannelAgent) key.attachment();
                 netEventHandler.onDataReceived(agent);
             }
+        }
+        nioSelector.epollBugDetection();
+    }
+
+    private void executeRegistryTask() {
+        if (!channelRegistryTasks.isEmpty()) {
+            nioSelector.reduceErrorCount();
+        }
+        while (!channelRegistryTasks.isEmpty()) {
+            Runnable task = channelRegistryTasks.poll();
+            task.run();
         }
     }
 
@@ -112,8 +137,9 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
 
     @Override
     protected DtxClient newResource() {
-        logger.info("{} created a connection, current size {}", transactionManger.getApplicationName(), count);
-        return new DtxClient(nodes.get(nodeIndex), this);
+        DtxClient dtxClient = new DtxClient(nodes.get(nodeIndex), this);
+        logger.info("{} created a new connection, current size {}", transactionManger.getApplicationName(), count + 1);
+        return dtxClient;
     }
 
     @Override
@@ -123,7 +149,7 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
         try {
             releaseResources();
             readThread.join();
-            selector.close();
+            nioSelector.close();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -145,7 +171,7 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
         return run;
     }
 
-    public Selector getSelector() {
-        return selector;
+    public NioSelector getNioSelector() {
+        return nioSelector;
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.exception.TimeoutException;
+import rabbit.open.dtx.common.nio.pub.NioSelector;
 import rabbit.open.dtx.common.nio.server.DtxServer;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 import rabbit.open.dtx.common.test.enhance.FirstEnhancer;
@@ -49,7 +50,7 @@ public class RpcTest {
     static long groupId;
 
     @Test
-    public void rpcTest() throws IOException, InterruptedException, NoSuchFieldException {
+    public void rpcTest() throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         DtxServerEventHandler handler = new DtxServerEventHandler();
         handler.init();
         handler.setTransactionHandler(new MyTransactionService());
@@ -59,14 +60,17 @@ public class RpcTest {
         int loop = 100;
         CountDownLatch cdl = new CountDownLatch(count);
 
-        Field errCount = DtxServer.class.getDeclaredField("errCount");
+        Field nioSelector = DtxServer.class.getDeclaredField("nioSelector");
+        nioSelector.setAccessible(true);
+        Object selector = nioSelector.get(serverWrapper.getServer());
+        Field errCount = NioSelector.class.getDeclaredField("errCount");
         new Thread(() -> {
             Semaphore s = new Semaphore(0);
             for (int i = 0; i < 10; i++) {
                 try {
                     s.tryAcquire(new Random().nextInt(500), TimeUnit.MILLISECONDS);
                     errCount.setAccessible(true);
-                    errCount.set(serverWrapper.getServer(), 110);
+                    errCount.set(selector, 110);
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }

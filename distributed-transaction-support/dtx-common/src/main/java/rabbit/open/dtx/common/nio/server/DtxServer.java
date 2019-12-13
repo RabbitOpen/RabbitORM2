@@ -3,9 +3,9 @@ package rabbit.open.dtx.common.nio.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
+import rabbit.open.dtx.common.nio.pub.NioSelector;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.*;
@@ -21,7 +21,7 @@ public class DtxServer {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    private Selector readSelector;
+    private NioSelector nioSelector;
 
     //服务器监听通道
     private ServerSocketChannel listenChannel;
@@ -37,63 +37,32 @@ public class DtxServer {
     // 网络事件接口
     private AbstractServerEventHandler netEventHandler;
 
-    private int errCount = 0;
-
-    // 错误阈值
-    private int errCountThreshold = 100;
-
     public DtxServer(int port, AbstractServerEventHandler netEventHandler) throws IOException {
         this.netEventHandler = netEventHandler;
         this.netEventHandler.setDtxServer(this);
-        readSelector = Selector.open();
+        nioSelector = new NioSelector(Selector.open());
         listenChannel = ServerSocketChannel.open();
         // 异步模式
         listenChannel.configureBlocking(false);
         listenChannel.socket().bind(new InetSocketAddress(port));
         //注册接收事件
-        listenChannel.register(readSelector, SelectionKey.OP_ACCEPT);
+        listenChannel.register(nioSelector.getRealSelector(), SelectionKey.OP_ACCEPT);
         listener = new Thread(() -> {
             logger.info("dtx server is listening on port: {}", port);
             while (true) {
                 try {
-                    if (0 == readSelector.select()) {
-                        errCount++;
-                    }
-                    Iterator<SelectionKey> keys = readSelector.selectedKeys().iterator();
+                    nioSelector.select();
+                    Iterator<SelectionKey> keys = nioSelector.selectedKeys().iterator();
                     handleRequest(keys);
                     if (close) {
                         break;
                     }
-                    epollBugDetection();
+                    nioSelector.epollBugDetection();
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }
             }
         });
-    }
-
-    /**
-     * epoll 空循环bug检测
-     * @author  xiaoqianbin
-     * @date    2019/12/13
-     **/
-    private void epollBugDetection() throws IOException {
-        if (errCount < errCountThreshold) {
-            return;
-        }
-        logger.error("epoll bug is detected, errCount: {}", errCount);
-        errCount = 0;
-        Selector newSelector = Selector.open();
-        for (SelectionKey key : readSelector.keys()) {
-            if (!key.isValid()) {
-                continue;
-            }
-            int ops = key.interestOps();
-            key.channel().register(newSelector, ops, key.attachment());
-            key.cancel();
-        }
-        closeResource(readSelector);
-        readSelector = newSelector;
     }
 
     /**
@@ -166,7 +135,7 @@ public class DtxServer {
         SocketChannel channel = listenChannel.accept();
         channel.configureBlocking(false);
         // 把此channel 客户端对象作为一个事件注册到 选择器 selector中
-        SelectionKey key = channel.register(readSelector, SelectionKey.OP_READ);
+        SelectionKey key = channel.register(nioSelector.getRealSelector(), SelectionKey.OP_READ);
         ChannelAgent agent = new ChannelAgent(key);
         key.attach(agent);
         netEventHandler.onConnected(agent);
@@ -181,29 +150,21 @@ public class DtxServer {
         logger.info("dtx server is closing....");
         close = true;
         try {
-            readSelector.wakeup();
+            nioSelector.wakeup();
             listener.join();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
         closeAllSelectionKeys();
         netEventHandler.onServerClosed();
-        closeResource(listenChannel);
-        closeResource(readSelector);
+        NioSelector.closeResource(listenChannel);
+        NioSelector.closeResource(nioSelector);
         logger.info("dtx server is closed!");
     }
 
     private void closeAllSelectionKeys() {
-        for (SelectionKey key : readSelector.keys()) {
+        for (SelectionKey key : nioSelector.keys()) {
             closeChannelKey(key);
-        }
-    }
-
-    private void closeResource(Closeable closeable) {
-        try {
-            closeable.close();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
         }
     }
 

@@ -3,15 +3,16 @@ package rabbit.open.dtx.common.nio.client;
 import rabbit.open.dtx.common.nio.client.ext.DtxResourcePool;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
+import rabbit.open.dtx.common.nio.pub.NioSelector;
 import rabbit.open.dtx.common.nio.pub.protocol.Application;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -24,7 +25,7 @@ public class DtxClient implements PooledResource {
     // 连接的服务器
     private Node node;
 
-    private Selector selector;
+    private NioSelector selector;
 
     private DtxResourcePool pool;
 
@@ -41,11 +42,14 @@ public class DtxClient implements PooledResource {
         try {
             this.pool = pool;
             this.node = node;
-            this.selector = pool.getSelector();
+            this.selector = pool.getNioSelector();
             channel = SocketChannel.open();
             // 设置通道为非阻塞
             channel.configureBlocking(false);
-            SelectionKey key = channel.register(this.selector, SelectionKey.OP_CONNECT);
+            FutureTask<SelectionKey> keyTask = pool.addTask(() -> channel.register(this.selector.getRealSelector(),
+                    SelectionKey.OP_CONNECT));
+            this.selector.wakeup();
+            SelectionKey key = keyTask.get();
             channelAgent = new ChannelAgent(key, this);
             key.attach(channelAgent);
             // 客户端连接服务器,其实方法执行并没有实现连接
@@ -61,9 +65,9 @@ public class DtxClient implements PooledResource {
 
     /**
      * 发送数据
-     * @param	data
-     * @author  xiaoqianbin
-     * @date    2019/12/8
+     * @param    data
+     * @author xiaoqianbin
+     * @date 2019/12/8
      **/
     public FutureResult send(Object data) {
         Long id = packageIdGenerator.getAndAdd(1);
@@ -79,9 +83,9 @@ public class DtxClient implements PooledResource {
 
     /**
      * 找出候车间那个人
-     * @param	id
-     * @author  xiaoqianbin
-     * @date    2019/12/8
+     * @param    id
+     * @author xiaoqianbin
+     * @date 2019/12/8
      **/
     public static FutureResult findFutureResult(Long id) {
         return waitingRoom.remove(id);
@@ -106,8 +110,8 @@ public class DtxClient implements PooledResource {
 
     /**
      * 释放连接资源
-     * @author  xiaoqianbin
-     * @date    2019/12/8
+     * @author xiaoqianbin
+     * @date 2019/12/8
      **/
     @Override
     public void release() {
