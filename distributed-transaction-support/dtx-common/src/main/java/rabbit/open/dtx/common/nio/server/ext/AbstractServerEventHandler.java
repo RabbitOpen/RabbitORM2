@@ -79,24 +79,6 @@ public abstract class AbstractServerEventHandler extends AbstractNetEventHandler
     }
 
     /**
-     * 移除缓存的agent
-     * @param	agent
-     * @author  xiaoqianbin
-     * @date    2019/12/10
-     **/
-    @Override
-    public void onDisconnected(ChannelAgent agent) {
-        super.onDisconnected(agent);
-        ApplicationDataHandler.removeAgent(agent);
-    }
-
-    @Override
-    protected void closeAgentChannel(ChannelAgent agent) {
-        agent.setClosed(true);
-        getDtxServer().closeChannelKey(agent.getSelectionKey());
-    }
-
-    /**
      * 获取监听的DtxServer对象
      * @author  xiaoqianbin
      * @date    2019/12/9

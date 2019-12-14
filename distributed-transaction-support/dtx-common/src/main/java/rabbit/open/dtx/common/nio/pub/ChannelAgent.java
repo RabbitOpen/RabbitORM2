@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -34,6 +36,9 @@ public class ChannelAgent {
 
     // 等待agent正确连接上
     private Semaphore semaphore = new Semaphore(0);
+
+    // 关闭回调
+    private List<Runnable> shutdownHooks = new ArrayList<>();
 
     // 应用名
     private String appName;
@@ -137,11 +142,12 @@ public class ChannelAgent {
     private final void send(Object data, Long requestId) {
         send(data, requestId, false);
     }
+
     /**
      * 发送数据
      * @param data
      * @param requestId
-     * @param error 异常数据
+     * @param error     异常数据
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
@@ -173,12 +179,31 @@ public class ChannelAgent {
         }
     }
 
-    public boolean isClosed() {
-        return closed;
+    public void addShutdownHook(Runnable hook) {
+        try {
+            lock.lock();
+            shutdownHooks.add(hook);
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public void setClosed(boolean closed) {
-        this.closed = closed;
+    // 销毁连接, 释放资源
+    public void close() {
+        try {
+            closed = true;
+            lock.lock();
+            for (Runnable hook : shutdownHooks) {
+                hook.run();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+
+    public boolean isClosed() {
+        return closed;
     }
 
     public String getAppName() {

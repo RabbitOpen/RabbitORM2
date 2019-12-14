@@ -71,7 +71,7 @@ public class DtxClient implements PooledResource {
      **/
     public FutureResult send(Object data) {
         Long id = packageIdGenerator.getAndAdd(1);
-        FutureResult result = new FutureResult();
+        FutureResult result = new FutureResult(() -> waitingRoom.remove(id));
         waitingRoom.put(id, result);
         channelAgent.request(data, id);
         return result;

@@ -50,15 +50,7 @@ public class ApplicationDataHandler implements DataHandler {
             }
         }
         agentCache.get(app.getName()).put(agent, "");
-    }
-
-    /**
-     * 移除agent
-     * @author  xiaoqianbin
-     * @date    2019/12/10
-     **/
-    public static void removeAgent(ChannelAgent agent) {
-        agentCache.get(agent.getAppName()).remove(agent);
+        agent.addShutdownHook(() -> agentCache.get(agent.getAppName()).remove(agent));
     }
 
     /**

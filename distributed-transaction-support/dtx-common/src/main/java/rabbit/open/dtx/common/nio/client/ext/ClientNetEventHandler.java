@@ -31,7 +31,7 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
                 if (null != result) {
                     result.wakeUp(protocolData.getData());
                 } else {
-                    logger.error("unknown protocol data, {}", protocolData.getRequestId());
+                    logger.warn("discard response data, {}", protocolData.getRequestId());
                 }
             }
             return null;
@@ -83,11 +83,4 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
     protected void wakeUpSelector(ChannelAgent agent) {
         // client是同步读写，所以不需要唤醒
     }
-
-    @Override
-    protected void closeAgentChannel(ChannelAgent agent) {
-        agent.setClosed(true);
-        agent.getResource().destroy();
-    }
-
 }

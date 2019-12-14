@@ -16,6 +16,12 @@ public class FutureResult {
 
     private Object data;
 
+    private Runnable timeoutCallBack;
+
+    public FutureResult(Runnable timeoutCallBack) {
+        this.timeoutCallBack = timeoutCallBack;
+    }
+
     public Object getData() throws InterruptedException {
         return getData(0L);
     }
@@ -28,6 +34,7 @@ public class FutureResult {
         if (semaphore.tryAcquire(timeoutSeconds, TimeUnit.SECONDS)) {
             return data;
         } else {
+            timeoutCallBack.run();
             throw new TimeoutException(timeoutSeconds);
         }
     }

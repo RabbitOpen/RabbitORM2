@@ -97,6 +97,7 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
             if (channel.finishConnect()) {
                 ChannelAgent agent = (ChannelAgent) key.attachment();
                 channel.register(nioSelector.getRealSelector(), SelectionKey.OP_READ);
+                agent.addShutdownHook(() -> agent.getResource().destroy());
                 // 重新attach
                 key.attach(agent);
                 agent.connected();

@@ -74,13 +74,6 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
     protected int getMaxBufferSize() {
         return 4 * 1024 * 1024;
     }
-    /**
-     * 关闭通道
-     * @param agent
-     * @author xiaoqianbin
-     * @date 2019/12/8
-     **/
-    protected abstract void closeAgentChannel(ChannelAgent agent);
 
     @Override
     public void onDisconnected(ChannelAgent agent) {
@@ -104,10 +97,10 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
                 switchRegion.set(agent.getDataBuffer(getDefaultBufferSize()));
                 readData(agent);
             } catch (ClientClosedException e) {
-                closeAgentChannel(agent);
+                agent.close();
                 onDisconnected(agent);
             } catch (Exception e) {
-                closeAgentChannel(agent);
+                agent.close();
                 onDisconnected(agent);
                 logger.error(e.getMessage(), e);
             } finally {

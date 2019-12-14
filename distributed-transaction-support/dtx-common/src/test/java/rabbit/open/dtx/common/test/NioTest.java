@@ -41,13 +41,13 @@ public class NioTest {
         server.start();
         TestTransactionManager manager = new TestTransactionManager();
         DtxResourcePool arp = new DtxResourcePool(manager);
-        int count = 100;
+        int count = 10;
         CountDownLatch cdl = new CountDownLatch(count);
         long start = System.currentTimeMillis();
 
         for (int c = 0; c < count; c++) {
             new Thread(() -> {
-                for (int i = 0; i < 10000; i++) {
+                for (int i = 0; i < 10; i++) {
                     try {
                         DtxClient dtxClient = arp.getResource();
                         FutureResult result = dtxClient.send(new KeepAlive());
@@ -76,7 +76,7 @@ public class NioTest {
         arp.gracefullyShutdown();
         server.shutdown();
         TestCase.assertEquals(DtxClient.getLeftMessages(), 0);
-        TestCase.assertEquals(ApplicationDataHandler.getAgents(manager.getApplicationName()).size(), 0);
+        TestCase.assertEquals(0, ApplicationDataHandler.getAgents(manager.getApplicationName()).size());
     }
 
 

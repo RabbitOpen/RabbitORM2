@@ -117,7 +117,7 @@ public class DtxServer {
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
-    public void closeChannelKey(SelectionKey key) {
+    private void closeChannelKey(SelectionKey key) {
         try {
             key.channel().close();
             key.cancel();
@@ -137,6 +137,7 @@ public class DtxServer {
         // 把此channel 客户端对象作为一个事件注册到 选择器 selector中
         SelectionKey key = channel.register(nioSelector.getRealSelector(), SelectionKey.OP_READ);
         ChannelAgent agent = new ChannelAgent(key);
+        agent.addShutdownHook(() -> closeChannelKey(key));
         key.attach(agent);
         netEventHandler.onConnected(agent);
     }
