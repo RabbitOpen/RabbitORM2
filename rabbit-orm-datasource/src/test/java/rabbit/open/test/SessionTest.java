@@ -2,7 +2,6 @@ package rabbit.open.test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.concurrent.Executor;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

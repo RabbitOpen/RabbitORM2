@@ -33,6 +33,7 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
@@ -377,7 +378,7 @@ public abstract class DMLObject<T> {
                 FilterDescriptor desc = new FilterDescriptor(
                         getAliasByTableName(fmd.getFieldTableName()) + "."
                                 + getColumnName(fmd.getColumn()),
-                        RabbitValueConverter.convert(fmd.getFieldValue(), fmd),
+                        RabbitValueConverter.convertByField(fmd.getFieldValue(), fmd),
                         FilterType.EQUAL.value());
                 desc.setField(fmd.getField());
                 desc.setFilterTable(fmd.getFieldTableName());
@@ -406,7 +407,7 @@ public abstract class DMLObject<T> {
                     FilterDescriptor desc = new FilterDescriptor(
                             getAliasByTableName(getTableNameByClass(entry.getKey()))
                                     + "." + getColumnName(fmd.getColumn()),
-                            RabbitValueConverter.convert(dfd.getValue(), fmd, dfd.isReg()),
+                            RabbitValueConverter.convertByField(dfd.getValue(), fmd, dfd.isReg()),
                             dfd.getFilter().value());
                     desc.setField(fmd.getField());
                     replaceKeyByReg(dfd, desc);
@@ -961,7 +962,7 @@ public abstract class DMLObject<T> {
             Column col = fdi.getField().getAnnotation(Column.class);
             String key = getAliasByTableName(getCurrentTableMeta().getTableName()) + "."
                     		+ getColumnName(col);
-            Object value = RabbitValueConverter.convert(fdi.getValue(),
+            Object value = RabbitValueConverter.convertByField(fdi.getValue(),
                             MetaData.getCachedFieldsMeta(getEntityClz(),
                             		filter.getKey()));
             if (FilterType.IS.value().equals(fdi.getFilter().trim())

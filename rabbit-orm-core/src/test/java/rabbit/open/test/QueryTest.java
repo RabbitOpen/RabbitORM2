@@ -306,7 +306,7 @@ public class QueryTest {
         User u = query
                 .joinFetch(Role.class)
                 .distinct()
-                .addFilter("id", user.getId())
+                .addFilter("id", user.getId().longValue())
                 .alias(Resources.class, "RESOURCES")
                 .fetch(Organization.class)
                 .joinFetch(Car.class)

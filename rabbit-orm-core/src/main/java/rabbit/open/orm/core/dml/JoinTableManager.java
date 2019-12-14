@@ -8,6 +8,7 @@ import java.util.List;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.InvalidJoinMergeException;
 import rabbit.open.orm.core.annotation.ManyToMany;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
@@ -115,7 +116,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
             FieldMetaData fmd = MetaData.getCachedFieldsMeta(getEntityClz(), jfm.getMasterField().getName());
             Object value = getValue(jfm.getMasterField(), data);
             assertEmptyPKValue(value);
-			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(
+			preparedValues.add(new PreparedValue(RabbitValueConverter.convertByField(
             		value, fmd), fmd.getField()));
         }
         if (0 == sql.length()) {
@@ -203,7 +204,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
 		FieldMetaData pkfmd = MetaData.getCachedFieldsMeta(getEntityClz(), jfm.getMasterField().getName());
 		Object value = getValue(jfm.getMasterField(), data);
 		assertEmptyPKValue(value);
-		Object pv = RabbitValueConverter.convert(value, pkfmd);
+		Object pv = RabbitValueConverter.convertByField(value, pkfmd);
 		List<Object> values = new ArrayList<>();
 		values.add(new PreparedValue(pv, pkfmd.getField()));
 		rsql.append(mtm.joinColumn() + " = " + PLACE_HOLDER);
@@ -212,7 +213,7 @@ public class JoinTableManager<T> extends NonQueryAdapter<T> {
 			// 子表的关联主键值
 			Object jpkv = getValue(jfm.getSlaveField(), o);
 			FieldMetaData fmd = MetaData.getCachedFieldsMeta(jfm.getJoinClass(), jfm.getSlaveField().getName());
-			values.add(new PreparedValue(RabbitValueConverter.convert(jpkv, fmd), fmd.getField()));
+			values.add(new PreparedValue(RabbitValueConverter.convertByField(jpkv, fmd), fmd.getField()));
 			rsql.append("?, ");
 		}
 		rsql.deleteCharAt(rsql.lastIndexOf(","));

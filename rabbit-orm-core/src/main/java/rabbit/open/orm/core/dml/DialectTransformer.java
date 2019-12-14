@@ -1,7 +1,6 @@
 package rabbit.open.orm.core.dml;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +18,7 @@ import rabbit.open.orm.core.dialect.dml.impl.OracleTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.SQLServerTransformer;
 import rabbit.open.orm.core.dialect.dml.impl.SQLite3Transformer;
 import rabbit.open.orm.core.dialect.page.Pager;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 
 /**
  * <b>Description: 	sql方言转换器</b><br>
@@ -140,7 +140,7 @@ public abstract class DialectTransformer {
         try {
             f.setAccessible(true);
             if (value instanceof Number) {
-                f.set(target, RabbitValueConverter.cast(new BigDecimal(value.toString()), f.getType()));
+                f.set(target, RabbitValueConverter.cast(value, f.getType()));
             } else {
                 if (Enum.class.isAssignableFrom(f.getType())) {
                     Class clz = f.getType();

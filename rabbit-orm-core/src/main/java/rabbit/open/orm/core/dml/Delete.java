@@ -7,6 +7,7 @@ import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dialect.dml.DeleteDialectAdapter;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
@@ -86,7 +87,7 @@ public class Delete<T> extends NonQueryAdapter<T> {
 				continue;
 			}
 			factors.add(new ShardFactor(fmd.getField(), FilterType.EQUAL.value(), id));
-			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(id, fmd), fmd.getField()));
+			preparedValues.add(new PreparedValue(RabbitValueConverter.convertByField(id, fmd), fmd.getField()));
 			sql.append(getColumnName(fmd.getColumn()) + " = " + PLACE_HOLDER);
 		}
 		sqlOperation = conn -> {

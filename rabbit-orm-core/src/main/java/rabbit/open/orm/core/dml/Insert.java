@@ -10,6 +10,7 @@ import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.common.exception.NoField2InsertException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.policy.UUIDPolicy;
@@ -120,8 +121,7 @@ public class Insert<T> extends NonQueryAdapter<T> {
             if (fmd.isPrimaryKey() && fmd.getPrimaryKey().policy().equals(Policy.SEQUENCE)) {
                 vsql.append(fieldValue);
             } else {
-                preparedValues.add(new PreparedValue(RabbitValueConverter
-                        .convert(fieldValue, fmd), fmd.getField()));
+                preparedValues.add(new PreparedValue(RabbitValueConverter.convertByField(fieldValue, fmd), fmd.getField()));
                 vsql.append(PLACE_HOLDER);
             }
         }
@@ -134,11 +134,11 @@ public class Insert<T> extends NonQueryAdapter<T> {
 		if ("".equals(fmd.getColumn().joinFieldName().trim())) {
 			FieldMetaData foreignKey = new FieldMetaData(fmd.getForeignField(), fmd.getForeignField().getAnnotation(Column.class));
 			Object vv = getValue(foreignKey.getField(), value);
-			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(vv, foreignKey), foreignKey.getField()));
+			preparedValues.add(new PreparedValue(RabbitValueConverter.convertByField(vv, foreignKey), foreignKey.getField()));
 		} else {
 			// 自定义外键关联
 			FieldMetaData cfm = MetaData.getCachedFieldsMeta(value.getClass(), fmd.getColumn().joinFieldName().trim());
-			preparedValues.add(new PreparedValue(RabbitValueConverter.convert(getValue(cfm.getField(), value), cfm), cfm.getField()));
+			preparedValues.add(new PreparedValue(RabbitValueConverter.convertByField(getValue(cfm.getField(), value), cfm), cfm.getField()));
 		}
 		
 	}

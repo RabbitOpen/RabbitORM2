@@ -2,8 +2,6 @@ package rabbit.open.dtx.client.test;
 
 import junit.framework.TestCase;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import rabbit.open.dtx.client.net.DtxMessageListener;
 import rabbit.open.dtx.common.nio.client.MessageListener;
@@ -29,8 +27,6 @@ import java.util.concurrent.TimeUnit;
  **/
 @ContextConfiguration(locations = {"classpath:client.xml"})
 public class ClientLogicalTest {
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Test
     public void transactionTest() throws IOException, NoSuchMethodException, InterruptedException {
@@ -89,7 +85,8 @@ public class ClientLogicalTest {
         serverWrapper.close();
     }
 
-    class TestTransactionManager extends AbstractTransactionManager {
+    @SuppressWarnings("serial")
+	class TestTransactionManager extends AbstractTransactionManager {
 
         @Override
         protected long getRpcTimeoutSeconds() {

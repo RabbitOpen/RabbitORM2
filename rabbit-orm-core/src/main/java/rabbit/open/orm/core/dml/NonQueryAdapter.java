@@ -17,6 +17,7 @@ import rabbit.open.orm.common.exception.EmptyPrimaryKeyValueException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.annotation.ManyToMany;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.FilterDescriptor;
@@ -273,9 +274,9 @@ public abstract class NonQueryAdapter<T> extends DMLObject<T> {
             appendIdField(rsql, mtm);
             // 子表的关联键值
             FieldMetaData pkfmd = MetaData.getCachedFieldsMeta(getEntityClz(), jfm.getMasterField().getName());
-            values.add(new PreparedValue(RabbitValueConverter.convert(value, pkfmd), pkfmd.getField()));
+            values.add(new PreparedValue(RabbitValueConverter.convertByField(value, pkfmd), pkfmd.getField()));
             FieldMetaData fmd = MetaData.getCachedFieldsMeta(jfm.getJoinClass(), jfm.getSlaveField().getName());
-            values.add(new PreparedValue(RabbitValueConverter.convert(getValue(jfm.getSlaveField(), record), fmd), fmd.getField()));
+            values.add(new PreparedValue(RabbitValueConverter.convertByField(getValue(jfm.getSlaveField(), record), fmd), fmd.getField()));
             rsql.append(")VALUES(" + PLACE_HOLDER);
             rsql.append("," + PLACE_HOLDER);
             appendIdFieldValue(jfm, rsql, values, mtm);

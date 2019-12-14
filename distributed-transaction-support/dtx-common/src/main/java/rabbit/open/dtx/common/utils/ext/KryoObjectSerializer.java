@@ -54,7 +54,6 @@ public class KryoObjectSerializer implements ObjectSerializer {
     /**
      * 反序列化（字节数组 -> 对象）
      */
-    @SuppressWarnings("unchecked")
 	public <T> T deserialize(byte[] data, Class<T> clz) {
         return deserialize(data, clz, false);
     }
@@ -62,7 +61,8 @@ public class KryoObjectSerializer implements ObjectSerializer {
     /**
      * 反序列化（字节数组 -> 对象）
      */
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public <T> T deserialize(byte[] data, Class<T> clz, boolean containException) {
         RabbitKryo kryo = getKryo(containException);
         try (Input input = new Input(data)) {

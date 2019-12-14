@@ -88,7 +88,8 @@ public class LogicalTest {
         serverWrapper.close();
     }
 
-    class TestTransactionManager extends AbstractTransactionManager {
+    @SuppressWarnings("serial")
+	class TestTransactionManager extends AbstractTransactionManager {
 
         @Override
         protected long getRpcTimeoutSeconds() {

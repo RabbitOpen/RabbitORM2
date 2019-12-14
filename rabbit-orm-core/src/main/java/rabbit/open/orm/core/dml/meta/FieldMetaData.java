@@ -122,14 +122,6 @@ public class FieldMetaData {
         this.index = index;
     }
 
-	//数字字段
-	public boolean isNumerical() {
-		return (Integer.class.getName() + "|" + Float.class.getName() + "|" + Double.class.getName() + "|"
-				+ Short.class.getName() + "|" + Long.class.getName()).contains(field.getType().getName()) ||
-				(int.class.getName() + "|" + float.class.getName() + "|" + double.class.getName() + "|"
-						+ short.class.getName() + "|" + long.class.getName()).contains(field.getType().getName());
-	}
-
 	public boolean isForeignKey() {
 		return isForeignKey;
 	}
@@ -166,10 +158,6 @@ public class FieldMetaData {
 	//字符类型字段varchar
 	public boolean isString() {
 		return field.getType().equals(String.class);
-	}
-
-	public boolean isBoolean() {
-		return field.getType().equals(boolean.class) || field.getType().equals(Boolean.class);
 	}
 
 	//日期类型字段
