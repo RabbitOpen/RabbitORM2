@@ -111,11 +111,9 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
     }
 
     private void executeRegistryTask() {
-        if (!channelRegistryTasks.isEmpty()) {
-            nioSelector.reduceErrorCount();
-        }
         while (!channelRegistryTasks.isEmpty()) {
             Runnable task = channelRegistryTasks.poll();
+            nioSelector.reduceErrorCount();
             task.run();
         }
     }

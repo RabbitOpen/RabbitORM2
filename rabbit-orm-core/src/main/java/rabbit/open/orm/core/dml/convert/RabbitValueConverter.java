@@ -1,6 +1,5 @@
 package rabbit.open.orm.core.dml.convert;
 
-import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -21,6 +20,7 @@ import rabbit.open.orm.core.dml.convert.ext.LongConverter;
 import rabbit.open.orm.core.dml.convert.ext.ShortConverter;
 import rabbit.open.orm.core.dml.convert.ext.StringConverter;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
+import rabbit.open.orm.core.spring.SpringDaoAdapter;
 
 /**
  * 
@@ -37,17 +37,8 @@ public abstract class RabbitValueConverter<T> {
 	@SuppressWarnings("rawtypes")
 	private static Map<Class<?>, RabbitValueConverter> converterCache = new ConcurrentHashMap<>();
 
-	@SuppressWarnings("unchecked")
 	public RabbitValueConverter() {
-		try {
-			Class<?> cls = getClass();
-			while (!(cls.getGenericSuperclass() instanceof ParameterizedType)) {
-				cls = cls.getSuperclass();
-			}
-			this.clz = (Class<T>) ((ParameterizedType) (cls.getGenericSuperclass())).getActualTypeArguments()[0];
-		} catch (Exception e) {
-			// TO DO : ignore
-		}
+		clz = SpringDaoAdapter.getTemplateClz(getClass());
 	}
 
 	/**

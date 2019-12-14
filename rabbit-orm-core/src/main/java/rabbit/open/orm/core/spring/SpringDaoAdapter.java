@@ -41,18 +41,18 @@ public abstract class SpringDaoAdapter<T> {
 	
 	protected SessionFactory sessionFactory;
 	
-	@SuppressWarnings("unchecked")
     public SpringDaoAdapter() {
-        try {
-        	Class<?> cls = getClass();
-        	while (!(cls.getGenericSuperclass() instanceof ParameterizedType)) {
-        		cls = cls.getSuperclass();
-        	}
-            this.clz = (Class<T>) ((ParameterizedType) (cls.getGenericSuperclass())).getActualTypeArguments()[0];
-        } catch (Exception e) {
-        	// TO DO : ignore
-        }
+    	this.clz = getTemplateClz(getClass());
     }
+
+    @SuppressWarnings("unchecked")
+	public static <D> Class<D> getTemplateClz(Class<?> clz) {
+    	Class<?> cls = clz;
+    	while (!(cls.getGenericSuperclass() instanceof ParameterizedType)) {
+    		cls = cls.getSuperclass();
+    	}
+    	return (Class<D>) ((ParameterizedType) (cls.getGenericSuperclass())).getActualTypeArguments()[0];
+	}
 
 	public void setSessionFactory(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;

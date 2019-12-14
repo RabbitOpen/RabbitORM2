@@ -1,14 +1,22 @@
 package rabbit.open.dtx.common.test.rpc;
 
-import junit.framework.TestCase;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Resource;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
-import rabbit.open.dtx.common.nio.client.ext.DtxResourcePool;
+
+import junit.framework.TestCase;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.exception.TimeoutException;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
@@ -18,14 +26,6 @@ import rabbit.open.dtx.common.test.enhance.FirstEnhancer;
 import rabbit.open.dtx.common.test.enhance.HelloService;
 import rabbit.open.dtx.common.test.enhance.HerService;
 import rabbit.open.dtx.common.test.enhance.LastEnhancer;
-
-import javax.annotation.Resource;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author xiaoqianbin
@@ -67,7 +67,7 @@ public class RpcTest {
         Object selector = nioSelector.get(serverWrapper.getServer());
         Field errCount = NioSelector.class.getDeclaredField("errCount");
         errCount.setAccessible(true);
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             Semaphore s = new Semaphore(0);
             for (int i = 0; i < 10; i++) {
                 try {
@@ -77,7 +77,8 @@ public class RpcTest {
                     logger.error(e.getMessage(), e);
                 }
             }
-        }).start();
+        });
+		thread.start();
         long start = System.currentTimeMillis();
         for (int index = 0; index < count; index++) {
             new Thread(() -> {
@@ -91,14 +92,16 @@ public class RpcTest {
         logger.info("cost {}", System.currentTimeMillis() - start);
         TestCase.assertEquals(groupId, count * loop - 1);
 
+        thread.join();
+        rtm.getTransactionHandler().getTransactionGroupId(rtm.getApplicationName());
+        Semaphore s = new Semaphore(0);
+        if (s.tryAcquire(2, TimeUnit.SECONDS)) {
+        	logger.info("不可能走到这里来， 等两秒是为了让上面的方法读取完毕，完成最后一次epoll bug的检测");
+        }
+        
         // 多次 epoll bug 后 errorCount应该恢复0
-        Field poolField = AbstractTransactionManager.class.getDeclaredField("pool");
-        poolField.setAccessible(true);
-        Object pool = poolField.get(rtm);
-        Field selectorField = DtxResourcePool.class.getDeclaredField("nioSelector");
-        selectorField.setAccessible(true);
-        NioSelector nioSelectorObj = (NioSelector) selectorField.get(pool);
-        TestCase.assertEquals(errCount.get(nioSelectorObj), 0);
+
+        TestCase.assertEquals(errCount.get(selector), 0);
 
         rtm.getTransactionHandler().doBranchCommit(1L, 2L, "rpcTest");
         rtm.getTransactionHandler().doCommit(11L, 3L, "rpcTest");
