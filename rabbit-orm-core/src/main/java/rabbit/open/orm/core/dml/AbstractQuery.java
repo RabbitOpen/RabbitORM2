@@ -35,6 +35,7 @@ import rabbit.open.orm.common.exception.RepeatedFetchOperationException;
 import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.ManyToMany;
 import rabbit.open.orm.core.annotation.OneToMany;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
@@ -926,7 +927,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 				if (dfd.isReg()) {
 					key = replaceRegByColumnName(dfd.getKeyReg(), fmd.getField(), key);
 				}
-				Object holderValue = RabbitValueConverter.convert(dfd.getValue(), fmd, dfd.isReg());
+				Object holderValue = RabbitValueConverter.convertByField(dfd.getValue(), fmd, dfd.isReg());
 				if (FilterType.IS.value().equals(filter.trim())
 						|| FilterType.IS_NOT.value().equals(filter.trim())) {
 					sql.append(key + " " + filter + NULL);
@@ -1021,7 +1022,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 					+ getColumnName(fmd.getColumn());
 			String filter = FilterType.EQUAL.value();
 			sb.append(AND + key);
-			Object hv = RabbitValueConverter.convert(pkv, fmd);
+			Object hv = RabbitValueConverter.convertByField(pkv, fmd);
 			cachePreparedValues(hv, fmd.getField());
 			sb.append(" " + filter + " " + createPlaceHolder(filter, hv));
 		} else {
@@ -1029,7 +1030,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 					+ getColumnName(fmd.getColumn());
 			String filter = FilterType.EQUAL.value();
 			sb.append(AND + key);
-			Object hv = RabbitValueConverter.convert(fmd.getFieldValue(),
+			Object hv = RabbitValueConverter.convertByField(fmd.getFieldValue(),
 					fmd);
 			cachePreparedValues(hv, fmd.getField());
 			sb.append(" " + filter + " " + createPlaceHolder(filter, hv));

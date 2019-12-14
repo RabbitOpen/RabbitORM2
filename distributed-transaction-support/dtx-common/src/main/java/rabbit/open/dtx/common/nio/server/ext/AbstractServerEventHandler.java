@@ -4,7 +4,6 @@ import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
 import rabbit.open.dtx.common.nio.server.DtxServer;
-import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
 import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
 
 /**

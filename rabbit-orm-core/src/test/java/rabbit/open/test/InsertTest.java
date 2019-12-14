@@ -235,6 +235,11 @@ public class InsertTest {
 		TestCase.assertEquals(cars.get(0).getCarNo(), unique.getCars().get(0).getCarNo());
 		TestCase.assertEquals(cars.get(0).getOwner().getName(), unique.getCars().get(0).getOwner().getName());
 		TestCase.assertEquals(cars.get(0).getId(), unique.getCars().get(0).getId());
+		
+		ccs.createUpdate().set("owner", "xx").execute();
+		ccs.createQuery().list().forEach(c -> {
+			TestCase.assertEquals("xx", c.getOwner().getName());
+		});
     }
     
     @Test

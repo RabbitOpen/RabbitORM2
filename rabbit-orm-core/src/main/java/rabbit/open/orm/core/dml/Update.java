@@ -17,6 +17,7 @@ import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.WrongJavaTypeException;
 import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.FilterDescriptor;
 import rabbit.open.orm.core.dml.meta.MetaData;
@@ -296,7 +297,7 @@ public class Update<T> extends NonQueryAdapter<T> {
         if (null == pkValue) {
             throw new RabbitDMLException("primary key can't be empty!");
         }
-		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(pkValue, 
+		preparedValues.add(new PreparedValue(RabbitValueConverter.convertByField(pkValue, 
 		        new FieldMetaData(pk, fmd.getColumn())), pk));
 		sql.append(WHERE + TARGET_TABLE_NAME + "." + getColumnName(metaData.getPrimaryKey()) 
 				+ " = " + PLACE_HOLDER);
@@ -409,7 +410,7 @@ public class Update<T> extends NonQueryAdapter<T> {
 	 */
 	private StringBuilder createCommonFieldsValueSegment(FieldMetaData fmd) {
 	    StringBuilder sb =  new StringBuilder();
-		preparedValues.add(new PreparedValue(RabbitValueConverter.convert(fmd.getFieldValue(), fmd), 
+		preparedValues.add(new PreparedValue(RabbitValueConverter.convertByField(fmd.getFieldValue(), fmd), 
 		        fmd.getField()));
 		String fieldName = fmd.getField().getName();
 		sb.append(createFieldSqlPiece(getColumnName(fmd.getColumn()), deltaValues.containsKey(fieldName)));
@@ -453,7 +454,7 @@ public class Update<T> extends NonQueryAdapter<T> {
         Field foreignField = fmd.getForeignField();
         Object fkValue = getValue(foreignField, fmd.getFieldValue());
         if (null != fkValue) {
-            preparedValues.add(new PreparedValue(RabbitValueConverter.convert(
+            preparedValues.add(new PreparedValue(RabbitValueConverter.convertByField(
                     fkValue, new FieldMetaData(foreignField, foreignField
                             .getAnnotation(Column.class))), foreignField));
 			String fieldName = fmd.getField().getName();
@@ -546,13 +547,18 @@ public class Update<T> extends NonQueryAdapter<T> {
      * @param value
      */
     private void setEntityFiled(Object data, String key, FieldMetaData fmd, Object value) {
-        Field pk = MetaData.getPrimaryKeyField(fmd.getField().getType());
+    	Field fk;
+    	if (!"".equals(fmd.getColumn().joinFieldName())) {
+    		fk =  MetaData.getCachedFieldsMeta(fmd.getField().getType(), fmd.getColumn().joinFieldName()).getField();
+    	} else {
+    		fk = MetaData.getPrimaryKeyField(fmd.getField().getType());
+    	}
         logger.warn("value[{}] is not compatible with field[{}({})] of {}", value, key, fmd.getField().getType().getName(), data.getClass().getName());
         Object bean = DMLObject.newInstance(fmd.getField().getType());
 		if (value instanceof Number) {
-            setValue2Field(bean, pk, RabbitValueConverter.cast(new BigDecimal(value.toString()), pk.getType()));
+            setValue2Field(bean, fk, RabbitValueConverter.cast(new BigDecimal(value.toString()), fk.getType()));
         } else {
-            setValue2Field(bean, pk, value);
+            setValue2Field(bean, fk, value);
         }
         setValue2Field(data, fmd.getField(), bean);
     }

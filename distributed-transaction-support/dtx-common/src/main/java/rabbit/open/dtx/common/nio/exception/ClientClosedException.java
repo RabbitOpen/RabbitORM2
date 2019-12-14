@@ -5,6 +5,7 @@ package rabbit.open.dtx.common.nio.exception;
  * @author xiaoqianbin
  * @date 2019/12/7
  **/
+@SuppressWarnings("serial")
 public class ClientClosedException extends RpcException {
 
     public ClientClosedException(String msg) {

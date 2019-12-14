@@ -12,7 +12,7 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.NonQueryAdapter;
 import rabbit.open.orm.core.dml.PolicyInsert;
-import rabbit.open.orm.core.dml.RabbitValueConverter;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
@@ -48,8 +48,7 @@ public class SequencePolicy extends PolicyInsert {
             rs = (ResultSet) method.invoke(stmt);
             if (rs.next()) {
                 pk.setAccessible(true);
-                pk.set(data, RabbitValueConverter.cast(rs.getBigDecimal(1),
-                                pk.getType()));
+                pk.set(data, RabbitValueConverter.cast(rs.getBigDecimal(1), pk.getType()));
             }
             return data;
         } catch (IllegalArgumentException | ReflectiveOperationException e) {

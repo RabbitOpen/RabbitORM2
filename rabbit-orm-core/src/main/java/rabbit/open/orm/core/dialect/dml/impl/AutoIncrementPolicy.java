@@ -11,7 +11,7 @@ import com.mysql.jdbc.Statement;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.NonQueryAdapter;
 import rabbit.open.orm.core.dml.PolicyInsert;
-import rabbit.open.orm.core.dml.RabbitValueConverter;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
 /**
@@ -34,8 +34,7 @@ public class AutoIncrementPolicy extends PolicyInsert {
             rs = stmt.getGeneratedKeys();
             if (rs.next()) {
                 pk.setAccessible(true);
-                setValue2Field(data, pk, RabbitValueConverter.cast(rs.getBigDecimal(1),
-                                pk.getType()), adapter);
+                setValue2Field(data, pk, RabbitValueConverter.cast(rs.getBigDecimal(1), pk.getType()), adapter);
             }
             return data;
         } finally {

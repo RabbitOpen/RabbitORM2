@@ -20,6 +20,7 @@ import java.util.List;
  * @author xiaoqianbin
  * @date 2019/12/10
  **/
+@SuppressWarnings("serial")
 public class DubboTransactionManager extends AbstractTransactionManager {
 
     private transient Logger logger = LoggerFactory.getLogger(getClass());
