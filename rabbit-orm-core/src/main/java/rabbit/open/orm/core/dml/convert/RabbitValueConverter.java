@@ -54,9 +54,8 @@ public abstract class RabbitValueConverter<T> {
 			return null;
 		}
 		if (field.isForeignKey()) {
-			return convert(value,
-					new FieldMetaData(field.getForeignField(), field.getForeignField().getAnnotation(Column.class)),
-					isReg);
+			return convert(value, new FieldMetaData(field.getForeignField(), 
+					field.getForeignField().getAnnotation(Column.class)), isReg);
 		}
 		return doConvert(value, field, isReg);
 	}
