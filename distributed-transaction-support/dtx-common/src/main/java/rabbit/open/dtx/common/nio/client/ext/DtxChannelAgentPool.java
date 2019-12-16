@@ -144,16 +144,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                     ChannelAgent agent = new ChannelAgent(node, this);
                     node.setIdle(false);
                     // 注册连接销毁回调事件
-                    agent.addShutdownHook(() -> {
-                        try {
-                            node.setIdle(true);
-                            destroyResource();
-                            agent.closeQuietly(agent.getSelectionKey().channel());
-                            agent.getSelectionKey().cancel();
-                        } catch (Exception e) {
-                            logger.error(e.getMessage(), e);
-                        }
-                    });
+                    agent.addShutdownHook(() -> releaseAgentResource(node, agent));
                     // 通报应用名
                     agent.send(new Application(getTransactionManger().getApplicationName())).getData();
                     logger.info("{} created a new connection, current size {}", transactionManger.getApplicationName(), count + 1);
@@ -167,6 +158,24 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             }
         }
         throw new RpcException("can't create connection any more");
+    }
+
+    /**
+     * 销毁agent时回收对应的资源
+     * @param	node
+	 * @param	agent
+     * @author  xiaoqianbin
+     * @date    2019/12/16
+     **/
+    private void releaseAgentResource(Node node, ChannelAgent agent) {
+        try {
+            node.setIdle(true);
+            destroyResource();
+            agent.closeQuietly(agent.getSelectionKey().channel());
+            agent.getSelectionKey().cancel();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @Override

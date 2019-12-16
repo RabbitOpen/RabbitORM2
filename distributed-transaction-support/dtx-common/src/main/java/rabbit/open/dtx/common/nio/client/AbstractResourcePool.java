@@ -71,7 +71,7 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
         if (null != resource) {
             return resource;
         } else {
-            return getResource(10 * 1000);
+            return getResource(10L * 1000);
         }
     }
 
