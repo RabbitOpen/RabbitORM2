@@ -116,11 +116,11 @@ public abstract class RabbitValueConverter<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T cast(Object data, Class<T> type) {
-		makesureConverterInitialized();
+		makeSureConverterInitialized();
 		return (T) converterCache.get(type).doCast(data);
 	}
 
-	protected static void makesureConverterInitialized() {
+	protected static void makeSureConverterInitialized() {
 		if (converterCache.isEmpty()) {
 			converterCache.put(Long.class, new LongConverter());
 			converterCache.put(Short.class, new ShortConverter());
@@ -143,7 +143,7 @@ public abstract class RabbitValueConverter<T> {
 	 * 
 	 */
 	public static Object convertByField(Object value, FieldMetaData field, boolean isReg) {
-		makesureConverterInitialized();
+		makeSureConverterInitialized();
 		RabbitValueConverter<?> converter = converterCache.get(field.getField().getType());
 		if (null == converter) {
 			return value;
