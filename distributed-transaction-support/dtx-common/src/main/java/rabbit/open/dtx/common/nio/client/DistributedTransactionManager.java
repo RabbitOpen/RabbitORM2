@@ -85,15 +85,6 @@ public interface DistributedTransactionManager extends Serializable {
     }
 
     /**
-     * 分布式事务 tcp客户端最大并发连接数
-     * @author xiaoqianbin
-     * @date 2019/12/10
-     **/
-    default int getMaxConcurrenceSize() {
-        return 5;
-    }
-
-    /**
      * 分布式事务服务端信息
      * @author xiaoqianbin
      * @date 2019/12/10

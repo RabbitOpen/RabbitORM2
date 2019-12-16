@@ -23,7 +23,7 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
-    // 数据接收缓冲区(默认的缓冲区只有8K, 接收大数据时会临时开辟一个大的缓冲区，用完后直接回收)
+    // 数据接收缓冲区(默认的缓冲区只有4K, 接收大数据时会临时开辟一个大的缓冲区，用完后直接回收)
     private ThreadLocal<ByteBuffer> switchRegion = new ThreadLocal<>();
 
     // agent缓存
@@ -97,10 +97,10 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
                 switchRegion.set(agent.getDataBuffer(getDefaultBufferSize()));
                 readData(agent);
             } catch (ClientClosedException e) {
-                agent.close();
+                agent.destroy();
                 onDisconnected(agent);
             } catch (Exception e) {
-                agent.close();
+                agent.destroy();
                 onDisconnected(agent);
                 logger.error(e.getMessage(), e);
             } finally {

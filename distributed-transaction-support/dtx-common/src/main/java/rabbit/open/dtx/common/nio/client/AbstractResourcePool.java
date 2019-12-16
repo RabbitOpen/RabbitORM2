@@ -2,7 +2,7 @@ package rabbit.open.dtx.common.nio.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.dtx.common.nio.exception.NetworkException;
+import rabbit.open.dtx.common.nio.exception.GetConnectionTimeoutException;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 
 import java.util.concurrent.LinkedBlockingDeque;
@@ -20,17 +20,13 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
 
     protected LinkedBlockingDeque<T> queue;
 
-    private ReentrantLock createLock = new ReentrantLock();
+    protected ReentrantLock createLock = new ReentrantLock();
 
     // 当前个数
     protected int count;
 
-    // 最大并发数
-    protected final int maxConcurrenceSize;
-
-    public AbstractResourcePool(int maxConcurrenceSize) {
-        queue = new LinkedBlockingDeque<>(maxConcurrenceSize);
-        this.maxConcurrenceSize = maxConcurrenceSize;
+    public AbstractResourcePool() {
+        queue = new LinkedBlockingDeque<>(10000);
     }
 
     // 获取当前连接数
@@ -61,17 +57,21 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
         try {
             if (0 != timeoutMilliSeconds) {
                 resource = queue.pollFirst(timeoutMilliSeconds, TimeUnit.MILLISECONDS);
+                if (null == resource) {
+                    throw new GetConnectionTimeoutException(timeoutMilliSeconds);
+                }
             } else {
                 resource = queue.pollFirst();
             }
+        } catch (GetConnectionTimeoutException e) {
+            throw e;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
         if (null != resource) {
             return resource;
         } else {
-            tryCreateResource();
-            return getResource(5);
+            return getResource(10 * 1000);
         }
     }
 
@@ -82,8 +82,7 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
      * @date 2019/12/7
      **/
     public void release(T resource) {
-        queue.addFirst(resource);
-        onNetWorkRecovered();
+        queue.addLast(resource);
     }
 
     /**
@@ -105,7 +104,7 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
-    private void tryCreateResource() {
+    protected void tryCreateResource() {
         if (!canCreate()) {
             return;
         }
@@ -116,31 +115,12 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
                 release(resource);
                 count++;
             }
-        } catch (NetworkException e) {
-            onNetWorkException(e);
         } finally {
             createLock.unlock();
         }
     }
 
-    private boolean canCreate() {
-        return count < maxConcurrenceSize;
-    }
-
-    /**
-     * 网络异常处理
-     * @param	e
-     * @author  xiaoqianbin
-     * @date    2019/12/8
-     **/
-    protected abstract void onNetWorkException(NetworkException e);
-
-    /**
-     * 网络恢复了
-     * @author  xiaoqianbin
-     * @date    2019/12/8
-     **/
-    protected abstract void onNetWorkRecovered();
+    protected abstract boolean canCreate();
 
     /**
      * 新建资源

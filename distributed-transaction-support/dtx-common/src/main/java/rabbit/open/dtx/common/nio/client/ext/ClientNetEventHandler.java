@@ -1,6 +1,5 @@
 package rabbit.open.dtx.common.nio.client.ext;
 
-import rabbit.open.dtx.common.nio.client.DtxClient;
 import rabbit.open.dtx.common.nio.client.FutureResult;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
@@ -14,20 +13,20 @@ import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
  **/
 class ClientNetEventHandler extends AbstractNetEventHandler {
 
-    private DtxResourcePool dtxResourcePool;
+    private DtxChannelAgentPool dtxChannelAgentPool;
 
     private DataDispatcher dispatcher = new DataDispatcher() {
 
         @Override
         public Object process(ProtocolData protocolData) {
             if (isNotifyMessage(protocolData)) {
-                if (null != dtxResourcePool.getTransactionManger().getMessageListener()) {
-                    dtxResourcePool.getTransactionManger().getMessageListener().onMessageReceived(protocolData.getData());
+                if (null != dtxChannelAgentPool.getTransactionManger().getMessageListener()) {
+                    dtxChannelAgentPool.getTransactionManger().getMessageListener().onMessageReceived(protocolData.getData());
                 } else {
                     logger.info("discard notify info: {}", protocolData.getData());
                 }
             } else {
-                FutureResult result = DtxClient.findFutureResult(protocolData.getRequestId());
+                FutureResult result = ChannelAgent.findFutureResult(protocolData.getRequestId());
                 if (null != result) {
                     result.wakeUp(protocolData.getData());
                 } else {
@@ -48,8 +47,8 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
         }
     };
 
-    public ClientNetEventHandler(DtxResourcePool dtxResourcePool) {
-        this.dtxResourcePool = dtxResourcePool;
+    public ClientNetEventHandler(DtxChannelAgentPool dtxChannelAgentPool) {
+        this.dtxChannelAgentPool = dtxChannelAgentPool;
     }
 
     /**
@@ -76,7 +75,7 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
 
     @Override
     public void onDisconnected(ChannelAgent agent) {
-        logger.info("client channel closed!");
+        logger.info("server[{}] channel closed!", agent.getServerAddr());
     }
 
     @Override

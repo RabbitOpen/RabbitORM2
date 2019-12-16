@@ -61,6 +61,11 @@ public class TestTransactionManager implements DistributedTransactionManager {
 
     @Override
     public List<Node> getServerNodes() {
-        return Arrays.asList(new Node("localhost", 10000));
+        return Arrays.asList(
+                new Node("localhost", 10000),
+                new Node("localhost", 10000),
+                new Node("localhost", 10000),
+                new Node("localhost", 10000),
+                new Node("localhost", 10000));
     }
 }

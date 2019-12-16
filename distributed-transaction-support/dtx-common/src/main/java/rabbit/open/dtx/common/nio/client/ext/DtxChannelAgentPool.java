@@ -2,12 +2,13 @@ package rabbit.open.dtx.common.nio.client.ext;
 
 import rabbit.open.dtx.common.nio.client.AbstractResourcePool;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
-import rabbit.open.dtx.common.nio.client.DtxClient;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
+import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.NetEventHandler;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
+import rabbit.open.dtx.common.nio.pub.protocol.Application;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
@@ -26,11 +27,9 @@ import java.util.concurrent.TimeUnit;
  * @author xiaoqianbin
  * @date 2019/12/8
  **/
-public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
+public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     protected List<Node> nodes;
-
-    protected int nodeIndex = 0;
 
     protected NioSelector nioSelector;
 
@@ -45,8 +44,7 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
     // 链接channel注册任务
     private ArrayBlockingQueue<FutureTask<SelectionKey>> channelRegistryTasks = new ArrayBlockingQueue<>(100);
 
-    public DtxResourcePool(DistributedTransactionManager transactionManger) throws IOException {
-        super(transactionManger.getMaxConcurrenceSize());
+    public DtxChannelAgentPool(DistributedTransactionManager transactionManger) throws IOException {
         this.transactionManger = transactionManger;
         this.nodes = new ArrayList<>(transactionManger.getServerNodes());
         nioSelector = new NioSelector(Selector.open());
@@ -60,12 +58,18 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
             }
         });
         readThread.start();
-        initConnection();
+        initConnections();
     }
 
-    private void initConnection() {
-        DtxClient resource = getResource();
-        resource.release();
+    /**
+     * 初始化到节点之间的连接(与所有可用的服务都建立一个连接)
+     * @author  xiaoqianbin
+     * @date    2019/12/16
+     **/
+    public void initConnections() {
+        for (int i = 0; i < nodes.size(); i++) {
+            tryCreateResource();
+        }
     }
 
     public DistributedTransactionManager getTransactionManger() {
@@ -97,7 +101,6 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
             if (channel.finishConnect()) {
                 ChannelAgent agent = (ChannelAgent) key.attachment();
                 channel.register(nioSelector.getRealSelector(), SelectionKey.OP_READ);
-                agent.addShutdownHook(() -> agent.getResource().destroy());
                 // 重新attach
                 key.attach(agent);
                 agent.connected();
@@ -119,31 +122,56 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
     }
 
     /**
-     * 创建连接时发现网络不通或者其它错误
-     * @author xiaoqianbin
-     * @date 2019/12/8
+     * 只要有未被隔离的空闲节点，就可以新建连接
+     * @author  xiaoqianbin
+     * @date    2019/12/16
      **/
     @Override
-    protected void onNetWorkException(NetworkException e) {
-        // TO DO :网络异常时切换node
-        logger.error(e.getMessage(), e);
+    protected boolean canCreate() {
+        for (Node node : nodes) {
+            if (node.isIdle() && !node.isIsolated()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
-    protected void onNetWorkRecovered() {
-        // TO DO: 网络异常恢复
-    }
-
-    @Override
-    protected DtxClient newResource() {
-        DtxClient dtxClient = new DtxClient(nodes.get(nodeIndex), this);
-        logger.info("{} created a new connection, current size {}", transactionManger.getApplicationName(), count + 1);
-        return dtxClient;
+    protected ChannelAgent newResource() {
+        for (Node node : nodes) {
+            if (node.isIdle() && !node.isIsolated()) {
+                try {
+                    ChannelAgent agent = new ChannelAgent(node, this);
+                    node.setIdle(false);
+                    // 注册连接销毁回调事件
+                    agent.addShutdownHook(() -> {
+                        try {
+                            node.setIdle(true);
+                            destroyResource();
+                            agent.closeQuietly(agent.getSelectionKey().channel());
+                            agent.getSelectionKey().cancel();
+                        } catch (Exception e) {
+                            logger.error(e.getMessage(), e);
+                        }
+                    });
+                    // 通报应用名
+                    agent.send(new Application(getTransactionManger().getApplicationName())).getData();
+                    logger.info("{} created a new connection, current size {}", transactionManger.getApplicationName(), count + 1);
+                    return agent;
+                } catch (NetworkException e) {
+                    node.setIsolated(true);
+                    throw e;
+                } catch (Exception e) {
+                    throw new NetworkException(e);
+                }
+            }
+        }
+        throw new RpcException("can't create connection any more");
     }
 
     @Override
     public void gracefullyShutdown() {
-        logger.info("DtxResourcePool is closing.....");
+        logger.info("{} is closing.....", DtxChannelAgentPool.class.getSimpleName());
         run = false;
         try {
             releaseResources();
@@ -152,15 +180,15 @@ public class DtxResourcePool extends AbstractResourcePool<DtxClient> {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-        logger.info("DtxResourcePool gracefullyShutdown");
+        logger.info("{} gracefullyShutdown", DtxChannelAgentPool.class.getSimpleName());
     }
 
     // 回收所有资源
     private void releaseResources() throws InterruptedException {
         while (0 != count) {
-            DtxClient client = queue.poll(3, TimeUnit.SECONDS);
-            if (null != client) {
-                client.destroy();
+            ChannelAgent agent = queue.poll(3, TimeUnit.SECONDS);
+            if (null != agent) {
+                agent.destroy();
             }
         }
     }

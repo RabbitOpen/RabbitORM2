@@ -33,14 +33,11 @@ public class DubboTransactionManager extends AbstractTransactionManager {
 
     private String applicationName;
 
-    private int maxConcurrenceSize;
-
     private long rpcTimeoutSeconds = 3L;
 
-    public DubboTransactionManager(String hosts, String applicationName, int maxConcurrenceSize) {
+    public DubboTransactionManager(String hosts, String applicationName) {
         this.hosts = hosts;
         this.applicationName = applicationName;
-        this.maxConcurrenceSize = maxConcurrenceSize;
     }
 
     @Override
@@ -74,11 +71,6 @@ public class DubboTransactionManager extends AbstractTransactionManager {
     @Override
     public MessageListener getMessageListener() {
         return messageListener;
-    }
-
-    @Override
-    public int getMaxConcurrenceSize() {
-        return maxConcurrenceSize;
     }
 
     @Override

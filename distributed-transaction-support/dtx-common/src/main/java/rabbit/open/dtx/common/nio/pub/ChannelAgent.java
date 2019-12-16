@@ -1,16 +1,25 @@
 package rabbit.open.dtx.common.nio.pub;
 
+import rabbit.open.dtx.common.nio.client.FutureResult;
+import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.PooledResource;
+import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -18,7 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author xiaoqianbin
  * @date 2019/12/7
  **/
-public class ChannelAgent {
+public class ChannelAgent implements PooledResource {
 
     public static final int ERROR = 1;
 
@@ -32,13 +41,28 @@ public class ChannelAgent {
 
     private ReentrantLock lock = new ReentrantLock();
 
-    private PooledResource resource;
+    // 连接的服务器
+    private Node node;
+
+    private NioSelector selector;
+
+    private DtxChannelAgentPool pool;
+
+    private static final AtomicLong packageIdGenerator = new AtomicLong(0);
+
+    // 候车间
+    private static Map<Long, FutureResult> waitingRoom = new ConcurrentHashMap<>();
+
+    private SocketChannel channel;
 
     // 等待agent正确连接上
     private Semaphore semaphore = new Semaphore(0);
 
     // 关闭回调
     private List<Runnable> shutdownHooks = new ArrayList<>();
+
+    // 服务端地址
+    private String serverAddr;
 
     // 应用名
     private String appName;
@@ -49,6 +73,12 @@ public class ChannelAgent {
     // 连接上次活跃时间
     private long lastActiveTime = 0;
 
+    /**
+     * 服务端新建agent
+     * @param	selectionKey
+     * @author  xiaoqianbin
+     * @date    2019/12/16
+     **/
     public ChannelAgent(SelectionKey selectionKey) throws IOException {
         this.selectionKey = selectionKey;
         SocketChannel sc = (SocketChannel) selectionKey.channel();
@@ -58,21 +88,61 @@ public class ChannelAgent {
         active();
     }
 
-    public ChannelAgent(SelectionKey selectionKey, PooledResource resource) throws IOException {
-        this(selectionKey);
-        this.resource = resource;
+    /**
+     * 客户端新建agent
+     * @param	node
+	 * @param	pool
+     * @author  xiaoqianbin
+     * @date    2019/12/16
+     **/
+    public ChannelAgent(Node node, DtxChannelAgentPool pool) {
+        try {
+            this.pool = pool;
+            this.node = node;
+            this.selector = pool.getNioSelector();
+            channel = SocketChannel.open();
+            // 设置通道为非阻塞
+            channel.configureBlocking(false);
+            FutureTask<SelectionKey> futureTask = pool.addTask(() -> channel.register(this.selector.getRealSelector(),
+                    SelectionKey.OP_CONNECT));
+            this.selector.wakeup();
+            selectionKey = futureTask.get();
+            selectionKey.attach(this);
+            // 客户端连接服务器,其实方法执行并没有实现连接
+            channel.connect(new InetSocketAddress(this.node.getHost(), this.node.getPort()));
+            ensureConnected();
+        } catch (Exception e) {
+            closeQuietly(channel);
+            if (null != selectionKey) {
+                selectionKey.cancel();
+            }
+            throw new NetworkException(e);
+        }
     }
 
-    public PooledResource getResource() {
-        return resource;
+    public void closeQuietly(Closeable c) {
+        try {
+            if (null != c) {
+                c.close();
+            }
+        } catch (Exception e) {
+            // TO DO :ignore
+        }
     }
+
 
     public void ensureConnected() throws InterruptedException {
         semaphore.acquire();
     }
 
-    public void connected() {
+    public void connected() throws IOException {
+        SocketChannel sc = (SocketChannel) getSelectionKey().channel();
+        serverAddr = sc.getRemoteAddress().toString();
         semaphore.release();
+    }
+
+    public String getServerAddr() {
+        return serverAddr;
     }
 
     public long getLastActiveTime() {
@@ -128,7 +198,7 @@ public class ChannelAgent {
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
-    public final void request(Object data, Long requestId) {
+    private final void request(Object data, Long requestId) {
         send(data, requestId);
     }
 
@@ -141,6 +211,20 @@ public class ChannelAgent {
      **/
     private final void send(Object data, Long requestId) {
         send(data, requestId, false);
+    }
+
+    /**
+     * 客户端发送数据
+     * @param    data
+     * @author xiaoqianbin
+     * @date 2019/12/8
+     **/
+    public FutureResult send(Object data) {
+        Long id = packageIdGenerator.getAndAdd(1);
+        FutureResult result = new FutureResult(() -> waitingRoom.remove(id));
+        waitingRoom.put(id, result);
+        request(data, id);
+        return result;
     }
 
     /**
@@ -168,9 +252,9 @@ public class ChannelAgent {
             }
             buffer.put(bytes);
             buffer.position(0);
-            SocketChannel channel = (SocketChannel) selectionKey.channel();
+            SocketChannel sc = (SocketChannel) selectionKey.channel();
             while (buffer.position() != buffer.capacity()) {
-                channel.write(buffer);
+                sc.write(buffer);
             }
         } catch (Exception e) {
             throw new NetworkException(e);
@@ -189,7 +273,7 @@ public class ChannelAgent {
     }
 
     // 销毁连接, 释放资源
-    public void close() {
+    public void destroy() {
         try {
             closed = true;
             lock.lock();
@@ -201,6 +285,24 @@ public class ChannelAgent {
         }
     }
 
+    @Override
+    public void release() {
+        pool.release(this);
+    }
+
+    public static long getLeftMessages() {
+        return waitingRoom.size();
+    }
+
+    /**
+     * 找出候车间那个人
+     * @param    id
+     * @author xiaoqianbin
+     * @date 2019/12/8
+     **/
+    public static FutureResult findFutureResult(Long id) {
+        return waitingRoom.remove(id);
+    }
 
     public boolean isClosed() {
         return closed;

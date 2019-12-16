@@ -1,22 +1,12 @@
 package rabbit.open.dtx.common.test.rpc;
 
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.exception.TimeoutException;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
@@ -26,6 +16,14 @@ import rabbit.open.dtx.common.test.enhance.FirstEnhancer;
 import rabbit.open.dtx.common.test.enhance.HelloService;
 import rabbit.open.dtx.common.test.enhance.HerService;
 import rabbit.open.dtx.common.test.enhance.LastEnhancer;
+
+import javax.annotation.Resource;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author xiaoqianbin
