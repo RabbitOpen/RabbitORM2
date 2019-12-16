@@ -25,14 +25,14 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
         if (null == txBranchId) {
             return;
         }
-        persistBranchInfo(txGroupId, txBranchId, applicationName, TxStatus.COMMIT);
+        persistBranchInfo(txGroupId, txBranchId, applicationName, TxStatus.COMMITTED);
         logger.debug("{} doBranchCommit, txGroupId: {}, txBranchId: {}", applicationName, txGroupId, txBranchId);
     }
 
     @Override
     public void doCommit(Long txGroupId, Long txBranchId, String applicationName) {
         doBranchCommit(txGroupId, txBranchId, applicationName);
-        persistGroupId(txGroupId, TxStatus.COMMIT);
+        persistGroupId(txGroupId, TxStatus.COMMITTED);
         logger.debug("{} doGroupCommit, txGroupId: {}, txBranchId: {}", applicationName, txGroupId, txBranchId);
         doCommitByGroupId(txGroupId, applicationName);
     }

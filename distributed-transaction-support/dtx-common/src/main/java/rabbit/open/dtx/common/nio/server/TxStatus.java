@@ -6,5 +6,8 @@ package rabbit.open.dtx.common.nio.server;
  * @date 2019/12/10
  **/
 public enum TxStatus {
-    OPEN, COMMIT, ROLLBACK, COMMIT_FAILED, ROLLBACK_FAILED;
+    OPEN("事务开启状态"), COMMITTED("事务已提交"),
+    ROLLBACK("事务已回滚"), COMMIT_FAILED("提交失败"),
+    ROLLBACK_FAILED("回滚失败");
+    TxStatus(String desc) {}
 }

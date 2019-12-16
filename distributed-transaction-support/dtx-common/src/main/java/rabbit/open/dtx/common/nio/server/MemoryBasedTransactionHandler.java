@@ -28,7 +28,7 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
 
     @Override
     protected void doCommitByGroupId(Long txGroupId, String applicationName) {
-        doTransactionByGroupId(txGroupId, applicationName, TxStatus.COMMIT);
+        doTransactionByGroupId(txGroupId, applicationName, TxStatus.COMMITTED);
     }
 
     @Override
@@ -88,20 +88,22 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
                 logger.debug("tx [{}] rollback completed, rollback result: {}", txGroupId, result);
             } else {
                 for (Map.Entry<Long, String> entry : context.getBranchApp().entrySet()) {
-                    doBranchTransaction(txGroupId, entry, txStatus);
+                    if (TxStatus.COMMITTED == context.getBranchStatus().get(entry.getKey())) {
+                        doBranchTransaction(txGroupId, entry, txStatus);
+                    }
                 }
             }
         }
     }
 
-    // 分支事务
+    // 回滚或者提交分支事务
     private void doBranchTransaction(Long txGroupId, Map.Entry<Long, String> entry, TxStatus txStatus) {
         Long txBranchId = entry.getKey();
         String app = entry.getValue();
         List<ChannelAgent> agents = ApplicationDataHandler.getAgents(app);
         for (ChannelAgent agent : agents) {
             if (!agent.isClosed()) {
-                agent.response(TxStatus.COMMIT == txStatus ? new CommitMessage(app, txGroupId, txBranchId)
+                agent.response(TxStatus.COMMITTED == txStatus ? new CommitMessage(app, txGroupId, txBranchId)
                         : new RollBackMessage(app, txGroupId, txBranchId), null);
                 logger.debug("delivery {} branch ({} --> {}) ", txStatus, txGroupId, txBranchId);
                 break;
