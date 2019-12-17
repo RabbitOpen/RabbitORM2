@@ -9,7 +9,7 @@ import java.sql.Connection;
 public class SessionHoldOverTimeException extends RabbitDMLException {
 
 	public SessionHoldOverTimeException(Connection session, long seconds) {
-		super("session[" + session + "] is holded over " + seconds + " seconds!");
+		super("session[" + session + "] is hold over " + seconds + " seconds!");
 	}
 
 }
