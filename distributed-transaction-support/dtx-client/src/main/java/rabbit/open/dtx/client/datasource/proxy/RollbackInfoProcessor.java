@@ -58,8 +58,6 @@ public abstract class RollbackInfoProcessor {
             stmt.setFloat(index, (float) value);
         } else if (value instanceof Double) {
             stmt.setDouble(index, (double) value);
-        } else if (value instanceof Enum) {
-            stmt.setString(index, ((Enum) value).name());
         } else {
             stmt.setObject(index, value);
         }

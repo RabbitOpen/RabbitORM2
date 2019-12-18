@@ -116,13 +116,15 @@ public class LogicalTest {
                 }
 
                 @Override
-                protected void rollback(String applicationName, Long txGroupId, Long txBranchId) {
+                protected boolean rollback(String applicationName, Long txGroupId, Long txBranchId) {
                     logger.info("doRollback");
+                    return true;
                 }
 
                 @Override
-                protected void commit(String applicationName, Long txGroupId, Long txBranchId) {
+                protected boolean commit(String applicationName, Long txGroupId, Long txBranchId) {
                     logger.info("doCommit");
+                    return true;
                 }
 
                 @Override

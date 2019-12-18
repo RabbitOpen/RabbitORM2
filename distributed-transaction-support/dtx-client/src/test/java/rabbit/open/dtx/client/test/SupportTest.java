@@ -60,12 +60,17 @@ public class SupportTest {
         Product product = new Product();
         product.setName("ZD-0013");
         product.setAddr("chengdu");
+        product.setDate(new Date());
+        product.setBytes("hello world".getBytes());
+        product.setDoubleField(new Double(10.0));
+        product.setFloatField(new Float("10.2"));
+        product.setGender(Product.Gender.FEMALE);
         productService.addProduct(product);
         RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txBranchId", transactionManger.getLastBranchId()).unique();
         KryoObjectSerializer serializer = new KryoObjectSerializer();
         RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
         // 回滚信息中包含3个字段
-        TestCase.assertEquals(rollbackInfo.getMeta().getColumns().size(), 3);
+        TestCase.assertEquals(rollbackInfo.getMeta().getColumns().size(), 7);
 
         // 开始回滚
         TransactionMessageHandler handler = new TransactionMessageHandler();
@@ -158,12 +163,37 @@ public class SupportTest {
         TransactionMessageHandler handler = new TransactionMessageHandler();
         handler.rollback(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
 
+
+        // 验证空回滚
+        productService.deleteProduct(product.getId() + 1010000);
+        rollbackEntity = rbs.createQuery().addFilter("txBranchId", transactionManger.getLastBranchId()).unique();
+        rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
+        TestCase.assertTrue(rollbackInfo.getOriginalData().isEmpty());
+        handler.rollback(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
+
+
         // 验证数据已经回滚了
         Product byID = productService.getByID(product.getId());
         TestCase.assertEquals(byID.getAddr(), product.getAddr());
         TestCase.assertEquals(byID.getName(), product.getName());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         TestCase.assertEquals(sdf.format(byID.getDate()), sdf.format(product.getDate()));
+    }
+
+    @Test
+    public void jdbcTest() {
+        Long id = productService.jdbcAdd();
+        TestCase.assertNotNull(id);
+        TestCase.assertNotNull(productService.getByID(id));
+        RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txBranchId", transactionManger.getLastBranchId()).unique();
+        KryoObjectSerializer serializer = new KryoObjectSerializer();
+        RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
+        TestCase.assertNotNull(rollbackInfo);
+        // 开始回滚
+        TransactionMessageHandler handler = new TransactionMessageHandler();
+        handler.rollback(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
+        TestCase.assertNull(productService.getByID(id));
+
     }
 
     @Test

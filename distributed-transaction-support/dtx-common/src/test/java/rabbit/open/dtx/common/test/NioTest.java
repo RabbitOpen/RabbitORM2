@@ -51,8 +51,8 @@ public class NioTest {
         long start = System.currentTimeMillis();
 
         // 调整 server monitor的检测间隔
-        adjustServerMonitorParam(server);
-        adjustClientMonitor(arp);
+//        adjustServerMonitorParam(server);
+//        adjustClientMonitor(arp);
 
         for (int c = 0; c < count; c++) {
             new Thread(() -> {

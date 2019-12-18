@@ -1,5 +1,6 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
+import rabbit.open.dtx.client.datasource.parser.ColumnMeta;
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
 
 import java.util.List;
@@ -18,6 +19,9 @@ public class RollbackInfo {
 
     // 上个版本的数据信息
     private List<Map<String, Object>> originalData;
+
+    // 自增列meta
+    private ColumnMeta autoIncrementColumnMeta;
 
     public RollbackInfo() {
     }
@@ -54,5 +58,13 @@ public class RollbackInfo {
 
     public void setOriginalData(List<Map<String, Object>> originalData) {
         this.originalData = originalData;
+    }
+
+    public ColumnMeta getAutoIncrementColumnMeta() {
+        return autoIncrementColumnMeta;
+    }
+
+    public void setAutoIncrementColumnMeta(ColumnMeta autoIncrementColumnMeta) {
+        this.autoIncrementColumnMeta = autoIncrementColumnMeta;
     }
 }

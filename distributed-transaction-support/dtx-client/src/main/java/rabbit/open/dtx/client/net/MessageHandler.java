@@ -15,7 +15,7 @@ public interface MessageHandler {
      * @author xiaoqianbin
      * @date 2019/12/5
      **/
-    void rollback(String applicationName, Long txGroupId, Long txBranchId);
+    boolean rollback(String applicationName, Long txGroupId, Long txBranchId);
 
     /**
      * 提交事务分支
@@ -25,5 +25,5 @@ public interface MessageHandler {
      * @author xiaoqianbin
      * @date 2019/12/5
      **/
-    void commit(String applicationName, Long txGroupId, Long txBranchId);
+    boolean commit(String applicationName, Long txGroupId, Long txBranchId);
 }

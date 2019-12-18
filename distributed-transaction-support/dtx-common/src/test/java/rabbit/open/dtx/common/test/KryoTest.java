@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
+import rabbit.open.dtx.common.utils.ext.JdkSerializer;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.dtx.common.utils.ext.RabbitKryo;
 
@@ -24,7 +25,7 @@ public class KryoTest {
         CountDownLatch cdl = new CountDownLatch(20);
         for (int c = 0; c < 20; c++) {
             new Thread(() -> {
-                KryoObjectSerializer serializer = new KryoObjectSerializer();
+                JdkSerializer serializer = new JdkSerializer();
                 for (int i = 0; i < 50000; i++) {
                     Date date = new Date();
                     byte[] bytes = serializer.serialize(date);

@@ -36,9 +36,9 @@ public abstract class AbstractMessageListener implements MessageListener, Closea
 
     protected abstract int getQueueSize();
 
-    protected abstract void rollback(String applicationName, Long txGroupId, Long txBranchId);
+    protected abstract boolean rollback(String applicationName, Long txGroupId, Long txBranchId);
 
-    protected abstract void commit(String applicationName, Long txGroupId, Long txBranchId);
+    protected abstract boolean commit(String applicationName, Long txGroupId, Long txBranchId);
 
     protected abstract AbstractTransactionManager getTransactionManger();
 

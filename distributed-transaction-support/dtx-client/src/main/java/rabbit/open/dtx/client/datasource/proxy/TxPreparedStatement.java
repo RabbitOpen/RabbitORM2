@@ -1,5 +1,6 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
+import rabbit.open.dtx.client.datasource.parser.ColumnMeta;
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
 import rabbit.open.dtx.client.datasource.parser.SimpleSQLParser;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
@@ -30,10 +31,21 @@ public class TxPreparedStatement implements PreparedStatement {
 
     private String preparedSql;
 
+    // 自动生成主键字段
+    private boolean autoGenKey = false;
+
     public TxPreparedStatement(PreparedStatement realStmt, TxConnection txConn, String preparedSql) {
         this.realStmt = realStmt;
         this.txConn = txConn;
         this.preparedSql = preparedSql;
+    }
+
+    public boolean isAutoGenKey() {
+        return autoGenKey;
+    }
+
+    public void setAutoGenKey(boolean autoGenKey) {
+        this.autoGenKey = autoGenKey;
     }
 
     @Override
@@ -43,13 +55,40 @@ public class TxPreparedStatement implements PreparedStatement {
 
     @Override
     public int executeUpdate() throws SQLException {
-        if (null != DistributedTransactionContext.getDistributedTransactionObject()) {
-            RollBackRecord entity = createRollbackEntity();
-            saveRollbackInfo(entity);
+        if (isAutoGenKey()) {
+            return doAutoIncrementInsert();
+        } else {
+            if (null != DistributedTransactionContext.getDistributedTransactionObject()) {
+                RollBackRecord entity = createRollbackEntity(null);
+                saveRollbackInfo(entity);
+            }
+            int result = realStmt.executeUpdate();
+            values.clear();
+            return result;
         }
+    }
+
+    // 自增型新增
+    private int doAutoIncrementInsert() throws SQLException {
         int result = realStmt.executeUpdate();
-        values.clear();
-        return result;
+        ColumnMeta columnMeta = new ColumnMeta();
+        columnMeta.setColumnName(txConn.getTxDataSource().getAutoIncrementColumn(SimpleSQLParser.parse(preparedSql).getTargetTables()));
+        ResultSet rs = null;
+        try {
+            rs = realStmt.getGeneratedKeys();
+            if (rs.next()) {
+                Long id = rs.getBigDecimal(1).longValue();
+                columnMeta.setValue(id.toString());
+            }
+            if (null != DistributedTransactionContext.getDistributedTransactionObject()) {
+                RollBackRecord entity = createRollbackEntity(columnMeta);
+                saveRollbackInfo(entity);
+            }
+            values.clear();
+            return result;
+        } finally {
+            txConn.getTxDataSource().closeQuietly(rs);
+        }
     }
 
     private DistributedTransactionManager getTransactionManger() {
@@ -77,20 +116,21 @@ public class TxPreparedStatement implements PreparedStatement {
             insertStmt.setLong(9, entity.getRollBackOrder());
             insertStmt.executeUpdate();
         } finally {
-            if (null != insertStmt) {
-                insertStmt.close();
-            }
+            txConn.getTxDataSource().closeQuietly(insertStmt);
         }
     }
 
     /**
      * 创建回滚实体信息
+     * @param   autoIncrementColumnMeta    insert时，如果是自增表结构，该参数不为空，存的是主键的返回值
      * @author  xiaoqianbin
      * @date    2019/12/4
      **/
-    private RollBackRecord createRollbackEntity() throws SQLException {
+    private RollBackRecord createRollbackEntity(ColumnMeta autoIncrementColumnMeta) throws SQLException {
         SQLMeta sqlMeta = SimpleSQLParser.parse(preparedSql);
-        byte[] rollbackInfoBytes = new KryoObjectSerializer().serialize(RollbackInfoProcessor.getRollbackInfoProcessor(sqlMeta.getSqlType()).generateRollbackInfo(sqlMeta, values, txConn));
+        RollbackInfo rollbackInfo = RollbackInfoProcessor.getRollbackInfoProcessor(sqlMeta.getSqlType()).generateRollbackInfo(sqlMeta, values, txConn);
+        rollbackInfo.setAutoIncrementColumnMeta(autoIncrementColumnMeta);
+        byte[] rollbackInfoBytes = new KryoObjectSerializer().serialize(rollbackInfo);
         RollBackRecord entity = new RollBackRecord();
         entity.setTxBranchId(getTransactionManger().getTransactionBranchId());
         entity.setApplicationName(getTransactionManger().getApplicationName());

@@ -34,13 +34,13 @@ public class DtxMessageListener extends AbstractMessageListener {
     }
 
     @Override
-    protected void rollback(String applicationName, Long txGroupId, Long txBranchId) {
-        tmh.rollback(applicationName, txGroupId, txBranchId);
+    protected boolean rollback(String applicationName, Long txGroupId, Long txBranchId) {
+        return tmh.rollback(applicationName, txGroupId, txBranchId);
     }
 
     @Override
-    protected void commit(String applicationName, Long txGroupId, Long txBranchId) {
-        tmh.commit(applicationName, txGroupId, txBranchId);
+    protected boolean commit(String applicationName, Long txGroupId, Long txBranchId) {
+        return tmh.commit(applicationName, txGroupId, txBranchId);
     }
 
     @Override

@@ -34,11 +34,12 @@ public class TransactionMessageHandler implements MessageHandler {
      * @date 2019/12/6
      **/
     @Override
-    public void rollback(String applicationName, Long txGroupId, Long txBranchId) {
-        doTransaction(applicationName, txGroupId, txBranchId, this::doRollback);
+    public boolean rollback(String applicationName, Long txGroupId, Long txBranchId) {
+        return doTransaction(applicationName, txGroupId, txBranchId, this::doRollback);
     }
 
-    private void doTransaction(String applicationName, Long txGroupId, Long txBranchId, CallBack callBack) {
+    private boolean doTransaction(String applicationName, Long txGroupId, Long txBranchId, CallBack callBack) {
+        boolean result = true;
         for (TxDataSource dataSource : TxDataSource.getDataSources()) {
             Connection conn = null;
             PreparedStatement stmt = null;
@@ -63,7 +64,7 @@ public class TransactionMessageHandler implements MessageHandler {
                     info.setTxBranchId(rs.getLong(RollBackRecord.TX_BRANCH_ID));
                     records.add(info);
                 }
-                callBack.call(records, conn);
+                result = callBack.call(records, conn);
                 conn.commit();
             } catch (Exception e) {
                 rollback(conn);
@@ -74,6 +75,7 @@ public class TransactionMessageHandler implements MessageHandler {
                 safeClose(conn);
             }
         }
+        return result;
     }
 
     private void rollback(Connection conn) {
@@ -104,14 +106,16 @@ public class TransactionMessageHandler implements MessageHandler {
      * @author xiaoqianbin
      * @date 2019/12/5
      **/
-    private void doRollback(List<RollBackRecord> records, Connection conn) throws SQLException {
+    private boolean doRollback(List<RollBackRecord> records, Connection conn) throws SQLException {
         KryoObjectSerializer serializer = new KryoObjectSerializer();
         PreparedStatement stmt = null;
         try {
+            boolean result = true;
             for (RollBackRecord record : records) {
                 RollbackInfo info = serializer.deserialize(record.getRollbackInfo(), RollbackInfo.class);
                 if (RollbackInfoProcessor.getRollbackInfoProcessor(info.getMeta().getSqlType()).processRollbackInfo(record, info, conn)) {
                     stmt = conn.prepareStatement(RollBackRecord.DELETE_SQL);
+                    result = false;
                 } else {
                     stmt = conn.prepareStatement(RollBackRecord.UPDATE_SQL);
                 }
@@ -119,6 +123,7 @@ public class TransactionMessageHandler implements MessageHandler {
                 stmt.executeUpdate();
                 stmt.close();
             }
+            return result;
         } finally {
             safeClose(stmt);
         }
@@ -133,8 +138,8 @@ public class TransactionMessageHandler implements MessageHandler {
      * @date 2019/12/6
      **/
     @Override
-    public void commit(String applicationName, Long txGroupId, Long txBranchId) {
-        doTransaction(applicationName, txGroupId, txBranchId, (records, conn) -> {
+    public boolean commit(String applicationName, Long txGroupId, Long txBranchId) {
+        return doTransaction(applicationName, txGroupId, txBranchId, (records, conn) -> {
             PreparedStatement stmt = null;
             try {
                 for (RollBackRecord record : records) {
@@ -146,12 +151,13 @@ public class TransactionMessageHandler implements MessageHandler {
             } finally {
                 safeClose(stmt);
             }
+            return true;
         });
     }
 
     // 回调接口
     @FunctionalInterface
     interface CallBack {
-        void call(List<RollBackRecord> records, Connection conn) throws SQLException;
+        boolean call(List<RollBackRecord> records, Connection conn) throws SQLException;
     }
 }

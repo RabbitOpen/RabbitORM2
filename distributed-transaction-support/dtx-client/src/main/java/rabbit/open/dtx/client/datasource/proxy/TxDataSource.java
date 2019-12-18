@@ -2,10 +2,12 @@ package rabbit.open.dtx.client.datasource.proxy;
 
 import org.springframework.beans.factory.BeanCreationException;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
+import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Collection;
@@ -21,6 +23,13 @@ import java.util.logging.Logger;
 public class TxDataSource implements DataSource {
 
     private static Map<String, TxDataSource> dataSourceMap = new ConcurrentHashMap<>();
+
+    // 缓存表的自增状态
+    private Map<String, Boolean> keyGenCache = new ConcurrentHashMap<>();
+
+    // 自增字段名
+    private Map<String, String> autoIncrementColumnNames = new ConcurrentHashMap<>();
+
     // 真实数据源
     private DataSource dataSource;
 
@@ -37,7 +46,69 @@ public class TxDataSource implements DataSource {
         if (dataSourceMap.containsKey(dataSourceName)) {
             throw new BeanCreationException(String.format("repeated datasource name '%s'", dataSourceName));
         }
+        loadKeyGenInfo(dataSource);
         dataSourceMap.put(dataSourceName, this);
+    }
+
+    private void loadKeyGenInfo(DataSource dataSource) {
+        Connection connection = null;
+        ResultSet tables = null;
+        try {
+            connection = dataSource.getConnection();
+            tables = connection.getMetaData().getTables(null, null, null, null);
+            while (tables.next()) {
+                if (!"TABLE".equalsIgnoreCase(tables.getString("TABLE_TYPE"))) {
+                    continue;
+                }
+                String tableName = tables.getString("TABLE_NAME");
+                loadKeyGenInfoByTableName(connection, tableName);
+            }
+        } catch (Exception e) {
+            throw new DistributedTransactionException(e);
+        } finally {
+            closeQuietly(tables);
+            closeQuietly(connection);
+        }
+    }
+
+    public boolean isAutoIncrement(String table, Connection conn) {
+        if (!keyGenCache.containsKey(table.toUpperCase())) {
+            loadKeyGenInfoByTableName(conn, table);
+        }
+        return keyGenCache.get(table.toUpperCase());
+    }
+
+    public String getAutoIncrementColumn(String table) {
+        return autoIncrementColumnNames.get(table.toUpperCase());
+    }
+
+    private void loadKeyGenInfoByTableName(Connection connection, String tableName) {
+        ResultSet columns = null;
+        try {
+            columns = connection.getMetaData().getColumns(null, null, tableName, null);
+            while (columns.next()) {
+                keyGenCache.put(tableName.toUpperCase(), false);
+                if ("YES".equalsIgnoreCase(columns.getString("IS_AUTOINCREMENT"))) {
+                    keyGenCache.put(tableName.toUpperCase(), true);
+                    autoIncrementColumnNames.put(tableName.toUpperCase(), columns.getString("COLUMN_NAME"));
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            // TO DO: ignore ORACLE 没这个字段, 会抛异常
+        } finally {
+            closeQuietly(columns);
+        }
+    }
+
+    public void closeQuietly(AutoCloseable c) {
+        try {
+            if (null != c) {
+                c.close();
+            }
+        } catch (Exception e) {
+            // TO DO :ignore
+        }
     }
 
     public DataSource getRealDataSource() {
@@ -46,8 +117,8 @@ public class TxDataSource implements DataSource {
 
     /**
      * 根据应用中的数据源
-     * @author  xiaoqianbin
-     * @date    2019/12/5
+     * @author xiaoqianbin
+     * @date 2019/12/5
      **/
     public static Collection<TxDataSource> getDataSources() {
         return dataSourceMap.values();

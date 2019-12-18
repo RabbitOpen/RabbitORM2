@@ -34,4 +34,12 @@ public class ColumnMeta {
     public int getPlaceHolderIndex() {
         return placeHolderIndex;
     }
+
+    public void setColumnName(String columnName) {
+        this.columnName = columnName;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
 }

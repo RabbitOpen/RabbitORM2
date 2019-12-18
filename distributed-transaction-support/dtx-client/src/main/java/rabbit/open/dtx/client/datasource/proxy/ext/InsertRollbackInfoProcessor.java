@@ -34,6 +34,10 @@ public class InsertRollbackInfoProcessor extends RollbackInfoProcessor {
     @Override
     public boolean processRollbackInfo(RollBackRecord record, RollbackInfo info, Connection conn) {
         StringBuilder sql = new StringBuilder("delete from " + info.getMeta().getTargetTables() + " where 1 = 1");
+        ColumnMeta autoIncrementColumnMeta = info.getAutoIncrementColumnMeta();
+        if (null != autoIncrementColumnMeta) {
+            sql.append(" and " + autoIncrementColumnMeta.getColumnName() + " = " + autoIncrementColumnMeta.getValue());
+        }
         for (ColumnMeta column : info.getMeta().getColumns()) {
             sql.append(" and " + column.getColumnName() + " = " + column.getValue());
         }

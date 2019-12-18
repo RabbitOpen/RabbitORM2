@@ -62,7 +62,7 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
     @Override
     public boolean processRollbackInfo(RollBackRecord record, RollbackInfo info, Connection conn) {
         if (info.getOriginalData().isEmpty()) {
-            logger.warn("distributed transaction[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back success: {}, \n no data needs to rollback", record.getTxGroupId(), record.getTxBranchId(), record.getId());
+            logger.warn("distributed transaction[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back success, no data needs to rollback", record.getTxGroupId(), record.getTxBranchId(), record.getId());
             return true;
         }
         String sql = createRollbackUpdateSql(info);
