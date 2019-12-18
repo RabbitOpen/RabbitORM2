@@ -42,7 +42,7 @@ public class KryoObjectSerializer implements ObjectSerializer {
      */
     public byte[] serialize(Object obj) {
         RabbitKryo kryo = getKryo(false);
-        try (Output output = new Output(4 * 1024, 8 * 1024 * 1024)) {
+        try (Output output = new Output( 1024, 8 * 1024 * 1024)) {
             kryo.writeObject(output, obj);
             output.flush();
             return output.toBytes();

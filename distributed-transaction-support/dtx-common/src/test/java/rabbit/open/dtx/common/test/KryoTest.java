@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
-import rabbit.open.dtx.common.utils.ext.JdkSerializer;
+import rabbit.open.dtx.common.utils.ObjectSerializer;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.dtx.common.utils.ext.RabbitKryo;
 
@@ -22,11 +22,12 @@ public class KryoTest {
 
     @Test
     public void kryoObjectSerializerTest() throws InterruptedException {
-        CountDownLatch cdl = new CountDownLatch(20);
-        for (int c = 0; c < 20; c++) {
+        int count = 20;
+        CountDownLatch cdl = new CountDownLatch(count);
+        for (int c = 0; c < count; c++) {
             new Thread(() -> {
-                JdkSerializer serializer = new JdkSerializer();
                 for (int i = 0; i < 50000; i++) {
+                ObjectSerializer serializer = new KryoObjectSerializer();
                     Date date = new Date();
                     byte[] bytes = serializer.serialize(date);
                     Date s = serializer.deserialize(bytes, Date.class);
