@@ -1,6 +1,5 @@
 package rabbit.open.dtx.common.nio.server.handler;
 
-import org.springframework.util.StringUtils;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
@@ -35,13 +34,7 @@ class RpcRequestHandler implements DataHandler {
     @Override
     public Object process(ProtocolData protocolData) {
         RpcProtocol protocol = (RpcProtocol) protocolData.getData();
-        if (StringUtils.isEmpty(protocol.getNamespace())) {
-            throw new RpcException("namespace can't be empty");
-        }
         Object dtxService = eventHandler.getTransactionHandler();
-        if (null == dtxService) {
-            throw new RpcException(String.format("namespace [%s] not existed", protocol.getNamespace()));
-        }
         try {
             Method method = dtxService.getClass().getDeclaredMethod(protocol.getMethodName(), protocol.getArgTypes());
             return method.invoke(dtxService, protocol.getValues());

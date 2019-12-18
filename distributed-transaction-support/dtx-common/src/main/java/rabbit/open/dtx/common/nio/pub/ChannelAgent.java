@@ -130,7 +130,6 @@ public class ChannelAgent implements PooledResource {
         }
     }
 
-
     public void ensureConnected() throws InterruptedException {
         semaphore.acquire();
     }
@@ -152,7 +151,6 @@ public class ChannelAgent implements PooledResource {
     public void active() {
         lastActiveTime = System.currentTimeMillis();
     }
-
 
     public SelectionKey getSelectionKey() {
         return selectionKey;

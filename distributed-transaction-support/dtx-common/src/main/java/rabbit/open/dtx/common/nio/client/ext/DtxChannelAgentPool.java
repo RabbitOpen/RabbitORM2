@@ -1,26 +1,23 @@
 package rabbit.open.dtx.common.nio.client.ext;
 
-import rabbit.open.dtx.common.nio.client.AbstractResourcePool;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
-import rabbit.open.dtx.common.nio.client.Node;
+import rabbit.open.dtx.common.nio.client.*;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.nio.exception.RpcException;
+import rabbit.open.dtx.common.nio.client.AgentMonitor;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.NetEventHandler;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
 import rabbit.open.dtx.common.nio.pub.protocol.Application;
+import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
+import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.*;
 
 /**
  * 客户端连接池
@@ -29,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  **/
 public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
-    protected List<Node> nodes;
+    protected ArrayBlockingQueue<Node> nodes = new ArrayBlockingQueue<>(256);
 
     protected NioSelector nioSelector;
 
@@ -41,12 +38,19 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     private DistributedTransactionManager transactionManger;
 
+    // 消息监听器
+    private Map<Class<?>, MessageListener> listenerMap = new ConcurrentHashMap<>();
+
+    // 监控线程
+    private AgentMonitor monitor = new AgentMonitor("client-agent-pool-monitor", this);
+
     // 链接channel注册任务
     private ArrayBlockingQueue<FutureTask<SelectionKey>> channelRegistryTasks = new ArrayBlockingQueue<>(100);
 
     public DtxChannelAgentPool(DistributedTransactionManager transactionManger) throws IOException {
         this.transactionManger = transactionManger;
-        this.nodes = new ArrayList<>(transactionManger.getServerNodes());
+        initListeners(transactionManger);
+        nodes.addAll(transactionManger.getServerNodes());
         nioSelector = new NioSelector(Selector.open());
         readThread = new Thread(() -> {
             while (run) {
@@ -59,6 +63,18 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         });
         readThread.start();
         initConnections();
+        monitor.start();
+    }
+
+    private void initListeners(DistributedTransactionManager transactionManger) {
+        if (null != transactionManger.getMessageListener()) {
+            listenerMap.put(CommitMessage.class, transactionManger.getMessageListener());
+            listenerMap.put(RollBackMessage.class, transactionManger.getMessageListener());
+        }
+    }
+
+    public Map<Class<?>, MessageListener> getListenerMap() {
+        return listenerMap;
     }
 
     /**
@@ -176,6 +192,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+        monitor.wakeup();
     }
 
     @Override
@@ -183,6 +200,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         logger.info("{} is closing.....", DtxChannelAgentPool.class.getSimpleName());
         run = false;
         try {
+            monitor.shutdown();
             releaseResources();
             readThread.join();
             nioSelector.close();

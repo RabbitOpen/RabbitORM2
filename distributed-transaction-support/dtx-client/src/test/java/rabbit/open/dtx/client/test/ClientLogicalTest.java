@@ -4,7 +4,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 import rabbit.open.dtx.client.net.DtxMessageListener;
-import rabbit.open.dtx.common.nio.client.MessageListener;
+import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
@@ -94,7 +94,7 @@ public class ClientLogicalTest {
         }
 
         @Override
-        public MessageListener getMessageListener() {
+        public AbstractMessageListener getMessageListener() {
             return new DtxMessageListener(this);
         }
 

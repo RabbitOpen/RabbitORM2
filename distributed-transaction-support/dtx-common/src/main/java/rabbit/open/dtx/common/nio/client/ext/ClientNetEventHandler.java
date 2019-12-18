@@ -20,10 +20,11 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
         @Override
         public Object process(ProtocolData protocolData) {
             if (isNotifyMessage(protocolData)) {
-                if (null != dtxChannelAgentPool.getTransactionManger().getMessageListener()) {
-                    dtxChannelAgentPool.getTransactionManger().getMessageListener().onMessageReceived(protocolData.getData());
+                Object notifyMsg = protocolData.getData();
+                if (dtxChannelAgentPool.getListenerMap().containsKey(notifyMsg.getClass())) {
+                    dtxChannelAgentPool.getListenerMap().get(notifyMsg.getClass()).onMessageReceived(notifyMsg);
                 } else {
-                    logger.info("discard notify info: {}", protocolData.getData());
+                    logger.info("discard notify info: {}",notifyMsg);
                 }
             } else {
                 FutureResult result = ChannelAgent.findFutureResult(protocolData.getRequestId());

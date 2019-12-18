@@ -1,6 +1,6 @@
 package rabbit.open.dtx.client.net;
 
-import rabbit.open.dtx.common.nio.client.MessageListener;
+import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 
 /**
@@ -8,7 +8,7 @@ import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
  * @author xiaoqianbin
  * @date 2019/12/10
  **/
-public class DtxMessageListener extends MessageListener {
+public class DtxMessageListener extends AbstractMessageListener {
 
     private TransactionMessageHandler tmh = new TransactionMessageHandler();
 

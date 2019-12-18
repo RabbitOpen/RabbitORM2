@@ -80,7 +80,7 @@ public interface DistributedTransactionManager extends Serializable {
      * @author xiaoqianbin
      * @date 2019/12/10
      **/
-    default MessageListener getMessageListener() {
+    default AbstractMessageListener getMessageListener() {
         return null;
     }
 

@@ -4,6 +4,7 @@ import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.client.FutureResult;
+import rabbit.open.dtx.common.nio.exception.GetConnectionTimeoutException;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.nio.exception.RpcException;
 import rabbit.open.dtx.common.nio.exception.TimeoutException;
@@ -219,7 +220,7 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
                 agent.release();
                 Long timeout = DistributedTransactionContext.getRollbackTimeout();
                 data = result.getData(null == timeout ? getRpcTimeoutSeconds() : timeout);
-            } catch (TimeoutException e) {
+            } catch (TimeoutException | GetConnectionTimeoutException e) {
                 throw e;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

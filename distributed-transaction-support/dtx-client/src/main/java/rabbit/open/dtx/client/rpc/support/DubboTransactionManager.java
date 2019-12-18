@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import rabbit.open.dtx.client.net.DtxMessageListener;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
+import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
-import rabbit.open.dtx.common.nio.client.MessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 
@@ -27,7 +27,7 @@ public class DubboTransactionManager extends AbstractTransactionManager {
 
     public static final String TRANSACTION_GROUP_ID = "_DTX_TRANSACTION_GROUP_ID";
 
-    protected transient MessageListener messageListener = new DtxMessageListener(this);
+    protected transient AbstractMessageListener messageListener = new DtxMessageListener(this);
 
     private String hosts;
 
@@ -69,7 +69,7 @@ public class DubboTransactionManager extends AbstractTransactionManager {
     }
 
     @Override
-    public MessageListener getMessageListener() {
+    public AbstractMessageListener getMessageListener() {
         return messageListener;
     }
 

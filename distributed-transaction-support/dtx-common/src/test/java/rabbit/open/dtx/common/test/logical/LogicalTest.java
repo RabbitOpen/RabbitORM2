@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
-import rabbit.open.dtx.common.nio.client.MessageListener;
+import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
@@ -97,8 +97,8 @@ public class LogicalTest {
         }
 
         @Override
-        public MessageListener getMessageListener() {
-            return new MessageListener() {
+        public AbstractMessageListener getMessageListener() {
+            return new AbstractMessageListener() {
 
                 @Override
                 protected int getMaxThreadSize() {

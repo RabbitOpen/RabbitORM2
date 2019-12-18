@@ -26,8 +26,11 @@ public class DtxServer {
     //服务器监听通道
     private ServerSocketChannel listenChannel;
 
-    // 监听线程
-    private Thread listener;
+    // io数据监听线程
+    private Thread ioListener;
+
+    // 死连接监控
+    private ServerAgentMonitor serverAgentMonitor;
 
     private boolean close = false;
 
@@ -47,7 +50,7 @@ public class DtxServer {
         listenChannel.socket().bind(new InetSocketAddress(port));
         //注册接收事件
         listenChannel.register(nioSelector.getRealSelector(), SelectionKey.OP_ACCEPT);
-        listener = new Thread(() -> {
+        ioListener = new Thread(() -> {
             logger.info("dtx server is listening on port: {}", port);
             while (true) {
                 try {
@@ -63,6 +66,8 @@ public class DtxServer {
                 }
             }
         });
+        serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor", nioSelector);
+        serverAgentMonitor.start();
     }
 
     /**
@@ -71,7 +76,7 @@ public class DtxServer {
      * @date 2019/12/7
      **/
     public void start() {
-        listener.start();
+        ioListener.start();
     }
 
     private void handleRequest(Iterator<SelectionKey> keys) throws InterruptedException {
@@ -151,8 +156,9 @@ public class DtxServer {
         logger.info("dtx server is closing....");
         close = true;
         try {
+            serverAgentMonitor.shutdown();
             nioSelector.wakeup();
-            listener.join();
+            ioListener.join();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
