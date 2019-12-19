@@ -59,7 +59,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                     logger.info(e.getMessage(), e);
                 }
             }
-        });
+        }, "client-channel-selector");
         readThread.start();
         initConnections();
         monitor.start();

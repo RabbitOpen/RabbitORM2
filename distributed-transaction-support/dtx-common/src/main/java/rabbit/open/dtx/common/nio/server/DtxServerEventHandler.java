@@ -6,8 +6,10 @@ import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 分布式事务服务端网络事件处理器
@@ -40,9 +42,10 @@ public class DtxServerEventHandler extends AbstractServerEventHandler {
     @PostConstruct
     public void init() {
         bossPool = new ThreadPoolExecutor(bossCoreSize, maxBossConcurrence, 5, TimeUnit.MINUTES,
-                new ArrayBlockingQueue<>(maxBossQueueSize), (r, executor) -> r.run());
+                new ArrayBlockingQueue<>(maxBossQueueSize), new DtxThreadFactory("boss-pool"), (r, executor) -> r.run());
+
         workerPool = new ThreadPoolExecutor(workerCoreSize, maxWorkerConcurrence, 5, TimeUnit.MINUTES,
-                new ArrayBlockingQueue<>(maxWorkerQueueSize), (r, executor) -> r.run());
+                new ArrayBlockingQueue<>(maxWorkerQueueSize), new DtxThreadFactory("worker-pool"), (r, executor) -> r.run());
     }
 
     @Override
@@ -88,5 +91,34 @@ public class DtxServerEventHandler extends AbstractServerEventHandler {
 
     public void setMaxBossQueueSize(int maxBossQueueSize) {
         this.maxBossQueueSize = maxBossQueueSize;
+    }
+
+    /**
+     * 自定义线程池工厂
+     * @author  xiaoqianbin
+     * @date    2019/12/19
+     **/
+    private class DtxThreadFactory implements ThreadFactory {
+        private final ThreadGroup group;
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private final String namePrefix;
+
+        DtxThreadFactory(String prefix) {
+            SecurityManager s = System.getSecurityManager();
+            group = (s != null) ? s.getThreadGroup() :
+                    Thread.currentThread().getThreadGroup();
+            namePrefix = prefix + "-thread-";
+        }
+
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(group, r,
+                    namePrefix + threadNumber.getAndIncrement(),
+                    0);
+            if (t.isDaemon())
+                t.setDaemon(false);
+            if (t.getPriority() != Thread.NORM_PRIORITY)
+                t.setPriority(Thread.NORM_PRIORITY);
+            return t;
+        }
     }
 }

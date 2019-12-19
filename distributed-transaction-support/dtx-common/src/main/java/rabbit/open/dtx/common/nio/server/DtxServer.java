@@ -65,7 +65,7 @@ public class DtxServer {
                     logger.error(e.getMessage(), e);
                 }
             }
-        });
+        }, "event-selector");
         serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor", nioSelector);
         serverAgentMonitor.start();
     }

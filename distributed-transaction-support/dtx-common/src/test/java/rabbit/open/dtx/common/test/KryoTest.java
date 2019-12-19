@@ -27,7 +27,7 @@ public class KryoTest {
         for (int c = 0; c < count; c++) {
             new Thread(() -> {
                 for (int i = 0; i < 50000; i++) {
-                ObjectSerializer serializer = new KryoObjectSerializer();
+                    ObjectSerializer serializer = new KryoObjectSerializer();
                     Date date = new Date();
                     byte[] bytes = serializer.serialize(date);
                     Date s = serializer.deserialize(bytes, Date.class);
