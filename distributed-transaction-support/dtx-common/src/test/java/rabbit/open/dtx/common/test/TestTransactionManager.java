@@ -6,7 +6,7 @@ import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.client.Node;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -61,11 +61,10 @@ public class TestTransactionManager implements DistributedTransactionManager {
 
     @Override
     public List<Node> getServerNodes() {
-        return Arrays.asList(
-                new Node("localhost", 10000),
-                new Node("localhost", 10000),
-                new Node("localhost", 10000),
-                new Node("localhost", 10000),
-                new Node("localhost", 10000));
+        List<Node> nodes = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            nodes.add(new Node("localhost", 10000));
+        }
+        return nodes;
     }
 }

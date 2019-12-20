@@ -19,10 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DtxServerEventHandler extends AbstractServerEventHandler {
 
     // 核心线程数
-    private int bossCoreSize = 3;
+    private int bossCoreSize = 5;
 
     // 最大并发数
-    private int maxBossConcurrence = 5;
+    private int maxBossConcurrence = 10;
 
     private int maxBossQueueSize = 1000;
 

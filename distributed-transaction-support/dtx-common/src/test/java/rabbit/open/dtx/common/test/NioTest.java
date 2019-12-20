@@ -51,8 +51,8 @@ public class NioTest {
         long start = System.currentTimeMillis();
 
         // 调整 server monitor的检测间隔
-//        adjustServerMonitorParam(server);
-//        adjustClientMonitor(arp);
+        adjustServerMonitorParam(server);
+        adjustClientMonitor(arp);
 
         for (int c = 0; c < count; c++) {
             new Thread(() -> {
@@ -72,10 +72,7 @@ public class NioTest {
         cdl.await();
         logger.info("cost: {}", (System.currentTimeMillis() - start));
         TestCase.assertEquals(ApplicationDataHandler.getAgents(manager.getApplicationName()).size(), arp.getResourceCount());
-        Semaphore s = new Semaphore(0);
-        if (s.tryAcquire(50, TimeUnit.MILLISECONDS)) {
-            logger.info("不可能走到这里来， 等待50ms，让client minitor发送心跳包");
-        }
+        holdOn(50);
         StringBuilder longStr = new StringBuilder();
         for (int i = 0 ; i < 1024; i++) {
             longStr.append("hello world");
@@ -87,9 +84,17 @@ public class NioTest {
         TestCase.assertTrue(data instanceof Exception);
         logger.info("{} ", data.toString());
         arp.gracefullyShutdown();
+        holdOn(1000);
         server.shutdown();
         TestCase.assertEquals(ChannelAgent.getLeftMessages(), 0);
         TestCase.assertEquals(0, ApplicationDataHandler.getAgents(manager.getApplicationName()).size());
+    }
+
+    private void holdOn(long millSeconds) throws InterruptedException {
+        Semaphore s = new Semaphore(0);
+        if (s.tryAcquire(millSeconds, TimeUnit.MILLISECONDS)) {
+            logger.info("不可能走到这里来， 等待50ms，让client minitor发送心跳包");
+        }
     }
 
     private void adjustClientMonitor(DtxChannelAgentPool arp) throws NoSuchFieldException, IllegalAccessException {

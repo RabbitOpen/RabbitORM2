@@ -106,7 +106,6 @@ public class DtxServer {
         semaphore.acquire(cnt);
     }
 
-
     /**
      * 唤醒selector
      * @author xiaoqianbin

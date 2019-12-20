@@ -206,7 +206,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-        logger.info("{} gracefullyShutdown", DtxChannelAgentPool.class.getSimpleName());
+        logger.info("{} gracefully shutdown", DtxChannelAgentPool.class.getSimpleName());
     }
 
     // 回收所有资源
