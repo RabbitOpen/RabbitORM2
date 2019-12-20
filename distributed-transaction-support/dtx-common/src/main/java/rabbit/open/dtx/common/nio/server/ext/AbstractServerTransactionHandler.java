@@ -39,7 +39,7 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
 
     @Override
     public void doRollback(Long txGroupId, String applicationName) {
-        persistGroupId(txGroupId, TxStatus.ROLLBACK);
+        persistGroupId(txGroupId, TxStatus.ROLL_BACKED);
         logger.debug("{} doRollback txGroupId: {}", applicationName, txGroupId);
         rollbackListenerMap.put(txGroupId, new RollbackListener(AbstractNetEventHandler.getCurrentAgent(),
                 AbstractServerEventHandler.getCurrentRequestId()));
@@ -57,6 +57,13 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
         return false;
     }
 
+    /**
+     * 生成事务分支id
+     * @param	txGroupId
+	 * @param	applicationName
+     * @author  xiaoqianbin
+     * @date    2019/12/20
+     **/
     @Override
     public Long getTransactionBranchId(Long txGroupId, String applicationName) {
         Long txBranchId = getNextGlobalId();
@@ -65,6 +72,12 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
         return txBranchId;
     }
 
+    /**
+     * 生成事务组id
+     * @param	applicationName
+     * @author  xiaoqianbin
+     * @date    2019/12/20
+     **/
     @Override
     public Long getTransactionGroupId(String applicationName) {
         Long txGroupId = getNextGlobalId();

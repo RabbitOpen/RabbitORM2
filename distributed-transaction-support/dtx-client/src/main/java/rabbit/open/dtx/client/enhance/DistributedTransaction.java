@@ -18,8 +18,11 @@ public @interface DistributedTransaction {
     long transactionTimeoutSeconds() default Long.MAX_VALUE;
 
     // 回滚超时时间
-    long rollbackTimeoutSeconds() default 10L;
+    long rollbackTimeoutSeconds() default 3L;
 
     // 事务传播特性，默认没有事务就直接开启事务
     Propagation propagation() default Propagation.REQUIRED;
+
+    // 默认不加锁
+    Isolation isolation() default Isolation.READ_UNCOMMITTED;
 }

@@ -82,11 +82,12 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
                 logger.error(errMsg);
                 throw new DistributedTransactionException(errMsg);
             }
-            if (txStatus == TxStatus.ROLLBACK && context.getBranchApp().isEmpty()) {
+            if (txStatus == TxStatus.ROLL_BACKED && context.getBranchApp().isEmpty()) {
                 contextCache.remove(txGroupId);
                 boolean result = rollbackCompleted(txGroupId);
                 logger.debug("tx [{}] rollback completed, rollback result: {}", txGroupId, result);
             } else {
+                context.setTxStatus(TxStatus.COMMITTING);
                 for (Map.Entry<Long, String> entry : context.getBranchApp().entrySet()) {
                     if (TxStatus.COMMITTED == context.getBranchStatus().get(entry.getKey())) {
                         doBranchTransaction(txGroupId, entry, txStatus);
@@ -113,7 +114,7 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
 
     @Override
     protected void doRollbackByGroupId(Long txGroupId, String applicationName) {
-        doTransactionByGroupId(txGroupId, applicationName, TxStatus.ROLLBACK);
+        doTransactionByGroupId(txGroupId, applicationName, TxStatus.ROLL_BACKED);
     }
 
     @Override
