@@ -44,8 +44,12 @@ public class AgentMonitor extends Thread {
                 agent = agentPool.getResource();
                 if (System.currentTimeMillis() - agent.getLastActiveTime() > idleMilliSecondsThreshold) {
                     agent.send(new KeepAlive());
+                    agent.release();
+                    // 发现有空闲太久的就继续向下检测
+                    continue;
+                } else {
+                	agent.release();
                 }
-                agent.release();
             } catch (NetworkException e) {
                 if (null != agent) {
                     agent.destroy();

@@ -7,6 +7,7 @@ import rabbit.open.dtx.common.nio.exception.RpcException;
 
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -23,7 +24,7 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
     protected ReentrantLock createLock = new ReentrantLock();
 
     // 当前个数
-    protected int count;
+    protected AtomicInteger count = new AtomicInteger(0);
 
     public AbstractResourcePool() {
         queue = new LinkedBlockingDeque<>(10000);
@@ -31,7 +32,7 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
 
     // 获取当前连接数
     public int getResourceCount() {
-        return count;
+        return count.intValue();
     }
 
     /**
@@ -51,7 +52,7 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
      **/
     private T getResource(long timeoutMilliSeconds) {
         if (!isRunning()) {
-            throw new RpcException("resource pool is closed");
+            throw new RpcException("pool is closed");
         }
         T resource = null;
         try {
@@ -87,16 +88,14 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
 
     /**
      * 销毁连接
+     * @param    resource
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
-    public void destroyResource() {
-        try {
-            createLock.lock();
-            count--;
-        } finally {
-            createLock.unlock();
-        }
+    public void destroyResource(T resource) {
+    	count.getAndDecrement();
+    	// 尝试移除当前被销毁的连接(服务端发起关闭请求时，该连接理论上可能还在池中，所有需要清除一次)
+    	queue.remove(resource);
     }
 
     /**
@@ -113,7 +112,7 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
             if (canCreate()) {
                 T resource = newResource();
                 release(resource);
-                count++;
+                count.getAndIncrement();
             }
         } finally {
             createLock.unlock();

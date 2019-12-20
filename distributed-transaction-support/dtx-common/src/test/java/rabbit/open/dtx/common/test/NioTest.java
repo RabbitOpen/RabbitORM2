@@ -50,8 +50,10 @@ public class NioTest {
         CountDownLatch cdl = new CountDownLatch(count);
         long start = System.currentTimeMillis();
 
-        // 调整 server monitor的检测间隔
+        // 调整 server monitor的检测间隔 为1s
         adjustServerMonitorParam(server);
+        
+        // 调整客户端monitor，设置超时时间为1s
         adjustClientMonitor(arp);
 
         for (int c = 0; c < count; c++) {
@@ -81,6 +83,11 @@ public class NioTest {
         FutureResult result = agent.send(longStr.toString());
         agent.release();
         Object data = result.getData();
+        TestCase.assertTrue(data instanceof Exception);
+        logger.info("{} ", data.toString());
+        result = agent.send(longStr.toString());
+        agent.release();
+        data = result.getData();
         TestCase.assertTrue(data instanceof Exception);
         logger.info("{} ", data.toString());
         arp.gracefullyShutdown();

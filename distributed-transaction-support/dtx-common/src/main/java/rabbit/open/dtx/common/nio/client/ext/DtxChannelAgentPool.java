@@ -162,7 +162,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                     agent.addShutdownHook(() -> releaseAgentResource(node, agent));
                     // 通报应用名
                     agent.send(new Application(getTransactionManger().getApplicationName())).getData();
-                    logger.info("{} created a new connection, current size {}", transactionManger.getApplicationName(), count + 1);
+                    logger.info("{} created a new connection, current size {}", transactionManger.getApplicationName(), count.get() + 1);
                     return agent;
                 } catch (NetworkException e) {
                     node.setIsolated(true);
@@ -184,8 +184,11 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      **/
     private void releaseAgentResource(Node node, ChannelAgent agent) {
         try {
+        	if (agent.isClosed()) {
+        		return;
+        	}
             node.setIdle(true);
-            destroyResource();
+            destroyResource(agent);
             agent.closeQuietly(agent.getSelectionKey().channel());
             agent.getSelectionKey().cancel();
         } catch (Exception e) {
@@ -211,7 +214,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     // 回收所有资源
     private void releaseResources() throws InterruptedException {
-        while (0 != count) {
+        while (0 != getResourceCount()) {
             ChannelAgent agent = queue.poll(3, TimeUnit.SECONDS);
             if (null != agent) {
                 agent.destroy();

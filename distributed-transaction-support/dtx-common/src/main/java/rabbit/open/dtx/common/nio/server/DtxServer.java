@@ -66,7 +66,7 @@ public class DtxServer {
                 }
             }
         }, "event-selector");
-        serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor", nioSelector);
+        serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor");
         serverAgentMonitor.start();
     }
 
@@ -141,6 +141,7 @@ public class DtxServer {
         // 把此channel 客户端对象作为一个事件注册到 选择器 selector中
         SelectionKey key = channel.register(nioSelector.getRealSelector(), SelectionKey.OP_READ);
         ChannelAgent agent = new ChannelAgent(key);
+        serverAgentMonitor.registerMonitor(agent);
         agent.addShutdownHook(() -> closeChannelKey(key));
         key.attach(agent);
         netEventHandler.onConnected(agent);

@@ -163,6 +163,10 @@ public class ChannelAgent implements PooledResource {
         return dataBuffer;
     }
 
+    public void bindDataBuffer(ByteBuffer dataBuffer) {
+		this.dataBuffer = dataBuffer;
+	}
+    
     public String getRemote() {
         return remote;
     }
@@ -273,20 +277,28 @@ public class ChannelAgent implements PooledResource {
     // 销毁连接, 释放资源
     public void destroy() {
         try {
-            closed = true;
             lock.lock();
             for (Runnable hook : shutdownHooks) {
                 hook.run();
             }
+            closed = true;
         } finally {
             lock.unlock();
         }
     }
 
     @Override
-    public void release() {
-        pool.release(this);
-    }
+	public void release() {
+		try {
+			lock.lock();
+			if (!closed) {
+				pool.release(this);
+			}
+				
+		} finally {
+			lock.unlock();
+		}
+	}
 
     public static long getLeftMessages() {
         return waitingRoom.size();
