@@ -42,7 +42,7 @@ public class TransactionTest {
     public void rollBackTest() {
         long before = us.createQuery().count();
         try {
-            us.rollBakcTest();
+            us.rollBackTest();
             TestCase.assertTrue(false);
         } catch (Exception e) {
             TestCase.assertEquals(before, us.createQuery().count());

@@ -1,5 +1,24 @@
 package rabbit.open.test;
 
+import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import rabbit.open.orm.common.dml.FilterType;
+import rabbit.open.orm.common.exception.*;
+import rabbit.open.orm.core.dml.Query;
+import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
+import rabbit.open.orm.core.dml.filter.ext.ManyToOneFilter;
+import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
+import rabbit.open.orm.core.dml.meta.MetaData;
+import rabbit.open.test.entity.*;
+import rabbit.open.test.entity.EnumComponent.ComponentCodeEnum;
+import rabbit.open.test.entity.EnumRole.EnumRoleEnum;
+import rabbit.open.test.entity.dmlfilter.*;
+import rabbit.open.test.service.*;
+
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -7,76 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
-import rabbit.open.orm.common.dml.FilterType;
-import rabbit.open.orm.common.exception.ConflictFilterException;
-import rabbit.open.orm.common.exception.CycleDependencyException;
-import rabbit.open.orm.common.exception.EmptyListFilterException;
-import rabbit.open.orm.common.exception.InvalidFetchOperationException;
-import rabbit.open.orm.common.exception.InvalidJoinFetchOperationException;
-import rabbit.open.orm.common.exception.InvalidJoinFilterException;
-import rabbit.open.orm.common.exception.InvalidQueryPathException;
-import rabbit.open.orm.common.exception.OrderAssociationException;
-import rabbit.open.orm.common.exception.RepeatedDMLFilterException;
-import rabbit.open.orm.common.exception.RepeatedFetchOperationException;
-import rabbit.open.orm.common.exception.WrongJavaTypeException;
-import rabbit.open.orm.core.dml.Query;
-import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
-import rabbit.open.orm.core.dml.filter.ext.ManyToOneFilter;
-import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
-import rabbit.open.orm.core.dml.meta.MetaData;
-import rabbit.open.test.entity.Car;
-import rabbit.open.test.entity.EnumComponent;
-import rabbit.open.test.entity.EnumComponent.ComponentCodeEnum;
-import rabbit.open.test.entity.EnumRole;
-import rabbit.open.test.entity.EnumRole.EnumRoleEnum;
-import rabbit.open.test.entity.Leader;
-import rabbit.open.test.entity.Master;
-import rabbit.open.test.entity.Organization;
-import rabbit.open.test.entity.Property;
-import rabbit.open.test.entity.Resources;
-import rabbit.open.test.entity.Role;
-import rabbit.open.test.entity.Slave;
-import rabbit.open.test.entity.Team;
-import rabbit.open.test.entity.UUIDPolicyEntity;
-import rabbit.open.test.entity.User;
-import rabbit.open.test.entity.ZProperty;
-import rabbit.open.test.entity.Zone;
-import rabbit.open.test.entity.dmlfilter.DMLHome;
-import rabbit.open.test.entity.dmlfilter.DMLOrg;
-import rabbit.open.test.entity.dmlfilter.DMLResource;
-import rabbit.open.test.entity.dmlfilter.DMLRole;
-import rabbit.open.test.entity.dmlfilter.DMLUri;
-import rabbit.open.test.entity.dmlfilter.DMLUser;
-import rabbit.open.test.service.CarService;
-import rabbit.open.test.service.DMLHomeService;
-import rabbit.open.test.service.DMLOrgService;
-import rabbit.open.test.service.DMLResourceService;
-import rabbit.open.test.service.DMLRoleService;
-import rabbit.open.test.service.DMLTeamService;
-import rabbit.open.test.service.DMLURIService;
-import rabbit.open.test.service.DMLUserService;
-import rabbit.open.test.service.EnumComponentService;
-import rabbit.open.test.service.EnumRoleService;
-import rabbit.open.test.service.LeaderService;
-import rabbit.open.test.service.MasterService;
-import rabbit.open.test.service.MasterSlaveService;
-import rabbit.open.test.service.MyUserSerivce;
-import rabbit.open.test.service.OrganizationService;
-import rabbit.open.test.service.PropertyService;
-import rabbit.open.test.service.ResourcesService;
-import rabbit.open.test.service.RoleService;
-import rabbit.open.test.service.SlaveService;
-import rabbit.open.test.service.UserService;
-import rabbit.open.test.service.ZPropertyService;
-import rabbit.open.test.service.ZoneService;
 
 /**
  * <b>Description: 查询测试</b><br>
@@ -136,7 +85,7 @@ public class QueryTest {
     public void multiExtend() {
     	mus.batchAdd();
     }
-    
+
     /**
      * 
      * <b>Description: 关联(多对一、多对多)查询 + distinct </b><br>
