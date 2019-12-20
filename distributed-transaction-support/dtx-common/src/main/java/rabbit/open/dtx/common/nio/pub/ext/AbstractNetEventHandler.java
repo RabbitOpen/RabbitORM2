@@ -152,7 +152,7 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
         ByteBuffer buffer = switchRegion.get();
         if (buffer.position() < ProtocolData.PROTOCOL_HEADER_LENGTH) {
             //数据头尚未读取完整
-            return false;
+            return true;
         }
         int pos = buffer.position();
         buffer.position(0);
@@ -162,8 +162,10 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
             assertPackageDataLength(dataLength);
             // 如果实际需要接收的数据超过了默认buffer长度, 则生成临时缓冲用来处理数据
             switchDataCache(pos, dataLength);
+            // 将新分配的buffer绑定到agent
+            agent.bindDataBuffer(switchRegion.get());
             logger.warn("generate temp buffer to process request data, buffer size [{}] : ", switchRegion.get().limit());
-            return false;
+            return true;
         }
         if (packetReadOver(pos, dataLength)) {
             byte[] data = new byte[dataLength];
@@ -177,13 +179,31 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
                 protocolData = new KryoObjectSerializer().deserialize(data, ProtocolData.class, true);
             }
             processData(protocolData, agent);
-            return 0 == buffer.position();
+            if (0 == buffer.position()) {
+            	resetAgentBufferAfterExpanding(agent, buffer.capacity());
+            	// 处理完数据就直接返回
+            	return true;
+            }
+            // 没处理完数据就继续检测，如果还有数据就继续处理，数据不够就一帧就挂起客户端
+            return processData(agent);
         } else {
-            // reset position
+            // reset position 直接挂起客户端，防止客户端io跟不上导致服务端挂起
             buffer.position(pos);
-            return false;
+            return true;
         }
     }
+
+    /**
+     * <b>@description 扩容后用完buffer就回收 </b>
+     * @param agent
+     * @param currentBufferSize
+     */
+	protected void resetAgentBufferAfterExpanding(ChannelAgent agent, int currentBufferSize) {
+		if (currentBufferSize != getDefaultBufferSize()) {
+			// 如果扩过容就清理buffer，释放内容
+			agent.bindDataBuffer(null);
+		}
+	}
 
     /**
      * 处理协议数据

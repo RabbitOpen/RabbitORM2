@@ -163,6 +163,10 @@ public class ChannelAgent implements PooledResource {
         return dataBuffer;
     }
 
+    public void bindDataBuffer(ByteBuffer dataBuffer) {
+		this.dataBuffer = dataBuffer;
+	}
+    
     public String getRemote() {
         return remote;
     }

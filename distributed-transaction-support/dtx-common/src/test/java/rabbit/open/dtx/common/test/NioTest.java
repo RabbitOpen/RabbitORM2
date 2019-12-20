@@ -83,6 +83,11 @@ public class NioTest {
         Object data = result.getData();
         TestCase.assertTrue(data instanceof Exception);
         logger.info("{} ", data.toString());
+        result = agent.send(longStr.toString());
+        agent.release();
+        data = result.getData();
+        TestCase.assertTrue(data instanceof Exception);
+        logger.info("{} ", data.toString());
         arp.gracefullyShutdown();
         holdOn(1000);
         server.shutdown();

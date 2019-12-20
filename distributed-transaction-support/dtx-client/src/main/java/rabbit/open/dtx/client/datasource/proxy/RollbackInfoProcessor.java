@@ -46,7 +46,6 @@ public abstract class RollbackInfoProcessor {
 
     public abstract boolean processRollbackInfo(RollBackRecord record, RollbackInfo info, Connection connection);
 
-    @SuppressWarnings("rawtypes")
 	protected void setPreparedStatementValue(PreparedStatement stmt, int index, Object value) throws SQLException {
         if (value instanceof byte[]) {
             stmt.setBytes(index, (byte[]) value);
