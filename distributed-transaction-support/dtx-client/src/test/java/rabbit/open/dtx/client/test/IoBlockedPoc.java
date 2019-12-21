@@ -21,22 +21,25 @@ import rabbit.open.dtx.common.nio.pub.protocol.KeepAlive;
 import rabbit.open.dtx.common.nio.server.DtxServer;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 
-public class IoBlockingPoc {
+/**
+ * 
+ * <b>@description 模拟有一个io堵塞了的场景，检测服务端是否为被挂起 </b>
+ */
+public class IoBlockedPoc {
 
 	static NioSelector nioSelector;
 	static MyClientNetEventHandler handler = new MyClientNetEventHandler();
 	static int port = 10003;
 	static Semaphore semaphore = new Semaphore(0);
-	private static Logger logger = LoggerFactory.getLogger(IoBlockingPoc.class);
+	private static Logger logger = LoggerFactory.getLogger(IoBlockedPoc.class);
 
 	public static void main(String[] args) throws IOException, InterruptedException { 
 		startServer();
 		startNioClientSelector();
-		sendBadPackage();
+		sendBadPacket();
 
 		MyTestTransactionManager manager = new MyTestTransactionManager();
 		DtxChannelAgentPool cap = new DtxChannelAgentPool(manager);
-
 		for (int i = 0; i < 10000; i++) {
 			try {
 				ChannelAgent agent = cap.getResource();
@@ -52,7 +55,7 @@ public class IoBlockingPoc {
 	}
 
 	// 发送脏数据（只发一部分）
-	protected static void sendBadPackage() throws IOException, ClosedChannelException, InterruptedException {
+	protected static void sendBadPacket() throws IOException, ClosedChannelException, InterruptedException {
 		SocketChannel channel = SocketChannel.open();
 		// 设置通道为非阻塞
 		channel.configureBlocking(false);
