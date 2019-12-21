@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  * @author xiaoqianbin
  * @date 2019/12/12
  **/
-@ContextConfiguration(locations = {"classpath:support.xml"})
+@ContextConfiguration(locations = {"classpath:common-support.xml"})
 public class LogicalTest {
 
     private Logger logger = LoggerFactory.getLogger(getClass());

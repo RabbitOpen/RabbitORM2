@@ -1,4 +1,4 @@
-package rabbit.open.dtx.client.enhance;
+package rabbit.open.dtx.common.nio.client.annotation;
 
 /**
  * 事务隔离级别
