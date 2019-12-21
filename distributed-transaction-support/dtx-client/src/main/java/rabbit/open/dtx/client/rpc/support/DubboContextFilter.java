@@ -20,10 +20,12 @@ public class DubboContextFilter implements Filter {
             DistributedTransactionObject dtxObj = DistributedTransactionContext.getDistributedTransactionObject();
             if (null != dtxObj) {
                 RpcContext.getContext().setAttachment(DubboTransactionManager.TRANSACTION_GROUP_ID, dtxObj.getTxGroupId().toString());
+                RpcContext.getContext().setAttachment(DubboTransactionManager.TRANSACTION_ISOLATION, dtxObj.getIsolation().name());
             }
             return invoker.invoke(invocation);
         } finally {
             RpcContext.getContext().removeAttachment(DubboTransactionManager.TRANSACTION_GROUP_ID);
+            RpcContext.getContext().removeAttachment(DubboTransactionManager.TRANSACTION_ISOLATION);
         }
 
     }

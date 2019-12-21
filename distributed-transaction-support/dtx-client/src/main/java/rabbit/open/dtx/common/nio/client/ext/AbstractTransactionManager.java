@@ -12,6 +12,7 @@ import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.client.FutureResult;
+import rabbit.open.dtx.common.nio.client.annotation.DistributedTransaction;
 import rabbit.open.dtx.common.nio.exception.GetConnectionTimeoutException;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.nio.exception.RpcException;
@@ -41,6 +42,7 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
         if (null == getCurrentTransactionObject()) {
             DistributedTransactionObject tranObj = newTransactionObject();
             tranObj.setPromoter(true);
+            tranObj.setIsolation(method.getAnnotation(DistributedTransaction.class).isolation());
             tranObj.setTransactionOwner(method);
             DistributedTransactionContext.setDistributedTransactionObject(tranObj);
         }

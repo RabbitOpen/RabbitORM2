@@ -2,6 +2,8 @@ package rabbit.open.dtx.common.nio.client;
 
 import java.lang.reflect.Method;
 
+import rabbit.open.dtx.common.nio.client.annotation.Isolation;
+
 /**
  * 事务对象
  * @author xiaoqianbin
@@ -20,6 +22,9 @@ public class DistributedTransactionObject {
 
     // 事务开启方法
     private Method transactionOwner;
+    
+    // 隔离级别
+    private Isolation isolation;
 
     // 是任务的发起人
     private boolean promoter = false;
@@ -63,5 +68,13 @@ public class DistributedTransactionObject {
     public Long getNextOrder() {
         return order++;
     }
+
+	public Isolation getIsolation() {
+		return isolation;
+	}
+
+	public void setIsolation(Isolation isolation) {
+		this.isolation = isolation;
+	}
 
 }
