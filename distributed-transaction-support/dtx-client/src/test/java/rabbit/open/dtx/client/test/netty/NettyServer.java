@@ -24,7 +24,7 @@ public class NettyServer {
 
 		// 2.定义工作组:boss分发请求给各个worker:boss负责监听端口请求，worker负责处理请求（读写）
 		EventLoopGroup boss = new NioEventLoopGroup();
-		EventLoopGroup worker = new NioEventLoopGroup(10);
+		EventLoopGroup worker = new NioEventLoopGroup(1);
 
 		// 3.定义工作组
 		serverBootstrap.group(boss, worker);
