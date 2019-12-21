@@ -14,7 +14,6 @@
     <modules>
         <module>dtx-client</module>
         <module>dtx-server</module>
-        <module>dtx-common</module>
     </modules>
 
     <profiles>

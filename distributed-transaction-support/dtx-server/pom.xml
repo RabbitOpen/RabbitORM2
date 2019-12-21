@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>rabbit.open</groupId>
-            <artifactId>dtx-common</artifactId>
+            <artifactId>dtx-client</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
