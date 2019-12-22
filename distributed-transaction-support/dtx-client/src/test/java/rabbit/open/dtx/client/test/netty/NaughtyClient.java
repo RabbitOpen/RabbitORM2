@@ -1,5 +1,8 @@
 package rabbit.open.dtx.client.test.netty;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -15,6 +18,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
  * <b>@description 发送错误数据 </b>
  */
 public class NaughtyClient {
+	static Logger logger = LoggerFactory.getLogger(NaughtyClient.class);
 	
 	public static void main(String[] args) {
         startClient();
@@ -37,7 +41,7 @@ public class NaughtyClient {
         clientBootstap.handler(new ChannelInitializer<Channel>() {
             @Override
             protected void initChannel(Channel channel) throws Exception {
-                System.out.println("client channel init!");
+            	logger.info("client channel init!");
                 ChannelPipeline pipeline = channel.pipeline();
                 pipeline.addLast(new ErrorEncoder());
 				pipeline.addLast(new MyByteToMessageDecoder());
@@ -53,12 +57,12 @@ public class NaughtyClient {
     static class ClientHandler extends ChannelInboundHandlerAdapter {
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            System.out.println("client receive msg:" + msg.toString());
+        	logger.info("client receive msg:" + msg.toString());
         }
 
 		@Override
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
-			Car c = new Car();c.setNo("abc");
+			Car c = new Car();c.setNo(NaughtyClient.class.getSimpleName());
 			ctx.writeAndFlush(c);
 		}
     }

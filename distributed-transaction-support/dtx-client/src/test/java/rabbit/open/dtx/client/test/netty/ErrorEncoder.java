@@ -19,7 +19,7 @@ public class ErrorEncoder extends MessageToByteEncoder<Car> {
 	protected void encode(ChannelHandlerContext ctx, Car msg, ByteBuf out) throws Exception {
 		byte[] body = convertToBytes(msg); // 将对象转换为byte
 		int dataLength = body.length; // 读取消息的长度
-		out.writeInt(dataLength + 10); // 先将消息长度写入，也就是消息头
+		out.writeInt(dataLength); // 先将消息长度写入，也就是消息头
 		out.writeBytes(body); // 消息体中包含我们要发送的数据
 	}
 

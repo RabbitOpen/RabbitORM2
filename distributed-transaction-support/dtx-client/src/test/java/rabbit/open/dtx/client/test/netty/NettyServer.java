@@ -1,5 +1,11 @@
 package rabbit.open.dtx.client.test.netty;
 
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -13,6 +19,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class NettyServer {
+	
+	static Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
 	public static void main(String[] args) {
 		startServer();
@@ -58,7 +66,7 @@ public class NettyServer {
 			// 7.5.监听关闭
 			channelFuture.channel().closeFuture().sync(); // 等待服务关闭，关闭后应该释放资源
 		} catch (InterruptedException e) {
-			System.out.println("server start got exception!");
+			logger.info("server start got exception!");
 			e.printStackTrace();
 		} finally {
 			// 8.优雅的关闭资源
@@ -72,8 +80,13 @@ public class NettyServer {
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-			System.out.println("ServerHandler receive msg:" + msg.toString());
+			logger.info("ServerHandler receive msg:" + msg.toString());
 
+			if (((Car)msg).getNo().equals(NaughtyClient.class.getSimpleName())) {
+				Semaphore semaphore = new Semaphore(0);
+				semaphore.tryAcquire(10, TimeUnit.SECONDS);
+			}
+			
 			// 写消息：先得到channel，在写如通道然后flush刷新通道把消息发出去。
 			Car car = new Car();
 			car.setNo("BMW");
