@@ -1,5 +1,7 @@
 package rabbit.open.dtx.common.nio.pub;
 
+import java.util.List;
+
 import rabbit.open.dtx.common.spring.anno.Namespace;
 
 /**
@@ -79,5 +81,14 @@ public interface TransactionHandler {
     default Long getTransactionGroupId(String applicationName) {
         return 0L;
     }
+    
+    /***
+     * <b>@description 锁数据 </b>
+     * @param applicationName	应用
+     * @param txGroupId			组id
+     * @param txBranchId		分支id
+     * @param locks				锁id
+     */
+    default void lockData(String applicationName, Long txGroupId, Long txBranchId, List<String> locks) {}
 
 }
