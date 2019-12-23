@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 import rabbit.open.dtx.client.net.DtxMessageListener;
+import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
@@ -42,7 +43,7 @@ public class ClientLogicalTest {
         TestTransactionManager manager = new TestTransactionManager();
         manager.init();
 
-        Method method = ClientLogicalTest.class.getDeclaredMethod("transactionTest");
+        Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
         manager.beginTransaction(method);
 
         // 事务处理器

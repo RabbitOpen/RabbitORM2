@@ -95,7 +95,9 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
     public void destroyResource(T resource) {
     	count.getAndDecrement();
     	// 尝试移除当前被销毁的连接(服务端发起关闭请求时，该连接理论上可能还在池中，所有需要清除一次)
-    	queue.remove(resource);
+    	if (queue.remove(resource)) {
+    	    logger.debug("remove resource from pool");
+        }
     }
 
     /**

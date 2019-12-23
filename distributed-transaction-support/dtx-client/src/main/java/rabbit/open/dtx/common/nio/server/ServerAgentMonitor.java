@@ -1,10 +1,10 @@
 package rabbit.open.dtx.common.nio.server;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
 import rabbit.open.dtx.common.nio.client.AgentMonitor;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 服务端监控器
@@ -15,7 +15,7 @@ public class ServerAgentMonitor extends AgentMonitor {
 
     private int checkIntervalSeconds = 10;
 
-    private LinkedBlockingQueue<ChannelAgent> agents = new LinkedBlockingQueue<ChannelAgent>();
+    private LinkedBlockingQueue<ChannelAgent> agents = new LinkedBlockingQueue<>();
 
     public ServerAgentMonitor(String name) {
         setName(name);
@@ -30,8 +30,9 @@ public class ServerAgentMonitor extends AgentMonitor {
         while (run) {
             for (ChannelAgent agent : agents) {
                 if (System.currentTimeMillis() - agent.getLastActiveTime() > 5L * 60 * 1000) {
-                    logger.info("clear dead client connection [{}]", agent.getRemote());
-                    agents.remove(agent);
+                    if (agents.remove(agent)) {
+                        logger.info("clear dead client connection [{}]", agent.getRemote());
+                    }
                     agent.destroy();
                 }
             }
