@@ -2,8 +2,10 @@ package rabbit.open.dtx.common.nio.server;
 
 import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
+import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
+import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerTransactionHandler;
 import rabbit.open.dtx.common.nio.server.ext.TransactionContext;
 import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
@@ -11,6 +13,7 @@ import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -18,16 +21,20 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author xiaoqianbin
  * @date 2019/12/10
  **/
-public class MemoryBasedTransactionHandler extends AbstractServerTransactionHandler {
+public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
 
     // 事务id生成器
     private AtomicLong idGenerator = new AtomicLong(0);
 
     // 事务信息缓存
-    private static final Map<Long, TransactionContext> contextCache = new ConcurrentHashMap<>();
+    private final Map<Long, TransactionContext> contextCache = new ConcurrentHashMap<>();
+
+    // 锁等待队列
+    private final Map<String, LinkedBlockingQueue<LockContext>> lockQueueMap = new ConcurrentHashMap<>();
 
     @Override
     protected void doCommitByGroupId(Long txGroupId, String applicationName) {
+        releaseHoldLocks(txGroupId);
         doTransactionByGroupId(txGroupId, applicationName, TxStatus.COMMITTED);
     }
 
@@ -97,6 +104,75 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
         }
     }
 
+    /**
+     * 锁数据
+     * @param	applicationName
+	 * @param	txGroupId
+	 * @param	txBranchId
+	 * @param	locks
+     * @author  xiaoqianbin
+     * @date    2019/12/23
+     **/
+    @Override
+    public void lockData(String applicationName, Long txGroupId, Long txBranchId, List<String> locks) {
+        for (String lock : locks) {
+            synchronized (lock.intern()) {
+                TransactionContext context = contextCache.get(txGroupId);
+                if (!lockQueueMap.containsKey(lock)) {
+                    context.addHoldLock(lock);
+                    lockQueueMap.put(lock, new LinkedBlockingQueue<>());
+                } else {
+                    addAgentToWaitingQueue(lock, context);
+                }
+            }
+        }
+    }
+
+    /**
+     * 释放所有的锁
+     * @param	txGroupId
+     * @author  xiaoqianbin
+     * @date    2019/12/23
+     **/
+    private void releaseHoldLocks(Long txGroupId) {
+        TransactionContext context = contextCache.get(txGroupId);
+        for (String lock : context.getLockIdQueue()) {
+            synchronized (lock.intern()) {
+                LinkedBlockingQueue<LockContext> queue = lockQueueMap.get(lock);
+                if (queue.isEmpty()) {
+                    lockQueueMap.remove(lock);
+                    continue;
+                }
+                LockContext lockContext = queue.poll();
+                lockContext.obtainLock(lock);
+            }
+        }
+    }
+
+    @Override
+    protected boolean rollbackCompleted(Long txGroupId) {
+        boolean result = super.rollbackCompleted(txGroupId);
+        releaseHoldLocks(txGroupId);
+        return result;
+    }
+
+    /**
+     * 挂起当前获取锁请求，将请求添加入等待队列
+     * @param	lock
+	 * @param	context
+     * @author  xiaoqianbin
+     * @date    2019/12/23
+     **/
+    private void addAgentToWaitingQueue(String lock, TransactionContext context) {
+        AbstractServerEventHandler.suspendRequest();
+        // 添加锁等待队列
+        TransactionContext.callUnconcernedException(() -> lockQueueMap.get(lock).put(new LockContext(context,
+                AbstractServerEventHandler.getCurrentRequestId(),
+                AbstractNetEventHandler.getCurrentAgent())));
+        // 添加等待的锁
+        context.addWaitingLock(lock);
+    }
+
     // 回滚或者提交分支事务
     private void doBranchTransaction(Long txGroupId, Map.Entry<Long, String> entry, TxStatus txStatus) {
         Long txBranchId = entry.getKey();
@@ -104,12 +180,17 @@ public class MemoryBasedTransactionHandler extends AbstractServerTransactionHand
         List<ChannelAgent> agents = ApplicationDataHandler.getAgents(app);
         for (ChannelAgent agent : agents) {
             if (!agent.isClosed()) {
-                agent.response(TxStatus.COMMITTED == txStatus ? new CommitMessage(app, txGroupId, txBranchId)
-                        : new RollBackMessage(app, txGroupId, txBranchId), null);
-                logger.debug("delivery {} branch ({} --> {}) ", txStatus, txGroupId, txBranchId);
-                break;
+                try {
+                    agent.response(TxStatus.COMMITTED == txStatus ? new CommitMessage(app, txGroupId, txBranchId)
+                            : new RollBackMessage(app, txGroupId, txBranchId), null);
+                    logger.debug("delivery {} branch ({} --> {}) ", txStatus, txGroupId, txBranchId);
+                    break;
+                } catch (Exception e) {
+                    // TO DO: 忽略节点挂了的异常
+                }
             }
         }
+        // 回滚/提交 失败就等下次节点上来了继续回滚/提交， 放到redis版做
     }
 
     @Override

@@ -88,6 +88,9 @@ public abstract class AbstractServerEventHandler extends AbstractNetEventHandler
 
     public void setDtxServer(DtxServer dtxServer) {
         this.dtxServer = dtxServer;
+        if (null != transactionHandler) {
+            transactionHandler.setDtxServer(dtxServer);
+        }
     }
 
     /**

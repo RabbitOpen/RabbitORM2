@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
+import rabbit.open.dtx.common.nio.server.DtxServer;
 import rabbit.open.dtx.common.nio.server.TxStatus;
 
 import java.util.Map;
@@ -19,6 +20,8 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
     protected Map<Long, RollbackListener> rollbackListenerMap = new ConcurrentHashMap<>();
+
+    private DtxServer dtxServer;
 
     @Override
     public void doBranchCommit(Long txGroupId, Long txBranchId, String applicationName) {
@@ -140,4 +143,12 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
      * @date    2019/12/9
      **/
     protected abstract void persistBranchInfo(Long txGroupId, Long txBranchId, String applicationName, TxStatus txStatus);
+
+    public DtxServer getDtxServer() {
+        return dtxServer;
+    }
+
+    public void setDtxServer(DtxServer dtxServer) {
+        this.dtxServer = dtxServer;
+    }
 }

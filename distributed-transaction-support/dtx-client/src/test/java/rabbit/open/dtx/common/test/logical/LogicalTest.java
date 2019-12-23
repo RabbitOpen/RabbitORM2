@@ -13,7 +13,7 @@ import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 import rabbit.open.dtx.common.nio.server.DtxServerWrapper;
-import rabbit.open.dtx.common.nio.server.MemoryBasedTransactionHandler;
+import rabbit.open.dtx.common.nio.server.MemoryTransactionHandler;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -38,7 +38,7 @@ public class LogicalTest {
         serverEventHandler.setBossCoreSize(1);
         serverEventHandler.setMaxBossConcurrence(2);
         serverEventHandler.setMaxBossQueueSize(10);
-        MemoryBasedTransactionHandler memTxHandler = new MemoryBasedTransactionHandler();
+        MemoryTransactionHandler memTxHandler = new MemoryTransactionHandler();
         serverEventHandler.setTransactionHandler(memTxHandler);
         serverEventHandler.init();
         DtxServerWrapper serverWrapper = new DtxServerWrapper(20118, serverEventHandler);

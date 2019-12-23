@@ -7,7 +7,9 @@ import rabbit.open.dtx.common.nio.pub.NioSelector;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.concurrent.Semaphore;
@@ -40,6 +42,8 @@ public class DtxServer {
     // 网络事件接口
     private AbstractServerEventHandler netEventHandler;
 
+    private String serverId;
+
     public DtxServer(int port, AbstractServerEventHandler netEventHandler) throws IOException {
         this.netEventHandler = netEventHandler;
         this.netEventHandler.setDtxServer(this);
@@ -50,6 +54,7 @@ public class DtxServer {
         listenChannel.socket().bind(new InetSocketAddress(port));
         //注册接收事件
         listenChannel.register(nioSelector.getRealSelector(), SelectionKey.OP_ACCEPT);
+        createServerId(port);
         ioListener = new Thread(() -> {
             logger.info("dtx server is listening on port: {}", port);
             while (true) {
@@ -68,6 +73,27 @@ public class DtxServer {
         }, "event-selector");
         serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor");
         serverAgentMonitor.start();
+    }
+
+    /**
+     * 生成19位的同网段唯一服务器id
+     * @param	port
+     * @author  xiaoqianbin
+     * @date    2019/12/23
+     **/
+    private void createServerId(int port) throws UnknownHostException {
+        String hostAddress = InetAddress.getLocalHost().getHostAddress();
+        String[] segments = hostAddress.split("\\.");
+        StringBuilder id = new StringBuilder();
+        for (String seg : segments) {
+            id.append(String.format("%03d", Integer.parseInt(seg)));
+        }
+        id.append(String.format("%07d", port));
+        serverId = id.toString();
+    }
+
+    public String getServerId() {
+        return serverId;
     }
 
     /**

@@ -46,7 +46,7 @@ public class NioTest {
         server.start();
         TestTransactionManager manager = new TestTransactionManager();
         DtxChannelAgentPool arp = new DtxChannelAgentPool(manager);
-        int count = 1;
+        int count = 100;
         CountDownLatch cdl = new CountDownLatch(count);
         long start = System.currentTimeMillis();
 

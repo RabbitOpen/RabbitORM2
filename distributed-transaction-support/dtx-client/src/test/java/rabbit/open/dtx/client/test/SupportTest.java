@@ -15,6 +15,7 @@ import rabbit.open.dtx.client.test.service.EnterpriseService;
 import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.client.test.service.RollbackInfoService;
 import rabbit.open.dtx.client.test.service.SimpleTransactionManager;
+import rabbit.open.dtx.common.nio.exception.IsolationException;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
@@ -202,5 +203,26 @@ public class SupportTest {
         int count = 5;
         productService.multiAdd(count);
         TestCase.assertEquals(rbs.createQuery().count() - before, count);
+    }
+
+    /**
+     *
+     * 由于productService.isolationErrorTest没有加事务注解，又使用了读提交隔离级别，所以会抛异常
+     * @author  xiaoqianbin
+     * @date    2019/12/23
+     **/
+    @Test
+    public void isolationErrorTest() {
+        try {
+            Product product = new Product();
+            product.setId(10099L);
+            //更新对象
+            product.setName("ZD-0015");
+            product.setAddr("CD1");
+            productService.isolationErrorTest(product);
+            throw new RuntimeException("");
+        } catch (Exception e) {
+            TestCase.assertEquals(IsolationException.class, e.getClass());
+        }
     }
 }

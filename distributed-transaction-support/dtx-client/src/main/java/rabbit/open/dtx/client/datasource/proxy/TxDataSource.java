@@ -30,6 +30,9 @@ public class TxDataSource implements DataSource {
     // 自增字段名
     private Map<String, String> autoIncrementColumnNames = new ConcurrentHashMap<>();
 
+    // 主键字段名
+    private Map<String, String> primaryKeyNames = new ConcurrentHashMap<>();
+
     // 真实数据源
     private DataSource dataSource;
 
@@ -50,6 +53,12 @@ public class TxDataSource implements DataSource {
         dataSourceMap.put(dataSourceName, this);
     }
 
+    /**
+     * 加载自增字段信息
+     * @param	dataSource
+     * @author  xiaoqianbin
+     * @date    2019/12/23
+     **/
     private void loadKeyGenInfo(DataSource dataSource) {
         Connection connection = null;
         ResultSet tables = null;
@@ -62,6 +71,7 @@ public class TxDataSource implements DataSource {
                 }
                 String tableName = tables.getString("TABLE_NAME");
                 loadKeyGenInfoByTableName(connection, tableName);
+                loadPrimaryKeys(connection, tableName);
             }
         } catch (Exception e) {
             throw new DistributedTransactionException(e);
@@ -69,6 +79,27 @@ public class TxDataSource implements DataSource {
             closeQuietly(tables);
             closeQuietly(connection);
         }
+    }
+
+    private void loadPrimaryKeys(Connection connection, String tableName) {
+        ResultSet rs = null;
+        try {
+            rs = connection.getMetaData().getPrimaryKeys(null, null, tableName);
+            while (rs.next()) {
+                primaryKeyNames.put(tableName.toUpperCase(), rs.getString("COLUMN_NAME"));
+            }
+        } catch (Exception e) {
+            throw new DistributedTransactionException(e);
+        } finally {
+            closeQuietly(rs);
+        }
+    }
+
+    public String getPrimaryKey(String tableName, Connection conn) {
+        if (!primaryKeyNames.containsKey(tableName.toUpperCase())) {
+            loadPrimaryKeys(conn, tableName);
+        }
+        return primaryKeyNames.get(tableName.toUpperCase());
     }
 
     public boolean isAutoIncrement(String table, Connection conn) {

@@ -7,12 +7,18 @@ import rabbit.open.dtx.client.datasource.proxy.RollBackRecord;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfoProcessor;
 import rabbit.open.dtx.client.datasource.proxy.TxConnection;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
+import rabbit.open.dtx.common.nio.client.annotation.Isolation;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
+import rabbit.open.dtx.common.nio.exception.IsolationException;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 更新回滚信息处理器
@@ -28,7 +34,7 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
         PreparedStatement stmt = null;
         ResultSet resultSet = null;
         try {
-            stmt = txConn.getRealConn().prepareStatement(sql);
+            stmt = txConn.getRealConn().prepareStatement(getPreImageSql(sqlMeta, txConn));
             setPlaceHolderValues(sqlMeta, preparedStatementValues, stmt);
             resultSet = stmt.executeQuery();
             ResultSetMetaData metaData = resultSet.getMetaData();
@@ -44,11 +50,83 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
             }
             rollbackInfo.setOriginalData(list);
             resultSet.close();
+            txConn.getTxDataSource().getDataSourceName();
+            lockDataByIsolation(txConn, getLocks(sqlMeta, txConn, list));
         } finally {
             safeClose(resultSet);
             safeClose(stmt);
         }
         return rollbackInfo;
+    }
+
+    /**
+     * 生成锁id     {dataSourceName}-{tableName}-{rowId}
+     * @param	sqlMeta
+	 * @param	txConn
+	 * @param	list
+     * @author  xiaoqianbin
+     * @date    2019/12/23
+     **/
+    private List<String> getLocks(SQLMeta sqlMeta, TxConnection txConn, List<Map<String, Object>> list) {
+        return list.stream().map(m -> {
+            String primaryKeyName = txConn.getTxDataSource().getPrimaryKey(sqlMeta.getTargetTables(), txConn.getRealConn());
+            StringBuilder lock = new StringBuilder(txConn.getTxDataSource().getDataSourceName())
+                    .append("-").append(sqlMeta.getTargetTables()).append("-");
+            return lock.append(m.get(primaryKeyName)).toString();
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 根据隔离级别进行锁数据
+     * @param txConn 当前连接
+     * @param ids    主键
+     * @author xiaoqianbin
+     * @date 2019/12/23
+     **/
+    private void lockDataByIsolation(TxConnection txConn, List<String> ids) {
+        if (!isStrictIsolation()) {
+            return;
+        }
+        AbstractTransactionManager transactionManager = (AbstractTransactionManager) txConn.getTxDataSource().getTransactionManger();
+        DistributedTransactionObject tranObj = DistributedTransactionContext.getDistributedTransactionObject();
+        Long txGroupId = tranObj.getTxGroupId();
+        Long branchId = transactionManager.getTransactionBranchId();
+        logger.debug("{} try to lock data {} in dtx transaction [{}-{}]", transactionManager.getApplicationName(), ids, txGroupId, branchId);
+        // 网络io锁数据
+        transactionManager.getTransactionHandler().lockData(transactionManager.getApplicationName(), txGroupId, branchId, ids);
+        logger.debug("{} locked data {} in dtx transaction [{}-{}]", transactionManager.getApplicationName(), ids, txGroupId, branchId);
+    }
+
+    /**
+     * 生成查询前镜像的sql语句
+     * @param sqlMeta
+     * @param txConn
+     * @author xiaoqianbin
+     * @date 2019/12/23
+     **/
+    protected String getPreImageSql(SQLMeta sqlMeta, TxConnection txConn) throws SQLException {
+        if (isStrictIsolation()) {
+            if (txConn.getAutoCommit()) {
+                throw new IsolationException();
+            } else {
+                return createPreImageSql(sqlMeta).append(" for update ").toString();
+            }
+        } else {
+            return createPreImageSql(sqlMeta).toString();
+        }
+    }
+
+    /**
+     * 判断是不是严格的隔离级别设置(是否需要隔离数据，是否需要加锁)
+     * @author xiaoqianbin
+     * @date 2019/12/23
+     **/
+    private boolean isStrictIsolation() {
+        return Isolation.READ_COMMITTED == DistributedTransactionContext.getDistributedTransactionObject().getIsolation();
+    }
+
+    protected StringBuilder createPreImageSql(SQLMeta sqlMeta) {
+        return new StringBuilder("select * from ").append(sqlMeta.getTargetTables()).append(" ").append(sqlMeta.getCondition());
     }
 
     /**
@@ -134,9 +212,9 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
 
     /**
      * 创建回滚时的update sql信息
-     * @param	info
-     * @author  xiaoqianbin
-     * @date    2019/12/6
+     * @param info
+     * @author xiaoqianbin
+     * @date 2019/12/6
      **/
     private String createRollbackUpdateSql(RollbackInfo info) {
         SQLMeta meta = info.getMeta();
