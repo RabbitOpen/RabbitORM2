@@ -30,7 +30,6 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
     @Override
     public RollbackInfo generateRollbackInfo(SQLMeta sqlMeta, List<Object> preparedStatementValues, TxConnection txConn) throws SQLException {
         RollbackInfo rollbackInfo = createRollbackInfo(sqlMeta, preparedStatementValues);
-        String sql = "select * from " + sqlMeta.getTargetTables() + " " + sqlMeta.getCondition();
         PreparedStatement stmt = null;
         ResultSet resultSet = null;
         try {
