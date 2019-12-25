@@ -115,15 +115,26 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
      **/
     @Override
     public void lockData(String applicationName, Long txGroupId, Long txBranchId, List<String> locks) {
-        for (String lock : locks) {
-            synchronized (lock.intern()) {
+        for (String l : locks) {
+            String lock = new StringBuilder(applicationName).append(l).toString();
+            try {
+                ReentrantLockPool.lock(applicationName, l);
                 TransactionContext context = contextCache.get(txGroupId);
-                if (!lockQueueMap.containsKey(lock)) {
-                    context.addHoldLock(lock);
-                    lockQueueMap.put(lock, new LinkedBlockingQueue<>());
-                } else {
-                    addAgentToWaitingQueue(lock, context);
+                if (null == context || context.repeatedLockRequest(lock, txBranchId)) {
+                    continue;
                 }
+                if (!lockQueueMap.containsKey(lock)) {
+                    // 如果没有人持有该锁，就尝试持有锁
+                    if (context.try2HoldLock(lock, txBranchId)) {
+                        logger.debug("{} transaction[{}-{}] hold lock {}", applicationName, txGroupId, txBranchId, lock);
+                        lockQueueMap.put(lock, new LinkedBlockingQueue<>());
+                    }
+                } else {
+                    logger.debug("{} transaction[{}-{}] is waiting lock {}", applicationName, txGroupId, txBranchId, lock);
+                    addAgentToWaitingQueue(lock, txBranchId, context);
+                }
+            } finally {
+                ReentrantLockPool.unlock(applicationName, l);
             }
         }
     }
@@ -136,41 +147,28 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
      **/
     private void releaseHoldLocks(Long txGroupId) {
         TransactionContext context = contextCache.get(txGroupId);
-        for (String lock : context.getLockIdQueue()) {
-            synchronized (lock.intern()) {
-                LinkedBlockingQueue<LockContext> queue = lockQueueMap.get(lock);
-                if (queue.isEmpty()) {
-                    lockQueueMap.remove(lock);
-                    continue;
-                }
-                LockContext lockContext = queue.poll();
-                lockContext.obtainLock(lock);
-            }
+        if (null == context) {
+            return;
         }
-    }
-
-    @Override
-    protected boolean rollbackCompleted(Long txGroupId) {
-        boolean result = super.rollbackCompleted(txGroupId);
-        releaseHoldLocks(txGroupId);
-        return result;
+        context.releaseHoldLocks(lockQueueMap);
     }
 
     /**
      * 挂起当前获取锁请求，将请求添加入等待队列
      * @param	lock
+	 * @param	txBranchId
 	 * @param	context
      * @author  xiaoqianbin
      * @date    2019/12/23
      **/
-    private void addAgentToWaitingQueue(String lock, TransactionContext context) {
+    private void addAgentToWaitingQueue(String lock, Long txBranchId, TransactionContext context) {
         AbstractServerEventHandler.suspendRequest();
         // 添加锁等待队列
         TransactionContext.callUnconcernedException(() -> lockQueueMap.get(lock).put(new LockContext(context,
                 AbstractServerEventHandler.getCurrentRequestId(),
-                AbstractNetEventHandler.getCurrentAgent())));
+                AbstractNetEventHandler.getCurrentAgent(), txBranchId)));
         // 添加等待的锁
-        context.addWaitingLock(lock);
+        context.addWaitingLock(lock, txBranchId);
     }
 
     // 回滚或者提交分支事务
@@ -181,8 +179,8 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
         for (ChannelAgent agent : agents) {
             if (!agent.isClosed()) {
                 try {
-                    agent.response(TxStatus.COMMITTED == txStatus ? new CommitMessage(app, txGroupId, txBranchId)
-                            : new RollBackMessage(app, txGroupId, txBranchId), null);
+                    agent.notify(TxStatus.COMMITTED == txStatus ? new CommitMessage(app, txGroupId, txBranchId)
+                            : new RollBackMessage(app, txGroupId, txBranchId));
                     logger.debug("delivery {} branch ({} --> {}) ", txStatus, txGroupId, txBranchId);
                     break;
                 } catch (Exception e) {
@@ -195,6 +193,7 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
 
     @Override
     protected void doRollbackByGroupId(Long txGroupId, String applicationName) {
+        releaseHoldLocks(txGroupId);
         doTransactionByGroupId(txGroupId, applicationName, TxStatus.ROLL_BACKED);
     }
 
@@ -206,7 +205,7 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
     @Override
     protected void persistGroupId(Long txGroupId, String applicationName, TxStatus txStatus) {
         if (TxStatus.OPEN == txStatus) {
-            TransactionContext context = new TransactionContext(txStatus);
+            TransactionContext context = new TransactionContext(txStatus, txGroupId);
             context.setApplicationName(applicationName);
             contextCache.put(txGroupId, context);
         } else {

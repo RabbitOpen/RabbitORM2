@@ -182,6 +182,26 @@ public class ChannelAgent implements PooledResource {
         send(data, requestId);
     }
 
+    /**
+     * 空响应
+     * @param	requestId
+     * @author  xiaoqianbin
+     * @date    2019/12/24
+     **/
+    public final void ack(Long requestId) {
+        send(null, requestId);
+    }
+
+    /**
+     * 通知消息
+     * @param	data
+     * @author  xiaoqianbin
+     * @date    2019/12/24
+     **/
+    public final void notify(Object data) {
+        send(data, null);
+    }
+
     /***
      * 返回异常数据
      * @param   exception

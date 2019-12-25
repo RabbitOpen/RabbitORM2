@@ -14,26 +14,25 @@ public class LockContext {
 
     private Long requestId;
 
+    // 等待锁的事务分支id
+    private Long txBranchId;
+
     private ChannelAgent agent;
 
-    public LockContext(TransactionContext context, Long requestId, ChannelAgent agent) {
+    public LockContext(TransactionContext context, Long requestId, ChannelAgent agent, Long txBranchId) {
         this.context = context;
         this.requestId = requestId;
         this.agent = agent;
+        this.txBranchId = txBranchId;
     }
 
     /**
-     * 获得锁
+     * 尝试唤醒等待锁的客户端
      * @param	lockId
      * @author  xiaoqianbin
      * @date    2019/12/23
      **/
-    public void obtainLock(String lockId) {
-        context.getLockIdWaitingQueue().remove(lockId);
-        context.addHoldLock(lockId);
-        if (context.getLockIdWaitingQueue().isEmpty()) {
-            // 如果获取到所有的锁资源就通知客户端
-            TransactionContext.callUnconcernedException(() -> agent.response(null, requestId));
-        }
+    public boolean tryWakeup(String lockId) {
+        return context.tryWakeupClient(lockId, txBranchId, requestId, agent);
     }
 }

@@ -15,7 +15,7 @@ public class RollbackListener {
 
     public boolean rollbackCompleted() {
         if (!agent.isClosed()) {
-            TransactionContext.callUnconcernedException(() -> agent.response(null, requestId));
+            TransactionContext.callUnconcernedException(() -> agent.ack(requestId));
             return true;
         }
         return false;

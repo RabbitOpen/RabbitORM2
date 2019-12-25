@@ -69,9 +69,8 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
     private List<String> getLocks(SQLMeta sqlMeta, TxConnection txConn, List<Map<String, Object>> list) {
         return list.stream().map(m -> {
             String primaryKeyName = txConn.getTxDataSource().getPrimaryKey(sqlMeta.getTargetTables(), txConn.getRealConn());
-            StringBuilder lock = new StringBuilder(txConn.getTxDataSource().getDataSourceName())
-                    .append("-").append(sqlMeta.getTargetTables()).append("-");
-            return lock.append(m.get(primaryKeyName)).toString();
+            return new StringBuilder(sqlMeta.getTargetTables()).append("-")
+                    .append(m.get(primaryKeyName)).toString();
         }).collect(Collectors.toList());
     }
 

@@ -17,10 +17,13 @@ import rabbit.open.dtx.common.nio.server.MemoryTransactionHandler;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 相关逻辑测试
@@ -46,7 +49,8 @@ public class LogicalTest {
         TestTransactionManager manager = new TestTransactionManager();
         manager.init();
 
-        Method method = ProductService.class.getDeclaredMethod("jdbcAdd");;
+        Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
+        ;
         manager.beginTransaction(method);
 
         // 事务处理器
@@ -57,7 +61,7 @@ public class LogicalTest {
 
         try {
             handler.doCommit(txGroupId, null, "my-app");
-            throw new RuntimeException("不能走到这一步");
+            throw new RuntimeException("不可能走到这一步");
         } catch (Exception e) {
             TestCase.assertEquals(DistributedTransactionException.class, e.getClass());
         }
@@ -90,7 +94,7 @@ public class LogicalTest {
     }
 
     @SuppressWarnings("serial")
-	class TestTransactionManager extends AbstractTransactionManager {
+    class TestTransactionManager extends AbstractTransactionManager {
 
         @Override
         protected long getRpcTimeoutSeconds() {
@@ -144,6 +148,101 @@ public class LogicalTest {
         public List<Node> getServerNodes() {
             return Arrays.asList(new Node("localhost", 20118));
         }
+    }
+
+    /**
+     * 锁数据测试
+     * @author xiaoqianbin
+     * @date 2019/12/24
+     **/
+    @Test
+    public void lockDataTest() throws IOException, NoSuchMethodException, InterruptedException {
+        DtxServerEventHandler serverEventHandler = new DtxServerEventHandler();
+        MemoryTransactionHandler memTxHandler = new MemoryTransactionHandler();
+        serverEventHandler.setTransactionHandler(memTxHandler);
+        serverEventHandler.init();
+        DtxServerWrapper serverWrapper = new DtxServerWrapper(20119, serverEventHandler);
+        TestTransactionManager manager = new TestTransactionManager() {
+            @Override
+            public List<Node> getServerNodes() {
+                return Arrays.asList(new Node("localhost", 20119));
+            }
+
+            @Override
+            public String getApplicationName() {
+                return "lock-data-app";
+            }
+
+        };
+        manager.init();
+
+        Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
+        ;
+        manager.beginTransaction(method);
+        // 事务处理器
+        TransactionHandler handler = manager.getTransactionHandler();
+        Long txGroupId = manager.getCurrentTransactionObject().getTxGroupId();
+        Long branchId = handler.getTransactionBranchId(txGroupId, manager.getApplicationName());
+        List<String> list = new ArrayList<>();
+        list.add("lock-1");
+        handler.lockData(manager.getApplicationName(), txGroupId, branchId, list);
+        list.add("lock-2");
+        handler.lockData(manager.getApplicationName(), txGroupId, branchId, list);
+        handler.doBranchCommit(txGroupId, branchId, manager.getApplicationName());
+
+        String app = manager.getApplicationName();
+        new Thread(() -> {
+            Long g2 = handler.getTransactionGroupId(app);
+            Long b2 = handler.getTransactionBranchId(g2, app);
+            handler.lockData(app, g2, b2, list);
+            handler.doCommit(g2, b2, app);
+        }).start();
+        holdOn(1000);
+        manager.commit(method);
+
+        holdOn(200);
+        // 等待response
+        TestCase.assertEquals(0, memTxHandler.getOpenedTransactionCount());
+        manager.destroy();
+        //关闭服务端
+        serverWrapper.close();
+    }
+
+    private void holdOn(long milliSeconds) throws InterruptedException {
+        Semaphore semaphore = new Semaphore(0);
+        if (semaphore.tryAcquire(milliSeconds, TimeUnit.MILLISECONDS)) {
+            // 等100ms，保证response已经回来了
+            throw new RuntimeException("见鬼了");
+        }
+    }
+
+    @Test
+    public void benchmark() throws InterruptedException {
+//        long start = System.currentTimeMillis();
+//        for (int i = 0; i < 100000; i++) {
+//            new String("abc-adsfafdsfasdfsafsafadsfsfsf" + i).intern();
+//        }
+//        System.out.println("cost " + (System.currentTimeMillis() - start));
+
+        int count = 100;
+        CountDownLatch cdl = new CountDownLatch(count);
+        ReentrantLock lock = new ReentrantLock();
+        for (int i = 0; i < count; i++) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int j = 0; j < 100000; j++) {
+                        try {
+                            lock.lock();
+                        } finally {
+                            lock.unlock();
+                        }
+                    }
+                    cdl.countDown();
+                }
+            }).start();
+        }
+        cdl.await();
     }
 
 }

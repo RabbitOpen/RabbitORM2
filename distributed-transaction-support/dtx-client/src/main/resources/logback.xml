@@ -25,22 +25,22 @@
     </root>
 
 
-    <!--<appender name="dtx" class="ch.qos.logback.core.ConsoleAppender">
-        &lt;!&ndash;定义了一个过滤器,在LEVEL之下的日志输出不会被打印出来&ndash;&gt;
-        &lt;!&ndash;这里定义了DEBUG，也就是控制台不会输出比ERROR级别小的日志&ndash;&gt;
+    <appender name="dtx" class="ch.qos.logback.core.ConsoleAppender">
+        <!--定义了一个过滤器,在LEVEL之下的日志输出不会被打印出来
+        这里定义了DEBUG，也就是控制台不会输出比ERROR级别小的日志-->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>debug</level>
         </filter>
-        &lt;!&ndash; encoder 默认配置为PatternLayoutEncoder &ndash;&gt;
-        &lt;!&ndash;定义控制台输出格式&ndash;&gt;
+         <!--encoder 默认配置为PatternLayoutEncoder
+        定义控制台输出格式-->
         <encoder>
             <pattern>%d [%thread] %-5level [%file : %line] - %msg%n</pattern>
         </encoder>
-    </appender>-->
+    </appender>
 
     <!--对于类路径以 rabbit.open.dtx 开头的Logger,debug,并且只输出到控制台-->
-   <!-- <logger name="rabbit.open.dtx" level="debug" additivity="false">
+   <logger name="rabbit.open.dtx" level="debug" additivity="false">
         <appender-ref ref="dtx"/>
-    </logger>-->
+    </logger>
 
 </configuration>
