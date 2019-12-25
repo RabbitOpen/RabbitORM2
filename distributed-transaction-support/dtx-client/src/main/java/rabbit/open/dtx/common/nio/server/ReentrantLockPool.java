@@ -46,20 +46,6 @@ public class ReentrantLockPool {
         pool.get(namespace).get(Math.abs(id.hashCode() % LOCK_POOL_SIZE)).unlock();
     }
 
-    /***
-     * 锁资源
-     * @param	namespace   锁命名空间
-     * @param	id
-     * @author  xiaoqianbin
-     * @date    2019/12/25
-     **/
-    public static boolean tryLock(String namespace, String id) {
-        if (!pool.containsKey(namespace)) {
-            initLock(namespace);
-        }
-        return pool.get(namespace).get(Math.abs(id.hashCode() % LOCK_POOL_SIZE)).tryLock();
-    }
-
     private static synchronized  void initLock(String prefix) {
         if (pool.containsKey(prefix)) {
             return;
