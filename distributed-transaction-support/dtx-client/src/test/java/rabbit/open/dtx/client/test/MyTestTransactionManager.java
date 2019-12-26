@@ -1,8 +1,8 @@
 package rabbit.open.dtx.client.test;
 
-import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
+import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
+import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -14,32 +14,11 @@ import java.util.List;
  * @date 2019/12/4
  **/
 @SuppressWarnings("serial")
-public class MyTestTransactionManager implements DistributedTransactionManager {
-
-
-    @Override
-    public void beginTransaction(Method method) {
- 
-    }
-
-    @Override
-    public void rollback(Method method, long timeoutSeconds) {
-
-    }
-
-    @Override
-    public void commit(Method method) {
-
-    }
+public class MyTestTransactionManager extends AbstractTransactionManager {
 
     @Override
     public boolean isTransactionOpen(Method method) {
         return false;
-    }
-
-    @Override
-    public DistributedTransactionObject getCurrentTransactionObject() {
-        return null;
     }
 
     @Override
@@ -48,13 +27,18 @@ public class MyTestTransactionManager implements DistributedTransactionManager {
     }
 
     @Override
-    public Long getTransactionGroupId() {
-        return null;
+    protected long getRpcTimeoutSeconds() {
+        return 3L;
     }
 
     @Override
     public String getApplicationName() {
         return "test-app";
+    }
+
+    @Override
+    public AbstractMessageListener getMessageListener() {
+        return null;
     }
 
     @Override

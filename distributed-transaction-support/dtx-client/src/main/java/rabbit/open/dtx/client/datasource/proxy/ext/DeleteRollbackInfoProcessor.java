@@ -50,6 +50,7 @@ public class DeleteRollbackInfoProcessor extends UpdateRollbackInfoProcessor {
         sql.deleteCharAt(sql.lastIndexOf(","));
         sql.append(")");
         PreparedStatement stmt = null;
+        int effectDataSize = 0;
         try {
             for (Map<String, Object> data : info.getOriginalData()) {
                 stmt = conn.prepareStatement(sql.toString());
@@ -58,7 +59,8 @@ public class DeleteRollbackInfoProcessor extends UpdateRollbackInfoProcessor {
                     setPreparedStatementValue(stmt, index, entry.getValue());
                     index++;
                 }
-                printRollbackLog(record, sql.toString(), data.values(), stmt.executeUpdate());
+                effectDataSize = stmt.executeUpdate();
+                printRollbackLog(record, sql.toString(), data.values(), effectDataSize);
                 stmt.close();
             }
         } catch (Exception e) {
@@ -67,6 +69,6 @@ public class DeleteRollbackInfoProcessor extends UpdateRollbackInfoProcessor {
         } finally {
             safeClose(stmt);
         }
-        return true;
+        return 0 != effectDataSize;
     }
 }

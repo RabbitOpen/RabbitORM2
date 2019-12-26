@@ -55,6 +55,7 @@ public class RpcTest {
         handler.init();
         handler.setTransactionHandler(new MyTransactionService());
         serverWrapper.start(10086, handler);
+        holdOn(50);
         rtm.manualInit();
         int count = 100;
         int loop = 100;
@@ -92,11 +93,7 @@ public class RpcTest {
 
         thread.join();
         rtm.getTransactionHandler().getTransactionGroupId(rtm.getApplicationName());
-        Semaphore s = new Semaphore(0);
-        if (s.tryAcquire(2, TimeUnit.SECONDS)) {
-        	logger.info("不可能走到这里来， 等两秒是为了让上面的方法读取完毕，完成最后一次epoll bug的检测");
-        }
-        
+        holdOn(2000);
         // 多次 epoll bug 后 errorCount应该恢复0
 
         TestCase.assertEquals(errCount.get(selector), 0);
@@ -113,6 +110,13 @@ public class RpcTest {
             TestCase.assertEquals(e.getTimeoutSeconds(), rtm.getRpcTimeoutSeconds());
         }
         rtm.destroy();
+    }
+
+    private void holdOn(long milliSeconds) throws InterruptedException {
+        Semaphore s = new Semaphore(0);
+        if (s.tryAcquire(milliSeconds, TimeUnit.MILLISECONDS)) {
+        	logger.info("不可能走到这里来， 等两秒是为了让上面的方法读取完毕，完成最后一次epoll bug的检测");
+        }
     }
 
     @Test

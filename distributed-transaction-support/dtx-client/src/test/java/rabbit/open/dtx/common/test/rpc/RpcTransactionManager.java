@@ -1,6 +1,7 @@
 package rabbit.open.dtx.common.test.rpc;
 
 import org.springframework.stereotype.Component;
+import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 
@@ -26,6 +27,11 @@ public class RpcTransactionManager extends AbstractTransactionManager {
     @Override
     public String getApplicationName() {
         return "rpcTransactionManger";
+    }
+
+    @Override
+    public AbstractMessageListener getMessageListener() {
+        return null;
     }
 
     @Override

@@ -1,11 +1,14 @@
 package rabbit.open.dtx.client.test.service;
 
 import org.springframework.stereotype.Component;
+import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
+import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -25,6 +28,31 @@ public class SimpleTransactionManager extends AbstractTransactionManager {
     private TransactionHandler transactionHandler = new TransactionHandler() {
 
         @Override
+        public void doBranchCommit(Long txGroupId, Long txBranchId, String applicationName) {
+
+        }
+
+        @Override
+        public void doCommit(Long txGroupId, Long txBranchId, String applicationName) {
+
+        }
+
+        @Override
+        public void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId) {
+
+        }
+
+        @Override
+        public void confirmBranchRollback(String applicationName, Long txGroupId, Long txBranchId) {
+
+        }
+
+        @Override
+        public void doRollback(Long txGroupId, String applicationName) {
+
+        }
+
+        @Override
         public Long getTransactionBranchId(Long txGroupId, String applicationName) {
             // 这个id应该从服务端统一获取
             return idGenerator.getAndAdd(1L);
@@ -33,6 +61,11 @@ public class SimpleTransactionManager extends AbstractTransactionManager {
         @Override
         public Long getTransactionGroupId(String applicationName) {
             return idGenerator.getAndAdd(1L);
+        }
+
+        @Override
+        public void lockData(String applicationName, Long txGroupId, Long txBranchId, List<String> locks) {
+
         }
     };
 
@@ -60,6 +93,16 @@ public class SimpleTransactionManager extends AbstractTransactionManager {
     @Override
     public String getApplicationName() {
         return "test-app";
+    }
+
+    @Override
+    public AbstractMessageListener getMessageListener() {
+        return null;
+    }
+
+    @Override
+    public List<Node> getServerNodes() {
+        return null;
     }
 
     @Override

@@ -20,7 +20,7 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    default void doBranchCommit(Long txGroupId, Long txBranchId, String applicationName) {}
+    void doBranchCommit(Long txGroupId, Long txBranchId, String applicationName);
 
     /**
      * 提交整个事务
@@ -30,7 +30,7 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    default void doCommit(Long txGroupId, Long txBranchId, String applicationName) {}
+    void doCommit(Long txGroupId, Long txBranchId, String applicationName);
 
     /**
      * 确认分支的提交
@@ -40,7 +40,7 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/10
      **/
-    default void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId) {}
+    void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId);
 
     /**
      * 确认分支的回滚
@@ -50,7 +50,7 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/10
      **/
-    default void confirmBranchRollback(String applicationName, Long txGroupId, Long txBranchId) {}
+    void confirmBranchRollback(String applicationName, Long txGroupId, Long txBranchId);
 
     /**
      * 回滚整个事务
@@ -59,7 +59,7 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    default void doRollback(Long txGroupId, String applicationName) {}
+    void doRollback(Long txGroupId, String applicationName);
 
     /**
      * 获取{txGroupId}下的事务分支id
@@ -68,9 +68,7 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/5
      **/
-    default Long getTransactionBranchId(Long txGroupId, String applicationName) {
-        return 0L;
-    }
+    Long getTransactionBranchId(Long txGroupId, String applicationName);
 
     /**
      * 获取事务组id
@@ -78,9 +76,7 @@ public interface TransactionHandler {
      * @author  xiaoqianbin
      * @date    2019/12/7
      **/
-    default Long getTransactionGroupId(String applicationName) {
-        return 0L;
-    }
+    Long getTransactionGroupId(String applicationName);
     
     /***
      * <b>@description 锁数据 </b>
@@ -89,6 +85,6 @@ public interface TransactionHandler {
      * @param txBranchId		分支id
      * @param locks				锁id
      */
-    default void lockData(String applicationName, Long txGroupId, Long txBranchId, List<String> locks) {}
+    void lockData(String applicationName, Long txGroupId, Long txBranchId, List<String> locks);
 
 }

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.common.nio.server.TxStatus;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerTransactionHandler;
 
+import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -25,6 +26,11 @@ public class MyTransactionService extends AbstractServerTransactionHandler {
     @Override
     public Long getTransactionGroupId(String applicationName) {
         return atomicLong.getAndAdd(1);
+    }
+
+    @Override
+    public void lockData(String applicationName, Long txGroupId, Long txBranchId, List<String> locks) {
+
     }
 
     @Override
@@ -58,6 +64,16 @@ public class MyTransactionService extends AbstractServerTransactionHandler {
     @Override
     public void doCommit(Long txGroupId, Long txBranchId, String applicationName) {
         logger.info("received txGroupId:{}, txBranchId:{}, app:{}", txGroupId, txBranchId, applicationName);
+    }
+
+    @Override
+    public void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId) {
+
+    }
+
+    @Override
+    public void confirmBranchRollback(String applicationName, Long txGroupId, Long txBranchId) {
+
     }
 
     @Override

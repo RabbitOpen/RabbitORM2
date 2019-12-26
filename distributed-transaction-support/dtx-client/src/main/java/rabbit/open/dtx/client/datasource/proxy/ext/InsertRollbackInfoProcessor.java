@@ -42,19 +42,21 @@ public class InsertRollbackInfoProcessor extends RollbackInfoProcessor {
             sql.append(" and " + column.getColumnName() + " = " + column.getValue());
         }
         PreparedStatement stmt = null;
+        int effectDataSize = 0;
         try {
             stmt = conn.prepareStatement(sql.toString());
             for (int i = 0; i < info.getPreparedValues().size(); i++) {
                 setPreparedStatementValue(stmt, i + 1, info.getPreparedValues().get(i));
             }
-            printRollbackLog(record, sql.toString(), info.getPreparedValues(), stmt.executeUpdate());
+            effectDataSize = stmt.executeUpdate();
+            printRollbackLog(record, sql.toString(), info.getPreparedValues(), effectDataSize);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return false;
         } finally {
             safeClose(stmt);
         }
-        return true;
+        return 0 != effectDataSize;
     }
 
 }

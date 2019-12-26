@@ -104,9 +104,9 @@ public abstract class RollbackInfoProcessor {
      **/
     protected void printRollbackLog(RollBackRecord record, String sql, Collection<Object> preparedValues, int effectDataSize) {
         if (0 == effectDataSize) {
-            logger.error("distributed transaction[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back failed: {}, \n preparedValues: {}", record.getTxGroupId(), record.getTxBranchId(), record.getId(), sql, preparedValues);
+            logger.error("[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back failed: {}, \n preparedValues: {}", record.getTxGroupId(), record.getTxBranchId(), record.getId(), sql, preparedValues);
         } else {
-            logger.info("distributed transaction[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back success: {}, \n preparedValues: {}", record.getTxGroupId(), record.getTxBranchId(), record.getId(), sql, preparedValues);
+            logger.info("[txGroupId --> {}, txBranchId --> {}, dataId -->{}] roll back success: {}, \n preparedValues: {}", record.getTxGroupId(), record.getTxBranchId(), record.getId(), sql, preparedValues);
         }
     }
 }

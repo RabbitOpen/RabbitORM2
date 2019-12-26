@@ -35,7 +35,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     private NetEventHandler netEventHandler = new ClientNetEventHandler(this);
 
-    private DistributedTransactionManager transactionManger;
+    private AbstractTransactionManager transactionManger;
 
     // 消息监听器
     private Map<Class<?>, MessageListener> listenerMap = new ConcurrentHashMap<>();
@@ -46,7 +46,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     // 链接channel注册任务
     private ArrayBlockingQueue<FutureTask<SelectionKey>> channelRegistryTasks = new ArrayBlockingQueue<>(100);
 
-    public DtxChannelAgentPool(DistributedTransactionManager transactionManger) throws IOException {
+    public DtxChannelAgentPool(AbstractTransactionManager transactionManger) throws IOException {
         this.transactionManger = transactionManger;
         initListeners(transactionManger);
         nodes.addAll(transactionManger.getServerNodes());
@@ -65,7 +65,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         monitor.start();
     }
 
-    private void initListeners(DistributedTransactionManager transactionManger) {
+    private void initListeners(AbstractTransactionManager transactionManger) {
         if (null != transactionManger.getMessageListener()) {
             listenerMap.put(CommitMessage.class, transactionManger.getMessageListener());
             listenerMap.put(RollBackMessage.class, transactionManger.getMessageListener());

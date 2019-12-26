@@ -1,9 +1,7 @@
 package rabbit.open.dtx.common.nio.client.ext;
 
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
-import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
-import rabbit.open.dtx.common.nio.client.FutureResult;
+import rabbit.open.dtx.common.nio.client.*;
 import rabbit.open.dtx.common.nio.client.annotation.DistributedTransaction;
 import rabbit.open.dtx.common.nio.exception.GetConnectionTimeoutException;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
@@ -20,6 +18,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.List;
 
 /**
  * 抽象事务管理器
@@ -168,6 +167,20 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
      * @date 2019/12/11
      **/
     protected abstract long getRpcTimeoutSeconds();
+
+    /**
+     * 获取消息监听器
+     * @author xiaoqianbin
+     * @date 2019/12/10
+     **/
+    public abstract AbstractMessageListener getMessageListener();
+
+    /**
+     * 分布式事务服务端信息
+     * @author xiaoqianbin
+     * @date 2019/12/10
+     **/
+    public abstract List<Node> getServerNodes();
 
     @PostConstruct
     public void init() throws IOException {

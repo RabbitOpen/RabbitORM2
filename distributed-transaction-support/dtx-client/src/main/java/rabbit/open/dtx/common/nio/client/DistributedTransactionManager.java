@@ -2,8 +2,6 @@ package rabbit.open.dtx.common.nio.client;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 分布式事务管理器
@@ -71,25 +69,6 @@ public interface DistributedTransactionManager extends Serializable {
      * @author xiaoqianbin
      * @date 2019/12/5
      **/
-    default String getApplicationName() {
-        return null;
-    }
+    String getApplicationName();
 
-    /**
-     * 获取消息监听器
-     * @author xiaoqianbin
-     * @date 2019/12/10
-     **/
-    default AbstractMessageListener getMessageListener() {
-        return null;
-    }
-
-    /**
-     * 分布式事务服务端信息
-     * @author xiaoqianbin
-     * @date 2019/12/10
-     **/
-    default List<Node> getServerNodes() {
-        return new ArrayList<>();
-    }
 }

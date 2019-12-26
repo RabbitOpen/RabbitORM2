@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
+import rabbit.open.dtx.client.net.DtxMessageListener;
 import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
@@ -47,10 +48,14 @@ public class LogicalTest {
         DtxServerWrapper serverWrapper = new DtxServerWrapper(20118, serverEventHandler);
 
         TestTransactionManager manager = new TestTransactionManager();
+
+        manager.setListener(new DtxMessageListener(manager) {
+
+        });
+
         manager.init();
 
         Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
-        ;
         manager.beginTransaction(method);
 
         // 事务处理器
@@ -101,42 +106,48 @@ public class LogicalTest {
             return 3;
         }
 
+        AbstractMessageListener listener = new AbstractMessageListener() {
+
+            @Override
+            protected int getMaxThreadSize() {
+                return 1;
+            }
+
+            @Override
+            protected int getCoreSize() {
+                return 1;
+            }
+
+            @Override
+            protected int getQueueSize() {
+                return 10;
+            }
+
+            @Override
+            protected boolean rollback(String applicationName, Long txGroupId, Long txBranchId) {
+                logger.info("doRollback");
+                return true;
+            }
+
+            @Override
+            protected boolean commit(String applicationName, Long txGroupId, Long txBranchId) {
+                logger.info("doCommit");
+                return true;
+            }
+
+            @Override
+            protected AbstractTransactionManager getTransactionManger() {
+                return TestTransactionManager.this;
+            }
+        };
+
+        public void setListener(AbstractMessageListener listener) {
+            this.listener = listener;
+        }
+
         @Override
         public AbstractMessageListener getMessageListener() {
-            return new AbstractMessageListener() {
-
-                @Override
-                protected int getMaxThreadSize() {
-                    return 1;
-                }
-
-                @Override
-                protected int getCoreSize() {
-                    return 1;
-                }
-
-                @Override
-                protected int getQueueSize() {
-                    return 10;
-                }
-
-                @Override
-                protected boolean rollback(String applicationName, Long txGroupId, Long txBranchId) {
-                    logger.info("doRollback");
-                    return true;
-                }
-
-                @Override
-                protected boolean commit(String applicationName, Long txGroupId, Long txBranchId) {
-                    logger.info("doCommit");
-                    return true;
-                }
-
-                @Override
-                protected AbstractTransactionManager getTransactionManger() {
-                    return TestTransactionManager.this;
-                }
-            };
+            return listener;
         }
 
         @Override
@@ -177,7 +188,6 @@ public class LogicalTest {
         manager.init();
 
         Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
-        ;
         manager.beginTransaction(method);
         // 事务处理器
         TransactionHandler handler = manager.getTransactionHandler();

@@ -144,6 +144,7 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
         String sql = createRollbackUpdateSql(info);
         PreparedStatement stmt = null;
         List<Object> preparedValues = new ArrayList<>();
+        int effectDataSize = 0;
         try {
             for (Map<String, Object> data : info.getOriginalData()) {
                 stmt = conn.prepareStatement(sql);
@@ -155,7 +156,8 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
                 for (int i = 0; i < preparedValues.size(); i++) {
                     setPreparedStatementValue(stmt, i + 1, preparedValues.get(i));
                 }
-                printRollbackLog(record, sql, preparedValues, stmt.executeUpdate());
+                effectDataSize = stmt.executeUpdate();
+                printRollbackLog(record, sql, preparedValues, effectDataSize);
                 stmt.close();
             }
         } catch (Exception e) {
@@ -164,7 +166,7 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
         } finally {
             safeClose(stmt);
         }
-        return true;
+        return 0 != effectDataSize;
     }
 
     // 获取原始sql更新字段转换成过滤条件后的值
