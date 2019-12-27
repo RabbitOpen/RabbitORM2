@@ -2,6 +2,7 @@ package rabbit.open.dtx.common.nio.server.ext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.server.LockContext;
 import rabbit.open.dtx.common.nio.server.ReentrantLockPool;
@@ -93,7 +94,7 @@ public class TransactionContext {
         try {
             if (lock.tryLock() && !discard) {
                 // 如果该context是有效的，就正常持有锁
-                callUnconcernedException(() -> holdLocks.put(lockId, branchId));
+                CallHelper.ignoreExceptionCall(() -> holdLocks.put(lockId, branchId));
                 return true;
             } else {
                 // 该context已经废弃了，无须再持有该锁
@@ -117,7 +118,7 @@ public class TransactionContext {
 
     // 标记等待锁的数据
     public void addWaitingLock(String lockId, Long txBranchId) {
-        callUnconcernedException(() -> {
+        CallHelper.ignoreExceptionCall(() -> {
             if (!waitingLocks.containsKey(txBranchId)) {
                 waitingLocks.put(txBranchId, new LinkedBlockingQueue<>());
             }
@@ -141,30 +142,12 @@ public class TransactionContext {
             }
             if (waitingLocks.get(txBranchId).isEmpty()) {
                 // 如果获取到所有的锁资源就通知客户端, 此时如果通知失败就只有等待锁超时了
-                callUnconcernedException(() -> agent.ack(requestId));
+                CallHelper.ignoreExceptionCall(() -> agent.ack(requestId));
             }
             return true;
         } else {
             return false;
         }
-    }
-
-    /**
-     * 不关心异常的调用，除非你确认这个异常不会发生。或者发生了也不用处理才调用这个方法
-     * @param    r
-     * @author xiaoqianbin
-     * @date 2019/12/23
-     **/
-    public static void callUnconcernedException(Callback r) {
-        try {
-            r.execute();
-        } catch (Exception e) {
-            // to do ignore
-        }
-    }
-
-    public interface Callback {
-        void execute() throws InterruptedException;
     }
 
     /**

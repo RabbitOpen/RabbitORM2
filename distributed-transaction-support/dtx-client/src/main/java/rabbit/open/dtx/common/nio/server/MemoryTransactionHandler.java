@@ -1,6 +1,7 @@
 package rabbit.open.dtx.common.nio.server;
 
 import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
+import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
@@ -164,7 +165,7 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
     private void addAgentToWaitingQueue(String lock, Long txBranchId, TransactionContext context) {
         AbstractServerEventHandler.suspendRequest();
         // 添加锁等待队列
-        TransactionContext.callUnconcernedException(() -> lockQueueMap.get(lock).put(new LockContext(context,
+        CallHelper.ignoreExceptionCall(() -> lockQueueMap.get(lock).put(new LockContext(context,
                 AbstractServerEventHandler.getCurrentRequestId(),
                 AbstractNetEventHandler.getCurrentAgent(), txBranchId)));
         // 添加等待的锁

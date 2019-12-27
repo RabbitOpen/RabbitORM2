@@ -1,6 +1,9 @@
 package rabbit.open.dtx.common.nio.client;
 
+import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.server.DtxServer;
+
+import java.net.InetAddress;
 
 /**
  * 服务器节点
@@ -23,6 +26,11 @@ public class Node {
     private boolean isolated = false;
 
     public Node(String host, int port) {
+        if ("localhost".equals(host)) {
+            CallHelper.ignoreExceptionCall(() -> {
+                this.host = InetAddress.getLocalHost().getHostAddress();
+            });
+        }
         this.host = host;
         this.port = port;
     }

@@ -1,5 +1,6 @@
 package rabbit.open.dtx.common.nio.server.ext;
 
+import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 
 /**
@@ -15,7 +16,7 @@ public class RollbackListener {
 
     public boolean rollbackCompleted() {
         if (!agent.isClosed()) {
-            TransactionContext.callUnconcernedException(() -> agent.ack(requestId));
+            CallHelper.ignoreExceptionCall(() -> agent.ack(requestId));
             return true;
         }
         return false;
