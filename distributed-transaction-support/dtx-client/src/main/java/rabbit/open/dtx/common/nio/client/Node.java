@@ -25,7 +25,6 @@ public class Node {
     public Node(String host, int port) {
         this.host = host;
         this.port = port;
-        id = DtxServer.calcServerId(host, port);
     }
 
     public String getHost() {
@@ -53,6 +52,6 @@ public class Node {
     }
 
     public String getId() {
-        return id;
+        return DtxServer.calcServerId(host, port);
     }
 }
