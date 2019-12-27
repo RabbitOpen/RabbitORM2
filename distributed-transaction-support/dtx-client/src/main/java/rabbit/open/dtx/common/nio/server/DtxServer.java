@@ -168,7 +168,10 @@ public class DtxServer {
         SelectionKey key = channel.register(nioSelector.getRealSelector(), SelectionKey.OP_READ);
         ChannelAgent agent = new ChannelAgent(key);
         serverAgentMonitor.registerMonitor(agent);
-        agent.addShutdownHook(() -> closeChannelKey(key));
+        agent.addShutdownHook(() -> {
+            serverAgentMonitor.unRegister(agent);
+            closeChannelKey(key);
+        });
         key.attach(agent);
         netEventHandler.onConnected(agent);
     }
