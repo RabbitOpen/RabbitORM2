@@ -7,14 +7,18 @@ import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.NetEventHandler;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
 import rabbit.open.dtx.common.nio.pub.protocol.Application;
+import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
 import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
+import rabbit.open.dtx.common.nio.server.ext.TransactionContext;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -70,6 +74,45 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             listenerMap.put(CommitMessage.class, transactionManger.getMessageListener());
             listenerMap.put(RollBackMessage.class, transactionManger.getMessageListener());
         }
+
+        // 服务端广播节点
+        listenerMap.put(ClusterMeta.class, msg -> {
+            ClusterMeta meta = (ClusterMeta) msg;
+            // 更新现有节点的隔离状态
+            for (Node node : nodes) {
+                if (nodeExist(node, meta.getNodes())) {
+                    node.setIsolated(false);
+                } else {
+                    node.setIsolated(true);
+                }
+            }
+            // 刷新节点的列表信息
+            for (Node node : meta.getNodes()) {
+                if (!nodeExist(node, nodes)) {
+                    node.setIsolated(false);
+                    TransactionContext.callUnconcernedException(() -> {
+                        nodes.put(node);
+                    });
+                }
+            }
+
+        });
+    }
+
+    /**
+     * 判断节点在不在列表nodes中
+	 * @param	node
+     * @param	nodes
+     * @author  xiaoqianbin
+     * @date    2019/12/27
+     **/
+    private boolean nodeExist(Node node, Collection<Node> nodes) {
+        for (Node existedNode : nodes) {
+            if (node.getId().equals(existedNode.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Map<Class<?>, MessageListener> getListenerMap() {
@@ -78,8 +121,8 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     /**
      * 初始化到节点之间的连接(与所有可用的服务都建立一个连接)
-     * @author  xiaoqianbin
-     * @date    2019/12/16
+     * @author xiaoqianbin
+     * @date 2019/12/16
      **/
     public void initConnections() {
         for (int i = 0; i < nodes.size(); i++) {
@@ -99,8 +142,8 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     /**
      * 读数据
-     * @author  xiaoqianbin
-     * @date    2019/12/8
+     * @author xiaoqianbin
+     * @date 2019/12/8
      **/
     private void read() throws IOException {
         nioSelector.select();
@@ -138,8 +181,8 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     /**
      * 只要有未被隔离的空闲节点，就可以新建连接
-     * @author  xiaoqianbin
-     * @date    2019/12/16
+     * @author xiaoqianbin
+     * @date 2019/12/16
      **/
     @Override
     protected boolean canCreate() {
@@ -177,16 +220,16 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     /**
      * 销毁agent时回收对应的资源
-     * @param	node
-	 * @param	agent
-     * @author  xiaoqianbin
-     * @date    2019/12/16
+     * @param    node
+     * @param    agent
+     * @author xiaoqianbin
+     * @date 2019/12/16
      **/
     private void releaseAgentResource(Node node, ChannelAgent agent) {
         try {
-        	if (agent.isClosed()) {
-        		return;
-        	}
+            if (agent.isClosed()) {
+                return;
+            }
             node.setIdle(true);
             destroyResource(agent);
             agent.closeQuietly(agent.getSelectionKey().channel());

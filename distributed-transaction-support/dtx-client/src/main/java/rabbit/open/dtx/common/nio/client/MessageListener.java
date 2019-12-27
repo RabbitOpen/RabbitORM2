@@ -5,6 +5,8 @@ package rabbit.open.dtx.common.nio.client;
  * @author xiaoqianbin
  * @date 2019/12/16
  **/
-public interface MessageListener {
-    void onMessageReceived(Object msg);
+public interface MessageListener<T> {
+
+    void onMessageReceived(T msg);
+
 }

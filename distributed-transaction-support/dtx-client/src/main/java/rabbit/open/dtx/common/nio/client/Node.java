@@ -1,5 +1,7 @@
 package rabbit.open.dtx.common.nio.client;
 
+import rabbit.open.dtx.common.nio.server.DtxServer;
+
 /**
  * 服务器节点
  * @author xiaoqianbin
@@ -11,6 +13,9 @@ public class Node {
 
     private int port;
 
+    // 唯一编号
+    private String id;
+
     // 节点处于空闲状态（只有idle的节点才能新建连接）
     private boolean idle = true;
 
@@ -20,6 +25,7 @@ public class Node {
     public Node(String host, int port) {
         this.host = host;
         this.port = port;
+        id = DtxServer.calcServerId(host, port);
     }
 
     public String getHost() {
@@ -44,5 +50,9 @@ public class Node {
 
     public void setIsolated(boolean isolated) {
         this.isolated = isolated;
+    }
+
+    public String getId() {
+        return id;
     }
 }

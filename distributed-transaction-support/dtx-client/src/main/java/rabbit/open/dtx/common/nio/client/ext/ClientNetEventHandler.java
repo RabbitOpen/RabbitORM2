@@ -24,7 +24,7 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
                 if (dtxChannelAgentPool.getListenerMap().containsKey(notifyMsg.getClass())) {
                     dtxChannelAgentPool.getListenerMap().get(notifyMsg.getClass()).onMessageReceived(notifyMsg);
                 } else {
-                    logger.info("discard notify info: {}",notifyMsg);
+                    logger.info("discard notify info: {}", notifyMsg);
                 }
             } else {
                 FutureResult result = ChannelAgent.findFutureResult(protocolData.getRequestId());
@@ -39,9 +39,9 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
 
         /**
          * 是通知消息
-         * @param	protocolData
-         * @author  xiaoqianbin
-         * @date    2019/12/10
+         * @param    protocolData
+         * @author xiaoqianbin
+         * @date 2019/12/10
          **/
         private boolean isNotifyMessage(ProtocolData protocolData) {
             return null == protocolData.getRequestId();
@@ -54,8 +54,8 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
 
     /**
      * 重写基类，不再返回信息
-     * @param    protocolData
-     * @param    agent
+     * @param protocolData
+     * @param agent
      * @author xiaoqianbin
      * @date 2019/12/8
      **/

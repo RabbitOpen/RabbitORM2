@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  * @author xiaoqianbin
  * @date 2019/12/10
  **/
-public abstract class AbstractMessageListener implements MessageListener, Closeable {
+public abstract class AbstractMessageListener implements MessageListener<CommitMessage>, Closeable {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -42,19 +42,16 @@ public abstract class AbstractMessageListener implements MessageListener, Closea
 
     protected abstract AbstractTransactionManager getTransactionManger();
 
-    public final void onMessageReceived(Object msg) {
+    public final void onMessageReceived(CommitMessage msg) {
         tpe.submit(() -> {
             TransactionHandler transactionHandler = getTransactionManger().getTransactionHandler();
-            CommitMessage cm;
             try {
                 if (msg instanceof RollBackMessage) {
-                    cm = (RollBackMessage) msg;
-                    rollback(cm.getApplicationName(), cm.getTxGroupId(), cm.getTxBranchId());
-                    transactionHandler.confirmBranchRollback(cm.getApplicationName(),cm.getTxGroupId(), cm.getTxBranchId());
-                } else if (msg instanceof CommitMessage) {
-                    cm = (CommitMessage) msg;
-                    commit(cm.getApplicationName(), cm.getTxGroupId(), cm.getTxBranchId());
-                    transactionHandler.confirmBranchCommit(cm.getApplicationName(),cm.getTxGroupId(), cm.getTxBranchId());
+                    rollback(msg.getApplicationName(), msg.getTxGroupId(), msg.getTxBranchId());
+                    transactionHandler.confirmBranchRollback(msg.getApplicationName(), msg.getTxGroupId(), msg.getTxBranchId());
+                } else {
+                    commit(msg.getApplicationName(), msg.getTxGroupId(), msg.getTxBranchId());
+                    transactionHandler.confirmBranchCommit(msg.getApplicationName(), msg.getTxGroupId(), msg.getTxBranchId());
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
