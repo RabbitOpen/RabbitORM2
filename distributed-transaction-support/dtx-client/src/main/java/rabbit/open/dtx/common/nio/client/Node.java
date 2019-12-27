@@ -16,9 +16,6 @@ public class Node {
 
     private int port;
 
-    // 唯一编号
-    private String id;
-
     // 节点处于空闲状态（只有idle的节点才能新建连接）
     private boolean idle = true;
 
@@ -26,7 +23,7 @@ public class Node {
     private boolean isolated = false;
 
     public Node(String host, int port) {
-        if ("localhost".equals(host)) {
+        if ("localhost".equals(host) || "127.0.0.1".equals(host)) {
             CallHelper.ignoreExceptionCall(() -> {
                 this.host = InetAddress.getLocalHost().getHostAddress();
             });

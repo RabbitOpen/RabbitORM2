@@ -17,7 +17,8 @@ class ClientNetEventHandler extends AbstractNetEventHandler {
 
     private DataDispatcher dispatcher = new DataDispatcher() {
 
-        @Override
+        @SuppressWarnings("unchecked")
+		@Override
         public Object process(ProtocolData protocolData) {
             if (isNotifyMessage(protocolData)) {
                 Object notifyMsg = protocolData.getData();

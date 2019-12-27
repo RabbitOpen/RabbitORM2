@@ -26,6 +26,7 @@ import java.util.concurrent.*;
  * @author xiaoqianbin
  * @date 2019/12/8
  **/
+@SuppressWarnings("rawtypes")
 public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     protected ArrayBlockingQueue<Node> nodes = new ArrayBlockingQueue<>(256);
@@ -41,7 +42,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     private AbstractTransactionManager transactionManger;
 
     // 消息监听器
-    private Map<Class<?>, MessageListener> listenerMap = new ConcurrentHashMap<>();
+	private Map<Class<?>, MessageListener> listenerMap = new ConcurrentHashMap<>();
 
     // 监控线程
     private AgentMonitor monitor = new AgentMonitor("client-agent-pool-monitor", this);

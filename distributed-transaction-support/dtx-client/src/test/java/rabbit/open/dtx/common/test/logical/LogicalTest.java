@@ -157,7 +157,7 @@ public class LogicalTest {
 
         @Override
         public List<Node> getServerNodes() {
-            return Arrays.asList(new Node("localhost", 20118));
+            return Arrays.asList(new Node("127.0.0.1", 20118));
         }
     }
 
@@ -173,7 +173,8 @@ public class LogicalTest {
         serverEventHandler.setTransactionHandler(memTxHandler);
         serverEventHandler.init();
         DtxServerWrapper serverWrapper = new DtxServerWrapper(20119, serverEventHandler);
-        TestTransactionManager manager = new TestTransactionManager() {
+        @SuppressWarnings("serial")
+		TestTransactionManager manager = new TestTransactionManager() {
             @Override
             public List<Node> getServerNodes() {
                 return Arrays.asList(new Node("localhost", 20119));
