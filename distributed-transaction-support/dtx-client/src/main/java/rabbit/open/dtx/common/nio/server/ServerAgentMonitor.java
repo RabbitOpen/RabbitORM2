@@ -25,8 +25,8 @@ public class ServerAgentMonitor extends AgentMonitor {
     	agents.add(agent);
     }
 
-    public void unRegister(ChannelAgent agent) {
-        agents.remove(agent);
+    public boolean unRegister(ChannelAgent agent) {
+        return agents.remove(agent);
     }
     
     @Override
@@ -34,7 +34,7 @@ public class ServerAgentMonitor extends AgentMonitor {
         while (run) {
             for (ChannelAgent agent : agents) {
                 if (System.currentTimeMillis() - agent.getLastActiveTime() > 5L * 60 * 1000) {
-                    if (agents.remove(agent)) {
+                    if (unRegister(agent)) {
                         logger.info("clear dead client connection [{}]", agent.getRemote());
                     }
                     agent.destroy();
