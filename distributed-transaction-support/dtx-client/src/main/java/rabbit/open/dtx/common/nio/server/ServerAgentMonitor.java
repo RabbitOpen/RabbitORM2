@@ -24,6 +24,10 @@ public class ServerAgentMonitor extends AgentMonitor {
     public void registerMonitor(ChannelAgent agent) {
     	agents.add(agent);
     }
+
+    public void unRegister(ChannelAgent agent) {
+        agents.remove(agent);
+    }
     
     @Override
     public void run() {
