@@ -37,7 +37,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     protected boolean run = true;
 
-    private NetEventHandler netEventHandler = new ClientNetEventHandler(this);
+    private NetEventHandler netEventHandler;
 
     private AbstractTransactionManager transactionManger;
 
@@ -51,7 +51,12 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     private ArrayBlockingQueue<FutureTask<SelectionKey>> channelRegistryTasks = new ArrayBlockingQueue<>(100);
 
     public DtxChannelAgentPool(AbstractTransactionManager transactionManger) throws IOException {
+    	this(transactionManger, null);
+    }
+    
+    public DtxChannelAgentPool(AbstractTransactionManager transactionManger, NetEventHandler netEventHandler) throws IOException {
         this.transactionManger = transactionManger;
+        initNetEventHanlder(netEventHandler);
         initListeners(transactionManger);
         nodes.addAll(transactionManger.getServerNodes());
         nioSelector = new NioSelector(Selector.open());
@@ -68,6 +73,18 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         initConnections();
         monitor.start();
     }
+
+	/**
+	 * <b>@description 初始化网络事件处理器 </b>
+	 * @param netEventHandler
+	 */
+	protected void initNetEventHanlder(NetEventHandler netEventHandler) {
+		if (null == netEventHandler) {
+        	this.netEventHandler = new ClientNetEventHandler(this);
+        } else {
+        	this.netEventHandler = netEventHandler;
+        }
+	}
 
     private void initListeners(AbstractTransactionManager transactionManger) {
         if (null != transactionManger.getMessageListener()) {
