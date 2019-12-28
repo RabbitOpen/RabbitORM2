@@ -67,7 +67,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 						role = NodeRole.OBSERVER;
 						doElection();
 					} else {
-						break;
+						return;
 					}
 				}
 			} catch (Exception e) {
