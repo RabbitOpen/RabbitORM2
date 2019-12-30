@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.algorithm.elect.data.HelloKitty;
 import rabbit.open.algorithm.elect.data.NodeRole;
 import rabbit.open.algorithm.elect.data.ProtocolPacket;
 import rabbit.open.algorithm.elect.protocol.ElectionArbiter;
@@ -16,7 +15,6 @@ import rabbit.open.algorithm.elect.protocol.Postman;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 单元测试
@@ -81,7 +79,8 @@ public class ElectionTest {
         for (ElectionArbiter arbiter : arbiters) {
             arbiter.shutdown();
         }
-
+        TestCase.assertEquals(1, leader);
+        TestCase.assertEquals(arbiters.size() - 1, follower);
     }
 
     /**
