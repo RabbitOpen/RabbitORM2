@@ -10,6 +10,7 @@ import rabbit.open.algorithm.elect.data.HelloKitty;
 import rabbit.open.algorithm.elect.data.NodeRole;
 import rabbit.open.algorithm.elect.data.ProtocolPacket;
 import rabbit.open.algorithm.elect.protocol.ElectionArbiter;
+import rabbit.open.algorithm.elect.protocol.LeaderElectedListener;
 import rabbit.open.algorithm.elect.protocol.Postman;
 
 import java.util.ArrayList;
@@ -36,13 +37,16 @@ public class ElectionTest {
         List<ElectionArbiter> arbiters = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             MockPostman postman = new MockPostman();
-            ElectionArbiter arbiter = new ElectionArbiter(count, "node-" + i, node -> {
-                if (node.getNodeRole() == NodeRole.LEADER) {
-                    semaphore.release(2);
-                    pingEvery2Seconds(postman, node);
-                    leaderArbiter = node;
-                } else if (node.getNodeRole() == NodeRole.FOLLOWER) {
-                    semaphore.release(1);
+            ElectionArbiter arbiter = new ElectionArbiter(count, "node-" + i, new LeaderElectedListener() {
+                @Override
+                public void onElectionEnd(ElectionArbiter node) {
+                    super.onElectionEnd(node);
+                    if (node.getNodeRole() == NodeRole.LEADER) {
+                        semaphore.release(2);
+                        leaderArbiter = node;
+                    } else if (node.getNodeRole() == NodeRole.FOLLOWER) {
+                        semaphore.release(1);
+                    }
                 }
             });
             arbiters.add(arbiter);
@@ -78,24 +82,6 @@ public class ElectionTest {
             arbiter.shutdown();
         }
 
-    }
-
-    private void pingEvery2Seconds(MockPostman postman, ElectionArbiter leader) {
-        Thread thread = new Thread(() -> {
-            while (true) {
-                postman.delivery(new HelloKitty(leader.getNodeId()));
-                Semaphore semaphore = new Semaphore(0);
-                try {
-                    if (semaphore.tryAcquire(2, TimeUnit.SECONDS)) {
-                        return;
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-        });
-        thread.setDaemon(false);
-        thread.start();
     }
 
     /**

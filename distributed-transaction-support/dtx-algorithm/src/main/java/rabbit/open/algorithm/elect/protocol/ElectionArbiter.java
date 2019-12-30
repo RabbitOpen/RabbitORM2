@@ -19,7 +19,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 	
 	protected Logger logger = LoggerFactory.getLogger(getClass());
 	
-	private Postman postman;
+	protected Postman postman;
 	
 	private Semaphore sleepSemaphore = new Semaphore(0);
 	
@@ -58,7 +58,9 @@ public class ElectionArbiter extends Thread implements Candidate {
 
 	private String leaderId;
 
-	public ElectionArbiter(int candidateSize, String nodeId, ElectionEventListener listener) {
+	private KeepAliveThread keepAliveThread;
+
+	public ElectionArbiter(int candidateSize, String nodeId, LeaderElectedListener listener) {
 		super(ElectionArbiter.class.getSimpleName() + "-" + ARBITER_ID.getAndIncrement());
 		this.eventListener = listener;
 		this.candidateSize = candidateSize;
@@ -105,11 +107,21 @@ public class ElectionArbiter extends Thread implements Candidate {
 					reelectOnLeaderLost();
 				}
 			} catch (Exception e) {
-				if (e instanceof InterruptedException) {
-					continue;
-				}
 				logger.error(e.getMessage(), e);
 			}
+		}
+	}
+
+	/**
+	 * 启动心跳线程
+	 * @author  xiaoqianbin
+	 * @date    2019/12/30
+	 **/
+	protected void startKeepAliveThread() {
+		if (null == keepAliveThread && NodeRole.LEADER == role) {
+			keepAliveThread = new KeepAliveThread(this);
+			keepAliveThread.setDaemon(true);
+			keepAliveThread.start();
 		}
 	}
 
@@ -149,6 +161,9 @@ public class ElectionArbiter extends Thread implements Candidate {
 		run = false;
 		electionSemaphore.release();
 		try {
+			if (null != keepAliveThread) {
+				keepAliveThread.shutdown();
+			}
 			join();
 			logger.info("election arbiter is closed");
 		} catch (Exception e) {
