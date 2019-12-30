@@ -1,6 +1,5 @@
 package rabbit.open.algorithm.elect.protocol;
 
-import rabbit.open.algorithm.elect.data.NodeRole;
 import rabbit.open.algorithm.elect.event.ElectionEventListener;
 
 /**
@@ -12,9 +11,7 @@ public class LeaderElectedListener implements ElectionEventListener {
 
     @Override
     public void onElectionEnd(ElectionArbiter arbiter) {
-        if (NodeRole.LEADER == arbiter.getNodeRole()) {
-            arbiter.startKeepAliveThread();
-        }
+        arbiter.startKeepAliveThread();
     }
 
 
