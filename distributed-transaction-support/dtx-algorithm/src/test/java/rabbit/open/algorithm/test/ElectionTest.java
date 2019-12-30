@@ -4,6 +4,9 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rabbit.open.algorithm.elect.data.HelloKitty;
 import rabbit.open.algorithm.elect.data.NodeRole;
 import rabbit.open.algorithm.elect.data.ProtocolPacket;
 import rabbit.open.algorithm.elect.protocol.ElectionArbiter;
@@ -12,6 +15,7 @@ import rabbit.open.algorithm.elect.protocol.Postman;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 单元测试
@@ -21,6 +25,10 @@ import java.util.concurrent.Semaphore;
 @RunWith(JUnit4.class)
 public class ElectionTest {
 
+    private Logger logger = LoggerFactory.getLogger(getClass());
+
+    static ElectionArbiter leaderArbiter;
+
     @Test
     public void voteTest() throws InterruptedException {
         int count = 5;
@@ -28,9 +36,11 @@ public class ElectionTest {
         List<ElectionArbiter> arbiters = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             MockPostman postman = new MockPostman();
-            ElectionArbiter arbiter = new ElectionArbiter(count, node -> {
+            ElectionArbiter arbiter = new ElectionArbiter(count, "node-" + i, node -> {
                 if (node.getNodeRole() == NodeRole.LEADER) {
                     semaphore.release(2);
+                    pingEvery2Seconds(postman, node);
+                    leaderArbiter = node;
                 } else if (node.getNodeRole() == NodeRole.FOLLOWER) {
                     semaphore.release(1);
                 }
@@ -51,11 +61,41 @@ public class ElectionTest {
             if (arbiter.getNodeRole() == NodeRole.FOLLOWER) {
                 follower++;
             }
-            arbiter.shutdown();
         }
         TestCase.assertEquals(1, leader);
         TestCase.assertEquals(arbiters.size() - 1, follower);
 
+        // =========模拟leader down了，重新选举
+        // 调整leader的角色
+        leaderArbiter.setNodeRole(NodeRole.FOLLOWER);
+        // 调整检测周期
+        for (ElectionArbiter arbiter : arbiters) {
+            arbiter.setKeepAliveCheckingInterval(1L);
+            arbiter.interrupt();
+        }
+        semaphore.acquire(count + 1);
+        for (ElectionArbiter arbiter : arbiters) {
+            arbiter.shutdown();
+        }
+
+    }
+
+    private void pingEvery2Seconds(MockPostman postman, ElectionArbiter leader) {
+        Thread thread = new Thread(() -> {
+            while (true) {
+                postman.delivery(new HelloKitty(leader.getNodeId()));
+                Semaphore semaphore = new Semaphore(0);
+                try {
+                    if (semaphore.tryAcquire(2, TimeUnit.SECONDS)) {
+                        return;
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        });
+        thread.setDaemon(false);
+        thread.start();
     }
 
     /**

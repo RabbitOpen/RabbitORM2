@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
+import rabbit.open.dtx.common.utils.NodeIdHelper;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -53,7 +54,7 @@ public class DtxServer {
         listenChannel.socket().bind(new InetSocketAddress(port));
         //注册接收事件
         listenChannel.register(nioSelector.getRealSelector(), SelectionKey.OP_ACCEPT);
-        serverId = calcServerId(InetAddress.getLocalHost().getHostAddress(), port);
+        serverId = NodeIdHelper.calcServerId(InetAddress.getLocalHost().getHostAddress(), port);
         ioListener = new Thread(() -> {
             logger.info("dtx server is listening on port: {}", port);
             while (true) {
@@ -72,23 +73,6 @@ public class DtxServer {
         }, "event-selector");
         serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor");
         serverAgentMonitor.start();
-    }
-
-    /**
-     * 生成19位的同网段唯一服务器id
-     * @param	hostAddress
-     * @param	port
-     * @author  xiaoqianbin
-     * @date    2019/12/23
-     **/
-    public static String calcServerId(String hostAddress, int port) {
-        String[] segments = hostAddress.split("\\.");
-        StringBuilder id = new StringBuilder();
-        for (String seg : segments) {
-            id.append(String.format("%03d", Integer.parseInt(seg)));
-        }
-        id.append(String.format("%07d", port));
-        return id.toString();
     }
 
     public String getServerId() {

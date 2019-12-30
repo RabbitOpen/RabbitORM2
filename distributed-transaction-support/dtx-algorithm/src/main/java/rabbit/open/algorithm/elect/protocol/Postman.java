@@ -2,10 +2,10 @@ package rabbit.open.algorithm.elect.protocol;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.algorithm.elect.data.ElectedLeader;
-import rabbit.open.algorithm.elect.data.ElectionPacket;
-import rabbit.open.algorithm.elect.data.ElectionResult;
-import rabbit.open.algorithm.elect.data.ProtocolPacket;
+import rabbit.open.algorithm.elect.data.*;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <b>@description 邮递员 </b>
@@ -13,6 +13,15 @@ import rabbit.open.algorithm.elect.data.ProtocolPacket;
 public abstract class Postman {
 	
 	protected Logger logger = LoggerFactory.getLogger(getClass());
+
+	private Map<Class<?>, Callback> dispatcher = new ConcurrentHashMap<>();
+
+	public Postman() {
+		dispatcher.put(ElectionResult.class, data -> candidate.onElectionResultReceived((ElectionResult) data));
+		dispatcher.put(ElectedLeader.class, data -> candidate.onElectedLeaderReceived((ElectedLeader) data));
+		dispatcher.put(ElectionPacket.class, data -> candidate.onElectionPacketReceived((ElectionPacket) data));
+		dispatcher.put(HelloKitty.class, data -> candidate.onKittyReceived((HelloKitty) data));
+	}
 			
 	private Candidate candidate;
 	
@@ -33,15 +42,10 @@ public abstract class Postman {
 	/**
 	 * <b>@description 接收包  </b>
 	 * @param data
-	 * @return
 	 */
 	public void onDataReceived(Object data) {
-		if (data instanceof ElectionResult) {
-			candidate.onElectionResultReceived((ElectionResult) data);
-		} else if (data instanceof ElectedLeader) {
-			candidate.onElectedLeaderReceived((ElectedLeader) data);
-		} else if (data instanceof ElectionPacket) {
-			candidate.onElectionPacketReceived((ElectionPacket) data);
+		if (dispatcher.containsKey(data.getClass())) {
+			dispatcher.get(data.getClass()).onDataReceived(data);
 		} else {
 			logger.warn("unknown packet type[{}] is received", data.getClass());
 		}
@@ -54,6 +58,10 @@ public abstract class Postman {
 	public void register(Candidate candidate) {
 		candidate.bindPostman(this);
 		this.candidate = candidate;
+	}
+
+	private interface Callback {
+		void onDataReceived(Object data);
 	}
 
 }

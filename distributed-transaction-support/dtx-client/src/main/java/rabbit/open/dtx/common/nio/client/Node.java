@@ -1,7 +1,7 @@
 package rabbit.open.dtx.common.nio.client;
 
 import rabbit.open.dtx.common.nio.pub.CallHelper;
-import rabbit.open.dtx.common.nio.server.DtxServer;
+import rabbit.open.dtx.common.utils.NodeIdHelper;
 
 import java.net.InetAddress;
 
@@ -55,6 +55,6 @@ public class Node {
     }
 
     public String getId() {
-        return DtxServer.calcServerId(host, port);
+        return NodeIdHelper.calcServerId(host, port);
     }
 }

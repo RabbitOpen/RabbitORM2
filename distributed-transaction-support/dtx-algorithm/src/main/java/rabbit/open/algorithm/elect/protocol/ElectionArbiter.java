@@ -2,10 +2,7 @@ package rabbit.open.algorithm.elect.protocol;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.algorithm.elect.data.ElectedLeader;
-import rabbit.open.algorithm.elect.data.ElectionPacket;
-import rabbit.open.algorithm.elect.data.ElectionResult;
-import rabbit.open.algorithm.elect.data.NodeRole;
+import rabbit.open.algorithm.elect.data.*;
 import rabbit.open.algorithm.elect.event.ElectionEventListener;
 
 import java.util.Random;
@@ -51,36 +48,97 @@ public class ElectionArbiter extends Thread implements Candidate {
 
 	private static final AtomicInteger ARBITER_ID = new AtomicInteger(0);
 
-	public ElectionArbiter(int candidateSize, ElectionEventListener listener) {
+	// keepAliveCheckingInterval
+	private long keepAliveCheckingInterval = 30L;
+
+	// LEADER 上次活跃时间
+	private Long lastActiveTime = 0L;
+
+	private String myId;
+
+	private String leaderId;
+
+	public ElectionArbiter(int candidateSize, String nodeId, ElectionEventListener listener) {
 		super(ElectionArbiter.class.getSimpleName() + "-" + ARBITER_ID.getAndIncrement());
 		this.eventListener = listener;
 		this.candidateSize = candidateSize;
+		myId = nodeId;
 		start();
 	}
-	
+
+	/**
+	 * 返回自己的id
+	 * @author  xiaoqianbin
+	 * @date    2019/12/30
+	 **/
+	public String getNodeId() {
+		return myId;
+	}
+
 	/**
 	 * <b>@description 开始选举 </b>
 	 */
 	public void startElection() {
 		electionSemaphore.release();
 	}
-	
+
+	public NodeRole getNodeRole() {
+		return role;
+	}
+
+	public void setNodeRole(NodeRole role) {
+		this.role = role;
+	}
+
 	@Override
 	public void run() {
 		while (true) {
 			try {
-				if (electionSemaphore.tryAcquire(30, TimeUnit.SECONDS)) {
+				if (electionSemaphore.tryAcquire(keepAliveCheckingInterval, TimeUnit.SECONDS)) {
 					if (run) {
 						role = NodeRole.OBSERVER;
 						doElection();
 					} else {
 						return;
 					}
+				} else {
+					reelectOnLeaderLost();
 				}
 			} catch (Exception e) {
+				if (e instanceof InterruptedException) {
+					continue;
+				}
 				logger.error(e.getMessage(), e);
 			}
 		}
+	}
+
+	/**
+	 * leader丢失以后就重新选举
+	 * @author  xiaoqianbin
+	 * @date    2019/12/30
+	 **/
+	private void reelectOnLeaderLost() {
+		if (NodeRole.FOLLOWER != role) {
+			// leader节点不做心跳检测
+			return;
+		}
+		logger.warn("begin to reelect leader");
+		setNodeRole(NodeRole.OBSERVER);
+		setLeaderId(null);
+		if (System.currentTimeMillis() - lastActiveTime > keepAliveCheckingInterval * 1000) {
+			startElection();
+		}
+	}
+
+	/**
+	 * keep alive checking interval (second)
+	 * @param	keepAliveCheckingInterval
+	 * @author  xiaoqianbin
+	 * @date    2019/12/30
+	 **/
+	public void setKeepAliveCheckingInterval(long keepAliveCheckingInterval) {
+		this.keepAliveCheckingInterval = keepAliveCheckingInterval;
 	}
 
 	/**
@@ -112,12 +170,11 @@ public class ElectionArbiter extends Thread implements Candidate {
 			}
 		}
 		eventListener.onElectionEnd(this);
-		logger.debug("election is over");
+		logger.debug("election is over, leader id: {}", leaderId);
 	}
 
 	/**
 	 * <b>@description 随机等待2-4秒 </b>
-	 * @return
 	 * @throws InterruptedException
 	 */
 	private boolean randomHoldOn() throws InterruptedException {
@@ -158,7 +215,8 @@ public class ElectionArbiter extends Thread implements Candidate {
 			if (agreedCandidates == (candidateSize / 2 + 1)) {
 				// 票够了就直接唤醒投票线程, 结束投票
 				this.role = NodeRole.LEADER;
-				postman.delivery(new ElectedLeader(electionPacketVersion.get()));
+				this.leaderId = myId;
+				postman.delivery(new ElectedLeader(electionPacketVersion.get(), myId));
 				sleepSemaphore.release();
 			}
 		}
@@ -178,7 +236,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 	public void onElectionPacketReceived(ElectionPacket electionPacket) {
 		if (NodeRole.LEADER == this.role) {
 			// 告诉他我就是leader
-			postman.sendBack(new ElectedLeader(electionPacketVersion.get()));
+			postman.sendBack(new ElectedLeader(electionPacketVersion.get(), myId));
 		} else {
 			if (electionPacket.getVersion() <= electionPacketVersion.get()) {
 				postman.sendBack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
@@ -190,16 +248,25 @@ public class ElectionArbiter extends Thread implements Candidate {
 		}
 	}
 
-	public NodeRole getNodeRole() {
-		return role;
+	@Override
+	public void onKittyReceived(HelloKitty kitty) {
+		if (kitty.getNodeId().equals(this.leaderId)) {
+			lastActiveTime = System.currentTimeMillis();
+		}
 	}
 
 	@Override
-	public void onElectedLeaderReceived(ElectedLeader result) {
+	public void onElectedLeaderReceived(ElectedLeader electedLeader) {
 		electionLock.lock();
 		this.role = NodeRole.FOLLOWER;
-		this.electionPacketVersion.set(result.getVersion());
+		setLeaderId(electedLeader.getNodeId());
+		lastActiveTime = System.currentTimeMillis();
+		this.electionPacketVersion.set(electedLeader.getVersion());
 		sleepSemaphore.release();
 		electionLock.unlock();
+	}
+
+	private void setLeaderId(String leaderId) {
+		this.leaderId = leaderId;
 	}
 }
