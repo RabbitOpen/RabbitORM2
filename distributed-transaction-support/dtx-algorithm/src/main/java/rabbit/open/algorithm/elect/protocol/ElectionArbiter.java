@@ -1,18 +1,19 @@
 package rabbit.open.algorithm.elect.protocol;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rabbit.open.algorithm.elect.data.ElectedLeader;
+import rabbit.open.algorithm.elect.data.ElectionPacket;
+import rabbit.open.algorithm.elect.data.ElectionResult;
+import rabbit.open.algorithm.elect.data.NodeRole;
+import rabbit.open.algorithm.elect.event.ElectionEventListener;
+
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import rabbit.open.algorithm.elect.data.ElectionPacket;
-import rabbit.open.algorithm.elect.data.ElectedLeader;
-import rabbit.open.algorithm.elect.data.NodeRole;
-import rabbit.open.algorithm.elect.data.ElectionResult;
 
 /**
  * <b>@description 选举仲裁者  </b>
@@ -31,22 +32,28 @@ public class ElectionArbiter extends Thread implements Candidate {
 	private boolean run = true;
 	
 	// 选举版本号
-	private static final AtomicLong VERSION = new AtomicLong(0);
+	private final AtomicLong electionPacketVersion = new AtomicLong(0);
 	
 	// 候选人总个数
 	private int candidateSize = 1;
 	
 	// 同意选举包的候选人个数
-	private int agreedCandiates = 0;
+	private int agreedCandidates = 0;
 	
 	// 选举的锁
 	private ReentrantLock electionLock = new ReentrantLock();
+
+	// 事件监听器
+	private ElectionEventListener eventListener;
 	
 	// 节点角色
 	private NodeRole role = NodeRole.OBSERVER;
-	
-	public ElectionArbiter(int candidateSize) {
-		super(ElectionArbiter.class.getSimpleName());
+
+	private static final AtomicInteger ARBITER_ID = new AtomicInteger(0);
+
+	public ElectionArbiter(int candidateSize, ElectionEventListener listener) {
+		super(ElectionArbiter.class.getSimpleName() + "-" + ARBITER_ID.getAndIncrement());
+		this.eventListener = listener;
 		this.candidateSize = candidateSize;
 		start();
 	}
@@ -96,40 +103,42 @@ public class ElectionArbiter extends Thread implements Candidate {
 	 * @throws InterruptedException
 	 */
 	private void doElection() throws InterruptedException {
-		logger.info("begin to elect");
+		logger.debug("begin to elect");
+		eventListener.onElectionBegin();
 		while (true) {
 			sendElectionPacket();
 			if (randomHoldOn()) {
 				break;
 			}
 		}
-		logger.info("election is over");
+		eventListener.onElectionEnd(this);
+		logger.debug("election is over");
 	}
 
 	/**
-	 * <b>@description 随机等待3-4秒 </b>
+	 * <b>@description 随机等待2-4秒 </b>
 	 * @return
 	 * @throws InterruptedException
 	 */
 	private boolean randomHoldOn() throws InterruptedException {
-		return sleepSemaphore.tryAcquire(3000 + new Random().nextInt(1000), TimeUnit.MILLISECONDS);
+		return sleepSemaphore.tryAcquire(2000L + new Random().nextInt(2000), TimeUnit.MILLISECONDS);
 	}
 
 	/**
 	 * <b>@description 发送选举包 </b>
 	 * @return false 选举已经结束
-	 * @throws InterruptedException 
 	 */
-	private void sendElectionPacket() throws InterruptedException {
+	private void sendElectionPacket() {
 		try {
 			electionLock.lock();
-			agreedCandiates = 0;
+			agreedCandidates = 1;
 			// 清空信号量
-			sleepSemaphore.acquire(sleepSemaphore.availablePermits());
+			sleepSemaphore.drainPermits();
 			if (NodeRole.OBSERVER != role) {
 				return;
 			}
-			postman.delivery(new ElectionPacket(VERSION.addAndGet(1L)));
+			postman.delivery(new ElectionPacket(electionPacketVersion.addAndGet(1L)));
+			logger.debug("send ElectionPacket({})", electionPacketVersion.get());
 		} finally {
 			electionLock.unlock();
 		}
@@ -139,23 +148,25 @@ public class ElectionArbiter extends Thread implements Candidate {
 	 * <b>@description 接收到投票结果 </b>
 	 */
 	@Override
-	public void onElectionResultRecieved(ElectionResult result) {
-		if (result.getVersion() < VERSION.get()) {
+	public void onElectionResultReceived(ElectionResult result) {
+		if (result.getVersion() < electionPacketVersion.get()) {
 			return;
 		}
 		electionLock.lock();
-		agreedCandiates++;
-		if (agreedCandiates == (candidateSize / 2 + 1)) {
-			// 票够了就直接唤醒投票线程, 结束投票
-			this.role = NodeRole.LEADER;
-			sleepSemaphore.release();
-			postman.delivery(new ElectedLeader(VERSION.get()));
+		if (result.getResult() == ElectionResult.AGREE) {
+			agreedCandidates++;
+			if (agreedCandidates == (candidateSize / 2 + 1)) {
+				// 票够了就直接唤醒投票线程, 结束投票
+				this.role = NodeRole.LEADER;
+				postman.delivery(new ElectedLeader(electionPacketVersion.get()));
+				sleepSemaphore.release();
+			}
 		}
 		electionLock.unlock();
 	}
 
 	@Override
-	public void postmanBinded(Postman postman) {
+	public void bindPostman(Postman postman) {
 		this.postman = postman;
 	}
 
@@ -164,23 +175,30 @@ public class ElectionArbiter extends Thread implements Candidate {
 	 * @param electionPacket
 	 */
 	@Override
-	public void onElectionPacketRecieved(ElectionPacket electionPacket) {
+	public void onElectionPacketReceived(ElectionPacket electionPacket) {
 		if (NodeRole.LEADER == this.role) {
 			// 告诉他我就是leader
-			postman.delivery(new ElectedLeader(VERSION.get()));
+			postman.sendBack(new ElectedLeader(electionPacketVersion.get()));
 		} else {
-			if (electionPacket.getVersion() <= VERSION.get()) {
-				postman.delivery(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
+			if (electionPacket.getVersion() <= electionPacketVersion.get()) {
+				postman.sendBack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
+				logger.debug("received election packet({}), REJECTED!", electionPacket.getVersion());
 			} else {
-				postman.delivery(new ElectionResult(ElectionResult.AGREE, electionPacket.getVersion()));
+				postman.sendBack(new ElectionResult(ElectionResult.AGREE, electionPacket.getVersion()));
+				logger.debug("received election packet({}), AGREED!", electionPacket.getVersion());
 			}
 		}
 	}
 
+	public NodeRole getNodeRole() {
+		return role;
+	}
+
 	@Override
-	public void onElectedLeaderRecieved(ElectedLeader result) {
+	public void onElectedLeaderReceived(ElectedLeader result) {
 		electionLock.lock();
 		this.role = NodeRole.FOLLOWER;
+		this.electionPacketVersion.set(result.getVersion());
 		sleepSemaphore.release();
 		electionLock.unlock();
 	}

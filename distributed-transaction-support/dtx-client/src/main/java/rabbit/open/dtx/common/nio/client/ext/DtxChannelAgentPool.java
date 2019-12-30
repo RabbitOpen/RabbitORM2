@@ -107,9 +107,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             for (Node node : meta.getNodes()) {
                 if (!nodeExist(node, nodes)) {
                     node.setIsolated(false);
-                    CallHelper.ignoreExceptionCall(() -> {
-                        nodes.put(node);
-                    });
+                    CallHelper.ignoreExceptionCall(() -> nodes.put(node));
                 }
             }
 

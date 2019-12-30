@@ -5,7 +5,7 @@ package rabbit.open.algorithm.elect.data;
  * @author xiaoqianbin
  * @date 2019/11/26
  **/
-public class ElectionResult extends ProtocolPacket {
+public class ElectionResult implements ProtocolPacket {
 
 	public static final int AGREE = 0; 
 	

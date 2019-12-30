@@ -25,7 +25,7 @@
     </root>
 
 
-    <appender name="dtx" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="dtx2" class="ch.qos.logback.core.ConsoleAppender">
         <!--定义了一个过滤器,在LEVEL之下的日志输出不会被打印出来
         这里定义了DEBUG，也就是控制台不会输出比ERROR级别小的日志-->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -39,8 +39,8 @@
     </appender>
 
     <!--对于类路径以 rabbit.open.dtx 开头的Logger,debug,并且只输出到控制台-->
-   <logger name="rabbit.open.dtx" level="debug" additivity="false">
-        <appender-ref ref="dtx"/>
+   <logger name="rabbit.open.algorithm" level="debug" additivity="false">
+        <appender-ref ref="dtx2"/>
     </logger>
 
 </configuration>

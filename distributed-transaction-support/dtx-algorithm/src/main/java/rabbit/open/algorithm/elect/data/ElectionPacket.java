@@ -5,7 +5,7 @@ package rabbit.open.algorithm.elect.data;
  * @author xiaoqianbin
  * @date 2019/11/25
  **/
-public class ElectionPacket extends ProtocolPacket {
+public class ElectionPacket implements ProtocolPacket {
 
 	// 版本号
 	protected long version;

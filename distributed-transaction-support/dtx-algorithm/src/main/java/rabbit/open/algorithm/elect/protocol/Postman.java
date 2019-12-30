@@ -2,11 +2,10 @@ package rabbit.open.algorithm.elect.protocol;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import rabbit.open.algorithm.elect.data.ElectionPacket;
 import rabbit.open.algorithm.elect.data.ElectedLeader;
-import rabbit.open.algorithm.elect.data.ProtocolPacket;
+import rabbit.open.algorithm.elect.data.ElectionPacket;
 import rabbit.open.algorithm.elect.data.ElectionResult;
+import rabbit.open.algorithm.elect.data.ProtocolPacket;
 
 /**
  * <b>@description 邮递员 </b>
@@ -18,25 +17,34 @@ public abstract class Postman {
 	private Candidate candidate;
 	
 	/**
-	 * <b>@description 发送包 </b>
+	 * <b>@description 广播发送包 </b>
 	 * @param packet
 	 */
 	public abstract void delivery(ProtocolPacket packet);
-	
+
+	/**
+	 * 点对点response
+	 * @param	packet
+	 * @author  xiaoqianbin
+	 * @date    2019/12/30
+	 **/
+	public abstract void sendBack(ProtocolPacket packet);
+
 	/**
 	 * <b>@description 接收包  </b>
 	 * @param data
 	 * @return
 	 */
-	public void onDataRecieved(Object data) {
+	public void onDataReceived(Object data) {
 		if (data instanceof ElectionResult) {
-			candidate.onElectionResultRecieved((ElectionResult) data);
+			candidate.onElectionResultReceived((ElectionResult) data);
 		} else if (data instanceof ElectedLeader) {
-			candidate.onElectedLeaderRecieved((ElectedLeader) data);
+			candidate.onElectedLeaderReceived((ElectedLeader) data);
 		} else if (data instanceof ElectionPacket) {
-			candidate.onElectionPacketRecieved((ElectionPacket) data);
+			candidate.onElectionPacketReceived((ElectionPacket) data);
+		} else {
+			logger.warn("unknown packet type[{}] is received", data.getClass());
 		}
-		logger.warn("unknown packet type[{}] is recieved", data.getClass());
 	}
 	
 	/**
@@ -44,7 +52,7 @@ public abstract class Postman {
 	 * @param candidate
 	 */
 	public void register(Candidate candidate) {
-		candidate.postmanBinded(this);
+		candidate.bindPostman(this);
 		this.candidate = candidate;
 	}
 

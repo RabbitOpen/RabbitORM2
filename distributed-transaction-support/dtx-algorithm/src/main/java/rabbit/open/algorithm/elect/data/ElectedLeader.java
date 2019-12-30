@@ -3,7 +3,7 @@ package rabbit.open.algorithm.elect.data;
 /**
  * <b>@description 选举结果通知对象 </b>
  */
-public class ElectedLeader extends ProtocolPacket {
+public class ElectedLeader implements ProtocolPacket {
 
 	// 版本号
 	protected long version;

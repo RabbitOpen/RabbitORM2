@@ -23,10 +23,8 @@ public class Node {
     private boolean isolated = false;
 
     public Node(String host, int port) {
-        if ("localhost".equals(host) || "127.0.0.1".equals(host)) {
-            CallHelper.ignoreExceptionCall(() -> {
-                this.host = InetAddress.getLocalHost().getHostAddress();
-            });
+        if ("localhost".equals(host)) {
+            CallHelper.ignoreExceptionCall(() -> this.host = InetAddress.getLocalHost().getHostAddress());
         }
         this.host = host;
         this.port = port;
