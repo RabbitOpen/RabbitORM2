@@ -146,7 +146,7 @@ public class TxConnection implements Connection {
 
     @Override
     public void clearWarnings() throws SQLException {
-        realConn.close();
+        realConn.clearWarnings();
     }
 
     @Override

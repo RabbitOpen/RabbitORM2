@@ -63,6 +63,9 @@
         <property name="threshold">
             <value>${jdbc.threshold}</value>
         </property>
+        <property name="name">
+            <value>rabbit</value>
+        </property>
         <!-- 获取连接等待时间(ms)默认500ms，超过这个时间就会尝试新建连接 -->
         <property name="fetchTimeOut">
             <value>${jdbc.fetchTimeOut}</value>

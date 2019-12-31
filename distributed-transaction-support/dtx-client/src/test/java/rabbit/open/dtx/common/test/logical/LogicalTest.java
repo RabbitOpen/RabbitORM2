@@ -60,9 +60,7 @@ public class LogicalTest {
 
         TestTransactionManager manager = new TestTransactionManager();
 
-        manager.setListener(new DtxMessageListener(manager) {
-
-        });
+        manager.setListener(new DtxMessageListener(manager));
 
         manager.init();
 
