@@ -76,7 +76,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
                 return invocation.proceed();
             } catch (Throwable e) {
                 if (getRoot(e) instanceof RpcException) {
-                    throw (RpcException)getRoot(e);
+                    throw (RpcException) getRoot(e);
                 }
                 throw new DistributedTransactionException(e);
             } finally {
@@ -90,7 +90,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
         } catch (Exception e) {
             doRollback(invocation, annotation);
             if (getRoot(e) instanceof RpcException) {
-                throw (RpcException)getRoot(e);
+                throw (RpcException) getRoot(e);
             }
             throw new DistributedTransactionException(e);
         }
@@ -120,7 +120,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
         } catch (Throwable e) {
             doRollback(invocation, annotation);
             if (getRoot(e) instanceof RpcException) {
-                throw (RpcException)getRoot(e);
+                throw (RpcException) getRoot(e);
             }
             throw new DistributedTransactionException(e);
         }

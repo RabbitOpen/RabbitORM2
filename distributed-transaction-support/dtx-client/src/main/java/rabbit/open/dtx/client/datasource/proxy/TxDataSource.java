@@ -55,9 +55,9 @@ public class TxDataSource implements DataSource {
 
     /**
      * 加载自增字段信息
-     * @param	dataSource
-     * @author  xiaoqianbin
-     * @date    2019/12/23
+     * @param    dataSource
+     * @author xiaoqianbin
+     * @date 2019/12/23
      **/
     private void loadKeyGenInfo(DataSource dataSource) {
         Connection connection = null;

@@ -60,11 +60,11 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
 
     /**
      * 生成锁id     {dataSourceName}-{tableName}-{rowId}
-     * @param	sqlMeta
-	 * @param	txConn
-	 * @param	list
-     * @author  xiaoqianbin
-     * @date    2019/12/23
+     * @param    sqlMeta
+     * @param    txConn
+     * @param    list
+     * @author xiaoqianbin
+     * @date 2019/12/23
      **/
     private List<String> getLocks(SQLMeta sqlMeta, TxConnection txConn, List<Map<String, Object>> list) {
         return list.stream().map(m -> {

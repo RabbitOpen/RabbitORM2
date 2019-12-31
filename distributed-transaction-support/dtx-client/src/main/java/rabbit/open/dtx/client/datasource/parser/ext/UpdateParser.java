@@ -32,11 +32,11 @@ public class UpdateParser implements Parser {
 
     /**
      * 设置要更新的字段信息
-     * @param	meta
-	 * @param	where
-	 * @param	set
-     * @author  xiaoqianbin
-     * @date    2019/12/3
+     * @param    meta
+     * @param    where
+     * @param    set
+     * @author xiaoqianbin
+     * @date 2019/12/3
      **/
     private void setColumns(SQLMeta meta, int where, int set) {
         String updateColumns = meta.getFormattedSql().substring(set + "SET".length(), where).trim();

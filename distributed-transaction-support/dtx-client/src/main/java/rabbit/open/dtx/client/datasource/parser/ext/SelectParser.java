@@ -13,5 +13,5 @@ public class SelectParser implements Parser {
     public void parse(SQLMeta sqlMeta, String upperCaseSql) {
         // TO DO: NOTING, ignore all select
     }
-    
+
 }

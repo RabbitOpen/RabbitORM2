@@ -28,14 +28,13 @@ public class SimpleSQLParser {
     }
 
     private SimpleSQLParser() {
-
     }
 
     /**
      * 进行简单的sql解析
-     * @param	sql
-     * @author  xiaoqianbin
-     * @date    2019/12/3
+     * @param    sql
+     * @author xiaoqianbin
+     * @date 2019/12/3
      **/
     public static SQLMeta parse(String sql) {
         if (structureMap.containsKey(sql)) {

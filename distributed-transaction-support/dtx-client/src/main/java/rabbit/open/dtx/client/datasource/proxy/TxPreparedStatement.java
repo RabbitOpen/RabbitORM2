@@ -97,9 +97,9 @@ public class TxPreparedStatement implements PreparedStatement {
 
     /**
      * 插入回滚信息
-     * @param	entity
-     * @author  xiaoqianbin
-     * @date    2019/12/4
+     * @param    entity
+     * @author xiaoqianbin
+     * @date 2019/12/4
      **/
     private void saveRollbackInfo(RollBackRecord entity) throws SQLException {
         PreparedStatement insertStmt = null;
@@ -122,9 +122,9 @@ public class TxPreparedStatement implements PreparedStatement {
 
     /**
      * 创建回滚实体信息
-     * @param   autoIncrementColumnMeta    insert时，如果是自增表结构，该参数不为空，存的是主键的返回值
-     * @author  xiaoqianbin
-     * @date    2019/12/4
+     * @param autoIncrementColumnMeta insert时，如果是自增表结构，该参数不为空，存的是主键的返回值
+     * @author xiaoqianbin
+     * @date 2019/12/4
      **/
     private RollBackRecord createRollbackEntity(ColumnMeta autoIncrementColumnMeta) throws SQLException {
         SQLMeta sqlMeta = SimpleSQLParser.parse(preparedSql);

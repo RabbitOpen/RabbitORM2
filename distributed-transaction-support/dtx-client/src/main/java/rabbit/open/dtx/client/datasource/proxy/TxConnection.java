@@ -56,7 +56,7 @@ public class TxConnection implements Connection {
 
     /**
      * 创建一个代理的PreparedStatement对象
-     * @param    realStmt
+     * @param realStmt
      * @author xiaoqianbin
      * @date 2019/12/3
      **/

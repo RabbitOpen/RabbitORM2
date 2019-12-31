@@ -42,7 +42,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     private AbstractTransactionManager transactionManger;
 
     // 消息监听器
-	private Map<Class<?>, MessageListener> listenerMap = new ConcurrentHashMap<>();
+    private Map<Class<?>, MessageListener> listenerMap = new ConcurrentHashMap<>();
 
     // 监控线程
     private AgentMonitor monitor = new AgentMonitor("client-agent-pool-monitor", this);
@@ -51,12 +51,12 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     private ArrayBlockingQueue<FutureTask<SelectionKey>> channelRegistryTasks = new ArrayBlockingQueue<>(100);
 
     public DtxChannelAgentPool(AbstractTransactionManager transactionManger) throws IOException {
-    	this(transactionManger, null);
+        this(transactionManger, null);
     }
-    
+
     public DtxChannelAgentPool(AbstractTransactionManager transactionManger, NetEventHandler netEventHandler) throws IOException {
         this.transactionManger = transactionManger;
-        initNetEventHanlder(netEventHandler);
+        initNetEventHandler(netEventHandler);
         initListeners(transactionManger);
         nodes.addAll(transactionManger.getServerNodes());
         nioSelector = new NioSelector(Selector.open());
@@ -74,17 +74,17 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         monitor.start();
     }
 
-	/**
-	 * <b>@description 初始化网络事件处理器 </b>
-	 * @param netEventHandler
-	 */
-	protected void initNetEventHanlder(NetEventHandler netEventHandler) {
-		if (null == netEventHandler) {
-        	this.netEventHandler = new ClientNetEventHandler(this);
+    /**
+     * <b>@description 初始化网络事件处理器 </b>
+     * @param netEventHandler
+     */
+    protected void initNetEventHandler(NetEventHandler netEventHandler) {
+        if (null == netEventHandler) {
+            this.netEventHandler = new ClientNetEventHandler(this);
         } else {
-        	this.netEventHandler = netEventHandler;
+            this.netEventHandler = netEventHandler;
         }
-	}
+    }
 
     private void initListeners(AbstractTransactionManager transactionManger) {
         if (null != transactionManger.getMessageListener()) {
@@ -116,10 +116,10 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     /**
      * 判断节点在不在列表nodes中
-	 * @param	node
-     * @param	nodes
-     * @author  xiaoqianbin
-     * @date    2019/12/27
+     * @param    node
+     * @param    nodes
+     * @author xiaoqianbin
+     * @date 2019/12/27
      **/
     private boolean nodeExist(Node node, Collection<Node> nodes) {
         for (Node existedNode : nodes) {
@@ -235,8 +235,8 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     /**
      * 销毁agent时回收对应的资源
-     * @param    node
-     * @param    agent
+     * @param node
+     * @param agent
      * @author xiaoqianbin
      * @date 2019/12/16
      **/
