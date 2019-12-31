@@ -8,19 +8,28 @@ import org.springframework.test.context.ContextConfiguration;
 import rabbit.open.dtx.client.net.DtxMessageListener;
 import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
+import rabbit.open.dtx.common.nio.client.FutureResult;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
+import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
 import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
+import rabbit.open.dtx.common.nio.pub.ChannelAgent;
+import rabbit.open.dtx.common.nio.pub.DataHandler;
+import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
+import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 import rabbit.open.dtx.common.nio.server.DtxServerWrapper;
 import rabbit.open.dtx.common.nio.server.MemoryTransactionHandler;
+import rabbit.open.dtx.common.test.TestTransactionManager;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -36,8 +45,13 @@ public class LogicalTest {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
+    /**
+     * 业务逻辑测试
+     * @author  xiaoqianbin
+     * @date    2019/12/31
+     **/
     @Test
-    public void transactionTest() throws IOException, NoSuchMethodException, InterruptedException {
+    public void logicTest() throws IOException, NoSuchMethodException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         DtxServerEventHandler serverEventHandler = new DtxServerEventHandler();
         serverEventHandler.setBossCoreSize(1);
         serverEventHandler.setMaxBossConcurrence(2);
@@ -93,13 +107,101 @@ public class LogicalTest {
         }
         // 等待response
         TestCase.assertEquals(0, memTxHandler.getOpenedTransactionCount());
+
+        // 验证自定义的数据处理器
+        testCustomDataHandler(serverWrapper, manager);
+
+        testSyncClusterMeta(serverWrapper, manager.getPool());
+
         manager.destroy();
         //关闭服务端
         serverWrapper.close();
     }
 
+    private void testSyncClusterMeta(DtxServerWrapper serverWrapper, DtxChannelAgentPool pool) throws InterruptedException, NoSuchFieldException, IllegalAccessException {
+        for (ChannelAgent agent : serverWrapper.getServer().getAgents()) {
+            ClusterMeta clusterMeta = new ClusterMeta();
+            List<Node> nodes = new ArrayList<>();
+            nodes.add(new Node("127.0.0.1", 20118));
+            nodes.add(new Node("127.0.0.1", 20228));
+            clusterMeta.setNodes(nodes);
+            agent.notify(clusterMeta);
+        }
+        holdOn(3000);
+        Field nodeField = DtxChannelAgentPool.class.getDeclaredField("nodes");
+        nodeField.setAccessible(true);
+        ArrayBlockingQueue<Node> list = (ArrayBlockingQueue<Node>) nodeField.get(pool);
+        TestCase.assertEquals(2, list.size());
+        for (Node node : list) {
+            if (node.getPort() == 20118) {
+                TestCase.assertEquals(node.isIsolated(), false);
+            }
+            if (node.getPort() == 20228) {
+                TestCase.assertEquals(node.isIsolated(), true);
+            }
+        }
+
+        for (ChannelAgent agent : serverWrapper.getServer().getAgents()) {
+            ClusterMeta clusterMeta = new ClusterMeta();
+            List<Node> nodes = new ArrayList<>();
+            nodes.add(new Node("127.0.0.1", 20118));
+            clusterMeta.setNodes(nodes);
+            agent.notify(clusterMeta);
+        }
+        holdOn(1000);
+        list = (ArrayBlockingQueue<Node>) nodeField.get(pool);
+        TestCase.assertEquals(2, list.size());
+        for (Node node : list) {
+            if (node.getPort() == 20118) {
+                TestCase.assertEquals(node.isIsolated(), false);
+            }
+            if (node.getPort() == 20228) {
+                TestCase.assertEquals(node.isIsolated(), true);
+            }
+        }
+    }
+
+    private void testCustomDataHandler(DtxServerWrapper serverWrapper, TestTransactionManager manager) throws InterruptedException {
+        serverWrapper.registerHandler(User.class, protocolData -> {
+            User user = (User) protocolData.getData();
+            user.setId(user.getId() + 10);
+            return user;
+        });
+
+        // 测试自定义的注册器
+        ChannelAgent resource = manager.getPool().getResource();
+        FutureResult result = resource.send(new User(10));
+        resource.release();
+        User data = (User) result.getData();
+        TestCase.assertEquals(data.getId(), 20);
+    }
+
+    static class User {
+
+        private int id;
+
+        public User() {
+        }
+
+        public User(int id) {
+            this.id = id;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+    }
+
     @SuppressWarnings("serial")
     class TestTransactionManager extends AbstractTransactionManager {
+
+        public DtxChannelAgentPool getPool() {
+            return pool;
+        }
 
         @Override
         protected long getRpcTimeoutSeconds() {
@@ -174,7 +276,7 @@ public class LogicalTest {
         serverEventHandler.init();
         DtxServerWrapper serverWrapper = new DtxServerWrapper(20119, serverEventHandler);
         @SuppressWarnings("serial")
-		TestTransactionManager manager = new TestTransactionManager() {
+        TestTransactionManager manager = new TestTransactionManager() {
             @Override
             public List<Node> getServerNodes() {
                 return Arrays.asList(new Node("localhost", 20119));

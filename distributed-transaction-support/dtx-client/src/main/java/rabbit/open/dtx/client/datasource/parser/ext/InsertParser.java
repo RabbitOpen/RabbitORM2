@@ -48,7 +48,7 @@ public class InsertParser implements Parser {
         String sql = structure.getFormattedSql();
         if (upperCaseSql.startsWith(INSERT_INTO)) {
             structure.setTargetTables(sql.substring(INSERT_INTO.length(), sql.indexOf('(')).trim());
-        } else if (upperCaseSql.startsWith(INSERT)) {
+        } else {
             structure.setTargetTables(sql.substring(INSERT.length(), sql.indexOf('(')).trim());
         }
     }

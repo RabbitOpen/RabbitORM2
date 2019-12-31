@@ -22,6 +22,8 @@ public class Node {
     // 被隔离
     private boolean isolated = false;
 
+    public Node() { }
+
     public Node(String host, int port) {
         if ("localhost".equals(host)) {
             CallHelper.ignoreExceptionCall(() -> this.host = InetAddress.getLocalHost().getHostAddress());

@@ -6,7 +6,7 @@ package rabbit.open.dtx.common.nio.exception;
  * @date 2019/12/7
  **/
 @SuppressWarnings("serial")
-public class ClientClosedException extends RpcException {
+public class ClientClosedException extends DtxException {
 
     public ClientClosedException(String msg) {
         super(msg);

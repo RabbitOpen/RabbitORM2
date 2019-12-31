@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import rabbit.open.dtx.common.nio.exception.RpcException;
+import rabbit.open.dtx.common.nio.exception.DtxException;
 import rabbit.open.dtx.common.nio.exception.TimeoutException;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
 import rabbit.open.dtx.common.nio.server.DtxServer;
@@ -104,7 +104,7 @@ public class RpcTest {
         //超时
         try {
             rtm.getTransactionHandler().doRollback(100L, "rpcTest");
-            throw new RpcException("");
+            throw new DtxException("");
         } catch (TimeoutException e) {
             logger.warn(e.getMessage());
             TestCase.assertEquals(e.getTimeoutSeconds(), rtm.getRpcTimeoutSeconds());

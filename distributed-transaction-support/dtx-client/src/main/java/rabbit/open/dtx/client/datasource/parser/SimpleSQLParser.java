@@ -27,8 +27,7 @@ public class SimpleSQLParser {
         sqlParser.put(SQLType.DELETE, new DeleteParser());
     }
 
-    private SimpleSQLParser() {
-    }
+    private SimpleSQLParser() { }
 
     /**
      * 进行简单的sql解析

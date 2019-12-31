@@ -1,18 +1,18 @@
 package rabbit.open.dtx.common.nio.exception;
 
 /**
- * rpc异常基类
+ * dtx异常基类
  * @author xiaoqianbin
  * @date 2019/12/7
  **/
 @SuppressWarnings("serial")
-public class RpcException extends RuntimeException {
+public class DtxException extends RuntimeException {
 
-    public RpcException(String msg) {
+    public DtxException(String msg) {
         super(msg);
     }
 
-    public RpcException(Throwable cause) {
+    public DtxException(Throwable cause) {
         super(cause);
     }
 }

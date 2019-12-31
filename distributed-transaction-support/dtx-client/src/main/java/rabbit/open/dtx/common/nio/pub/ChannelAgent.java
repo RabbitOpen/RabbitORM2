@@ -73,6 +73,8 @@ public class ChannelAgent implements PooledResource {
     // 连接上次活跃时间
     private long lastActiveTime = 0;
 
+    private boolean connected = true;
+
     /**
      * 服务端新建agent
      * @param	selectionKey
@@ -118,6 +120,15 @@ public class ChannelAgent implements PooledResource {
             }
             throw new NetworkException(e);
         }
+    }
+
+    public void connectFailed() {
+        connected = false;
+        semaphore.release();
+    }
+
+    public boolean isConnected() {
+        return connected;
     }
 
     public void closeQuietly(Closeable c) {

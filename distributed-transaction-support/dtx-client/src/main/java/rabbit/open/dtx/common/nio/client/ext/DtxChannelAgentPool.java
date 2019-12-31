@@ -2,7 +2,7 @@ package rabbit.open.dtx.common.nio.client.ext;
 
 import rabbit.open.dtx.common.nio.client.*;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
-import rabbit.open.dtx.common.nio.exception.RpcException;
+import rabbit.open.dtx.common.nio.exception.DtxException;
 import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.NetEventHandler;
@@ -110,7 +110,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                     CallHelper.ignoreExceptionCall(() -> nodes.put(node));
                 }
             }
-
+            monitor.wakeup();
         });
     }
 
@@ -171,7 +171,15 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                 continue;
             }
             SocketChannel channel = (SocketChannel) key.channel();
-            if (channel.finishConnect()) {
+            boolean connect = false;
+            try {
+                connect = channel.finishConnect();
+            } catch (Exception e) {
+                ChannelAgent agent = (ChannelAgent) key.attachment();
+                agent.connectFailed();
+                throw e;
+            }
+            if (connect) {
                 ChannelAgent agent = (ChannelAgent) key.attachment();
                 channel.register(nioSelector.getRealSelector(), SelectionKey.OP_READ);
                 // 重新attach
@@ -215,6 +223,11 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             if (node.isIdle() && !node.isIsolated()) {
                 try {
                     ChannelAgent agent = new ChannelAgent(node, this);
+                    if (!agent.isConnected()) {
+                        node.setIsolated(true);
+                        logger.error("connect [{}:{}] failed", node.getHost(), node.getPort());
+                        continue;
+                    }
                     node.setIdle(false);
                     // 注册连接销毁回调事件
                     agent.addShutdownHook(() -> releaseAgentResource(node, agent));
@@ -230,7 +243,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                 }
             }
         }
-        throw new RpcException("can't create connection any more");
+        throw new DtxException("can't create connection any more");
     }
 
     /**

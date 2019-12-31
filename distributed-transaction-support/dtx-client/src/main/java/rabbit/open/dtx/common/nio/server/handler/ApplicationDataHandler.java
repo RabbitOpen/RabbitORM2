@@ -1,7 +1,7 @@
 package rabbit.open.dtx.common.nio.server.handler;
 
 import org.springframework.util.StringUtils;
-import rabbit.open.dtx.common.nio.exception.RpcException;
+import rabbit.open.dtx.common.nio.exception.DtxException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
@@ -34,7 +34,7 @@ public class ApplicationDataHandler implements DataHandler {
         ChannelAgent agent = AbstractNetEventHandler.getCurrentAgent();
         agent.setAppName(app.getName());
         if (StringUtils.isEmpty(app.getName())) {
-            throw new RpcException("applicationName can't be empty!");
+            throw new DtxException("applicationName can't be empty!");
         }
         cacheAgent(app, agent);
         return null;

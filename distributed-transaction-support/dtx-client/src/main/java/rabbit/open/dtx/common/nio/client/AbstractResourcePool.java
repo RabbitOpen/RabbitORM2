@@ -3,7 +3,7 @@ package rabbit.open.dtx.common.nio.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.common.nio.exception.GetConnectionTimeoutException;
-import rabbit.open.dtx.common.nio.exception.RpcException;
+import rabbit.open.dtx.common.nio.exception.DtxException;
 
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +52,7 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
      **/
     private T getResource(long timeoutMilliSeconds) {
         if (!isRunning()) {
-            throw new RpcException("pool is closed");
+            throw new DtxException("pool is closed");
         }
         T resource = null;
         try {

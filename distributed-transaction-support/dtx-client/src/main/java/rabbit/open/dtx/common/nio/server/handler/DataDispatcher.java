@@ -1,6 +1,6 @@
 package rabbit.open.dtx.common.nio.server.handler;
 
-import rabbit.open.dtx.common.nio.exception.RpcException;
+import rabbit.open.dtx.common.nio.exception.DtxException;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.protocol.Application;
@@ -35,14 +35,20 @@ public class DataDispatcher implements DataHandler {
 
     @Override
     public Object process(ProtocolData protocolData) {
-        if (null == protocolData.getData()) {
-            throw new RpcException("protocol data can't be empty");
-        }
         DataHandler handler = handlerMap.get(protocolData.getData().getClass());
         if (null == handler) {
-            throw new RpcException(String.format("unknown data type {%s}", protocolData.getData().getClass()));
+            throw new DtxException(String.format("unknown data type {%s}", protocolData.getData().getClass()));
         }
         return handler.process(protocolData);
     }
 
+    /**
+     * 注册数据处理器
+	 * @param	handler
+     * @author  xiaoqianbin
+     * @date    2019/12/31
+     **/
+    public void registerHandler(Class<?> clz, DataHandler handler) {
+        handlerMap.put(clz, handler);
+    }
 }

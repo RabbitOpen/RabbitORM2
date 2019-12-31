@@ -28,7 +28,11 @@ public class ServerAgentMonitor extends AgentMonitor {
     public boolean unRegister(ChannelAgent agent) {
         return agents.remove(agent);
     }
-    
+
+    protected LinkedBlockingQueue<ChannelAgent> getAgents() {
+        return agents;
+    }
+
     @Override
     public void run() {
         while (run) {

@@ -27,7 +27,7 @@ public abstract class AbstractServerEventHandler extends AbstractNetEventHandler
     private static final ThreadLocal<Long> requestIdContext = new ThreadLocal<>();
 
     @Override
-    protected DataDispatcher getDispatcher() {
+    public DataDispatcher getDispatcher() {
         return dispatcher;
     }
 

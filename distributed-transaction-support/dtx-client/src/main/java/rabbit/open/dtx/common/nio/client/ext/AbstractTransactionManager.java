@@ -5,7 +5,7 @@ import rabbit.open.dtx.common.nio.client.*;
 import rabbit.open.dtx.common.nio.client.annotation.DistributedTransaction;
 import rabbit.open.dtx.common.nio.exception.GetConnectionTimeoutException;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
-import rabbit.open.dtx.common.nio.exception.RpcException;
+import rabbit.open.dtx.common.nio.exception.DtxException;
 import rabbit.open.dtx.common.nio.exception.TimeoutException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
@@ -30,7 +30,7 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
 
     private transient TransactionHandler defaultHandler;
 
-    private transient DtxChannelAgentPool pool;
+    protected transient DtxChannelAgentPool pool;
 
     @Override
     public final void beginTransaction(Method method) {
@@ -239,7 +239,7 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
                 throw e;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new RpcException(e);
+                throw new DtxException(e);
             } catch (NetworkException e) {
                 if (null != agent) {
                     agent.destroy();
@@ -247,8 +247,8 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
                 // 网络IO异常就直接重试
                 return doInvoke(method, args);
             }
-            if (data instanceof RpcException) {
-                throw (RpcException) data;
+            if (data instanceof DtxException) {
+                throw (DtxException) data;
             }
             return data;
         }

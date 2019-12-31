@@ -8,7 +8,7 @@ import rabbit.open.dtx.common.nio.client.annotation.Isolation;
  * @date 2019/12/4
  **/
 @SuppressWarnings("serial")
-public class IsolationException extends RpcException {
+public class IsolationException extends DtxException {
 
     public IsolationException() {
         super(String.format("%s must be used in transactional mode", Isolation.READ_COMMITTED));

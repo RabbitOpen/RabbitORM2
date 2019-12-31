@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.*;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -73,6 +75,10 @@ public class DtxServer {
         }, "event-selector");
         serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor");
         serverAgentMonitor.start();
+    }
+
+    public List<ChannelAgent> getAgents() {
+        return new ArrayList<>(serverAgentMonitor.getAgents());
     }
 
     public String getServerId() {

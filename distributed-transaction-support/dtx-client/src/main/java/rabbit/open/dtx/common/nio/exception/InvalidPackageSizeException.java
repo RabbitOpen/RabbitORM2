@@ -6,7 +6,7 @@ package rabbit.open.dtx.common.nio.exception;
  * @date 2019/12/7
  **/
 @SuppressWarnings("serial")
-public class InvalidPackageSizeException extends RpcException {
+public class InvalidPackageSizeException extends DtxException {
 
     public InvalidPackageSizeException(int length, int maxSize) {
         super(String.format("data size is invalid!, max length is [{%d}], actual length [{%d}]", maxSize, length));

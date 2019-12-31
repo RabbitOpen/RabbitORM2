@@ -1,6 +1,6 @@
 package rabbit.open.dtx.common.nio.server.handler;
 
-import rabbit.open.dtx.common.nio.exception.RpcException;
+import rabbit.open.dtx.common.nio.exception.DtxException;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.protocol.RpcProtocol;
@@ -40,10 +40,10 @@ class RpcRequestHandler implements DataHandler {
             return method.invoke(dtxService, protocol.getValues());
         } catch (NoSuchMethodException e) {
             return tryInvokeDefaultInterfaceMethod(protocol, dtxService, e);
-        } catch (RpcException e) {
+        } catch (DtxException e) {
             throw e;
         } catch (Exception e) {
-            throw new RpcException(e);
+            throw new DtxException(e);
         }
     }
 
@@ -61,13 +61,13 @@ class RpcRequestHandler implements DataHandler {
             return method.invoke(dtxService, protocol.getValues());
         } catch (InvocationTargetException ex) {
             Throwable cause = ex.getTargetException();
-            if (cause instanceof RpcException) {
-                throw (RpcException) cause;
+            if (cause instanceof DtxException) {
+                throw (DtxException) cause;
             } else {
-                throw new RpcException(cause);
+                throw new DtxException(cause);
             }
         } catch (Exception ex) {
-            throw new RpcException(ex);
+            throw new DtxException(ex);
         }
     }
 
@@ -86,6 +86,6 @@ class RpcRequestHandler implements DataHandler {
                 // TO DO: IGNORE
             }
         }
-        throw new RpcException(e);
+        throw new DtxException(e);
     }
 }

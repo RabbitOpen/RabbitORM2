@@ -9,7 +9,7 @@ import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.client.annotation.DistributedTransaction;
 import rabbit.open.dtx.common.nio.client.annotation.Propagation;
 import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
-import rabbit.open.dtx.common.nio.exception.RpcException;
+import rabbit.open.dtx.common.nio.exception.DtxException;
 import rabbit.open.dtx.common.spring.enhance.AbstractAnnotationEnhancer;
 import rabbit.open.dtx.common.spring.enhance.PointCutHandler;
 
@@ -75,8 +75,8 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
                 DistributedTransactionContext.setDistributedTransactionObject(currentTransactionObject);
                 return invocation.proceed();
             } catch (Throwable e) {
-                if (getRoot(e) instanceof RpcException) {
-                    throw (RpcException) getRoot(e);
+                if (getRoot(e) instanceof DtxException) {
+                    throw (DtxException) getRoot(e);
                 }
                 throw new DistributedTransactionException(e);
             } finally {
@@ -89,8 +89,8 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
             return result;
         } catch (Exception e) {
             doRollback(invocation, annotation);
-            if (getRoot(e) instanceof RpcException) {
-                throw (RpcException) getRoot(e);
+            if (getRoot(e) instanceof DtxException) {
+                throw (DtxException) getRoot(e);
             }
             throw new DistributedTransactionException(e);
         }
@@ -119,8 +119,8 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
             return result;
         } catch (Throwable e) {
             doRollback(invocation, annotation);
-            if (getRoot(e) instanceof RpcException) {
-                throw (RpcException) getRoot(e);
+            if (getRoot(e) instanceof DtxException) {
+                throw (DtxException) getRoot(e);
             }
             throw new DistributedTransactionException(e);
         }
@@ -130,7 +130,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
         Throwable r = e;
         while (null != r.getCause()) {
             r = r.getCause();
-            if (r instanceof RpcException) {
+            if (r instanceof DtxException) {
                 break;
             }
         }

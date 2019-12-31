@@ -6,7 +6,7 @@ package rabbit.open.dtx.common.nio.exception;
  * @date 2019/12/8
  **/
 @SuppressWarnings("serial")
-public class NetworkException extends RpcException {
+public class NetworkException extends DtxException {
 
     public NetworkException(Exception e) {
         super(e.getMessage());

@@ -6,7 +6,7 @@ package rabbit.open.dtx.common.nio.exception;
  * @date 2019/12/4
  **/
 @SuppressWarnings("serial")
-public class DistributedTransactionException extends RpcException {
+public class DistributedTransactionException extends DtxException {
 
     public DistributedTransactionException(String message) {
         super(message);
