@@ -185,7 +185,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 			}
 		}
 		eventListener.onElectionEnd(this);
-		logger.debug("election is over, leader id: {}", leaderId);
+		logger.debug("election is over, leader id: {}, elect-version: {}", leaderId, electionPacketVersion.get());
 	}
 
 	/**
