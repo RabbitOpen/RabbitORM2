@@ -171,7 +171,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                 continue;
             }
             SocketChannel channel = (SocketChannel) key.channel();
-            boolean connect = false;
+            boolean connect;
             try {
                 connect = channel.finishConnect();
             } catch (Exception e) {
