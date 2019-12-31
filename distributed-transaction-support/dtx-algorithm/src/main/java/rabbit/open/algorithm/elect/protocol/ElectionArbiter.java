@@ -49,7 +49,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 	private static final AtomicInteger ARBITER_ID = new AtomicInteger(0);
 
 	// keepAliveCheckingInterval
-	private long keepAliveCheckingInterval = 30L;
+	private long keepAliveCheckingInterval = 10L;
 
 	// LEADER 上次活跃时间
 	private Long lastActiveTime = 0L;
