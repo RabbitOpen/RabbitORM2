@@ -2,8 +2,8 @@ package rabbit.open.dtx.common.nio.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.dtx.common.nio.exception.GetConnectionTimeoutException;
 import rabbit.open.dtx.common.nio.exception.DtxException;
+import rabbit.open.dtx.common.nio.exception.GetConnectionTimeoutException;
 
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
