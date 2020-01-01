@@ -199,7 +199,7 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
     }
 
     @Override
-    protected Long getNextGlobalId() {
+    public Long getNextGlobalId() {
         return idGenerator.getAndAdd(1L);
     }
 

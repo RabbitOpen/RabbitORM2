@@ -7,10 +7,7 @@ import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.NetEventHandler;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
-import rabbit.open.dtx.common.nio.pub.protocol.Application;
-import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
-import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
-import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
+import rabbit.open.dtx.common.nio.pub.protocol.*;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
@@ -48,7 +45,10 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     private AgentMonitor monitor = new AgentMonitor("client-agent-pool-monitor", this);
 
     // 链接channel注册任务
-    private ArrayBlockingQueue<FutureTask<SelectionKey>> channelRegistryTasks = new ArrayBlockingQueue<>(100);
+    private ArrayBlockingQueue<FutureTask<SelectionKey>> channelRegistryTasks = new ArrayBlockingQueue<>(64);
+
+    // 客户端实例 id
+    private Long instanceId = null;
 
     public DtxChannelAgentPool(AbstractTransactionManager transactionManger) throws IOException {
         this(transactionManger, null);
@@ -231,8 +231,9 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                     node.setIdle(false);
                     // 注册连接销毁回调事件
                     agent.addShutdownHook(() -> releaseAgentResource(node, agent));
+                    acquireInstanceId(agent);
                     // 通报应用名
-                    agent.send(new Application(getTransactionManger().getApplicationName())).getData();
+                    agent.send(new Application(getTransactionManger().getApplicationName(), instanceId)).getData();
                     logger.info("{} created a new connection, current size {}", transactionManger.getApplicationName(), count.get() + 1);
                     return agent;
                 } catch (NetworkException e) {
@@ -244,6 +245,14 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             }
         }
         throw new DtxException("can't create connection any more");
+    }
+
+    private void acquireInstanceId(ChannelAgent agent) throws InterruptedException {
+        if (null == instanceId) {
+            ClientInstance instance = (ClientInstance) agent.send(new ClientInstance()).getData();
+            instanceId = instance.getId();
+            logger.info("load instance id --> {}", instanceId);
+        }
     }
 
     /**

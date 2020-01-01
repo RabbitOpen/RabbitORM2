@@ -4,6 +4,7 @@ import rabbit.open.dtx.common.nio.exception.DtxException;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.protocol.Application;
+import rabbit.open.dtx.common.nio.pub.protocol.ClientInstance;
 import rabbit.open.dtx.common.nio.pub.protocol.KeepAlive;
 import rabbit.open.dtx.common.nio.pub.protocol.RpcProtocol;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
@@ -31,6 +32,13 @@ public class DataDispatcher implements DataHandler {
         handlerMap.put(RpcProtocol.class, new RpcRequestHandler(this.eventHandler));
         handlerMap.put(KeepAlive.class, new KeepAliveHandler());
         handlerMap.put(Application.class, new ApplicationDataHandler());
+        handlerMap.put(ClientInstance.class, protocolData -> {
+            Long globalId = 0L;
+            if (null != this.eventHandler.getTransactionHandler()) {
+                globalId = this.eventHandler.getTransactionHandler().getNextGlobalId();
+            }
+            return new ClientInstance(globalId);
+        });
     }
 
     @Override

@@ -9,15 +9,22 @@ public class Application {
 
     private String name;
 
+    private Long instanceId;
+
     public Application() {
 
     }
 
-    public Application(String name) {
+    public Application(String name, Long instanceId) {
         this.name = name;
+        this.instanceId = instanceId;
     }
 
     public String getName() {
         return name;
+    }
+
+    public Long getInstanceId() {
+        return instanceId;
     }
 }

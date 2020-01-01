@@ -112,7 +112,7 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
      * @author  xiaoqianbin
      * @date    2019/12/9
      **/
-    protected abstract Long getNextGlobalId();
+    public abstract Long getNextGlobalId();
 
     /**
      * 持久化分组id信息

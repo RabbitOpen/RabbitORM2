@@ -42,8 +42,8 @@ public class MyTransactionService extends AbstractServerTransactionHandler {
     }
 
     @Override
-    protected Long getNextGlobalId() {
-        return null;
+    public Long getNextGlobalId() {
+        return 11L;
     }
 
     @Override

@@ -36,6 +36,7 @@ public class ApplicationDataHandler implements DataHandler {
         if (StringUtils.isEmpty(app.getName())) {
             throw new DtxException("applicationName can't be empty!");
         }
+        agent.setClientInstanceId(app.getInstanceId());
         cacheAgent(app, agent);
         return null;
     }

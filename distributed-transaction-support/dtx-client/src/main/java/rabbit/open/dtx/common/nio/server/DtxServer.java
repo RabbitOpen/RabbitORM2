@@ -77,6 +77,10 @@ public class DtxServer {
         serverAgentMonitor.start();
     }
 
+    public AbstractServerEventHandler getNetEventHandler() {
+        return netEventHandler;
+    }
+
     public List<ChannelAgent> getAgents() {
         return new ArrayList<>(serverAgentMonitor.getAgents());
     }

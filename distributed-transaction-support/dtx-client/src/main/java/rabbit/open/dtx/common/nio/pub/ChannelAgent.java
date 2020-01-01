@@ -41,6 +41,9 @@ public class ChannelAgent implements PooledResource {
 
     private ReentrantLock lock = new ReentrantLock();
 
+    // 客户端实例id
+    private Long clientInstanceId;
+
     // 连接的服务器
     private Node node;
 
@@ -330,6 +333,14 @@ public class ChannelAgent implements PooledResource {
 			lock.unlock();
 		}
 	}
+
+    public Long getClientInstanceId() {
+        return clientInstanceId;
+    }
+
+    public void setClientInstanceId(Long clientInstanceId) {
+        this.clientInstanceId = clientInstanceId;
+    }
 
     public static long getLeftMessages() {
         return waitingRoom.size();
