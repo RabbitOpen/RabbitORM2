@@ -35,14 +35,14 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
     @Override
     public void doCommit(Long txGroupId, Long txBranchId, String applicationName) {
         doBranchCommit(txGroupId, txBranchId, applicationName);
-        persistGroupId(txGroupId, TxStatus.COMMITTED);
+        persistGroupStatus(txGroupId, applicationName, TxStatus.COMMITTED);
         logger.debug("{} doGroupCommit, txGroupId: {}, txBranchId: {}", applicationName, txGroupId, txBranchId);
         doCommitByGroupId(txGroupId, applicationName);
     }
 
     @Override
     public void doRollback(Long txGroupId, String applicationName) {
-        persistGroupId(txGroupId, TxStatus.ROLL_BACKED);
+        persistGroupStatus(txGroupId, applicationName, TxStatus.ROLL_BACKED);
         logger.debug("{} doRollback txGroupId: {}", applicationName, txGroupId);
         rollbackListenerMap.put(txGroupId, new RollbackListener(AbstractNetEventHandler.getCurrentAgent(),
                 AbstractServerEventHandler.getCurrentRequestId()));
@@ -84,7 +84,7 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
     @Override
     public Long getTransactionGroupId(String applicationName) {
         Long txGroupId = getNextGlobalId();
-        persistGroupId(txGroupId, applicationName, TxStatus.OPEN);
+        openTransaction(txGroupId, applicationName);
         logger.debug("{} open transaction, txGroupId: {}", applicationName, txGroupId);
         return txGroupId;
     }
@@ -118,20 +118,20 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
      * 持久化分组id信息
      * @param	txGroupId
      * @param   applicationName
-     * @param	txStatus 事务状态
      * @author  xiaoqianbin
      * @date    2019/12/9
      **/
-    protected abstract void persistGroupId(Long txGroupId, String applicationName, TxStatus txStatus);
+    protected abstract void openTransaction(Long txGroupId, String applicationName);
 
     /**
      * 持久化分组id信息
      * @param	txGroupId
+     * @param	applicationName
      * @param	txStatus 事务状态
      * @author  xiaoqianbin
      * @date    2019/12/9
      **/
-    protected abstract void persistGroupId(Long txGroupId, TxStatus txStatus);
+    protected abstract void persistGroupStatus(Long txGroupId, String applicationName, TxStatus txStatus);
 
     /**
      * 持久化分支id

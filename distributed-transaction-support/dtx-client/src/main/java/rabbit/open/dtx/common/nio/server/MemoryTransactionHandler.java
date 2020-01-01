@@ -204,21 +204,14 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
     }
 
     @Override
-    protected void persistGroupId(Long txGroupId, String applicationName, TxStatus txStatus) {
-        if (TxStatus.OPEN == txStatus) {
-            TransactionContext context = new TransactionContext(txStatus, txGroupId);
-            context.setApplicationName(applicationName);
-            contextCache.put(txGroupId, context);
-        } else {
-            TransactionContext context = contextCache.get(txGroupId);
-            if (null != context) {
-                context.setTxStatus(txStatus);
-            }
-        }
+    protected void openTransaction(Long txGroupId, String applicationName) {
+        TransactionContext context = new TransactionContext(TxStatus.OPEN, txGroupId);
+        context.setApplicationName(applicationName);
+        contextCache.put(txGroupId, context);
     }
 
     @Override
-    protected void persistGroupId(Long txGroupId, TxStatus txStatus) {
+    protected void persistGroupStatus(Long txGroupId, String applicationName, TxStatus txStatus) {
         TransactionContext context = contextCache.get(txGroupId);
         if (null != context) {
             context.setTxStatus(txStatus);
