@@ -71,7 +71,6 @@ public abstract class AbstractServerTransactionHandler implements TransactionHan
     public Long getTransactionBranchId(Long txGroupId, String applicationName) {
         Long txBranchId = getNextGlobalId();
         persistBranchInfo(txGroupId, txBranchId, applicationName, TxStatus.OPEN);
-        logger.debug("'{} |'txGroupId({}) | getTransactionBranchId | {}", applicationName, txGroupId, txBranchId);
         return txBranchId;
     }
 

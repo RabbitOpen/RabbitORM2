@@ -52,9 +52,10 @@ public class MyTransactionService extends AbstractServerTransactionHandler {
     }
 
     @Override
-    protected void persistGroupStatus(Long txGroupId, TxStatus txStatus) {
+    protected void persistGroupStatus(Long txGroupId, String applicationName, TxStatus txStatus) {
 
     }
+
 
     @Override
     protected void persistBranchInfo(Long txGroupId, Long txBranchId, String applicationName, TxStatus txStatus) {

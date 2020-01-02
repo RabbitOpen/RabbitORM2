@@ -40,6 +40,8 @@ class RpcRequestHandler implements DataHandler {
             return method.invoke(dtxService, protocol.getValues());
         } catch (NoSuchMethodException e) {
             return tryInvokeDefaultInterfaceMethod(protocol, dtxService, e);
+        } catch (InvocationTargetException ex) {
+            throw convertInvocationTargetException(ex);
         } catch (DtxException e) {
             throw e;
         } catch (Exception e) {
@@ -60,14 +62,24 @@ class RpcRequestHandler implements DataHandler {
             Method method = getMethodFromInterface(protocol, dtxService, e);
             return method.invoke(dtxService, protocol.getValues());
         } catch (InvocationTargetException ex) {
-            Throwable cause = ex.getTargetException();
-            if (cause instanceof DtxException) {
-                throw (DtxException) cause;
-            } else {
-                throw new DtxException(cause);
-            }
+            throw convertInvocationTargetException(ex);
         } catch (Exception ex) {
             throw new DtxException(ex);
+        }
+    }
+
+    /**
+     * 转换反射调用时异常
+     * @param	ex
+     * @author  xiaoqianbin
+     * @date    2020/1/2
+     **/
+    private DtxException convertInvocationTargetException(InvocationTargetException ex) {
+        Throwable cause = ex.getTargetException();
+        if (cause instanceof DtxException) {
+            return (DtxException) cause;
+        } else {
+            return new DtxException(cause);
         }
     }
 

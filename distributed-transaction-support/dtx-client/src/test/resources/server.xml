@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+      	   http://www.springframework.org/schema/context
+      	   http://www.springframework.org/schema/context/spring-context-4.0.xsd
+      	   http://www.springframework.org/schema/aop
+      	   http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+      	   http://www.springframework.org/schema/task
+      	   http://www.springframework.org/schema/task/spring-task-4.0.xsd">
+
+    <!-- 配置自动扫描 -->
+    <context:component-scan base-package="rabbit.open.dtx.server"/>
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+
+    <task:annotation-driven/>
+
+    <bean id="redisTransactionHandler" class="rabbit.open.dtx.common.nio.server.RedisTransactionHandler">
+
+    </bean>
+
+</beans>	
+
+

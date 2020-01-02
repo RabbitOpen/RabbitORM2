@@ -283,6 +283,8 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         run = false;
         try {
             monitor.shutdown();
+            // 先关闭listener 后释放连接，因为有些异步listener会使用连接进行response
+            closeAllListener();
             releaseResources();
             readThread.join();
             nioSelector.close();
@@ -290,6 +292,16 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             logger.error(e.getMessage(), e);
         }
         logger.info("{} gracefully shutdown", DtxChannelAgentPool.class.getSimpleName());
+    }
+
+    // 关闭所有的listener
+    private void closeAllListener() {
+        for (MessageListener listener : listenerMap.values()) {
+            if (listener instanceof AbstractMessageListener) {
+                AbstractMessageListener abstractMessageListener = (AbstractMessageListener) listener;
+                abstractMessageListener.close();
+            }
+        }
     }
 
     // 回收所有资源

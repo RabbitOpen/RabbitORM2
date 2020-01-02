@@ -2,7 +2,6 @@ package rabbit.open.dtx.common.nio.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.dtx.common.nio.exception.DtxException;
 import rabbit.open.dtx.common.nio.exception.GetConnectionTimeoutException;
 
 import java.util.concurrent.LinkedBlockingDeque;
@@ -51,9 +50,6 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
      * @date    2019/12/12
      **/
     private T getResource(long timeoutMilliSeconds) {
-        if (!isRunning()) {
-            throw new DtxException("pool is closed");
-        }
         T resource = null;
         try {
             if (0 != timeoutMilliSeconds) {
