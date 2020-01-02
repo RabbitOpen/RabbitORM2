@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * nio server
@@ -44,6 +45,7 @@ public class DtxServer {
     // 网络事件接口
     private AbstractServerEventHandler netEventHandler;
 
+    private static final AtomicLong SELECTOR_ID = new AtomicLong(0);
     private String serverId;
 
     public DtxServer(int port, AbstractServerEventHandler netEventHandler) throws IOException {
@@ -72,7 +74,7 @@ public class DtxServer {
                     logger.error(e.getMessage(), e);
                 }
             }
-        }, "event-selector");
+        }, "event-selector-" + SELECTOR_ID.getAndAdd(1L));
         serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor");
         serverAgentMonitor.start();
     }

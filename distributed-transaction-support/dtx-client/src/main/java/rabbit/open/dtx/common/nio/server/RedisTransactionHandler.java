@@ -36,16 +36,14 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     @Override
     protected void doCommitByGroupId(Long txGroupId, String applicationName) {
         Map<String, String> context = jedisClient.hgetAll(getGroupIdKey(txGroupId));
-        if (null != context) {
-            if (!existUnConfirmedBranch(context)) {
-                removeTransactionContext(txGroupId);
-                return;
-            }
-            for (Map.Entry<String, String> entry : context.entrySet()) {
-                if (entry.getKey().startsWith(RedisKeyNames.BRANCH_INFO.name())) {
-                    String[] info = entry.getValue().split("\\|");
-                    dispatchCommitInfo(txGroupId, info[0], Long.parseLong(info[2]));
-                }
+        if (!existUnConfirmedBranch(context)) {
+            removeTransactionContext(txGroupId);
+            return;
+        }
+        for (Map.Entry<String, String> entry : context.entrySet()) {
+            if (entry.getKey().startsWith(RedisKeyNames.BRANCH_INFO.name())) {
+                String[] info = entry.getValue().split("\\|");
+                dispatchCommitInfo(txGroupId, info[0], Long.parseLong(info[2]));
             }
         }
     }
@@ -77,9 +75,6 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     protected void doRollbackByGroupId(Long txGroupId, String applicationName) {
         logger.debug("{} doRollback txGroupId: {}", applicationName, txGroupId);
         Map<String, String> context = jedisClient.hgetAll(getGroupIdKey(txGroupId));
-        if (null == context) {
-            return;
-        }
         if (shouldRollback(context)) {
             // 如果需要回滚才暂时挂起客户端
             AbstractServerEventHandler.suspendRequest();
@@ -174,6 +169,9 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     protected void persistGroupStatus(Long txGroupId, String applicationName, TxStatus txStatus) {
         if (TxStatus.COMMITTED == txStatus || TxStatus.ROLL_BACKED == txStatus) {
             Map<String, String> context = jedisClient.hgetAll(getGroupIdKey(txGroupId));
+            if (context.isEmpty()) {
+                throw new DistributedTransactionException(String.format("transaction %s is not existed", txGroupId));
+            }
             String app = context.get(RedisKeyNames.GROUP_INFO.name()).split("\\|")[0];
             if (!applicationName.equals(app)) {
                 String errMsg = String.format("txGroupId(%s) is created by '%s', but %s by '%s'", txGroupId,

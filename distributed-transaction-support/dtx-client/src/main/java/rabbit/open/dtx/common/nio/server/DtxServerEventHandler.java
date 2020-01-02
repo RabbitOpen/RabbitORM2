@@ -98,9 +98,9 @@ public class DtxServerEventHandler extends AbstractServerEventHandler {
      * @author  xiaoqianbin
      * @date    2019/12/19
      **/
-    private class DtxThreadFactory implements ThreadFactory {
+    private static class DtxThreadFactory implements ThreadFactory {
         private final ThreadGroup group;
-        private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private static final AtomicInteger threadNumber = new AtomicInteger(1);
         private final String namePrefix;
 
         DtxThreadFactory(String prefix) {

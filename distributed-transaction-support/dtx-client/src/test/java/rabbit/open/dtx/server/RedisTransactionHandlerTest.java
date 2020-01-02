@@ -21,6 +21,7 @@ import redis.clients.jedis.JedisPool;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -52,10 +53,10 @@ public class RedisTransactionHandlerTest {
         PooledJedisClient jedisClient = new PooledJedisClient(getPool());
         Long count = jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE);
         redisTransactionHandler.setJedisClient(jedisClient);
-        DtxServerEventHandler serverEventHandler = new DtxServerEventHandler();
-        serverEventHandler.setTransactionHandler(redisTransactionHandler);
-        serverEventHandler.init();
-        DtxServerWrapper serverWrapper = new DtxServerWrapper(12345, serverEventHandler);
+        List<DtxServerWrapper> serverWrappers = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            serverWrappers.add(createServer(12345 + i));
+        }
         TestTransactionManager manager = new TestTransactionManager();
         manager.init();
         // 事务处理器
@@ -73,9 +74,23 @@ public class RedisTransactionHandlerTest {
         // 空回滚
         txGroupId = handler.getTransactionGroupId(manager.getApplicationName());
         handler.doRollback(txGroupId, manager.getApplicationName());
+        // 回滚不存在的事务
+        try {
+            handler.doRollback(-1L, manager.getApplicationName());
+            throw new RuntimeException("不可能走到这一步");
+        } catch (Exception e) {
+            TestCase.assertEquals(DistributedTransactionException.class, e.getClass());
+        }
         // 空提交
         txGroupId = handler.getTransactionGroupId(manager.getApplicationName());
         handler.doCommit(txGroupId, null, manager.getApplicationName());
+        // 提交不存在的事务
+        try {
+            handler.doCommit(-1L, null, manager.getApplicationName());
+            throw new RuntimeException("不可能走到这一步");
+        } catch (Exception e) {
+            TestCase.assertEquals(DistributedTransactionException.class, e.getClass());
+        }
 
         // 正常多分支提交
         txGroupId = handler.getTransactionGroupId(manager.getApplicationName());
@@ -89,14 +104,24 @@ public class RedisTransactionHandlerTest {
         txGroupId = handler.getTransactionGroupId(manager.getApplicationName());
         branchId = handler.getTransactionBranchId(txGroupId, manager.getApplicationName());
         handler.doBranchCommit(txGroupId, branchId, manager.getApplicationName());
-        branchId = handler.getTransactionBranchId(txGroupId, manager.getApplicationName());
-        handler.doBranchCommit(txGroupId, branchId, manager.getApplicationName());
+        // 开启新分支不提交
+        handler.getTransactionBranchId(txGroupId, manager.getApplicationName());
+        // 直接回滚，模拟第二分支异常了
         handler.doRollback(txGroupId, manager.getApplicationName());
 
         manager.destroy();
-        serverWrapper.close();
+        for (DtxServerWrapper serverWrapper : serverWrappers) {
+            serverWrapper.close();
+        }
         TestCase.assertEquals(count, jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE));
         redisTransactionHandler.destroy();
+    }
+
+    private DtxServerWrapper createServer(int port) throws IOException {
+        DtxServerEventHandler serverEventHandler = new DtxServerEventHandler();
+        serverEventHandler.setTransactionHandler(redisTransactionHandler);
+        serverEventHandler.init();
+        return new DtxServerWrapper(port, serverEventHandler);
     }
 
     private void holdOn(long milliSeconds) throws InterruptedException {
@@ -131,7 +156,7 @@ public class RedisTransactionHandlerTest {
 
         @Override
         protected long getRpcTimeoutSeconds() {
-            return 3000;
+            return 3;
         }
 
         AbstractMessageListener listener = new AbstractMessageListener() {
@@ -185,7 +210,13 @@ public class RedisTransactionHandlerTest {
 
         @Override
         public List<Node> getServerNodes() {
-            return Arrays.asList(new Node("127.0.0.1", 12345));
+            return Arrays.asList(
+                    new Node("127.0.0.1", 12345),
+                    new Node("127.0.0.1", 12346),
+                    new Node("127.0.0.1", 12347),
+                    new Node("127.0.0.1", 12348),
+                    new Node("127.0.0.1", 12349)
+            );
         }
     }
 }
