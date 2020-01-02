@@ -52,12 +52,14 @@ public class RedisTransactionHandlerTest {
     public void redisTransactionHandlerTest() throws IOException, NoSuchMethodException, InterruptedException {
         PooledJedisClient jedisClient = new PooledJedisClient(getPool());
         Long count = jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE);
+        // 模拟死掉的context
+        TestTransactionManager manager = new TestTransactionManager();
+        mockDeadContext(jedisClient, manager, -200);
         redisTransactionHandler.setJedisClient(jedisClient);
         List<DtxServerWrapper> serverWrappers = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             serverWrappers.add(createServer(12345 + i));
         }
-        TestTransactionManager manager = new TestTransactionManager();
         manager.init();
         // 事务处理器
         Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
@@ -71,6 +73,7 @@ public class RedisTransactionHandlerTest {
         // 提交
         handler.doCommit(txGroupId, null, manager.getApplicationName());
 
+        mockDeadContext(jedisClient, manager, -100);
         // 空回滚
         txGroupId = handler.getTransactionGroupId(manager.getApplicationName());
         handler.doRollback(txGroupId, manager.getApplicationName());
@@ -117,6 +120,21 @@ public class RedisTransactionHandlerTest {
         redisTransactionHandler.destroy();
     }
 
+    private void mockDeadContext(PooledJedisClient jedisClient, TestTransactionManager manager, long base) {
+        jedisClient.zadd(RedisKeyNames.DTX_CONTEXT_LIST.name(),
+                System.currentTimeMillis() - 40L * 60 * 1000,
+                getGroupIdKey(-10L + base));
+
+        jedisClient.zadd(RedisKeyNames.DTX_CONTEXT_LIST.name(),
+                System.currentTimeMillis() - 50L * 60 * 1000,
+                getGroupIdKey(-11L + base));
+        jedisClient.hset(getGroupIdKey(-11L + base), RedisKeyNames.GROUP_INFO.name(),
+                manager.getApplicationName() + "|" + TxStatus.OPEN + "|" + (-11 + base));
+        jedisClient.hset(getGroupIdKey(-11L + base), getBranchInfoKey(-31 + base),
+                manager.getApplicationName() + "|" + TxStatus.COMMITTED + "|" + (-31 + base));
+        redisTransactionHandler.getSweeper().wakeUp();
+    }
+
     private DtxServerWrapper createServer(int port) throws IOException {
         DtxServerEventHandler serverEventHandler = new DtxServerEventHandler();
         serverEventHandler.setTransactionHandler(redisTransactionHandler);
@@ -156,7 +174,7 @@ public class RedisTransactionHandlerTest {
 
         @Override
         protected long getRpcTimeoutSeconds() {
-            return 3;
+            return 3000;
         }
 
         AbstractMessageListener listener = new AbstractMessageListener() {
@@ -218,5 +236,13 @@ public class RedisTransactionHandlerTest {
                     new Node("127.0.0.1", 12349)
             );
         }
+    }
+
+    private String getGroupIdKey(Long txGroupId) {
+        return RedisKeyNames.DTX_GROUP_ID + "_" + txGroupId.toString();
+    }
+
+    private String getBranchInfoKey(Long txBranchId) {
+        return RedisKeyNames.BRANCH_INFO.name() + txBranchId.toString();
     }
 }

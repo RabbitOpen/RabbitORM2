@@ -12,6 +12,7 @@ import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
 import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <b>基于redis的事务接口实现， 事务context 采用redis map结构存储, 结构详细信息如下
@@ -25,6 +26,17 @@ import java.util.Map;
 public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     private JedisClient jedisClient;
+
+    private Sweeper sweeper;
+
+    public RedisTransactionHandler() {
+        sweeper = new Sweeper(this);
+        sweeper.start();
+    }
+
+    public Sweeper getSweeper() {
+        return sweeper;
+    }
 
     /**
      * 提交事务
@@ -46,6 +58,51 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
                 dispatchCommitInfo(txGroupId, info[0], Long.parseLong(info[2]));
             }
         }
+    }
+
+    /**
+     * 清理30分钟还未结束的context
+     * @author  xiaoqianbin
+     * @date    2020/1/2
+     **/
+    public void clearDeadContext() {
+        if (null == jedisClient) {
+            return;
+        }
+        Set<String> list = jedisClient.zrangeByScore(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0,
+                System.currentTimeMillis() - 30d * 60 * 1000);
+        for (String key : list) {
+            Map<String, String> context = jedisClient.hgetAll(key);
+            if (shouldRollback(context)) {
+                String groupInfo = context.get(RedisKeyNames.GROUP_INFO.name());
+                long txGroupId = Long.parseLong(groupInfo.split("\\|")[2]);
+                if (rollbackByContext(context, txGroupId)) {
+                    logger.warn("dead context[{}] is cleared", context);
+                }
+            } else {
+                jedisClient.zrem(RedisKeyNames.DTX_CONTEXT_LIST.name(), key);
+                jedisClient.del(key);
+                logger.warn("dead context[{}] is cleared", context);
+            }
+        }
+    }
+
+    /**
+     * 根据context信息和 groupId进行回滚
+     * @param	context
+	 * @param	txGroupId
+     * @author  xiaoqianbin
+     * @date    2020/1/2
+     **/
+    private boolean rollbackByContext(Map<String, String> context, long txGroupId) {
+        boolean result = true;
+        for (Map.Entry<String, String> entry : context.entrySet()) {
+            if (entry.getKey().startsWith(RedisKeyNames.BRANCH_INFO.name())) {
+                String[] info = entry.getValue().split("\\|");
+                result = result && dispatchRollbackInfo(txGroupId, info[0], Long.parseLong(info[2]));
+            }
+        }
+        return result;
     }
 
     /**
@@ -79,12 +136,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
             // 如果需要回滚才暂时挂起客户端
             AbstractServerEventHandler.suspendRequest();
             saveRollbackContext(txGroupId);
-            for (Map.Entry<String, String> entry : context.entrySet()) {
-                if (entry.getKey().startsWith(RedisKeyNames.BRANCH_INFO.name())) {
-                    String[] info = entry.getValue().split("\\|");
-                    dispatchRollbackInfo(txGroupId, info[0], Long.parseLong(info[2]));
-                }
-            }
+            rollbackByContext(context, txGroupId);
         } else {
             removeTransactionContext(txGroupId);
         }
@@ -114,19 +166,20 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
         return false;
     }
 
-    private void dispatchRollbackInfo(Long txGroupId, String app, long txBranchId) {
+    private boolean dispatchRollbackInfo(Long txGroupId, String app, long txBranchId) {
         List<ChannelAgent> agents = ApplicationDataHandler.getAgents(app);
         for (ChannelAgent agent : agents) {
             if (!agent.isClosed()) {
                 try {
                     agent.notify(new RollBackMessage(app, txGroupId, txBranchId));
                     logger.debug("dispatch rollback message ({} --> {}) ", txGroupId, txBranchId);
-                    break;
+                    return true;
                 } catch (Exception e) {
                     // TO DO: 忽略节点挂了的异常
                 }
             }
         }
+        return false;
     }
 
     /**
@@ -263,8 +316,11 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
         Map<String, String> context = jedisClient.hgetAll(getGroupIdKey(txGroupId));
         if (!existUnConfirmedBranch(context)) {
             logger.debug("tx [{}] rollback completed", txGroupId);
-            String[] rollbackContext = context.get(RedisKeyNames.ROLLBACK_CONTEXT.name()).split("\\|");
-            wakeUpClient(Long.parseLong(rollbackContext[1]), Long.parseLong(rollbackContext[0]), applicationName);
+            String rollbackInfo = context.get(RedisKeyNames.ROLLBACK_CONTEXT.name());
+            if (null != rollbackInfo) {
+                String[] rollbackContext = rollbackInfo.split("\\|");
+                wakeUpClient(Long.parseLong(rollbackContext[1]), Long.parseLong(rollbackContext[0]), applicationName);
+            }
             removeTransactionContext(txGroupId);
         }
     }
@@ -290,6 +346,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     @PreDestroy
     public void destroy() {
+        sweeper.shutdown();
         jedisClient.close();
         logger.info("jedis client is closed");
     }

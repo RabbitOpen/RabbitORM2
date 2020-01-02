@@ -1,6 +1,7 @@
 package rabbit.open.dtx.common.nio.server;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * jedis客户端
@@ -24,6 +25,8 @@ public interface JedisClient {
     Long zrem(String key, String... members);
 
     Long zcount(String key, double min, double max);
+
+    Set<String> zrangeByScore(String key, double min, double max);
 
     void close();
 }

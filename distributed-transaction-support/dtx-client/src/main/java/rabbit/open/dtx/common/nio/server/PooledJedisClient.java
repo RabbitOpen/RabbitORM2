@@ -5,6 +5,7 @@ import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.JedisPool;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 池化的jedis客户端
@@ -61,6 +62,11 @@ public class PooledJedisClient implements JedisClient {
     @Override
     public Long zcount(String key, double min, double max) {
         return (Long) execute(jedis -> jedis.zcount(key, min, max));
+    }
+
+    @Override
+    public Set<String> zrangeByScore(String key, double min, double max) {
+        return (Set<String>) execute(jedis -> jedis.zrangeByScore(key, min, max));
     }
 
     @Override
