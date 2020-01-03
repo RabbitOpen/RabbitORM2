@@ -11,6 +11,6 @@ import rabbit.open.dtx.common.nio.client.annotation.Isolation;
 public class IsolationException extends DtxException {
 
     public IsolationException() {
-        super(String.format("%s must be used in transactional mode", Isolation.READ_COMMITTED));
+        super(String.format("%s must be used in transactional mode", Isolation.LOCK));
     }
 }

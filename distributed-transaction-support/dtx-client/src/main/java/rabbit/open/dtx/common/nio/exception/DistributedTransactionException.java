@@ -1,7 +1,7 @@
 package rabbit.open.dtx.common.nio.exception;
 
 /**
- * DTX异常基类
+ * DTX异常类
  * @author xiaoqianbin
  * @date 2019/12/4
  **/

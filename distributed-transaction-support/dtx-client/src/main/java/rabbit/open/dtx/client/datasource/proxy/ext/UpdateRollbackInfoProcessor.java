@@ -120,7 +120,7 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
      * @date 2019/12/23
      **/
     private boolean isStrictIsolation() {
-        return Isolation.READ_COMMITTED == DistributedTransactionContext.getDistributedTransactionObject().getIsolation();
+        return Isolation.LOCK == DistributedTransactionContext.getDistributedTransactionObject().getIsolation();
     }
 
     protected StringBuilder createPreImageSql(SQLMeta sqlMeta) {

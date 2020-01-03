@@ -74,7 +74,7 @@ public class ProductService extends GenericService<Product> {
         }
     }
 
-    @DistributedTransaction(isolation = Isolation.READ_COMMITTED)
+    @DistributedTransaction(isolation = Isolation.LOCK)
     @Transactional
     public void updateProduct(Product product) {
         updateByID(product);
@@ -97,7 +97,7 @@ public class ProductService extends GenericService<Product> {
         }
     }
 
-    @DistributedTransaction(isolation = Isolation.READ_COMMITTED)
+    @DistributedTransaction(isolation = Isolation.LOCK)
     public void isolationErrorTest(Product product) {
         updateByID(product);
     }

@@ -49,6 +49,36 @@ public class RedisTransactionHandlerTest {
     }
 
     @Test
+    public void luaTest() {
+        PooledJedisClient jedisClient = new PooledJedisClient(getPool());
+        jedisClient.del("map");
+        TestCase.assertTrue(1L == jedisClient.casHset("map", "k1", "v1", "v2"));
+        TestCase.assertTrue(1L == jedisClient.casHset("map", "k1", "v1", "v2"));
+        TestCase.assertEquals(jedisClient.hget("map", "k1"), "v1");
+        jedisClient.del("map");
+        jedisClient.hset("map", "k1", "v2");
+        TestCase.assertTrue(0 == jedisClient.casHset("map", "k1", "v1", "v2"));
+        TestCase.assertTrue(0 == jedisClient.casHset("map", "k1", "v1", "v2"));
+        TestCase.assertEquals(jedisClient.hget("map", "k1"), "v2");
+
+        jedisClient.del("list");
+        jedisClient.rpush("list", "hello", "kitty", "world", "apple");
+
+        PopInfo info = jedisClient.casLpop("list");
+        TestCase.assertEquals("hello", info.getResult());
+        TestCase.assertEquals("kitty", info.getNext());
+        info = jedisClient.casLpop("list");
+        TestCase.assertEquals("kitty", info.getResult());
+        TestCase.assertEquals("world", info.getNext());
+
+        info = jedisClient.casLpop("list");
+        info = jedisClient.casLpop("list");
+        TestCase.assertEquals("apple", info.getResult());
+        TestCase.assertNull(info.getNext());
+        jedisClient.close();
+    }
+
+    @Test
     public void redisTransactionHandlerTest() throws IOException, NoSuchMethodException, InterruptedException {
         PooledJedisClient jedisClient = new PooledJedisClient(getPool());
         Long count = jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE);

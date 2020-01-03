@@ -1,9 +1,9 @@
 package rabbit.open.dtx.common.nio.server;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.JedisPool;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,15 +14,25 @@ import java.util.Set;
  **/
 public class PooledJedisClient implements JedisClient {
 
+    // casHset方法脚本
+    protected String casHsetScript = "local status = redis.call('hget', ARGV[1], ARGV[2])\n" +
+                                            "if status ~= ARGV[4] then\n" +
+                                            "redis.call('hset', ARGV[1], ARGV[2], ARGV[3]) return 1\n" +
+                                            "else return 0 end;";
+    // casHsetScript对应的sha
+    protected String casHsetScriptSha;
+
+    protected String casLpopScript = "return {redis.call('lpop', ARGV[1]), redis.call('lindex', ARGV[1], 0)};";
+
+    protected String casLpopScriptSha;
+
     private JedisPool pool;
 
-    public PooledJedisClient() {}
-
     public PooledJedisClient(JedisPool pool) {
-        this();
         this.pool = pool;
+        casHsetScriptSha = (String) execute(jedis -> jedis.scriptLoad(casHsetScript));
+        casLpopScriptSha = (String) execute(jedis -> jedis.scriptLoad(casLpopScript));
     }
-
 
     @Override
     public Map<String, String> hgetAll(String key) {
@@ -32,6 +42,25 @@ public class PooledJedisClient implements JedisClient {
     @Override
     public Long hset(String key, String field, String value) {
         return (Long) execute(jedis -> jedis.hset(key, field, value));
+    }
+
+    @Override
+    public String hget(String key, String field) {
+        return (String) execute(jedis -> jedis.hget(key, field));
+    }
+
+    /**
+     * 原子设值，如果map中字段{field}的值不等于exclude就设为expected, 否则什么都不做
+     * @param	key
+     * @param	field
+     * @param	expected
+     * @param	exclude
+     * @author  xiaoqianbin
+     * @date    2020/1/3
+     **/
+    @Override
+    public Long casHset(String key, String field, String expected, String exclude) {
+        return (Long) execute(jedis -> jedis.evalsha(casHsetScriptSha, 0, key, field, expected, exclude));
     }
 
     @Override
@@ -70,6 +99,28 @@ public class PooledJedisClient implements JedisClient {
     }
 
     @Override
+    public Long rpush(String key, String... strings) {
+        return (Long) execute(jedis -> jedis.rpush(key, strings));
+    }
+
+    @Override
+    public String lindex(String key, long index) {
+        return (String) execute(jedis -> jedis.lindex(key, index));
+    }
+
+    /**
+     * 取出头部和key的长度信息(不包含当前头部的长度)
+     * @param	key
+     * @author  xiaoqianbin
+     * @date    2020/1/3
+     **/
+    @Override
+    public PopInfo casLpop(String key) {
+        List<Object> result = (List<Object>) execute(jedis -> jedis.evalsha(casLpopScriptSha, 0, key));
+        return new PopInfo((String) result.get(0), (String) result.get(1));
+    }
+
+    @Override
     public void close() {
         pool.close();
     }
@@ -88,6 +139,6 @@ public class PooledJedisClient implements JedisClient {
 
     @FunctionalInterface
     public interface Callable {
-        Object invoke(JedisCommands jedisCommands);
+        Object invoke(Jedis jedis);
     }
 }

@@ -1,15 +1,15 @@
 package rabbit.open.dtx.common.nio.client.annotation;
 
 /**
- * 事务隔离级别
+ * 事务隔离类型
  * @author xiaoqianbin
  * @date 2019/12/20
  **/
 public enum Isolation {
 
-    READ_UNCOMMITTED("读未提交，该模式下的访问不加锁"),
+    UNLOCK("该模式下的访问不加锁"),
 
-    READ_COMMITTED("读已提交，该模式下的访问会加锁");
+    LOCK("该模式下的访问会加锁");
 
     Isolation(String desc) {
 

@@ -24,5 +24,5 @@ public @interface DistributedTransaction {
     Propagation propagation() default Propagation.REQUIRED;
 
     // 默认不加锁
-    Isolation isolation() default Isolation.READ_UNCOMMITTED;
+    Isolation isolation() default Isolation.UNLOCK;
 }

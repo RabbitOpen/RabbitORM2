@@ -1,5 +1,6 @@
 package rabbit.open.dtx.common.nio.server;
 
+import rabbit.open.dtx.common.nio.exception.DeadLockException;
 import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
@@ -16,9 +17,17 @@ import java.util.Set;
 
 /**
  * <b>基于redis的事务接口实现， 事务context 采用redis map结构存储, 结构详细信息如下
- * groupInfo:          app|status|groupId
- * branchInfo:         branchApp|status|branchId
- * rollbackContext:    requestId|clientInstanceId
+ *              groupInfo:  app|status|groupId
+ *              branchInfo-branchId:    branchApp|status|branchId
+ *              rollbackContext:    requestId|clientInstanceId          (用以回滚时记录请求id和客户端信息)
+ *              waitLockContext@branchId:   requestId|clientInstanceId  (用以等锁时记录请求id和客户端信息)
+ *
+ *              全局锁等待列表：key是lock id，value是事务context id
+ *
+ *              事务锁持有map: map和key ---> RedisKeyNames.DTX_CONTEXT_LOCK.name() + "_" + txGroupId
+ *              txBranchId + "@" + lockId: HOLD
+ *              txBranchId + "@" + lockId: WAIT
+ *
  * </b>
  * @author xiaoqianbin
  * @date 2019/12/31
@@ -61,16 +70,24 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     }
 
     /**
-     * 清理30分钟还未结束的context
-     * @author  xiaoqianbin
-     * @date    2020/1/2
+     * 清理3分钟还未结束的context
+     * @author xiaoqianbin
+     * @date 2020/1/2
      **/
     public void clearDeadContext() {
         if (null == jedisClient) {
             return;
         }
         Set<String> list = jedisClient.zrangeByScore(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0,
-                System.currentTimeMillis() - 30d * 60 * 1000);
+                System.currentTimeMillis() - 3d * 60 * 1000);
+        // TODO: 快速清除所有废弃事务占有的锁资源
+
+        // 回滚过期的事务
+        rollbackDeadContext(list);
+    }
+
+    // 回滚过期的事务
+    private void rollbackDeadContext(Set<String> list) {
         for (String key : list) {
             Map<String, String> context = jedisClient.hgetAll(key);
             if (shouldRollback(context)) {
@@ -89,10 +106,10 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     /**
      * 根据context信息和 groupId进行回滚
-     * @param	context
-	 * @param	txGroupId
-     * @author  xiaoqianbin
-     * @date    2020/1/2
+     * @param context
+     * @param txGroupId
+     * @author xiaoqianbin
+     * @date 2020/1/2
      **/
     private boolean rollbackByContext(Map<String, String> context, long txGroupId) {
         boolean result = true;
@@ -144,8 +161,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     // 保存回滚上下文信息
     private void saveRollbackContext(Long txGroupId) {
-        jedisClient.hset(getGroupIdKey(txGroupId), RedisKeyNames.ROLLBACK_CONTEXT.name(), AbstractServerEventHandler.getCurrentRequestId()
-                + "|" + AbstractServerEventHandler.getCurrentAgent().getClientInstanceId());
+        jedisClient.hset(getGroupIdKey(txGroupId), RedisKeyNames.ROLLBACK_CONTEXT.name(), getSuspendContextInfo());
     }
 
     /**
@@ -292,6 +308,22 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
         jedisClient.del(getGroupIdKey(txGroupId));
         // 删除context的索引信息
         jedisClient.zrem(RedisKeyNames.DTX_CONTEXT_LIST.name(), getGroupIdKey(txGroupId));
+        // 释放持有的锁
+        releaseHoldLocks(txGroupId);
+    }
+
+    private void releaseHoldLocks(Long txGroupId) {
+        // 获取持有的锁
+        Map<String, String> lockMap = jedisClient.hgetAll(getContextLockKey(txGroupId));
+        for (Map.Entry<String, String> entry : lockMap.entrySet()) {
+            String key = entry.getKey();
+            String lock = key.substring(key.indexOf('@') + 1);
+            PopInfo popInfo = jedisClient.casLpop(lock);
+            if (null != popInfo.getNext()) {
+                // 尝试唤醒等待队列中的元素
+
+            }
+        }
     }
 
     /**
@@ -327,7 +359,83 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     @Override
     public void lockData(String applicationName, Long txGroupId, Long txBranchId, List<String> locks) {
-        // to do : ignore
+        Map<String, String> holdLocks = jedisClient.hgetAll(getContextLockKey(txGroupId));
+        for (String lock : locks) {
+            if (holdLocks.containsKey(getLockKey(txBranchId, lock))) {
+                // 如果已经持有锁就直接返回
+                continue;
+            }
+            // 死锁检测
+            detectDeadLock(txBranchId, holdLocks, lock);
+            tryHoldLock(applicationName, txGroupId, txBranchId, lock);
+        }
+    }
+
+    private void detectDeadLock(Long txBranchId, Map<String, String> holdLocks, String lock) {
+        for (Map.Entry<String, String> entry : holdLocks.entrySet()) {
+            String key = entry.getKey();
+            if (key.substring(key.indexOf('@') + 1).equals(lock)) {
+                throw new DeadLockException(Long.parseLong(key.substring(0, key.indexOf('@'))), txBranchId, lock);
+            }
+        }
+    }
+
+    private void tryHoldLock(String applicationName, Long txGroupId, Long txBranchId, String lock) {
+        Long count = jedisClient.rpush(lock, getGroupIdKey(txGroupId));
+        if (1 == count) {
+            // 持有锁
+            logger.debug("{} transaction[{}-{}] hold lock {}", applicationName, txGroupId, txBranchId, lock);
+            jedisClient.hset(getContextLockKey(txGroupId), getLockKey(txBranchId, lock), LockStatus.HOLD.name());
+        } else {
+            if (1 == jedisClient.casHset(getContextLockKey(txGroupId), getLockKey(txBranchId, lock), LockStatus.WAIT.name(), LockStatus.HOLD.name())) {
+                // 如果添加等待锁成功就直接挂起客户端
+                logger.debug("{} transaction[{}-{}] is waiting lock {}", applicationName, txGroupId, txBranchId, lock);
+                AbstractServerEventHandler.suspendRequest();
+                jedisClient.hset(getGroupIdKey(txGroupId), getWaitContextKey(txBranchId), getSuspendContextInfo());
+            } else {
+                logger.debug("{} transaction[{}-{}] hold lock {}", applicationName, txGroupId, txBranchId, lock);
+            }
+        }
+    }
+
+    /**
+     * 生成回滚时的现场信息   requestId + "|" + clientInstanceId
+     * @author  xiaoqianbin
+     * @date    2020/1/3
+     **/
+    private String getSuspendContextInfo() {
+        return AbstractServerEventHandler.getCurrentRequestId() + "|" + AbstractServerEventHandler.getCurrentAgent().getClientInstanceId();
+    }
+
+    /**
+     * 构建分支等锁的key
+     * @param	txBranchId
+     * @author  xiaoqianbin
+     * @date    2020/1/3
+     **/
+    private String getWaitContextKey(Long txBranchId) {
+        return RedisKeyNames.WAIT_LOCK_CONTEXT.name() + "@" + txBranchId;
+    }
+
+    /**
+     * 生成锁map中的key信息
+     * @param	txBranchId
+	 * @param	lock
+     * @author  xiaoqianbin
+     * @date    2020/1/3
+     **/
+    private String getLockKey(Long txBranchId, String lock) {
+        return txBranchId + "@" + lock;
+    }
+
+    /**
+     * 构造事务持有锁列表的key
+     * @param txGroupId
+     * @author xiaoqianbin
+     * @date 2020/1/2
+     **/
+    private String getContextLockKey(Long txGroupId) {
+        return RedisKeyNames.DTX_CONTEXT_LOCK.name() + "_" + txGroupId;
     }
 
     @Override
