@@ -16,18 +16,17 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * <b>基于redis的事务接口实现， 事务context 采用redis map结构存储, 结构详细信息如下
- *              groupInfo:  app|status|groupId
- *              branchInfo-branchId:    branchApp|status|branchId
- *              rollbackContext:    requestId|clientInstanceId          (用以回滚时记录请求id和客户端信息)
- *              waitLockContext@branchId:   requestId|clientInstanceId  (用以等锁时记录请求id和客户端信息)
- *
- *              全局锁等待列表：key是lock id，value是事务context id
- *
- *              事务锁持有map: map和key ---> RedisKeyNames.DTX_CONTEXT_LOCK.name() + "_" + txGroupId
+ * <b> 基于redis的事务接口实现， 事务context 采用redis map结构存储, 结构详细信息如下
+ *          groupInfo:  app|status|groupId
+ *          branchInfo-branchId:    branchApp|status|branchId
+ *          rollbackContext:    requestId|clientInstanceId          (用以回滚时记录请求id和客户端信息)
+ *          waitLockContext@branchId:   requestId|clientInstanceId  (用以等锁时记录请求id和客户端信息)
+ *          全局锁等待列表：key是lock id，value: txGroupId + "@" + txBranchId + "@" + applicationName
+ *          事务锁持有map: map和key ---> RedisKeyNames.DTX_CONTEXT_LOCK.name() + "_" + txGroupId
  *              txBranchId + "@" + lockId: HOLD
  *              txBranchId + "@" + lockId: WAIT
  *
+ *          "@"、"|" 在该handler中是特殊字符，appName、lock资源中不能出现这些字符
  * </b>
  * @author xiaoqianbin
  * @date 2019/12/31
@@ -70,7 +69,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     }
 
     /**
-     * 清理3分钟还未结束的context
+     * 清理30s还未结束的context
      * @author xiaoqianbin
      * @date 2020/1/2
      **/
@@ -79,11 +78,23 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
             return;
         }
         Set<String> list = jedisClient.zrangeByScore(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0,
-                System.currentTimeMillis() - 3d * 60 * 1000);
-        // TODO: 快速清除所有废弃事务占有的锁资源
-
+                System.currentTimeMillis() - 30d * 1000);
+        // 快速清除所有废弃事务占有的锁资源
+        fastReleaseLocks(list);
         // 回滚过期的事务
         rollbackDeadContext(list);
+    }
+
+    // 快速清除所有废弃事务占有的锁资源
+    private void fastReleaseLocks(Set<String> list) {
+        for (String key : list) {
+            Map<String, String> context = jedisClient.hgetAll(key);
+            String groupInfo = context.get(RedisKeyNames.GROUP_INFO.name());
+            if (null != groupInfo) {
+                long txGroupId = Long.parseLong(groupInfo.split("\\|")[2]);
+                releaseHoldLocks(txGroupId);
+            }
+        }
     }
 
     // 回滚过期的事务
@@ -288,7 +299,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
      * @author xiaoqianbin
      * @date 2020/1/1
      **/
-    private void wakeUpClient(Long clientInstanceId, Long requestId, String applicationName) {
+    private void wakeupClient(Long clientInstanceId, Long requestId, String applicationName) {
         List<ChannelAgent> agents = ApplicationDataHandler.getAgents(applicationName);
         for (ChannelAgent agent : agents) {
             if (agent.getClientInstanceId().equals(clientInstanceId)) {
@@ -314,16 +325,48 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     private void releaseHoldLocks(Long txGroupId) {
         // 获取持有的锁
-        Map<String, String> lockMap = jedisClient.hgetAll(getContextLockKey(txGroupId));
+        Map<String, String> lockMap = jedisClient.hgetAllAndDel(getContextLockKey(txGroupId));
         for (Map.Entry<String, String> entry : lockMap.entrySet()) {
             String key = entry.getKey();
             String lock = key.substring(key.indexOf('@') + 1);
             PopInfo popInfo = jedisClient.casLpop(lock);
             if (null != popInfo.getNext()) {
                 // 尝试唤醒等待队列中的元素
-
+                tryWakeupClient(lock, popInfo);
             }
         }
+    }
+
+    private void tryWakeupClient(String lock, PopInfo popInfo) {
+        String[] waitedContext = popInfo.getNext().split("@");
+        long waitedGroupId = Long.parseLong(waitedContext[0]);
+        long waitedBranchId = Long.parseLong(waitedContext[1]);
+        String waitedApp = waitedContext[2];
+        Map<String, String> locks = jedisClient.hsetGetAll(getContextLockKey(waitedGroupId), getLockKey(waitedBranchId, lock), LockStatus.HOLD.name());
+        logger.debug("'{}' transaction[{}-{}] hold lock '{}'", waitedApp, waitedGroupId, waitedBranchId, lock);
+        if (branchLocksAcquired(waitedContext[1], locks)) {
+            String wakeupInfo = jedisClient.hget(getGroupIdKey(waitedGroupId), getWaitContextKey(waitedBranchId));
+            if (null != wakeupInfo) {
+                String[] wakeupContext = wakeupInfo.split("\\|");
+                wakeupClient(Long.parseLong(wakeupContext[1]), Long.parseLong(wakeupContext[0]), waitedApp);
+            }
+        }
+    }
+
+    /**
+     * 判断分支锁是否全部就绪
+     * @param	branchStr
+	 * @param	locks
+     * @author  xiaoqianbin
+     * @date    2020/1/6
+     **/
+    private boolean branchLocksAcquired(String branchStr, Map<String, String> locks) {
+        for (Map.Entry<String, String> lockEntry : locks.entrySet()) {
+            if (lockEntry.getKey().startsWith(branchStr) && lockEntry.getValue().equals(LockStatus.WAIT.name())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -351,7 +394,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
             String rollbackInfo = context.get(RedisKeyNames.ROLLBACK_CONTEXT.name());
             if (null != rollbackInfo) {
                 String[] rollbackContext = rollbackInfo.split("\\|");
-                wakeUpClient(Long.parseLong(rollbackContext[1]), Long.parseLong(rollbackContext[0]), applicationName);
+                wakeupClient(Long.parseLong(rollbackContext[1]), Long.parseLong(rollbackContext[0]), applicationName);
             }
             removeTransactionContext(txGroupId);
         }
@@ -381,27 +424,27 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     }
 
     private void tryHoldLock(String applicationName, Long txGroupId, Long txBranchId, String lock) {
-        Long count = jedisClient.rpush(lock, getGroupIdKey(txGroupId));
+        Long count = jedisClient.rpush(lock, txGroupId + "@" + txBranchId + "@" + applicationName);
         if (1 == count) {
             // 持有锁
-            logger.debug("{} transaction[{}-{}] hold lock {}", applicationName, txGroupId, txBranchId, lock);
+            logger.debug("{} transaction[{}-{}] hold lock '{}'", applicationName, txGroupId, txBranchId, lock);
             jedisClient.hset(getContextLockKey(txGroupId), getLockKey(txBranchId, lock), LockStatus.HOLD.name());
         } else {
             if (1 == jedisClient.casHset(getContextLockKey(txGroupId), getLockKey(txBranchId, lock), LockStatus.WAIT.name(), LockStatus.HOLD.name())) {
                 // 如果添加等待锁成功就直接挂起客户端
-                logger.debug("{} transaction[{}-{}] is waiting lock {}", applicationName, txGroupId, txBranchId, lock);
+                logger.debug("{} transaction[{}-{}] is waiting lock '{}'", applicationName, txGroupId, txBranchId, lock);
                 AbstractServerEventHandler.suspendRequest();
                 jedisClient.hset(getGroupIdKey(txGroupId), getWaitContextKey(txBranchId), getSuspendContextInfo());
             } else {
-                logger.debug("{} transaction[{}-{}] hold lock {}", applicationName, txGroupId, txBranchId, lock);
+                logger.debug("{} transaction[{}-{}] hold lock '{}'", applicationName, txGroupId, txBranchId, lock);
             }
         }
     }
 
     /**
      * 生成回滚时的现场信息   requestId + "|" + clientInstanceId
-     * @author  xiaoqianbin
-     * @date    2020/1/3
+     * @author xiaoqianbin
+     * @date 2020/1/3
      **/
     private String getSuspendContextInfo() {
         return AbstractServerEventHandler.getCurrentRequestId() + "|" + AbstractServerEventHandler.getCurrentAgent().getClientInstanceId();
@@ -409,9 +452,9 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     /**
      * 构建分支等锁的key
-     * @param	txBranchId
-     * @author  xiaoqianbin
-     * @date    2020/1/3
+     * @param txBranchId
+     * @author xiaoqianbin
+     * @date 2020/1/3
      **/
     private String getWaitContextKey(Long txBranchId) {
         return RedisKeyNames.WAIT_LOCK_CONTEXT.name() + "@" + txBranchId;
@@ -419,10 +462,10 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     /**
      * 生成锁map中的key信息
-     * @param	txBranchId
-	 * @param	lock
-     * @author  xiaoqianbin
-     * @date    2020/1/3
+     * @param txBranchId
+     * @param lock
+     * @author xiaoqianbin
+     * @date 2020/1/3
      **/
     private String getLockKey(Long txBranchId, String lock) {
         return txBranchId + "@" + lock;

@@ -9,7 +9,7 @@ package rabbit.open.dtx.common.nio.exception;
 public class DeadLockException extends DtxException {
 
     public DeadLockException(Long lockBranch, Long currentBranch, String lock) {
-        super(String.format("dead lock is detected! branch [] tried to hold lock[%s] which was hold by branch[%]",
+        super(String.format("dead lock is detected! branch[%s] tried to hold lock[%s] which was hold by branch[%s]",
                 currentBranch, lock, lockBranch));
     }
 }

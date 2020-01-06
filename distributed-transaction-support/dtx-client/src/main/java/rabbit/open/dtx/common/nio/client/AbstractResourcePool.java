@@ -133,11 +133,4 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
      **/
     public abstract void gracefullyShutdown();
 
-    /**
-     * 判断pool是否处于run的状态
-     * @author  xiaoqianbin
-     * @date    2019/12/8
-     **/
-    protected abstract boolean isRunning();
-
 }

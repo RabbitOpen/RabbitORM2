@@ -225,7 +225,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                     ChannelAgent agent = new ChannelAgent(node, this);
                     if (!agent.isConnected()) {
                         node.setIsolated(true);
-                        logger.error("connect [{}:{}] failed", node.getHost(), node.getPort());
+                        logger.error("connect node[{}:{}] failed", node.getHost(), node.getPort());
                         continue;
                     }
                     node.setIdle(false);
@@ -312,11 +312,6 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                 agent.destroy();
             }
         }
-    }
-
-    @Override
-    protected boolean isRunning() {
-        return run;
     }
 
     public NioSelector getNioSelector() {

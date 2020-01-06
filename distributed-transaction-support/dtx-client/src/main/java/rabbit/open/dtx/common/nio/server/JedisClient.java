@@ -14,6 +14,24 @@ public interface JedisClient {
 
     Long hset(String key, String field, String value);
 
+    /**
+     * 先hset，然后hgetAll
+     * @param	key
+	 * @param	field
+	 * @param	value
+     * @author  xiaoqianbin
+     * @date    2020/1/6
+     **/
+    Map<String, String> hsetGetAll(String key, String field, String value);
+
+    /**
+     * hgetAll 然后删除
+     * @param	key
+     * @author  xiaoqianbin
+     * @date    2020/1/6
+     **/
+    Map<String, String> hgetAllAndDel(String key);
+
     String hget(String key, String field);
 
     /**
@@ -24,6 +42,7 @@ public interface JedisClient {
 	 * @param	exclude
      * @author  xiaoqianbin
      * @date    2020/1/3
+     * @return  1表示写数据成功，0表示未修改数据
      **/
     Long casHset(String key, String field, String expected, String exclude);
 
@@ -49,8 +68,6 @@ public interface JedisClient {
      * @date    2020/1/2
      **/
     Long rpush(String key, String... strings);
-
-    String lindex(String key, long index);
 
     /**
      * 取出并移除头部、获取但不移除key的头部信息

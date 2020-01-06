@@ -91,9 +91,9 @@ class RpcRequestHandler implements DataHandler {
             allInterfaces.addAll(Arrays.asList(clz.getInterfaces()));
             clz = clz.getSuperclass();
         }
-        for (Class<?> anInterface : allInterfaces) {
+        for (Class<?> interfaceClz : allInterfaces) {
             try {
-                return anInterface.getDeclaredMethod(protocol.getMethodName(), protocol.getArgTypes());
+                return interfaceClz.getDeclaredMethod(protocol.getMethodName(), protocol.getArgTypes());
             } catch (NoSuchMethodException ex) {
                 // TO DO: IGNORE
             }

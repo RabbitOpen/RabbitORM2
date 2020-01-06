@@ -9,10 +9,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.dtx.client.test.service.ProductService;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
+import rabbit.open.dtx.common.nio.exception.DeadLockException;
 import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 import rabbit.open.dtx.common.nio.server.*;
@@ -21,9 +23,7 @@ import redis.clients.jedis.JedisPool;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -49,7 +49,7 @@ public class RedisTransactionHandlerTest {
     }
 
     @Test
-    public void luaTest() {
+    public void luaTest() throws InterruptedException {
         PooledJedisClient jedisClient = new PooledJedisClient(getPool());
         jedisClient.del("map");
         TestCase.assertTrue(1L == jedisClient.casHset("map", "k1", "v1", "v2"));
@@ -75,6 +75,26 @@ public class RedisTransactionHandlerTest {
         info = jedisClient.casLpop("list");
         TestCase.assertEquals("apple", info.getResult());
         TestCase.assertNull(info.getNext());
+
+        jedisClient.del("map2");
+        jedisClient.hset("map2", "k1", "v1");
+        Map<String, String> map = jedisClient.hsetGetAll("map2", "k2", "v2");
+        TestCase.assertEquals(2, map.size());
+        TestCase.assertEquals("v1", map.get("k1"));
+        TestCase.assertEquals("v2", map.get("k2"));
+
+        map = jedisClient.hgetAllAndDel("map2");
+        TestCase.assertTrue(0 != map.size());
+        // 节点已经删除了
+        TestCase.assertTrue(0 == jedisClient.hgetAll("map2").size());
+
+        jedisClient.zadd("zset", System.currentTimeMillis(), "k1");
+        Set<String> set = jedisClient.zrangeByScore("zset", 0, System.currentTimeMillis() - 100);
+        TestCase.assertTrue(set.isEmpty());
+        holdOn(100);
+        TestCase.assertTrue(!jedisClient.zrangeByScore("zset", 0, System.currentTimeMillis() - 100).isEmpty());
+
+
         jedisClient.close();
     }
 
@@ -96,58 +116,134 @@ public class RedisTransactionHandlerTest {
         manager.beginTransaction(method);
         TransactionHandler handler = manager.getTransactionHandler();
         Long txGroupId = manager.getCurrentTransactionObject().getTxGroupId();
-        Long branchId = handler.getTransactionBranchId(txGroupId, manager.getApplicationName());
-        handler.doBranchCommit(txGroupId, branchId, manager.getApplicationName());
+        String appName = manager.getApplicationName();
+        Long branchId = handler.getTransactionBranchId(txGroupId, appName);
+        handler.doBranchCommit(txGroupId, branchId, appName);
         // 验证错误的提交和回滚操作
         assertWrongCommitAndRollback(handler, txGroupId);
         // 提交
-        handler.doCommit(txGroupId, null, manager.getApplicationName());
+        handler.doCommit(txGroupId, null, appName);
 
         mockDeadContext(jedisClient, manager, -100);
-        // 空回滚
-        txGroupId = handler.getTransactionGroupId(manager.getApplicationName());
-        handler.doRollback(txGroupId, manager.getApplicationName());
-        // 回滚不存在的事务
-        try {
-            handler.doRollback(-1L, manager.getApplicationName());
-            throw new RuntimeException("不可能走到这一步");
-        } catch (Exception e) {
-            TestCase.assertEquals(DistributedTransactionException.class, e.getClass());
-        }
-        // 空提交
-        txGroupId = handler.getTransactionGroupId(manager.getApplicationName());
-        handler.doCommit(txGroupId, null, manager.getApplicationName());
-        // 提交不存在的事务
-        try {
-            handler.doCommit(-1L, null, manager.getApplicationName());
-            throw new RuntimeException("不可能走到这一步");
-        } catch (Exception e) {
-            TestCase.assertEquals(DistributedTransactionException.class, e.getClass());
-        }
+        // 空事务测试
+        emptyTransactionTest(handler, appName);
+        // 正常提交回滚测试
+        normalRollbackAndCommitTest(handler, appName);
 
-        // 正常多分支提交
-        txGroupId = handler.getTransactionGroupId(manager.getApplicationName());
-        branchId = handler.getTransactionBranchId(txGroupId, manager.getApplicationName());
-        handler.doBranchCommit(txGroupId, branchId, manager.getApplicationName());
-        branchId = handler.getTransactionBranchId(txGroupId, manager.getApplicationName());
-        handler.doBranchCommit(txGroupId, branchId, manager.getApplicationName());
-        handler.doCommit(txGroupId, null, manager.getApplicationName());
+        // 资源锁测试
+        lockDataTest(manager, method, handler, appName);
 
-        // 正常多分支回滚
-        txGroupId = handler.getTransactionGroupId(manager.getApplicationName());
-        branchId = handler.getTransactionBranchId(txGroupId, manager.getApplicationName());
-        handler.doBranchCommit(txGroupId, branchId, manager.getApplicationName());
-        // 开启新分支不提交
-        handler.getTransactionBranchId(txGroupId, manager.getApplicationName());
-        // 直接回滚，模拟第二分支异常了
-        handler.doRollback(txGroupId, manager.getApplicationName());
+        // 死锁测试
+        deadLockTest(manager, method, handler, appName);
 
+        // 销毁资源信息
         manager.destroy();
         for (DtxServerWrapper serverWrapper : serverWrappers) {
             serverWrapper.close();
         }
         TestCase.assertEquals(count, jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE));
         redisTransactionHandler.destroy();
+    }
+
+    private void lockDataTest(TestTransactionManager manager, Method method, TransactionHandler handler, String appName) throws InterruptedException {
+        DistributedTransactionContext.clear();
+        manager.beginTransaction(method);
+        Long txGroupId = manager.getCurrentTransactionObject().getTxGroupId();
+        Long branchId = handler.getTransactionBranchId(txGroupId, appName);
+        List<String> locks = new ArrayList<>();
+        locks.add("data-1");
+        locks.add("data-2");
+        handler.lockData(appName, txGroupId, branchId, locks);
+        locks = new ArrayList<>();
+        locks.add("data-2");
+        locks.add("data-3");
+        handler.lockData(appName, txGroupId, branchId, locks);
+        Semaphore semaphore = new Semaphore(0);
+        new Thread(() -> {
+            Long gId = handler.getTransactionGroupId(appName);
+            Long b2 = handler.getTransactionBranchId(gId, appName);
+            List<String> list = new ArrayList<>();
+            list.add("data-1");
+            list.add("data-2");
+            handler.lockData(appName, gId, b2, list);
+            handler.doCommit(gId, b2, appName);
+            try {
+                holdOn(100);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+            semaphore.release();
+        }).start();
+        holdOn(100);
+        handler.doCommit(txGroupId, branchId, appName);
+        semaphore.acquire();
+    }
+
+    private void deadLockTest(TestTransactionManager manager, Method method, TransactionHandler handler, String appName) throws InterruptedException {
+        DistributedTransactionContext.clear();
+        manager.beginTransaction(method);
+        Long txGroupId = manager.getCurrentTransactionObject().getTxGroupId();
+        Long branchId = handler.getTransactionBranchId(txGroupId, appName);
+        List<String> locks = new ArrayList<>();
+        locks.add("data-10");
+        locks.add("data-20");
+        handler.lockData(appName, txGroupId, branchId, locks);
+
+        branchId = handler.getTransactionBranchId(txGroupId, appName);
+        locks = new ArrayList<>();
+        locks.add("data-20");
+        locks.add("data-30");
+        try {
+            handler.lockData(appName, txGroupId, branchId, locks);
+            throw new RuntimeException("impossible");
+        } catch (Exception e) {
+            TestCase.assertEquals(DeadLockException.class, e.getClass());
+            logger.error(e.getMessage());
+            handler.doRollback(txGroupId, appName);
+        }
+
+    }
+
+    private void emptyTransactionTest(TransactionHandler handler, String appName) {
+        Long txGroupId;// 空回滚
+        txGroupId = handler.getTransactionGroupId(appName);
+        handler.doRollback(txGroupId, appName);
+        // 回滚不存在的事务
+        try {
+            handler.doRollback(-1L, appName);
+            throw new RuntimeException("不可能走到这一步");
+        } catch (Exception e) {
+            TestCase.assertEquals(DistributedTransactionException.class, e.getClass());
+        }
+        // 空提交
+        txGroupId = handler.getTransactionGroupId(appName);
+        handler.doCommit(txGroupId, null, appName);
+        // 提交不存在的事务
+        try {
+            handler.doCommit(-1L, null, appName);
+            throw new RuntimeException("不可能走到这一步");
+        } catch (Exception e) {
+            TestCase.assertEquals(DistributedTransactionException.class, e.getClass());
+        }
+    }
+
+    private void normalRollbackAndCommitTest(TransactionHandler handler, String appName) {
+        // 正常多分支提交
+        Long txGroupId = handler.getTransactionGroupId(appName);
+        Long branchId = handler.getTransactionBranchId(txGroupId, appName);
+        handler.doBranchCommit(txGroupId, branchId, appName);
+        branchId = handler.getTransactionBranchId(txGroupId, appName);
+        handler.doBranchCommit(txGroupId, branchId, appName);
+        handler.doCommit(txGroupId, null, appName);
+
+        // 正常多分支回滚
+        txGroupId = handler.getTransactionGroupId(appName);
+        branchId = handler.getTransactionBranchId(txGroupId, appName);
+        handler.doBranchCommit(txGroupId, branchId, appName);
+        // 开启新分支不提交
+        handler.getTransactionBranchId(txGroupId, appName);
+        // 直接回滚，模拟第二分支异常了
+        handler.doRollback(txGroupId, appName);
     }
 
     private void mockDeadContext(PooledJedisClient jedisClient, TestTransactionManager manager, long base) {
@@ -275,4 +371,5 @@ public class RedisTransactionHandlerTest {
     private String getBranchInfoKey(Long txBranchId) {
         return RedisKeyNames.BRANCH_INFO.name() + txBranchId.toString();
     }
+
 }

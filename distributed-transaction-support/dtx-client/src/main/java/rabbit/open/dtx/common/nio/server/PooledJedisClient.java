@@ -3,6 +3,7 @@ package rabbit.open.dtx.common.nio.server;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,12 +27,23 @@ public class PooledJedisClient implements JedisClient {
 
     protected String casLpopScriptSha;
 
+    protected String hsetGetAllScript = "redis.call('hset', ARGV[1], ARGV[2], ARGV[3])\n return redis.call('hgetall', ARGV[1])";
+
+    protected String hsetGetAllScriptSha;
+
+    protected String hgetAllAndDelScript = "local map = redis.call('hgetall', ARGV[1])\n " +
+                                            "redis.call('del', ARGV[1])\n return map;";
+
+    protected String hgetAllAndDelScriptSha;
+
     private JedisPool pool;
 
     public PooledJedisClient(JedisPool pool) {
         this.pool = pool;
         casHsetScriptSha = (String) execute(jedis -> jedis.scriptLoad(casHsetScript));
         casLpopScriptSha = (String) execute(jedis -> jedis.scriptLoad(casLpopScript));
+        hsetGetAllScriptSha = (String) execute(jedis -> jedis.scriptLoad(hsetGetAllScript));
+        hgetAllAndDelScriptSha = (String) execute(jedis -> jedis.scriptLoad(hgetAllAndDelScript));
     }
 
     @Override
@@ -42,6 +54,24 @@ public class PooledJedisClient implements JedisClient {
     @Override
     public Long hset(String key, String field, String value) {
         return (Long) execute(jedis -> jedis.hset(key, field, value));
+    }
+
+    /**
+     * 先hset，然后hgetAll
+     * @param	key
+     * @param	field
+     * @param	value
+     * @author  xiaoqianbin
+     * @date    2020/1/6
+     **/
+    @Override
+    public Map<String, String> hsetGetAll(String key, String field, String value) {
+        return list2map((List<String>) execute(jedis -> jedis.evalsha(hsetGetAllScriptSha, 0, key, field, value)));
+    }
+
+    @Override
+    public Map<String, String> hgetAllAndDel(String key) {
+        return list2map((List<String>) execute(jedis -> jedis.evalsha(hgetAllAndDelScriptSha, 0, key)));
     }
 
     @Override
@@ -57,6 +87,7 @@ public class PooledJedisClient implements JedisClient {
      * @param	exclude
      * @author  xiaoqianbin
      * @date    2020/1/3
+     * @return  1表示写数据成功，0表示未修改数据
      **/
     @Override
     public Long casHset(String key, String field, String expected, String exclude) {
@@ -103,11 +134,6 @@ public class PooledJedisClient implements JedisClient {
         return (Long) execute(jedis -> jedis.rpush(key, strings));
     }
 
-    @Override
-    public String lindex(String key, long index) {
-        return (String) execute(jedis -> jedis.lindex(key, index));
-    }
-
     /**
      * 取出头部和key的长度信息(不包含当前头部的长度)
      * @param	key
@@ -135,6 +161,16 @@ public class PooledJedisClient implements JedisClient {
                  jedis.close();
              }
         }
+    }
+
+    protected Map<String, String> list2map(List<String> list) {
+        Map<String, String> map = new HashMap<>();
+        for (int i = 0; i < list.size() - 1; i++) {
+            if (0 == i % 2){
+                map.put(list.get(i), list.get(i + 1));
+            }
+        }
+        return map;
     }
 
     @FunctionalInterface

@@ -31,7 +31,7 @@ public class Sweeper extends Thread {
         while (run) {
             try {
                 redisTransactionHandler.clearDeadContext();
-                if (semaphore.tryAcquire(30, TimeUnit.MINUTES)) {
+                if (semaphore.tryAcquire(10, TimeUnit.SECONDS)) {
                     continue;
                 }
             } catch (Exception e) {
