@@ -20,7 +20,8 @@ public class ElectionArbiter extends Thread implements Candidate {
 	protected Logger logger = LoggerFactory.getLogger(getClass());
 	
 	protected Postman postman;
-	
+
+	// sleep信号
 	private Semaphore sleepSemaphore = new Semaphore(0);
 	
 	// 选举信号
@@ -46,6 +47,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 	// 节点角色
 	private NodeRole role = NodeRole.OBSERVER;
 
+	// 线程名id后缀
 	private static final AtomicInteger ARBITER_ID = new AtomicInteger(0);
 
 	// keepAliveCheckingInterval
@@ -104,6 +106,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 						return;
 					}
 				} else {
+					// leader丢失以后就重新选举
 					reelectOnLeaderLost();
 				}
 			} catch (Exception e) {
@@ -251,13 +254,14 @@ public class ElectionArbiter extends Thread implements Candidate {
 	public void onElectionPacketReceived(ElectionPacket electionPacket) {
 		if (NodeRole.LEADER == this.role) {
 			// 告诉他我就是leader
-			postman.sendBack(new ElectedLeader(electionPacketVersion.get(), myId));
+			postman.ack(new ElectedLeader(electionPacketVersion.get(), myId));
+			eventListener.onCandidatesChanged();
 		} else {
 			if (electionPacket.getVersion() <= electionPacketVersion.get()) {
-				postman.sendBack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
+				postman.ack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
 				logger.debug("received election packet({}), REJECTED!", electionPacket.getVersion());
 			} else {
-				postman.sendBack(new ElectionResult(ElectionResult.AGREE, electionPacket.getVersion()));
+				postman.ack(new ElectionResult(ElectionResult.AGREE, electionPacket.getVersion()));
 				logger.debug("received election packet({}), AGREED!", electionPacket.getVersion());
 			}
 		}

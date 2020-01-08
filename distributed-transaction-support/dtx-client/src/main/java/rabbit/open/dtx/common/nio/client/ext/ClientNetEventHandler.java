@@ -11,46 +11,62 @@ import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
  * @author xiaoqianbin
  * @date 2019/12/8
  **/
-class ClientNetEventHandler extends AbstractNetEventHandler {
+public class ClientNetEventHandler extends AbstractNetEventHandler {
 
     private DtxChannelAgentPool dtxChannelAgentPool;
 
-    private DataDispatcher dispatcher = new DataDispatcher() {
+    protected DataDispatcher dispatcher;
 
-        @SuppressWarnings("unchecked")
-		@Override
-        public Object process(ProtocolData protocolData) {
-            if (isNotifyMessage(protocolData)) {
-                Object notifyMsg = protocolData.getData();
-                if (dtxChannelAgentPool.getListenerMap().containsKey(notifyMsg.getClass())) {
-                    dtxChannelAgentPool.getListenerMap().get(notifyMsg.getClass()).onMessageReceived(notifyMsg);
-                } else {
-                    logger.info("discard notify info: {}", notifyMsg);
-                }
-            } else {
-                FutureResult result = ChannelAgent.findFutureResult(protocolData.getRequestId());
-                if (null != result) {
-                    result.wakeUp(protocolData.getData());
-                } else {
-                    logger.warn("discard response data, {}", protocolData.getRequestId());
-                }
-            }
-            return null;
-        }
+    public ClientNetEventHandler() {
 
-        /**
-         * 是通知消息
-         * @param    protocolData
-         * @author xiaoqianbin
-         * @date 2019/12/10
-         **/
-        private boolean isNotifyMessage(ProtocolData protocolData) {
-            return null == protocolData.getRequestId();
-        }
-    };
+    }
 
     public ClientNetEventHandler(DtxChannelAgentPool dtxChannelAgentPool) {
+        setChannelAgentPool(dtxChannelAgentPool);
+        initDispatcher();
+    }
+
+    protected void initDispatcher() {
+        dispatcher = new DataDispatcher() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public Object process(ProtocolData protocolData) {
+                if (isNotifyMessage(protocolData)) {
+                    Object notifyMsg = protocolData.getData();
+                    if (getChannelAgentPool().getListenerMap().containsKey(notifyMsg.getClass())) {
+                        getChannelAgentPool().getListenerMap().get(notifyMsg.getClass()).onMessageReceived(notifyMsg);
+                    } else {
+                        logger.info("discard notify info: {}", notifyMsg);
+                    }
+                } else {
+                    FutureResult result = ChannelAgent.findFutureResult(protocolData.getRequestId());
+                    if (null != result) {
+                        result.wakeUp(protocolData.getData());
+                    } else {
+                        logger.warn("discard response data, {}", protocolData.getRequestId());
+                    }
+                }
+                return null;
+            }
+        };
+    }
+
+    public void setChannelAgentPool(DtxChannelAgentPool dtxChannelAgentPool) {
         this.dtxChannelAgentPool = dtxChannelAgentPool;
+    }
+
+    public DtxChannelAgentPool getChannelAgentPool() {
+        return dtxChannelAgentPool;
+    }
+
+    /**
+     * 是通知消息
+     * @param protocolData
+     * @author xiaoqianbin
+     * @date 2019/12/10
+     **/
+    protected boolean isNotifyMessage(ProtocolData protocolData) {
+        return null == protocolData.getRequestId();
     }
 
     /**

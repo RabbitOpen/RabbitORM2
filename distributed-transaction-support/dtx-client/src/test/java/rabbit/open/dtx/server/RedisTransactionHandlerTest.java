@@ -106,6 +106,7 @@ public class RedisTransactionHandlerTest {
         TestTransactionManager manager = new TestTransactionManager();
         mockDeadContext(jedisClient, manager, -200);
         redisTransactionHandler.setJedisClient(jedisClient);
+        redisTransactionHandler.startSweeper();
         List<DtxServerWrapper> serverWrappers = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             serverWrappers.add(createServer(12345 + i));
@@ -371,5 +372,8 @@ public class RedisTransactionHandlerTest {
     private String getBranchInfoKey(Long txBranchId) {
         return RedisKeyNames.BRANCH_INFO.name() + txBranchId.toString();
     }
+
+
+
 
 }

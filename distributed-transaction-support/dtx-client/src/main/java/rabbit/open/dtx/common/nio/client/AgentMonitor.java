@@ -57,13 +57,18 @@ public class AgentMonitor extends Thread {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
-            try {
-                if (semaphore.tryAcquire(30, TimeUnit.SECONDS)) {
-                    agentPool.initConnections();
-                }
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+            holdOn();
+        }
+    }
+
+    // 等待30秒
+    private void holdOn() {
+        try {
+            if (semaphore.tryAcquire(30, TimeUnit.SECONDS) && run) {
+                agentPool.initConnections();
             }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
     }
 

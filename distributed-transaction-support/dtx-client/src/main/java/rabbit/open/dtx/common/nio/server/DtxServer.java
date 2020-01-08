@@ -46,16 +46,26 @@ public class DtxServer {
     private AbstractServerEventHandler netEventHandler;
 
     private static final AtomicLong SELECTOR_ID = new AtomicLong(0);
+
     private String serverId;
 
+    private String hostName;
+    private int port;
+
     public DtxServer(int port, AbstractServerEventHandler netEventHandler) throws IOException {
+        this("localhost", port, netEventHandler);
+    }
+
+    public DtxServer(String hostName, int port, AbstractServerEventHandler netEventHandler) throws IOException {
+        this.port = port;
+        this.hostName = hostName;
         this.netEventHandler = netEventHandler;
         this.netEventHandler.setDtxServer(this);
         nioSelector = new NioSelector(Selector.open());
         listenChannel = ServerSocketChannel.open();
         // 异步模式
         listenChannel.configureBlocking(false);
-        listenChannel.socket().bind(new InetSocketAddress(port));
+        listenChannel.socket().bind(new InetSocketAddress(this.hostName, this.port));
         //注册接收事件
         listenChannel.register(nioSelector.getRealSelector(), SelectionKey.OP_ACCEPT);
         serverId = NodeIdHelper.calcServerId(InetAddress.getLocalHost().getHostAddress(), port);
@@ -77,6 +87,10 @@ public class DtxServer {
         }, "event-selector-" + SELECTOR_ID.getAndAdd(1L));
         serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor");
         serverAgentMonitor.start();
+    }
+
+    public ServerAgentMonitor getServerAgentMonitor() {
+        return serverAgentMonitor;
     }
 
     public AbstractServerEventHandler getNetEventHandler() {
@@ -177,7 +191,7 @@ public class DtxServer {
      * @date 2019/12/7
      **/
     public void shutdown() {
-        logger.info("dtx server is closing....");
+        logger.info("dtx server[{}:{}] is closing....", hostName, port);
         close = true;
         try {
             serverAgentMonitor.shutdown();
@@ -190,7 +204,7 @@ public class DtxServer {
         netEventHandler.onServerClosed();
         NioSelector.closeResource(listenChannel);
         NioSelector.closeResource(nioSelector);
-        logger.info("dtx server is closed!");
+        logger.info("dtx server[{}:{}] is closed!", hostName, port);
     }
 
     private void closeAllSelectionKeys() {

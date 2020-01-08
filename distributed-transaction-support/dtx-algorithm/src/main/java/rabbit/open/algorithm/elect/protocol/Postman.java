@@ -37,7 +37,7 @@ public abstract class Postman {
 	 * @author  xiaoqianbin
 	 * @date    2019/12/30
 	 **/
-	public abstract void sendBack(ProtocolPacket packet);
+	public abstract void ack(ProtocolPacket packet);
 
 	/**
 	 * <b>@description 接收包  </b>

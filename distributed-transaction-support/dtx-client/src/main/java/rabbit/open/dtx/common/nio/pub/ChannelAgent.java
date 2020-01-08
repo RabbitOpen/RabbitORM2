@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -62,7 +63,7 @@ public class ChannelAgent implements PooledResource {
     private Semaphore semaphore = new Semaphore(0);
 
     // 关闭回调
-    private List<Runnable> shutdownHooks = new ArrayList<>();
+    public List<Runnable> shutdownHooks = new ArrayList<>();
 
     // 服务端地址
     private String serverAddr;
@@ -130,6 +131,15 @@ public class ChannelAgent implements PooledResource {
         semaphore.release();
     }
 
+    public boolean canceled = false;
+    public void close() {
+        closeQuietly(channel);
+        if (null != selectionKey) {
+            selectionKey.cancel();
+            canceled = true;
+        }
+    }
+
     public boolean isConnected() {
         return connected;
     }
@@ -145,7 +155,10 @@ public class ChannelAgent implements PooledResource {
     }
 
     public void ensureConnected() throws InterruptedException {
-        semaphore.acquire();
+        // 如果服务端down了，这个操作则永远完成不了，所以不能一直等
+        if (!semaphore.tryAcquire(3, TimeUnit.SECONDS)) {
+            connectFailed();
+        }
     }
 
     public void connected() throws IOException {
@@ -250,7 +263,7 @@ public class ChannelAgent implements PooledResource {
     }
 
     /**
-     * 客户端发送数据
+     * 客户端发送数据, 这个方法必须要有response
      * @param    data
      * @author xiaoqianbin
      * @date 2019/12/8

@@ -54,6 +54,9 @@ public class DtxServerEventHandler extends AbstractServerEventHandler {
             try {
                 cacheAgent(agent);
                 super.processData(protocolData, agent);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                agent.destroy();
             } finally {
                 clearAgent();
             }

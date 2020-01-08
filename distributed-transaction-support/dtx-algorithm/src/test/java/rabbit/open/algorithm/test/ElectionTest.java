@@ -4,8 +4,6 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import rabbit.open.algorithm.elect.data.NodeRole;
 import rabbit.open.algorithm.elect.data.ProtocolPacket;
 import rabbit.open.algorithm.elect.protocol.ElectionArbiter;
@@ -23,8 +21,6 @@ import java.util.concurrent.Semaphore;
  **/
 @RunWith(JUnit4.class)
 public class ElectionTest {
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     static ElectionArbiter leaderArbiter;
 
@@ -114,7 +110,7 @@ public class ElectionTest {
         }
 
         @Override
-        public void sendBack(ProtocolPacket packet) {
+        public void ack(ProtocolPacket packet) {
             Postman postman = senderContext.get();
             new Thread(() -> {
                 senderContext.set(postman);

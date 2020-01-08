@@ -39,6 +39,14 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     public RedisTransactionHandler() {
         sweeper = new Sweeper(this);
+    }
+
+    /**
+     * 启动脏事务清理器
+     * @author  xiaoqianbin
+     * @date    2020/1/7
+     **/
+    public void startSweeper() {
         sweeper.start();
     }
 

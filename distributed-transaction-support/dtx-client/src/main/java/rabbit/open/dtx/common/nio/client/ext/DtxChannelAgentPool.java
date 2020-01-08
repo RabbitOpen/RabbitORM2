@@ -5,7 +5,6 @@ import rabbit.open.dtx.common.nio.exception.DtxException;
 import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
-import rabbit.open.dtx.common.nio.pub.NetEventHandler;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
 import rabbit.open.dtx.common.nio.pub.protocol.*;
 
@@ -17,6 +16,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 客户端连接池
@@ -34,15 +34,17 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     protected boolean run = true;
 
-    private NetEventHandler netEventHandler;
+    private ClientNetEventHandler netEventHandler;
 
     private AbstractTransactionManager transactionManger;
 
     // 消息监听器
     private Map<Class<?>, MessageListener> listenerMap = new ConcurrentHashMap<>();
 
+    private static final AtomicLong THREAD_ID = new AtomicLong(0);
+
     // 监控线程
-    private AgentMonitor monitor = new AgentMonitor("client-agent-pool-monitor", this);
+    private AgentMonitor monitor = new AgentMonitor("client-agent-pool-monitor-" + THREAD_ID.getAndAdd(1L), this);
 
     // 链接channel注册任务
     private ArrayBlockingQueue<FutureTask<SelectionKey>> channelRegistryTasks = new ArrayBlockingQueue<>(64);
@@ -51,13 +53,13 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     private Long instanceId = null;
 
     public DtxChannelAgentPool(AbstractTransactionManager transactionManger) throws IOException {
-        this(transactionManger, null);
+        this(transactionManger, null, null);
     }
 
-    public DtxChannelAgentPool(AbstractTransactionManager transactionManger, NetEventHandler netEventHandler) throws IOException {
+    public DtxChannelAgentPool(AbstractTransactionManager transactionManger, ClientNetEventHandler netEventHandler, Map<Class<?>, MessageListener> listeners) throws IOException {
         this.transactionManger = transactionManger;
         initNetEventHandler(netEventHandler);
-        initListeners(transactionManger);
+        initListeners(listeners);
         nodes.addAll(transactionManger.getServerNodes());
         nioSelector = new NioSelector(Selector.open());
         readThread = new Thread(() -> {
@@ -68,50 +70,65 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                     logger.info(e.getMessage(), e);
                 }
             }
-        }, "client-channel-selector");
+        }, "client-channel-selector-" + THREAD_ID.getAndAdd(1L));
         readThread.start();
         initConnections();
         monitor.start();
+    }
+
+    public ArrayBlockingQueue<Node> getNodes() {
+        return nodes;
     }
 
     /**
      * <b>@description 初始化网络事件处理器 </b>
      * @param netEventHandler
      */
-    protected void initNetEventHandler(NetEventHandler netEventHandler) {
+    protected void initNetEventHandler(ClientNetEventHandler netEventHandler) {
         if (null == netEventHandler) {
             this.netEventHandler = new ClientNetEventHandler(this);
         } else {
             this.netEventHandler = netEventHandler;
+            this.netEventHandler.setChannelAgentPool(this);
         }
     }
 
-    private void initListeners(AbstractTransactionManager transactionManger) {
+    private void initListeners(Map<Class<?>, MessageListener> listeners) {
         if (null != transactionManger.getMessageListener()) {
             listenerMap.put(CommitMessage.class, transactionManger.getMessageListener());
             listenerMap.put(RollBackMessage.class, transactionManger.getMessageListener());
         }
-
+        if (null != listeners) {
+            listenerMap.putAll(listeners);
+        }
         // 服务端广播节点
-        listenerMap.put(ClusterMeta.class, msg -> {
-            ClusterMeta meta = (ClusterMeta) msg;
-            // 更新现有节点的隔离状态
-            for (Node node : nodes) {
-                if (nodeExist(node, meta.getNodes())) {
-                    node.setIsolated(false);
-                } else {
-                    node.setIsolated(true);
-                }
+        listenerMap.put(ClusterMeta.class, msg -> refreshServerNodes((ClusterMeta) msg));
+    }
+
+    /**
+     * 刷新节点信息
+     * @param	msg
+     * @author  xiaoqianbin
+     * @date    2020/1/7
+     **/
+    private void refreshServerNodes(ClusterMeta msg) {
+        ClusterMeta meta = msg;
+        // 更新现有节点的隔离状态
+        for (Node node : nodes) {
+            if (nodeExist(node, meta.getNodes())) {
+                node.setIsolated(false);
+            } else {
+                node.setIsolated(true);
             }
-            // 刷新节点的列表信息
-            for (Node node : meta.getNodes()) {
-                if (!nodeExist(node, nodes)) {
-                    node.setIsolated(false);
-                    CallHelper.ignoreExceptionCall(() -> nodes.put(node));
-                }
+        }
+        // 刷新节点的列表信息
+        for (Node node : meta.getNodes()) {
+            if (!nodeExist(node, nodes)) {
+                node.setIsolated(false);
+                CallHelper.ignoreExceptionCall(() -> nodes.put(node));
             }
-            monitor.wakeup();
-        });
+        }
+        monitor.wakeup();
     }
 
     /**
@@ -140,13 +157,12 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      * @date 2019/12/16
      **/
     public void initConnections() {
-        for (int i = 0; i < nodes.size(); i++) {
-            tryCreateResource();
+        if (run) {
+            makeSureNodeAvailable();
+            for (int i = 0; i < nodes.size(); i++) {
+                tryCreateResource();
+            }
         }
-    }
-
-    public DistributedTransactionManager getTransactionManger() {
-        return transactionManger;
     }
 
     public FutureTask<SelectionKey> addTask(Callable<SelectionKey> task) throws InterruptedException {
@@ -188,7 +204,12 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             }
             if (key.isReadable()) {
                 ChannelAgent agent = (ChannelAgent) key.attachment();
-                netEventHandler.onDataReceived(agent);
+                if (agent.isClosed()) {
+                    System.out.println(agent.canceled);
+                    System.out.println("");
+                } else {
+                    netEventHandler.onDataReceived(agent);
+                }
             }
         }
         nioSelector.epollBugDetection();
@@ -217,27 +238,46 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         return false;
     }
 
+    /**
+     * 确保至少有一个节点是未被隔离的
+     * @author  xiaoqianbin
+     * @date    2020/1/6
+     **/
+    private void makeSureNodeAvailable() {
+        for (Node node : nodes) {
+            if (!node.isIsolated()) {
+                return;
+            }
+        }
+        for (Node node : nodes) {
+            // 保证有一个节点是未被隔离的即可
+            node.setIsolated(false);
+        }
+    }
+
     @Override
     protected ChannelAgent newResource() {
         for (Node node : nodes) {
-            if (node.isIdle() && !node.isIsolated()) {
+            if (node.isIdle() && !node.isIsolated() && run) {
                 try {
                     ChannelAgent agent = new ChannelAgent(node, this);
                     if (!agent.isConnected()) {
                         node.setIsolated(true);
+                        // 因为没有添加到池里，所以直接close
+                        agent.close();
                         logger.error("connect node[{}:{}] failed", node.getHost(), node.getPort());
                         continue;
                     }
                     node.setIdle(false);
-                    // 注册连接销毁回调事件
-                    agent.addShutdownHook(() -> releaseAgentResource(node, agent));
-                    acquireInstanceId(agent);
-                    // 通报应用名
-                    agent.send(new Application(getTransactionManger().getApplicationName(), instanceId)).getData();
+                    node.bindAgent(agent);
+                    doRequest(agent);
                     logger.info("{} created a new connection, current size {}", transactionManger.getApplicationName(), count.get() + 1);
+                    agent.addShutdownHook(() -> releaseAgentResource(node, agent));
+                    // 注册连接销毁回调事件
                     return agent;
                 } catch (NetworkException e) {
                     node.setIsolated(true);
+                    node.setIdle(true);
                     throw e;
                 } catch (Exception e) {
                     throw new NetworkException(e);
@@ -247,9 +287,31 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         throw new DtxException("can't create connection any more");
     }
 
+    // 发送业务数据
+    private void doRequest(ChannelAgent agent) throws InterruptedException {
+        try {
+            acquireInstanceId(agent);
+            // 通报应用名
+            reportAppInfo(agent);
+        } catch (Exception e) {
+            agent.close();
+            throw e;
+        }
+    }
+
+    /**
+     * 通报app信息
+     * @param	agent
+     * @author  xiaoqianbin
+     * @date    2020/1/7
+     **/
+    protected void reportAppInfo(ChannelAgent agent) throws InterruptedException {
+        agent.send(new Application(transactionManger.getApplicationName(), instanceId)).getData(3L);
+    }
+
     private void acquireInstanceId(ChannelAgent agent) throws InterruptedException {
         if (null == instanceId) {
-            ClientInstance instance = (ClientInstance) agent.send(new ClientInstance()).getData();
+            ClientInstance instance = (ClientInstance) agent.send(new ClientInstance()).getData(3L);
             instanceId = instance.getId();
             logger.info("load instance id --> {}", instanceId);
         }
@@ -271,6 +333,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             destroyResource(agent);
             agent.closeQuietly(agent.getSelectionKey().channel());
             agent.getSelectionKey().cancel();
+            agent.canceled = true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -317,4 +380,5 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     public NioSelector getNioSelector() {
         return nioSelector;
     }
+
 }

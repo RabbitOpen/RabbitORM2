@@ -1,6 +1,7 @@
 package rabbit.open.dtx.common.nio.client;
 
 import rabbit.open.dtx.common.nio.pub.CallHelper;
+import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.utils.NodeIdHelper;
 
 import java.net.InetAddress;
@@ -22,6 +23,9 @@ public class Node {
     // 被隔离
     private boolean isolated = false;
 
+    // 绑定的agent
+    private ChannelAgent agent;
+
     public Node() { }
 
     public Node(String host, int port) {
@@ -30,6 +34,11 @@ public class Node {
         }
         this.host = host;
         this.port = port;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Node{%s:%s}", host, port);
     }
 
     public String getHost() {
@@ -58,5 +67,13 @@ public class Node {
 
     public String getId() {
         return NodeIdHelper.calcServerId(host, port);
+    }
+
+    public ChannelAgent getBoundAgent() {
+        return agent;
+    }
+
+    public void bindAgent(ChannelAgent agent) {
+        this.agent = agent;
     }
 }

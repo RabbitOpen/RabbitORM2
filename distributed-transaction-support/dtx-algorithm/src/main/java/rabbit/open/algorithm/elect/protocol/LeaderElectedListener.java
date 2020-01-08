@@ -14,5 +14,4 @@ public class LeaderElectedListener implements ElectionEventListener {
         arbiter.startKeepAliveThread();
     }
 
-
 }

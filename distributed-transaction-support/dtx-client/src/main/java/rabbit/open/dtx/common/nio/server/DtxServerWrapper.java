@@ -14,12 +14,21 @@ public class DtxServerWrapper {
 
     DtxServer server;
 
-    private DtxServerEventHandler eventHandler;
+    protected DtxServerEventHandler eventHandler;
 
     public DtxServerWrapper(int port, DtxServerEventHandler handler) throws IOException {
+        this("localhost", port, handler);
+    }
+
+    public DtxServerWrapper(String hostName, int port, DtxServerEventHandler handler) throws IOException {
         this.eventHandler = handler;
-        server = new DtxServer(port, handler);
+        server = new DtxServer(hostName, port, handler);
+        beforeServerStart();
         server.start();
+    }
+
+    protected void beforeServerStart() {
+        // TO DO: do something
     }
 
     @PreDestroy
