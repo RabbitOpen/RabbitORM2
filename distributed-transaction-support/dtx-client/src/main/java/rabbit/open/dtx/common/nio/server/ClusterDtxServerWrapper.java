@@ -88,15 +88,16 @@ public class ClusterDtxServerWrapper extends DtxServerWrapper {
             }
 
         });
-        arbiter.bindPostman(postman);
+        postman.register(arbiter);
+        arbiter.startElection();
     }
 
     @Override
     protected void beforeServerStart() {
         // 注册一个选举包处理器
         registerServerDataHandler(Coordination.class, data -> {
-            postman.onDataReceived(data.getData());
-            return postman.getResponse();
+            postman.onDataReceived(((Coordination)data.getData()).getProtocolPacket());
+            return new Coordination(postman.getResponse());
         });
 
         // 节点通报信息处理

@@ -43,7 +43,9 @@ public class KeepAliveThread extends Thread {
     }
 
     public void shutdown() throws InterruptedException {
+        logger.info("{} is closing....", getName());
         semaphore.release();
         join();
+        logger.info("{} is closed....", getName());
     }
 }

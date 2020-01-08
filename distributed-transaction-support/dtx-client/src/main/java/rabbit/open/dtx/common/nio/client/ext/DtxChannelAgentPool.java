@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 客户端连接池
@@ -45,6 +46,8 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     private static final AtomicLong THREAD_ID = new AtomicLong(0);
 
     private ThreadLocal<ChannelAgent> agentContext = new ThreadLocal<>();
+
+    private ReentrantLock closeLock = new ReentrantLock();
 
     // 监控线程
     private AgentMonitor monitor = new AgentMonitor("client-agent-pool-monitor-" + THREAD_ID.getAndAdd(1L), this);
@@ -162,9 +165,16 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      * @date 2019/12/16
      **/
     public void initConnections() {
-        if (!run) {
-            return;
+        if (closeLock.tryLock()) {
+            try {
+                doInitialize();
+            } finally {
+                closeLock.unlock();
+            }
         }
+    }
+
+    private void doInitialize() {
         makeSureNodeAvailable();
         for (int i = 0; i < nodes.size(); i++) {
             try {
@@ -348,19 +358,22 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     @Override
     public void gracefullyShutdown() {
-        logger.info("{} is closing.....", DtxChannelAgentPool.class.getSimpleName());
-        run = false;
         try {
+            closeLock.lock();
+            logger.info("{} is closing.....", DtxChannelAgentPool.class.getSimpleName());
+            run = false;
             monitor.shutdown();
             // 先关闭listener 后释放连接，因为有些异步listener会使用连接进行response
             closeAllListener();
             releaseResources();
             readThread.join();
             nioSelector.close();
+            logger.info("{} gracefully shutdown", DtxChannelAgentPool.class.getSimpleName());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+        } finally {
+            closeLock.unlock();
         }
-        logger.info("{} gracefully shutdown", DtxChannelAgentPool.class.getSimpleName());
     }
 
     // 关闭所有的listener

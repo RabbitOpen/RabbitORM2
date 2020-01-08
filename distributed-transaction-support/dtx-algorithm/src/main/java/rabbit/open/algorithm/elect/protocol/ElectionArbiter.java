@@ -141,11 +141,11 @@ public class ElectionArbiter extends Thread implements Candidate {
 			// leader节点不做心跳检测
 			return;
 		}
-		logger.warn("begin to reelect leader");
-		setNodeRole(NodeRole.OBSERVER);
-		setLeaderId(null);
 		if (System.currentTimeMillis() - lastActiveTime > keepAliveCheckingInterval * 1000) {
 			startElection();
+			logger.warn("[{}] begin to reelect leader, my role is [{}]", myId, role);
+			setNodeRole(NodeRole.OBSERVER);
+			setLeaderId(null);
 		}
 	}
 
@@ -274,6 +274,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 
 	@Override
 	public void onKittyReceived(HelloKitty kitty) {
+		logger.debug("helloKitty from [{}] received!", kitty.getNodeId());
 		if (kitty.getNodeId().equals(this.leaderId)) {
 			lastActiveTime = System.currentTimeMillis();
 		}

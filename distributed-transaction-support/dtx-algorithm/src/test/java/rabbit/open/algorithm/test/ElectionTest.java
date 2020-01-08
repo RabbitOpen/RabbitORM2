@@ -33,6 +33,11 @@ public class ElectionTest {
             MockPostman postman = new MockPostman();
             ElectionArbiter arbiter = new ElectionArbiter(count, "node-" + i, new LeaderElectedListener() {
                 @Override
+                public void onCandidatesChanged() {
+
+                }
+
+                @Override
                 public void onElectionEnd(ElectionArbiter node) {
                     super.onElectionEnd(node);
                     if (node.getNodeRole() == NodeRole.LEADER) {

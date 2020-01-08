@@ -21,7 +21,7 @@ public interface ElectionEventListener {
      * @author  xiaoqianbin
      * @date    2020/1/7
      **/
-    default void onCandidatesChanged() {}
+    void onCandidatesChanged();
 
     /**
      * leader选举出来了
