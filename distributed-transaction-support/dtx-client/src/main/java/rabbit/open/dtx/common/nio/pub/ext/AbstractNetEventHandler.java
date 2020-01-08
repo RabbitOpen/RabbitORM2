@@ -96,19 +96,27 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
                 agent.active();
                 switchRegion.set(agent.getDataBuffer(getDefaultBufferSize()));
                 readData(agent);
-            } catch (ClientClosedException e) {
-                agent.destroy();
-                onDisconnected(agent);
             } catch (Exception e) {
                 agent.destroy();
                 onDisconnected(agent);
-                logger.error(e.getMessage(), e);
+                logWithException(e);
             } finally {
                 wakeUpSelector(agent);
                 switchRegion.remove();
                 clearAgent();
             }
         });
+    }
+
+    private void logWithException(Exception e) {
+        if (e instanceof ClientClosedException) {
+            return;
+        }
+        if (e instanceof IOException) {
+            logger.error(e.getMessage());
+        } else {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     protected void clearAgent() {
@@ -212,13 +220,7 @@ public abstract class AbstractNetEventHandler implements NetEventHandler {
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
-    protected void processData(ProtocolData protocolData, ChannelAgent agent) {
-        try {
-            agent.response(getDispatcher().process(protocolData), protocolData.getRequestId());
-        } catch (Exception e) {
-            agent.responseError(e, protocolData.getRequestId());
-        }
-    }
+    protected abstract void processData(ProtocolData protocolData, ChannelAgent agent);
 
     /**
      * 读取到完整的包

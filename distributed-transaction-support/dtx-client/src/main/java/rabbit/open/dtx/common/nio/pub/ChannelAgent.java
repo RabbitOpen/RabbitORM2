@@ -63,7 +63,7 @@ public class ChannelAgent implements PooledResource {
     private Semaphore semaphore = new Semaphore(0);
 
     // 关闭回调
-    public List<Runnable> shutdownHooks = new ArrayList<>();
+    private List<Runnable> shutdownHooks = new ArrayList<>();
 
     // 服务端地址
     private String serverAddr;
@@ -114,6 +114,8 @@ public class ChannelAgent implements PooledResource {
             this.selector.wakeup();
             selectionKey = futureTask.get();
             selectionKey.attach(this);
+            // 注册连接销毁回调事件
+            addShutdownHook(() -> pool.releaseAgentResource(node, this));
             // 客户端连接服务器,其实方法执行并没有实现连接
             channel.connect(new InetSocketAddress(this.node.getHost(), this.node.getPort()));
             ensureConnected();
@@ -131,12 +133,10 @@ public class ChannelAgent implements PooledResource {
         semaphore.release();
     }
 
-    public boolean canceled = false;
     public void close() {
         closeQuietly(channel);
         if (null != selectionKey) {
             selectionKey.cancel();
-            canceled = true;
         }
     }
 
