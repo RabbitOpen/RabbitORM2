@@ -31,7 +31,7 @@ public class ClusterServerTest {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     // 集群节点个数
-    private int count = 3;
+    private int count = 5;
 
     private JedisPool getPool() {
         GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();

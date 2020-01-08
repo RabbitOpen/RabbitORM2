@@ -32,13 +32,7 @@ public class DataDispatcher implements DataHandler {
         handlerMap.put(RpcProtocol.class, new RpcRequestHandler(this.eventHandler));
         handlerMap.put(KeepAlive.class, new KeepAliveHandler());
         handlerMap.put(Application.class, new ApplicationDataHandler());
-        handlerMap.put(ClientInstance.class, protocolData -> {
-            Long globalId = 0L;
-            if (null != this.eventHandler.getTransactionHandler()) {
-                globalId = this.eventHandler.getTransactionHandler().getNextGlobalId();
-            }
-            return new ClientInstance(globalId);
-        });
+        handlerMap.put(ClientInstance.class, new InstanceIDGenerator(eventHandler));
     }
 
     @Override

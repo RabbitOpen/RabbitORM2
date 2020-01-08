@@ -4,6 +4,7 @@ import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.utils.NodeIdHelper;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 
 /**
@@ -11,7 +12,8 @@ import java.net.InetAddress;
  * @author xiaoqianbin
  * @date 2019/12/7
  **/
-public class Node {
+@SuppressWarnings("serial")
+public class Node implements Serializable {
 
     private String host;
 
@@ -24,7 +26,7 @@ public class Node {
     private boolean isolated = false;
 
     // 绑定的agent
-    private ChannelAgent agent;
+    private transient ChannelAgent agent;
 
     public Node() { }
 

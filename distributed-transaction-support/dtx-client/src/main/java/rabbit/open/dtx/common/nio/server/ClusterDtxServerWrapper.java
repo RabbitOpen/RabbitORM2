@@ -15,10 +15,12 @@ import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
+import rabbit.open.dtx.common.nio.pub.protocol.ClientInstance;
 import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
 import rabbit.open.dtx.common.nio.pub.protocol.Coordination;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
+import rabbit.open.dtx.common.nio.server.handler.InstanceIDGenerator;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -61,6 +63,7 @@ public class ClusterDtxServerWrapper extends DtxServerWrapper {
     public ClusterDtxServerWrapper(String hostName, int port, DtxServerEventHandler handler, int candidateSize, List<Node> nodes) throws IOException {
         super(hostName, port, handler);
         this.nodes = nodes;
+        nodeList.addAll(nodes);
         this.port = port;
         this.hostName = hostName;
         this.postman = new RabbitPostman(this);
@@ -70,6 +73,9 @@ public class ClusterDtxServerWrapper extends DtxServerWrapper {
             @Override
             public void onCandidatesChanged() {
                 for (ChannelAgent agent : getServer().getServerAgentMonitor().getAgents()) {
+                    if (CLUSTER_SERVER_APP_NAME.equals(agent.getAppName())) {
+                        continue;
+                    }
                     ClusterMeta meta = new ClusterMeta();
                     meta.setNodes(new ArrayList<>(nodeList));
                     CallHelper.ignoreExceptionCall(() -> agent.notify(meta));
@@ -78,9 +84,9 @@ public class ClusterDtxServerWrapper extends DtxServerWrapper {
             }
 
             @Override
-            public void onElectionEnd(ElectionArbiter arbiter) {
-                super.onElectionEnd(arbiter);
-                if (NodeRole.LEADER == arbiter.getNodeRole()) {
+            public void onElectionEnd(ElectionArbiter arbiter1) {
+                super.onElectionEnd(arbiter1);
+                if (NodeRole.LEADER == arbiter1.getNodeRole()) {
                     RedisTransactionHandler transactionHandler = (RedisTransactionHandler) handler.getTransactionHandler();
                     transactionHandler.startSweeper();
                     onCandidatesChanged();
@@ -94,6 +100,18 @@ public class ClusterDtxServerWrapper extends DtxServerWrapper {
 
     @Override
     protected void beforeServerStart() {
+
+        // 重写客户端id获取逻辑， 客户端连接服务器时，服务器向他通报节点信息
+        registerServerDataHandler(ClientInstance.class, new InstanceIDGenerator(eventHandler) {
+            @Override
+            public Object process(ProtocolData protocolData) {
+                ClusterMeta meta = new ClusterMeta();
+                meta.setNodes(new ArrayList<>(nodeList));
+                CallHelper.ignoreExceptionCall(() -> AbstractServerEventHandler.getCurrentAgent().notify(meta));
+                return super.process(protocolData);
+            }
+        });
+
         // 注册一个选举包处理器
         registerServerDataHandler(Coordination.class, data -> {
             postman.onDataReceived(((Coordination)data.getData()).getProtocolPacket());
@@ -104,16 +122,26 @@ public class ClusterDtxServerWrapper extends DtxServerWrapper {
         registerServerDataHandler(Node.class, data -> {
             Node nodeInfo = (Node) data.getData();
             AbstractServerEventHandler.getCurrentAgent().addShutdownHook(() -> nodeList.remove(nodeInfo));
-            for (Node info : nodeList) {
-                if (info.getHost().equals(nodeInfo.getHost()) && info.getPort() == nodeInfo.getPort() && nodeList.remove(info)) {
-                    // 服务器节点异常重启，还未来得及清理。
-                    logger.warn("remove invalid node info[{}:{}]", nodeInfo.getHost(), nodeInfo.getPort());
-                }
-                nodeList.add(nodeInfo);
-                logger.info("node[{}:{}] joined cluster", nodeInfo.getHost(), nodeInfo.getPort());
-            }
+            nodeOnline(nodeInfo);
             return null;
         });
+    }
+
+    /**
+     * 服务器节点通知彼此上线了
+     * @param	nodeInfo
+     * @author  xiaoqianbin
+     * @date    2020/1/8
+     **/
+    private synchronized void nodeOnline(Node nodeInfo) {
+        for (Node info : nodeList) {
+            if (info.getHost().equals(nodeInfo.getHost()) && info.getPort() == nodeInfo.getPort() && nodeList.remove(info)) {
+                // 服务器节点异常重启，还未来得及清理。
+                logger.warn("remove invalid node info[{}:{}]", nodeInfo.getHost(), nodeInfo.getPort());
+            }
+        }
+        nodeList.add(nodeInfo);
+        logger.info("node[{}:{}] joined cluster", nodeInfo.getHost(), nodeInfo.getPort());
     }
 
     private void registerServerDataHandler(Class<?> clz, DataHandler handler) {

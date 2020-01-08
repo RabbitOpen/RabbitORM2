@@ -143,7 +143,7 @@ public class LogicalTest {
             clusterMeta.setNodes(nodes);
             agent.notify(clusterMeta);
         }
-        holdOn(1000);
+        holdOn(3000);
         list = (ArrayBlockingQueue<Node>) nodeField.get(pool);
         TestCase.assertEquals(2, list.size());
         for (Node node : list) {

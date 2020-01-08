@@ -110,7 +110,10 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             listenerMap.putAll(listeners);
         }
         // 服务端广播节点
-        listenerMap.put(ClusterMeta.class, msg -> refreshServerNodes((ClusterMeta) msg));
+        listenerMap.put(ClusterMeta.class, msg -> {
+            refreshServerNodes((ClusterMeta) msg);
+            monitor.wakeup();
+        });
     }
 
     /**
@@ -119,7 +122,8 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      * @author  xiaoqianbin
      * @date    2020/1/7
      **/
-    private void refreshServerNodes(ClusterMeta msg) {
+    public void refreshServerNodes(ClusterMeta msg) {
+        logger.info("refreshServerNodes: {}", msg.getNodes());
         ClusterMeta meta = msg;
         // 更新现有节点的隔离状态
         for (Node node : nodes) {
@@ -136,7 +140,6 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                 CallHelper.ignoreExceptionCall(() -> nodes.put(node));
             }
         }
-        monitor.wakeup();
     }
 
     /**
@@ -264,11 +267,6 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      **/
     private void makeSureNodeAvailable() {
         for (Node node : nodes) {
-            if (!node.isIsolated()) {
-                return;
-            }
-        }
-        for (Node node : nodes) {
             // 保证有一个节点是未被隔离的即可
             node.setIsolated(false);
         }
@@ -353,7 +351,6 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-        monitor.wakeup();
     }
 
     @Override

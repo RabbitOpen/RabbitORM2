@@ -103,7 +103,6 @@ public class ElectionArbiter extends Thread implements Candidate {
 			try {
 				if (electionSemaphore.tryAcquire(keepAliveCheckingInterval, TimeUnit.SECONDS)) {
 					if (run) {
-						role = NodeRole.OBSERVER;
 						doElection();
 					} else {
 						return;
@@ -142,10 +141,10 @@ public class ElectionArbiter extends Thread implements Candidate {
 			return;
 		}
 		if (System.currentTimeMillis() - lastActiveTime > keepAliveCheckingInterval * 1000) {
-			startElection();
 			logger.warn("[{}] begin to reelect leader, my role is [{}]", myId, role);
 			setNodeRole(NodeRole.OBSERVER);
 			setLeaderId(null);
+			startElection();
 		}
 	}
 
@@ -210,9 +209,8 @@ public class ElectionArbiter extends Thread implements Candidate {
 		try {
 			electionLock.lock();
 			agreedCandidates = 1;
-			// 清空信号量
-			sleepSemaphore.drainPermits();
 			if (NodeRole.OBSERVER != role) {
+				// 有可能在启动前就收到选举结果通知了
 				return;
 			}
 			postman.delivery(new ElectionPacket(electionPacketVersion.addAndGet(1L)));
@@ -237,6 +235,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 				// 票够了就直接唤醒投票线程, 结束投票
 				this.role = NodeRole.LEADER;
 				this.leaderId = myId;
+				logger.info("I'm elected to be the leader, elect version is: {}", electionPacketVersion.get());
 				postman.delivery(new ElectedLeader(electionPacketVersion.get(), myId));
 				sleepSemaphore.release();
 			}
@@ -254,12 +253,12 @@ public class ElectionArbiter extends Thread implements Candidate {
 	 * @param electionPacket
 	 */
 	@Override
-	public synchronized void onElectionPacketReceived(ElectionPacket electionPacket) {
+	public void onElectionPacketReceived(ElectionPacket electionPacket) {
 		if (NodeRole.LEADER == this.role) {
 			// 告诉他我就是leader
 			postman.ack(new ElectedLeader(electionPacketVersion.get(), myId));
-			eventListener.onCandidatesChanged();
 		} else {
+			electionLock.lock();
 			// 同一个版本号的数据只会被同意一次
 			if (electionPacket.getVersion() <= electionPacketVersion.get() || agreedVersion >= electionPacket.getVersion()) {
 				postman.ack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
@@ -269,6 +268,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 				postman.ack(new ElectionResult(ElectionResult.AGREE, electionPacket.getVersion()));
 				logger.debug("received election packet({}), AGREED!", electionPacket.getVersion());
 			}
+			electionLock.unlock();
 		}
 	}
 
