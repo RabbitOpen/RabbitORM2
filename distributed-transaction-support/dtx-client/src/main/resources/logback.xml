@@ -39,7 +39,10 @@
     </appender>
 
     <!--对于类路径以 rabbit.open.dtx 开头的Logger,debug,并且只输出到控制台-->
-   <logger name="rabbit.open.dtx" level="debug" additivity="false">
+    <logger name="rabbit.open.dtx" level="debug" additivity="false">
+        <appender-ref ref="dtx"/>
+    </logger>
+    <logger name="rabbit.open.algorithm" level="debug" additivity="false">
         <appender-ref ref="dtx"/>
     </logger>
 
