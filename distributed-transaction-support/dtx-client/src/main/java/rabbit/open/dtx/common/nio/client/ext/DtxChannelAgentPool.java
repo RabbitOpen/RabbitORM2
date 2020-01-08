@@ -171,6 +171,8 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         if (closeLock.tryLock()) {
             try {
                 doInitialize();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
             } finally {
                 closeLock.unlock();
             }

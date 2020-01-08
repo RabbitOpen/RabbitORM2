@@ -274,7 +274,6 @@ public class ElectionArbiter extends Thread implements Candidate {
 
 	@Override
 	public void onKittyReceived(HelloKitty kitty) {
-		logger.debug("helloKitty from [{}] received!", kitty.getNodeId());
 		if (kitty.getNodeId().equals(this.leaderId)) {
 			lastActiveTime = System.currentTimeMillis();
 		}

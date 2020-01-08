@@ -34,7 +34,15 @@ public class Node implements Serializable {
         if ("localhost".equals(host)) {
             CallHelper.ignoreExceptionCall(() -> this.host = InetAddress.getLocalHost().getHostAddress());
         }
+        setHost(host);
+        setPort(port);
+    }
+
+    public void setHost(String host) {
         this.host = host;
+    }
+
+    public void setPort(int port) {
         this.port = port;
     }
 
