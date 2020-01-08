@@ -31,6 +31,9 @@ public class ElectionArbiter extends Thread implements Candidate {
 	
 	// 选举版本号
 	private final AtomicLong electionPacketVersion = new AtomicLong(0);
+
+	// 当前已经同意的版本号
+	private long agreedVersion = 0L;
 	
 	// 候选人总个数
 	private int candidateSize = 1;
@@ -251,16 +254,18 @@ public class ElectionArbiter extends Thread implements Candidate {
 	 * @param electionPacket
 	 */
 	@Override
-	public void onElectionPacketReceived(ElectionPacket electionPacket) {
+	public synchronized void onElectionPacketReceived(ElectionPacket electionPacket) {
 		if (NodeRole.LEADER == this.role) {
 			// 告诉他我就是leader
 			postman.ack(new ElectedLeader(electionPacketVersion.get(), myId));
 			eventListener.onCandidatesChanged();
 		} else {
-			if (electionPacket.getVersion() <= electionPacketVersion.get()) {
+			// 同一个版本号的数据只会被同意一次
+			if (electionPacket.getVersion() <= electionPacketVersion.get() || agreedVersion >= electionPacket.getVersion()) {
 				postman.ack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
 				logger.debug("received election packet({}), REJECTED!", electionPacket.getVersion());
 			} else {
+				agreedVersion = electionPacket.getVersion();
 				postman.ack(new ElectionResult(ElectionResult.AGREE, electionPacket.getVersion()));
 				logger.debug("received election packet({}), AGREED!", electionPacket.getVersion());
 			}
