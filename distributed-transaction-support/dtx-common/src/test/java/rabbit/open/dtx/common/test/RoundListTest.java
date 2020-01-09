@@ -12,6 +12,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author xiaoqianbin
@@ -59,7 +60,40 @@ public class RoundListTest {
         new Thread(() -> TestCase.assertTrue(10 == list.fetch(200))).start();
         holdOn(50);
         list.add(10);
+        
+        // 验证取数的正确性
+        assertFetch();
     }
+
+    // 验证取数的正确性
+	protected void assertFetch() throws InterruptedException {
+		RoundList<Integer> list = new RoundList<>();
+    	int size = 64;
+		for (int i = 0; i < size; i++) {
+    		list.add(i);
+    	}
+		AtomicLong total = new AtomicLong(0);
+		int count = 50;
+        CountDownLatch cdl = new CountDownLatch(count);
+        long queueSize = 1000000;
+		for (int i = 0; i < count; i++) {
+			new Thread(() -> {
+				for (long j = 0; j < queueSize; j++) {
+					total.addAndGet(list.fetch());
+					list.peekNext();
+				}
+				cdl.countDown();
+			}).start();
+		}
+		cdl.await();
+		
+		long sum = 0;
+		for (long i = 0; i < queueSize * count; i++) {
+			sum += i % size;
+		}
+		System.out.println("sum: " + sum);
+		TestCase.assertEquals(sum, total.get());
+	}
 
     private void holdOn(long millSeconds) throws InterruptedException {
         Semaphore s = new Semaphore(0);
