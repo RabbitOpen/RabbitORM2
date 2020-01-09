@@ -17,13 +17,13 @@ import java.util.Set;
  **/
 public class RabbitPostman extends Postman {
 
-    private ClusterDtxServerWrapper dtxServerWrapper;
+    private DtxServerClusterWrapper dtxServerWrapper;
 
     private ThreadLocal<ProtocolPacket> dataContext = new ThreadLocal<>();
 
     private Set<String> hostAddresses = new HashSet<>();
 
-    public RabbitPostman(ClusterDtxServerWrapper dtxServerWrapper) throws UnknownHostException {
+    public RabbitPostman(DtxServerClusterWrapper dtxServerWrapper) throws UnknownHostException {
         this.dtxServerWrapper = dtxServerWrapper;
         // 127.0.0.1
         hostAddresses.add(InetAddress.getLoopbackAddress().getHostAddress());
@@ -38,7 +38,8 @@ public class RabbitPostman extends Postman {
     @Override
     public void delivery(ProtocolPacket packet) {
         for (Node node : dtxServerWrapper.getChannelAgentPool().getNodes()) {
-            if (isLocalhost(node) || node.isIsolated()) {
+            if (isLocalhost(node)) {
+                // 不发送给自己
                 continue;
             }
             try {

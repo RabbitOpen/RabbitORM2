@@ -17,13 +17,6 @@ public interface ElectionEventListener {
     default void onElectionBegin() {}
 
     /**
-     * 集群节点发生变更
-     * @author  xiaoqianbin
-     * @date    2020/1/7
-     **/
-    void onCandidatesChanged();
-
-    /**
      * leader选举出来了
      * @param   arbiter     当前节点
      * @author  xiaoqianbin

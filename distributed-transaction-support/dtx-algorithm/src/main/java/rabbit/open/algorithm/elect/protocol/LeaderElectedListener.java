@@ -7,7 +7,7 @@ import rabbit.open.algorithm.elect.event.ElectionEventListener;
  * @author xiaoqianbin
  * @date 2019/12/30
  **/
-public abstract class LeaderElectedListener implements ElectionEventListener {
+public class LeaderElectedListener implements ElectionEventListener {
 
     @Override
     public void onElectionEnd(ElectionArbiter arbiter) {

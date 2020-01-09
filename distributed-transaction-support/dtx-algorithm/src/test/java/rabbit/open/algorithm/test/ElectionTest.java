@@ -32,10 +32,6 @@ public class ElectionTest {
         for (int i = 0; i < count; i++) {
             MockPostman postman = new MockPostman();
             ElectionArbiter arbiter = new ElectionArbiter(count, "node-" + i, new LeaderElectedListener() {
-                @Override
-                public void onCandidatesChanged() {
-
-                }
 
                 @Override
                 public void onElectionEnd(ElectionArbiter node) {
