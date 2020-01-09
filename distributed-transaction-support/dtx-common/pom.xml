@@ -8,7 +8,8 @@
         <version>3.3.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>dtx-client</artifactId>
+
+    <artifactId>dtx-common</artifactId>
 
     <properties>
         <!-- Sonar -->
@@ -20,57 +21,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>rabbit.open</groupId>
-            <artifactId>dtx-common</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>kryo-shaded</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>rabbit.open</groupId>
-            <artifactId>rabbit-orm-core</artifactId>
-            <version>${parent.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>rabbit.open</groupId>
-            <artifactId>rabbit-orm-common</artifactId>
-            <version>${parent.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>rabbit.open</groupId>
-            <artifactId>rabbit-orm-datasource</artifactId>
-            <version>${parent.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>dubbo</artifactId>
-            <version>2.5.10</version>
-            <scope>provided</scope>
-            <exclusions>
-            	<exclusion>
-            		<groupId>org.slf4j</groupId>
-      				<artifactId>slf4j-api</artifactId>
-            	</exclusion>
-                <exclusion>
-                    <groupId>org.jboss.netty</groupId>
-                    <artifactId>netty</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-        </dependency>
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
@@ -84,16 +34,25 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>rabbit.open</groupId>
+            <artifactId>dtx-algorithm</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo-shaded</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -121,10 +80,10 @@
             <version>4.1.39.Final</version>
             <scope>provided</scope>
             <exclusions>
-            	<exclusion>
-            		<groupId>org.slf4j</groupId>
-      				<artifactId>slf4j-api</artifactId>
-            	</exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -133,8 +92,8 @@
             <version>2.1.0.RELEASE</version>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
+
 
     <profiles>
         <profile>

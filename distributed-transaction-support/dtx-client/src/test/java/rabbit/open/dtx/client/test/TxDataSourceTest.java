@@ -1,4 +1,4 @@
-package rabbit.open.dtx.common.test;
+package rabbit.open.dtx.client.test;
 
 import junit.framework.TestCase;
 import org.junit.Test;

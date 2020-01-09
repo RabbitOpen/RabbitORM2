@@ -1,6 +1,7 @@
 package rabbit.open.dtx.common.test.enhance;
 
 import org.springframework.stereotype.Component;
+import rabbit.open.dtx.common.nio.client.annotation.DistributedTransaction;
 
 /**
  * @author xiaoqianbin
@@ -12,5 +13,11 @@ public class HelloService {
     @MyAop
     public String sayHello(String username) {
         return "hello" + username;
+    }
+
+
+    @DistributedTransaction
+    public void hello() {
+
     }
 }

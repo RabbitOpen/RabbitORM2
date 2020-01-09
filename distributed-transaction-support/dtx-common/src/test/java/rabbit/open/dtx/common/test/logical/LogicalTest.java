@@ -5,8 +5,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
-import rabbit.open.dtx.client.net.DtxMessageListener;
-import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.FutureResult;
 import rabbit.open.dtx.common.nio.client.Node;
@@ -19,6 +17,7 @@ import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 import rabbit.open.dtx.common.nio.server.DtxServerWrapper;
 import rabbit.open.dtx.common.nio.server.MemoryTransactionHandler;
+import rabbit.open.dtx.common.test.enhance.HelloService;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -37,7 +36,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author xiaoqianbin
  * @date 2019/12/12
  **/
-@ContextConfiguration(locations = {"classpath:common-support.xml"})
+@ContextConfiguration(locations = {"classpath:common.xml"})
 public class LogicalTest {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
@@ -60,11 +59,11 @@ public class LogicalTest {
 
         TestTransactionManager manager = new TestTransactionManager();
 
-        manager.setListener(new DtxMessageListener(manager));
+//        manager.setListener(new DtxMessageListener(manager));
 
         manager.init();
 
-        Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
+        Method method = HelloService.class.getDeclaredMethod("hello");
         manager.beginTransaction(method);
 
         // 事务处理器
@@ -285,7 +284,7 @@ public class LogicalTest {
         };
         manager.init();
 
-        Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
+        Method method = HelloService.class.getDeclaredMethod("hello");
         manager.beginTransaction(method);
         // 事务处理器
         TransactionHandler handler = manager.getTransactionHandler();
@@ -352,5 +351,7 @@ public class LogicalTest {
         }
         cdl.await();
     }
+
+
 
 }

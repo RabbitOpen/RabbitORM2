@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2019/12/9
  **/
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:common-support.xml"})
+@ContextConfiguration(locations = {"classpath:common.xml"})
 public class RpcTest {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
