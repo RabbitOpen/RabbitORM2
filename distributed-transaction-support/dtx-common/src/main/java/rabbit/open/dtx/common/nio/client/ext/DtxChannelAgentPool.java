@@ -393,7 +393,8 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      * @author  xiaoqianbin
      * @date    2020/1/9
      **/
-    public synchronized <T> T proxy(Class<T> clz, long rpcTimeoutSeconds) {
+    @SuppressWarnings("unchecked")
+	public synchronized <T> T proxy(Class<T> clz, long rpcTimeoutSeconds) {
         if (!proxyCache.containsKey(clz)) {
             InvocationHandler handler = new JdkProxy(this, rpcTimeoutSeconds, clz);
             Object instance = Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{clz}, handler);

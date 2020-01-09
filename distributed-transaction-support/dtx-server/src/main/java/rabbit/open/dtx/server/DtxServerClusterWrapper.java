@@ -105,12 +105,13 @@ public class DtxServerClusterWrapper extends DtxServerWrapper {
      * @author xiaoqianbin
      * @date 2020/1/6
      **/
+    @SuppressWarnings({ "rawtypes", "serial" })
     private void initClientPool() throws IOException {
 
         ClusterClientNetEventHandler eventHandler = new ClusterClientNetEventHandler();
 
         // 注册客户端协调数据处理逻辑
-        Map<Class<?>, MessageListener> listener = new HashMap<>();
+		Map<Class<?>, MessageListener> listener = new HashMap<>();
         listener.put(Coordination.class, msg -> postman.onDataReceived(((Coordination)msg).getProtocolPacket()));
 
         channelAgentPool = new DtxChannelAgentPool(new AbstractTransactionManager() {

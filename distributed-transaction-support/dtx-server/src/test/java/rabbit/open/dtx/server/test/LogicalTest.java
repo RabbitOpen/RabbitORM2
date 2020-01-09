@@ -109,7 +109,8 @@ public class LogicalTest {
         serverWrapper.close();
     }
 
-    private void testSyncClusterMeta(DtxServerWrapper serverWrapper, DtxChannelAgentPool pool) throws InterruptedException, NoSuchFieldException, IllegalAccessException {
+    @SuppressWarnings("unchecked")
+	private void testSyncClusterMeta(DtxServerWrapper serverWrapper, DtxChannelAgentPool pool) throws InterruptedException, NoSuchFieldException, IllegalAccessException {
         for (ChannelAgent agent : serverWrapper.getServer().getAgents()) {
             ClusterMeta clusterMeta = new ClusterMeta();
             List<Node> nodes = new ArrayList<>();

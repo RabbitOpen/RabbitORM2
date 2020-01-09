@@ -1,23 +1,32 @@
 package rabbit.open.dtx.client.test;
 
-import junit.framework.TestCase;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Types;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import junit.framework.TestCase;
 import rabbit.open.dtx.client.datasource.proxy.TxConnection;
 import rabbit.open.dtx.client.datasource.proxy.TxDataSource;
 import rabbit.open.dtx.client.datasource.proxy.TxPreparedStatement;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.datasource.RabbitDataSource;
-
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * 代理数据源、代理连接、代理PreparedStatement 常用方法测试，验证静态代理的正确性
@@ -27,8 +36,9 @@ import java.util.Properties;
 @RunWith(JUnit4.class)
 public class TxDataSourceTest {
 
-    @Test
-    public void datasourceTest() throws SQLException, FileNotFoundException, NoSuchFieldException, IllegalAccessException {
+    @SuppressWarnings("unchecked")
+	@Test
+    public void datasourceTest() throws SQLException, FileNotFoundException, NoSuchFieldException, IllegalAccessException, URISyntaxException {
         RabbitDataSource rds = new RabbitDataSource();
         rds.setUrl("jdbc:mysql://localhost:3306/cas?useUnicode=true&characterEncoding=UTF-8&useServerPrepStmts=true");
         rds.setUsername("root");
@@ -50,9 +60,9 @@ public class TxDataSourceTest {
         o.remove(txDataSource.getDataSourceName());
     }
 
-    private void txPreparedStatementTest(TxDataSource txDataSource) throws SQLException {
+    @SuppressWarnings("deprecation")
+	private void txPreparedStatementTest(TxDataSource txDataSource) throws SQLException {
         TxConnection txConn = (TxConnection) txDataSource.getConnection();
-        Connection conn = txConn.getRealConn();
         TxPreparedStatement txStmt = (TxPreparedStatement) txConn.prepareStatement("select * from t_user where id = ?");
         txStmt.setInt(1, 1);
         txStmt.setLong(1, 1L);
@@ -129,14 +139,15 @@ public class TxDataSourceTest {
     }
 
 
-    private void testDatasourceMethods(RabbitDataSource rds, TxDataSource txDataSource) throws SQLException, FileNotFoundException {
+    private void testDatasourceMethods(RabbitDataSource rds, TxDataSource txDataSource) throws SQLException, FileNotFoundException, URISyntaxException {
         TestCase.assertEquals(rds.isWrapperFor(TxDataSourceTest.class), txDataSource.isWrapperFor(TxDataSourceTest.class));
         TestCase.assertNull(txDataSource.unwrap(TxDataSourceTest.class));
         TestCase.assertEquals(rds.isWrapperFor(TxDataSourceTest.class), txDataSource.isWrapperFor(TxDataSourceTest.class));
         txDataSource.setLoginTimeout(100);
         TestCase.assertEquals(txDataSource.getLoginTimeout(), rds.getLoginTimeout());
-        String fileName = "D:\\workspace\\RabbitORM2\\distributed-transaction-support\\dtx-client\\src\\test\\resources\\test.properties";
-        PrintWriter out = new PrintWriter(fileName);
+        URL resource = getClass().getClassLoader().getResource("test.properties");
+        new File(resource.toURI()).getAbsolutePath();
+        PrintWriter out = new PrintWriter(new File(resource.toURI()).getAbsolutePath());
         txDataSource.setLogWriter(out);
         TestCase.assertEquals(txDataSource.getLogWriter(), rds.getLogWriter());
         out.close();

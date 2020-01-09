@@ -1,12 +1,15 @@
 package rabbit.open.dtx.client.test;
 
-import junit.framework.TestCase;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import junit.framework.TestCase;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
 import rabbit.open.dtx.client.net.TransactionMessageHandler;
 import rabbit.open.dtx.client.test.entity.Enterprise;
@@ -19,9 +22,6 @@ import rabbit.open.dtx.client.test.service.SimpleTransactionManager;
 import rabbit.open.dtx.common.exception.IsolationException;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.orm.core.dml.meta.MetaData;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 
 /**
@@ -46,7 +46,6 @@ public class SupportTest {
 
     @Test
     public void dbTest() {
-        GenericObjectPoolConfig s;
         Enterprise enterprise = new Enterprise();
         enterprise.setName("jdd");
         es.addEnterprise(enterprise);

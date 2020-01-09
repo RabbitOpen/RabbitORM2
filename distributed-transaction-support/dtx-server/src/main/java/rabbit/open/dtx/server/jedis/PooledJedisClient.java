@@ -14,6 +14,7 @@ import java.util.Set;
  * @author xiaoqianbin
  * @date 2020/1/2
  **/
+@SuppressWarnings("unchecked")
 public class PooledJedisClient implements JedisClient {
 
     // casHset方法脚本
@@ -47,7 +48,7 @@ public class PooledJedisClient implements JedisClient {
         hgetAllAndDelScriptSha = (String) execute(jedis -> jedis.scriptLoad(hgetAllAndDelScript));
     }
 
-    @Override
+	@Override
     public Map<String, String> hgetAll(String key) {
         return (Map<String, String>) execute(jedis -> jedis.hgetAll(key));
     }
