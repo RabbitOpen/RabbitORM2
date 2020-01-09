@@ -1,4 +1,4 @@
-package rabbit.open.dtx.common.nio.client.annotation;
+package rabbit.open.dtx.common.annotation;
 
 /**
  * 事务隔离类型

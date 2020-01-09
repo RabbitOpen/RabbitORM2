@@ -1,4 +1,4 @@
-package rabbit.open.dtx.common.nio.exception;
+package rabbit.open.dtx.common.exception;
 
 /**
  * DTX死锁异常， 不同的分支尝试获取同一个资源

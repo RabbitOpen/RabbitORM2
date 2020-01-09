@@ -1,7 +1,7 @@
 package rabbit.open.dtx.common.nio.server.handler;
 
 import org.springframework.util.StringUtils;
-import rabbit.open.dtx.common.nio.exception.DtxException;
+import rabbit.open.dtx.common.exception.DtxException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;

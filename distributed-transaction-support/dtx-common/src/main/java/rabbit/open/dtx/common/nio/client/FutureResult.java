@@ -1,6 +1,6 @@
 package rabbit.open.dtx.common.nio.client;
 
-import rabbit.open.dtx.common.nio.exception.TimeoutException;
+import rabbit.open.dtx.common.exception.TimeoutException;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;

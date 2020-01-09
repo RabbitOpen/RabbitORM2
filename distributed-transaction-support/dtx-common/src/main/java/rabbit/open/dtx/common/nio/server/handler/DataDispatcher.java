@@ -1,6 +1,6 @@
 package rabbit.open.dtx.common.nio.server.handler;
 
-import rabbit.open.dtx.common.nio.exception.DtxException;
+import rabbit.open.dtx.common.exception.DtxException;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.protocol.Application;

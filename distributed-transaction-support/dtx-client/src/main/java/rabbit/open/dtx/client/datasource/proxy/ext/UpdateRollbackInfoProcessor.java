@@ -7,11 +7,11 @@ import rabbit.open.dtx.client.datasource.proxy.RollBackRecord;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfoProcessor;
 import rabbit.open.dtx.client.datasource.proxy.TxConnection;
+import rabbit.open.dtx.common.annotation.Isolation;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
+import rabbit.open.dtx.common.exception.IsolationException;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
-import rabbit.open.dtx.common.nio.client.annotation.Isolation;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
-import rabbit.open.dtx.common.nio.exception.IsolationException;
 
 import java.sql.*;
 import java.util.ArrayList;

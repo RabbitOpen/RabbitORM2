@@ -1,8 +1,8 @@
 package rabbit.open.dtx.client.datasource.proxy;
 
 import org.springframework.beans.factory.BeanCreationException;
+import rabbit.open.dtx.common.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
-import rabbit.open.dtx.common.nio.exception.DistributedTransactionException;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;

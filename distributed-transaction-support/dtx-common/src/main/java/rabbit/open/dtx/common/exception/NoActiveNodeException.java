@@ -1,4 +1,4 @@
-package rabbit.open.dtx.common.nio.exception;
+package rabbit.open.dtx.common.exception;
 
 /**
  * 没有可用的节点

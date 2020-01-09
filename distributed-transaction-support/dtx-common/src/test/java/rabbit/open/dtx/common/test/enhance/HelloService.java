@@ -1,7 +1,7 @@
 package rabbit.open.dtx.common.test.enhance;
 
 import org.springframework.stereotype.Component;
-import rabbit.open.dtx.common.nio.client.annotation.DistributedTransaction;
+import rabbit.open.dtx.common.annotation.DistributedTransaction;
 
 /**
  * @author xiaoqianbin

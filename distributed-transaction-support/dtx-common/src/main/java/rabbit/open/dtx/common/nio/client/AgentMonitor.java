@@ -2,8 +2,8 @@ package rabbit.open.dtx.common.nio.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rabbit.open.dtx.common.exception.NetworkException;
 import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
-import rabbit.open.dtx.common.nio.exception.NetworkException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.protocol.KeepAlive;
 

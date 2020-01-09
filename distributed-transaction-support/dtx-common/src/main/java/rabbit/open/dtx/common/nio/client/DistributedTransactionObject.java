@@ -1,6 +1,6 @@
 package rabbit.open.dtx.common.nio.client;
 
-import rabbit.open.dtx.common.nio.client.annotation.Isolation;
+import rabbit.open.dtx.common.annotation.Isolation;
 
 import java.lang.reflect.Method;
 

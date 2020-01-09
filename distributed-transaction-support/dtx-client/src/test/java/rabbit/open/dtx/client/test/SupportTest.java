@@ -15,7 +15,7 @@ import rabbit.open.dtx.client.test.service.EnterpriseService;
 import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.client.test.service.RollbackInfoService;
 import rabbit.open.dtx.client.test.service.SimpleTransactionManager;
-import rabbit.open.dtx.common.nio.exception.IsolationException;
+import rabbit.open.dtx.common.exception.IsolationException;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.orm.core.dml.meta.MetaData;
 

@@ -1,4 +1,4 @@
-package rabbit.open.dtx.common.nio.client.annotation;
+package rabbit.open.dtx.common.annotation;
 
 /**
  * 传播特性

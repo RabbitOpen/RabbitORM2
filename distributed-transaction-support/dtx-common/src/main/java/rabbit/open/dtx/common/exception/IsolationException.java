@@ -1,6 +1,6 @@
-package rabbit.open.dtx.common.nio.exception;
+package rabbit.open.dtx.common.exception;
 
-import rabbit.open.dtx.common.nio.client.annotation.Isolation;
+import rabbit.open.dtx.common.annotation.Isolation;
 
 /**
  * 隔离级别异常，Isolation.READ_COMMITTED必须在事务方法中使用

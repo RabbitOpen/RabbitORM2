@@ -5,11 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import rabbit.open.dtx.client.net.DtxMessageListener;
+import rabbit.open.dtx.common.annotation.Isolation;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.nio.client.Node;
-import rabbit.open.dtx.common.nio.client.annotation.Isolation;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 
 import java.lang.reflect.Method;
