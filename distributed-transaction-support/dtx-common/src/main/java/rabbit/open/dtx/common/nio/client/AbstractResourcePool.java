@@ -4,9 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.common.exception.GetConnectionTimeoutException;
 
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -18,20 +15,17 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected LinkedBlockingDeque<T> queue;
+    protected RoundList<T> roundList;
 
     protected ReentrantLock createLock = new ReentrantLock();
 
-    // 当前个数
-    protected AtomicInteger count = new AtomicInteger(0);
-
     public AbstractResourcePool() {
-        queue = new LinkedBlockingDeque<>(10000);
+        roundList = new RoundList<>();
     }
 
     // 获取当前连接数
     public int getResourceCount() {
-        return count.intValue();
+        return roundList.size();
     }
 
     /**
@@ -50,20 +44,14 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
      * @date    2019/12/12
      **/
     private T getResource(long timeoutMilliSeconds) {
-        T resource = null;
-        try {
-            if (0 != timeoutMilliSeconds) {
-                resource = queue.pollFirst(timeoutMilliSeconds, TimeUnit.MILLISECONDS);
-                if (null == resource) {
-                    throw new GetConnectionTimeoutException(timeoutMilliSeconds);
-                }
-            } else {
-                resource = queue.pollFirst();
+        T resource;
+        if (0 != timeoutMilliSeconds) {
+            resource = roundList.fetch(timeoutMilliSeconds);
+            if (null == resource) {
+                throw new GetConnectionTimeoutException(timeoutMilliSeconds);
             }
-        } catch (GetConnectionTimeoutException e) {
-            throw e;
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+        } else {
+            resource = roundList.fetch();
         }
         if (null != resource) {
             return resource;
@@ -79,21 +67,18 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
      * @date 2019/12/7
      **/
     public void release(T resource) {
-        queue.addLast(resource);
+        // to do: 因为RoundList并没有真正的取出节点，所以release什么都不做
     }
 
     /**
-     * 销毁连接
+     * 移除资源
      * @param    resource
      * @author xiaoqianbin
      * @date 2019/12/7
      **/
-    public void destroyResource(T resource) {
-        count.getAndDecrement();
-    	// 尝试移除当前被销毁的连接(服务端发起关闭请求时，该连接理论上可能还在池中，所有需要清除一次)
-    	if (queue.remove(resource)) {
-    	    logger.debug("remove resource from pool");
-        }
+    public void removeResource(T resource) {
+        roundList.remove(resource);
+        logger.debug("remove resource from pool");
     }
 
     /**
@@ -108,9 +93,7 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
         try {
             createLock.lock();
             if (canCreate()) {
-                T resource = newResource();
-                release(resource);
-                count.getAndIncrement();
+                roundList.add(newResource());
             }
         } finally {
             createLock.unlock();

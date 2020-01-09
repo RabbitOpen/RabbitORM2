@@ -7,7 +7,7 @@ package rabbit.open.dtx.common.nio.pub.protocol;
  **/
 public class RpcProtocol {
 
-    // 调用的rpc服务的namespace
+    // 调用的rpc服务的clz
     private String namespace;
 
     // 方法名

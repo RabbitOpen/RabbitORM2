@@ -2,22 +2,16 @@ package rabbit.open.dtx.common.nio.client.ext;
 
 import rabbit.open.dtx.common.annotation.DistributedTransaction;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
-import rabbit.open.dtx.common.exception.DtxException;
-import rabbit.open.dtx.common.exception.GetConnectionTimeoutException;
-import rabbit.open.dtx.common.exception.NetworkException;
-import rabbit.open.dtx.common.exception.TimeoutException;
-import rabbit.open.dtx.common.nio.client.*;
-import rabbit.open.dtx.common.nio.pub.ChannelAgent;
-import rabbit.open.dtx.common.nio.pub.TransactionHandler;
-import rabbit.open.dtx.common.nio.pub.protocol.RpcProtocol;
-import rabbit.open.dtx.common.spring.anno.Namespace;
+import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionManager;
+import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
+import rabbit.open.dtx.common.nio.client.Node;
+import rabbit.open.dtx.common.nio.pub.inter.TransactionHandler;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.List;
 
 /**
@@ -185,8 +179,7 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
     @PostConstruct
     public void init() throws IOException {
         pool = new DtxChannelAgentPool(this);
-        InvocationHandler handler = new TransactionClientProxy(pool);
-        defaultHandler = (TransactionHandler) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{TransactionHandler.class}, handler);
+        defaultHandler = pool.proxy(TransactionHandler.class, getRpcTimeoutSeconds());
     }
 
     @PreDestroy
@@ -199,58 +192,4 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
         }
     }
 
-    private class TransactionClientProxy implements InvocationHandler {
-
-        DtxChannelAgentPool pool;
-
-        String namespace;
-
-        public TransactionClientProxy(DtxChannelAgentPool pool) {
-            this.pool = pool;
-            Namespace annotation = TransactionHandler.class.getAnnotation(Namespace.class);
-            namespace = annotation.value();
-        }
-
-        @Override
-        public Object invoke(Object proxy, Method method, Object[] args) {
-            if ("equals".equals(method.getName())) {
-                return false;
-            }
-            if ("hashCode".equals(method.getName())) {
-                return -1;
-            }
-            if ("toString".equals(method.getName())) {
-                return TransactionHandler.class.getName();
-            }
-            return doInvoke(method, args);
-        }
-
-        private Object doInvoke(Method method, Object[] args) {
-            Object data;
-            ChannelAgent agent = null;
-            try {
-                RpcProtocol protocol = new RpcProtocol(namespace, method.getName(), method.getParameterTypes(), args);
-                agent = this.pool.getResource();
-                FutureResult result = agent.send(protocol);
-                agent.release();
-                Long timeout = DistributedTransactionContext.getRollbackTimeout();
-                data = result.getData(null == timeout ? getRpcTimeoutSeconds() : timeout);
-            } catch (TimeoutException | GetConnectionTimeoutException e) {
-                throw e;
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new DtxException(e);
-            } catch (NetworkException e) {
-                if (null != agent) {
-                    agent.destroy();
-                }
-                // 网络IO异常就直接重试
-                return doInvoke(method, args);
-            }
-            if (data instanceof DtxException) {
-                throw (DtxException) data;
-            }
-            return data;
-        }
-    }
 }

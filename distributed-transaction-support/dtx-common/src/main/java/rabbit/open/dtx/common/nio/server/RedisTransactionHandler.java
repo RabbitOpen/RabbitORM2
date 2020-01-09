@@ -8,7 +8,7 @@ import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerTransactionHandler;
-import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
+import rabbit.open.dtx.common.nio.server.handler.ApplicationProtocolHandler;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
@@ -150,7 +150,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
      * @date 2020/1/1
      **/
     private void dispatchCommitInfo(Long txGroupId, String app, long txBranchId) {
-        List<ChannelAgent> agents = ApplicationDataHandler.getAgents(app);
+        List<ChannelAgent> agents = ApplicationProtocolHandler.getAgents(app);
         for (ChannelAgent agent : agents) {
             if (!agent.isClosed()) {
                 try {
@@ -202,7 +202,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     }
 
     private boolean dispatchRollbackInfo(Long txGroupId, String app, long txBranchId) {
-        List<ChannelAgent> agents = ApplicationDataHandler.getAgents(app);
+        List<ChannelAgent> agents = ApplicationProtocolHandler.getAgents(app);
         for (ChannelAgent agent : agents) {
             if (!agent.isClosed()) {
                 try {
@@ -308,7 +308,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
      * @date 2020/1/1
      **/
     private void wakeupClient(Long clientInstanceId, Long requestId, String applicationName) {
-        List<ChannelAgent> agents = ApplicationDataHandler.getAgents(applicationName);
+        List<ChannelAgent> agents = ApplicationProtocolHandler.getAgents(applicationName);
         for (ChannelAgent agent : agents) {
             if (agent.getClientInstanceId().equals(clientInstanceId)) {
                 CallHelper.ignoreExceptionCall(() -> agent.ack(requestId));

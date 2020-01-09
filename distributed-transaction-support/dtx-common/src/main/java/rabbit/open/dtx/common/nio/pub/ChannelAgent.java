@@ -106,6 +106,8 @@ public class ChannelAgent implements PooledResource {
             this.pool = pool;
             this.node = node;
             this.selector = pool.getNioSelector();
+            // 注册连接销毁回调事件
+            addShutdownHook(() -> pool.releaseAgentResource(node, this));
             channel = SocketChannel.open();
             // 设置通道为非阻塞
             channel.configureBlocking(false);
@@ -114,8 +116,6 @@ public class ChannelAgent implements PooledResource {
             this.selector.wakeup();
             selectionKey = futureTask.get();
             selectionKey.attach(this);
-            // 注册连接销毁回调事件
-            addShutdownHook(() -> pool.releaseAgentResource(node, this));
             // 客户端连接服务器,其实方法执行并没有实现连接
             channel.connect(new InetSocketAddress(this.node.getHost(), this.node.getPort()));
             ensureConnected();
@@ -131,13 +131,6 @@ public class ChannelAgent implements PooledResource {
     public void connectFailed() {
         connected = false;
         semaphore.release();
-    }
-
-    public void close() {
-        closeQuietly(channel);
-        if (null != selectionKey) {
-            selectionKey.cancel();
-        }
     }
 
     public boolean isConnected() {
@@ -341,7 +334,6 @@ public class ChannelAgent implements PooledResource {
 			if (!closed) {
 				pool.release(this);
 			}
-				
 		} finally {
 			lock.unlock();
 		}

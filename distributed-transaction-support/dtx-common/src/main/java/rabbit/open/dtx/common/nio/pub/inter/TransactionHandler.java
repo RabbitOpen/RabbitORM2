@@ -1,6 +1,4 @@
-package rabbit.open.dtx.common.nio.pub;
-
-import rabbit.open.dtx.common.spring.anno.Namespace;
+package rabbit.open.dtx.common.nio.pub.inter;
 
 import java.util.List;
 
@@ -9,7 +7,6 @@ import java.util.List;
  * @author xiaoqianbin
  * @date 2019/12/5
  **/
-@Namespace("dtxTransactionHandler")
 public interface TransactionHandler {
 
     /**

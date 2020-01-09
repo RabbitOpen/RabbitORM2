@@ -2,10 +2,9 @@ package rabbit.open.dtx.common.nio.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.dtx.common.exception.NetworkException;
 import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
-import rabbit.open.dtx.common.nio.pub.protocol.KeepAlive;
+import rabbit.open.dtx.common.nio.pub.inter.ProtocolHandler;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +26,8 @@ public class AgentMonitor extends Thread {
 
     private long idleMilliSecondsThreshold = 30L * 1000;
 
+    private ProtocolHandler protocolHandler;
+
     public AgentMonitor() {
 
     }
@@ -34,37 +35,31 @@ public class AgentMonitor extends Thread {
     public AgentMonitor(String name, DtxChannelAgentPool agentPool) {
         super(name);
         this.agentPool = agentPool;
+        protocolHandler = agentPool.proxy(ProtocolHandler.class);
     }
 
     @Override
     public void run() {
         while (run) {
-            ChannelAgent agent = null;
             try {
-                agent = agentPool.getResource();
-                if (System.currentTimeMillis() - agent.getLastActiveTime() > idleMilliSecondsThreshold) {
-                    agent.send(new KeepAlive());
-                    agent.release();
-                    // 发现有空闲太久的就继续向下检测
+                // 获取下一个节点(空闲最久的那个)
+                ChannelAgent agent = agentPool.roundList.peekNext();
+                if (null != agent && System.currentTimeMillis() - agent.getLastActiveTime() > idleMilliSecondsThreshold) {
+                    protocolHandler.keepAlive();
+                    // 发现有空闲太久的就继续向后检测
                     continue;
-                } else {
-                	agent.release();
-                }
-            } catch (NetworkException e) {
-                if (null != agent) {
-                    agent.destroy();
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
-            sleep30s();
+            sleep10s();
         }
     }
 
-    // 等待30秒
-    private void sleep30s() {
+    // 等待10秒
+    private void sleep10s() {
         try {
-            if (semaphore.tryAcquire(30, TimeUnit.SECONDS) && run) {
+            if (semaphore.tryAcquire(10, TimeUnit.SECONDS) && run) {
                 agentPool.initConnections();
             }
         } catch (Exception e) {
@@ -92,4 +87,5 @@ public class AgentMonitor extends Thread {
         }
         logger.info("agent monitor({}) is closed.....", getName());
     }
+
 }

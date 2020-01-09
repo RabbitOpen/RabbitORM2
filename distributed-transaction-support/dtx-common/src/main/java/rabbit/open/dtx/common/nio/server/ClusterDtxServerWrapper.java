@@ -15,12 +15,10 @@ import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
-import rabbit.open.dtx.common.nio.pub.protocol.ClientInstance;
 import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
 import rabbit.open.dtx.common.nio.pub.protocol.Coordination;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
-import rabbit.open.dtx.common.nio.server.handler.InstanceIDGenerator;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -102,7 +100,7 @@ public class ClusterDtxServerWrapper extends DtxServerWrapper {
     protected void beforeServerStart() {
 
         // 重写客户端id获取逻辑， 客户端连接服务器时，服务器向他通报节点信息
-        registerServerDataHandler(ClientInstance.class, new InstanceIDGenerator(eventHandler) {
+        /*registerServerDataHandler(ClientInstance.class, new InstanceIDGenerator(eventHandler) {
             @Override
             public Object process(ProtocolData protocolData) {
                 ClusterMeta meta = new ClusterMeta();
@@ -111,7 +109,7 @@ public class ClusterDtxServerWrapper extends DtxServerWrapper {
                 return super.process(protocolData);
             }
         });
-
+*/
         // 注册一个选举包处理器
         registerServerDataHandler(Coordination.class, data -> {
             postman.onDataReceived(((Coordination)data.getData()).getProtocolPacket());

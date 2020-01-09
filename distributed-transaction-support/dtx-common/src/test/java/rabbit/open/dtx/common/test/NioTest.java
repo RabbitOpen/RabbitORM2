@@ -10,11 +10,11 @@ import rabbit.open.dtx.common.nio.client.AgentMonitor;
 import rabbit.open.dtx.common.nio.client.FutureResult;
 import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
-import rabbit.open.dtx.common.nio.pub.protocol.KeepAlive;
+import rabbit.open.dtx.common.nio.pub.inter.ProtocolHandler;
 import rabbit.open.dtx.common.nio.server.DtxServer;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 import rabbit.open.dtx.common.nio.server.ServerAgentMonitor;
-import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
+import rabbit.open.dtx.common.nio.server.handler.ApplicationProtocolHandler;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -58,12 +58,13 @@ public class NioTest {
 
         for (int c = 0; c < count; c++) {
             new Thread(() -> {
+                ProtocolHandler proxy = arp.proxy(ProtocolHandler.class);
+                proxy.toString();
+                TestCase.assertTrue(proxy.equals(arp.proxy(ProtocolHandler.class)));
+                TestCase.assertTrue(proxy.hashCode() == -1);
                 for (int i = 0; i < 10000; i++) {
                     try {
-                        ChannelAgent agent = arp.getResource();
-                        FutureResult result = agent.send(new KeepAlive());
-                        agent.release();
-                        result.getData();
+                        proxy.keepAlive();
                     } catch (Exception e) {
                         logger.error(e.getMessage(), e);
                     }
@@ -73,7 +74,7 @@ public class NioTest {
         }
         cdl.await();
         logger.info("cost: {}", (System.currentTimeMillis() - start));
-        TestCase.assertEquals(ApplicationDataHandler.getAgents(manager.getApplicationName()).size(), arp.getResourceCount());
+        TestCase.assertEquals(ApplicationProtocolHandler.getAgents(manager.getApplicationName()).size(), arp.getResourceCount());
         holdOn(50);
         StringBuilder longStr = new StringBuilder();
         for (int i = 0 ; i < 1024; i++) {
@@ -94,7 +95,7 @@ public class NioTest {
         holdOn(1000);
         server.shutdown();
         TestCase.assertEquals(ChannelAgent.getLeftMessages(), 0);
-        TestCase.assertEquals(0, ApplicationDataHandler.getAgents(manager.getApplicationName()).size());
+        TestCase.assertEquals(0, ApplicationProtocolHandler.getAgents(manager.getApplicationName()).size());
     }
 
     private void holdOn(long millSeconds) throws InterruptedException {

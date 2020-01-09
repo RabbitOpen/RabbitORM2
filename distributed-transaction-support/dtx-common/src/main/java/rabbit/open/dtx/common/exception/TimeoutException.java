@@ -6,7 +6,7 @@ package rabbit.open.dtx.common.exception;
  * @date 2019/12/7
  **/
 @SuppressWarnings("serial")
-public class TimeoutException extends RuntimeException {
+public class TimeoutException extends DtxException {
 
     private final long timeoutSeconds;
 

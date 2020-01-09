@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
-import rabbit.open.dtx.common.nio.pub.TransactionHandler;
+import rabbit.open.dtx.common.nio.pub.inter.TransactionHandler;
 
 import java.io.IOException;
 import java.lang.reflect.Method;

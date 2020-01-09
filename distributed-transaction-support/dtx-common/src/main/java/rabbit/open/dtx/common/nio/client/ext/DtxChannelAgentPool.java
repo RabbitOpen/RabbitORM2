@@ -1,14 +1,18 @@
 package rabbit.open.dtx.common.nio.client.ext;
 
-import rabbit.open.dtx.common.exception.NetworkException;
-import rabbit.open.dtx.common.exception.NoActiveNodeException;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
+import rabbit.open.dtx.common.exception.*;
 import rabbit.open.dtx.common.nio.client.*;
 import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
+import rabbit.open.dtx.common.nio.pub.inter.ProtocolHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.*;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.ConnectException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -16,9 +20,11 @@ import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 客户端连接池
@@ -40,14 +46,12 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     private AbstractTransactionManager transactionManger;
 
+    private Map<Class<?>, Object> proxyCache = new ConcurrentHashMap<>();
+
     // 消息监听器
     private Map<Class<?>, MessageListener> listenerMap = new ConcurrentHashMap<>();
 
     private static final AtomicLong THREAD_ID = new AtomicLong(0);
-
-    private ThreadLocal<ChannelAgent> agentContext = new ThreadLocal<>();
-
-    private ReentrantLock closeLock = new ReentrantLock();
 
     // 监控线程
     private AgentMonitor monitor = new AgentMonitor("client-agent-pool-monitor-" + THREAD_ID.getAndAdd(1L), this);
@@ -58,12 +62,15 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     // 客户端实例 id
     private Long instanceId = null;
 
+    private ProtocolHandler protocolHandler;
+
     public DtxChannelAgentPool(AbstractTransactionManager transactionManger) throws IOException {
         this(transactionManger, null, null);
     }
 
     public DtxChannelAgentPool(AbstractTransactionManager transactionManger, ClientNetEventHandler netEventHandler, Map<Class<?>, MessageListener> listeners) throws IOException {
         this.transactionManger = transactionManger;
+        protocolHandler = proxy(ProtocolHandler.class);
         initNetEventHandler(netEventHandler);
         initListeners(listeners);
         nodes.addAll(transactionManger.getServerNodes());
@@ -168,29 +175,18 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      * @date 2019/12/16
      **/
     public void initConnections() {
-        if (closeLock.tryLock()) {
-            try {
-                doInitialize();
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            } finally {
-                closeLock.unlock();
-            }
+        try {
+            doInitialize();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
     }
 
     private void doInitialize() {
         makeSureNodeAvailable();
         for (int i = 0; i < nodes.size(); i++) {
-            try {
-                tryCreateResource();
-            } finally {
-                ChannelAgent agent = agentContext.get();
-                if (null != agent) {
-                    agentContext.remove();
-                    doRequest(agent);
-                }
-            }
+            tryCreateResource();
+            loadInstanceId();
         }
     }
 
@@ -255,7 +251,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     @Override
     protected boolean canCreate() {
         for (Node node : nodes) {
-            if (node.isIdle() && !node.isIsolated()) {
+            if (node.isIdle() && !node.isIsolated() && run) {
                 return true;
             }
         }
@@ -263,7 +259,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     }
 
     /**
-     * 确保至少有一个节点是未被隔离的
+     * 确保节点是未被隔离的
      * @author  xiaoqianbin
      * @date    2020/1/6
      **/
@@ -276,44 +272,35 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     @Override
     protected ChannelAgent newResource() {
+        ChannelAgent agent = createChannelAgent();
+        try {
+            // 通报应用名
+            reportAppInfo(agent);
+            return agent;
+        } catch (Exception e) {
+            agent.destroy();
+            throw new DtxException(e);
+        }
+    }
+
+    private ChannelAgent createChannelAgent() {
         for (Node node : nodes) {
             if (node.isIdle() && !node.isIsolated() && run) {
-                try {
-                    ChannelAgent agent = new ChannelAgent(node, this);
-                    if (!agent.isConnected()) {
-                        node.setIsolated(true);
-                        // 因为没有添加到池里，所以直接close
-                        agent.close();
-                        logger.error("connect node[{}:{}] failed", node.getHost(), node.getPort());
-                        continue;
-                    }
-                    node.setIdle(false);
-                    node.bindAgent(agent);
-                    logger.info("{} created a new connection, current size {}", transactionManger.getApplicationName(), count.get() + 1);
-                    agentContext.set(agent);
-                    return agent;
-                } catch (NetworkException e) {
+                ChannelAgent agent = new ChannelAgent(node, this);
+                if (!agent.isConnected()) {
                     node.setIsolated(true);
                     node.setIdle(true);
-                    throw e;
-                } catch (Exception e) {
-                    throw new NetworkException(e);
+                    agent.destroy();
+                    logger.error("connect node[{}:{}] failed", node.getHost(), node.getPort());
+                    continue;
                 }
+                node.setIdle(false);
+                node.bindAgent(agent);
+                logger.info("{} created a new connection, current size {}", transactionManger.getApplicationName(), getResourceCount() + 1);
+                return agent;
             }
         }
         throw new NoActiveNodeException();
-    }
-
-    // 发送业务数据
-    private void doRequest(ChannelAgent agent) {
-        try {
-            acquireInstanceId(agent);
-            // 通报应用名
-            reportAppInfo(agent);
-        } catch (Exception e) {
-            agent.destroy();
-            logger.error(e.getMessage());
-        }
     }
 
     /**
@@ -326,9 +313,14 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         agent.send(new Application(transactionManger.getApplicationName(), instanceId)).getData(3L);
     }
 
-    private void acquireInstanceId(ChannelAgent agent) throws InterruptedException {
+    /**
+     * 加载客户端应用信息
+     * @author  xiaoqianbin
+     * @date    2020/1/9
+     **/
+    private synchronized void loadInstanceId() {
         if (null == instanceId) {
-            ClientInstance instance = (ClientInstance) agent.send(new ClientInstance()).getData(3L);
+            ClientInstance instance = protocolHandler.getClientInstanceInfo();
             instanceId = instance.getId();
             logger.info("load instance id --> {}", instanceId);
         }
@@ -342,41 +334,37 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      * @date 2019/12/16
      **/
     public void releaseAgentResource(Node node, ChannelAgent agent) {
-        try {
-            if (agent.isClosed()) {
-                return;
-            }
-            node.setIdle(true);
-            destroyResource(agent);
-            agent.closeQuietly(agent.getSelectionKey().channel());
-            agent.getSelectionKey().cancel();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+        if (agent.isClosed()) {
+            return;
         }
+        node.setIdle(true);
+        agent.closeQuietly(agent.getSelectionKey().channel());
+        agent.getSelectionKey().cancel();
+        removeResource(agent);
     }
 
     @Override
     public void gracefullyShutdown() {
         try {
-            closeLock.lock();
+            createLock.lock();
             logger.info("{} is closing.....", DtxChannelAgentPool.class.getSimpleName());
             run = false;
             monitor.shutdown();
             // 先关闭listener 后释放连接，因为有些异步listener会使用连接进行response
-            closeAllListener();
-            releaseResources();
+            closeAllListeners();
+            closeAllResources();
             readThread.join();
             nioSelector.close();
             logger.info("{} gracefully shutdown", DtxChannelAgentPool.class.getSimpleName());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         } finally {
-            closeLock.unlock();
+            createLock.unlock();
         }
     }
 
     // 关闭所有的listener
-    private void closeAllListener() {
+    private void closeAllListeners() {
         for (MessageListener listener : listenerMap.values()) {
             if (listener instanceof AbstractMessageListener) {
                 AbstractMessageListener abstractMessageListener = (AbstractMessageListener) listener;
@@ -386,9 +374,9 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     }
 
     // 回收所有资源
-    private void releaseResources() throws InterruptedException {
-        while (0 != getResourceCount()) {
-            ChannelAgent agent = queue.poll(3, TimeUnit.SECONDS);
+    private void closeAllResources() {
+        while (!roundList.isEmpty()) {
+            ChannelAgent agent = roundList.fetch();
             if (null != agent) {
                 agent.destroy();
             }
@@ -397,6 +385,89 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     public NioSelector getNioSelector() {
         return nioSelector;
+    }
+
+    /**
+     * 接口代理类
+	 * @param	rpcTimeoutSeconds
+     * @author  xiaoqianbin
+     * @date    2020/1/9
+     **/
+    public synchronized <T> T proxy(Class<T> clz, long rpcTimeoutSeconds) {
+        if (!proxyCache.containsKey(clz)) {
+            InvocationHandler handler = new JdkProxy(this, rpcTimeoutSeconds, clz);
+            Object instance = Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{clz}, handler);
+            proxyCache.put(clz, instance);
+        }
+        return (T) proxyCache.get(clz);
+    }
+
+    /**
+     * 接口代理类
+     * @param	clz
+     * @author  xiaoqianbin
+     * @date    2020/1/9
+     **/
+    public <T> T proxy(Class<T> clz) {
+        return this.proxy(clz, 5L);
+    }
+
+    private class JdkProxy implements InvocationHandler {
+
+        DtxChannelAgentPool pool;
+
+        String namespace;
+
+        private long rpcTimeoutSeconds;
+
+
+        public JdkProxy(DtxChannelAgentPool pool, long rpcTimeoutSeconds, Class<?> clz) {
+            this.rpcTimeoutSeconds = rpcTimeoutSeconds;
+            this.pool = pool;
+            namespace = clz.getName();
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) {
+            if ("equals".equals(method.getName())) {
+                return true;
+            }
+            if ("hashCode".equals(method.getName())) {
+                return -1;
+            }
+            if ("toString".equals(method.getName())) {
+                return namespace;
+            }
+            return doInvoke(method, args);
+        }
+
+        private Object doInvoke(Method method, Object[] args) {
+            Object data;
+            ChannelAgent agent = null;
+            try {
+                RpcProtocol protocol = new RpcProtocol(namespace, method.getName(), method.getParameterTypes(), args);
+                agent = pool.getResource();
+                FutureResult result = agent.send(protocol);
+                agent.release();
+                Long timeout = DistributedTransactionContext.getRollbackTimeout();
+                data = result.getData(null == timeout ? rpcTimeoutSeconds : timeout);
+            } catch (TimeoutException | GetConnectionTimeoutException e) {
+                throw e;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new DtxException(e);
+            } catch (NetworkException e) {
+                if (null != agent) {
+                    agent.destroy();
+                }
+                // 网络IO异常就直接重试
+                return doInvoke(method, args);
+            }
+            if (data instanceof DtxException) {
+                throw (DtxException) data;
+            }
+            return data;
+        }
     }
 
 }

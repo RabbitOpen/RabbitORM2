@@ -3,7 +3,7 @@ package rabbit.open.dtx.common.nio.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
-import rabbit.open.dtx.common.nio.pub.TransactionHandler;
+import rabbit.open.dtx.common.nio.pub.inter.TransactionHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
 

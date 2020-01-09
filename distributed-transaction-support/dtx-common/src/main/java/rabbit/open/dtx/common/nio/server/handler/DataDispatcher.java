@@ -3,9 +3,8 @@ package rabbit.open.dtx.common.nio.server.handler;
 import rabbit.open.dtx.common.exception.DtxException;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
+import rabbit.open.dtx.common.nio.pub.inter.ProtocolHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.Application;
-import rabbit.open.dtx.common.nio.pub.protocol.ClientInstance;
-import rabbit.open.dtx.common.nio.pub.protocol.KeepAlive;
 import rabbit.open.dtx.common.nio.pub.protocol.RpcProtocol;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
@@ -21,18 +20,17 @@ public class DataDispatcher implements DataHandler {
 
     private Map<Class<?>, DataHandler> handlerMap = new ConcurrentHashMap<>();
 
-    private AbstractServerEventHandler eventHandler = null;
+    private RpcRequestHandler requestHandler = new RpcRequestHandler();
 
     public DataDispatcher() {
         this(null);
     }
 
     public DataDispatcher(AbstractServerEventHandler eventHandler) {
-        this.eventHandler = eventHandler;
-        handlerMap.put(RpcProtocol.class, new RpcRequestHandler(this.eventHandler));
-        handlerMap.put(KeepAlive.class, new KeepAliveHandler());
-        handlerMap.put(Application.class, new ApplicationDataHandler());
-        handlerMap.put(ClientInstance.class, new InstanceIDGenerator(eventHandler));
+        ApplicationProtocolHandler handler = new ApplicationProtocolHandler(eventHandler);
+        handlerMap.put(RpcProtocol.class, requestHandler);
+        handlerMap.put(Application.class, handler);
+        registerInterfaceHandler(ProtocolHandler.class, handler);
     }
 
     @Override
@@ -46,11 +44,24 @@ public class DataDispatcher implements DataHandler {
 
     /**
      * 注册数据处理器
-	 * @param	handler
-     * @author  xiaoqianbin
-     * @date    2019/12/31
+     * @param    handler
+     * @author xiaoqianbin
+     * @date 2019/12/31
      **/
-    public void registerHandler(Class<?> clz, DataHandler handler) {
-        handlerMap.put(clz, handler);
+    public void registerHandler(Class<?> dataClz, DataHandler handler) {
+        handlerMap.put(dataClz, handler);
     }
+
+    /**
+     * 注册接口处理器
+     * @param    interfaceClz
+     * @param    handler
+     * @author xiaoqianbin
+     * @date 2020/1/9
+     **/
+    public void registerInterfaceHandler(Class<?> interfaceClz, Object handler) {
+        requestHandler.registerHandler(interfaceClz, handler);
+    }
+
+
 }

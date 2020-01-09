@@ -3,6 +3,7 @@ package rabbit.open.dtx.common.nio.server.ext;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
+import rabbit.open.dtx.common.nio.pub.inter.TransactionHandler;
 import rabbit.open.dtx.common.nio.server.DtxServer;
 import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
 
@@ -106,5 +107,6 @@ public abstract class AbstractServerEventHandler extends AbstractNetEventHandler
 
     public void setTransactionHandler(AbstractServerTransactionHandler transactionHandler) {
         this.transactionHandler = transactionHandler;
+        dispatcher.registerInterfaceHandler(TransactionHandler.class, transactionHandler);
     }
 }

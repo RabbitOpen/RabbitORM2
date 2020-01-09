@@ -4,25 +4,27 @@ import rabbit.open.dtx.common.exception.DtxException;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.protocol.RpcProtocol;
-import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * RPC调用数据处理器
  * @author xiaoqianbin
  * @date 2019/12/7
  **/
-class RpcRequestHandler implements DataHandler {
+public class RpcRequestHandler implements DataHandler {
 
-    AbstractServerEventHandler eventHandler;
+    // 缓存接口和处理器之间的映射关系
+    private Map<Class<?>, Object> handlerMap = new ConcurrentHashMap<>();
 
-    public RpcRequestHandler(AbstractServerEventHandler eventHandler) {
-        this.eventHandler = eventHandler;
+    public void registerHandler(Class<?> clz, Object handler) {
+        handlerMap.put(clz, handler);
     }
 
     /***
@@ -34,12 +36,13 @@ class RpcRequestHandler implements DataHandler {
     @Override
     public Object process(ProtocolData protocolData) {
         RpcProtocol protocol = (RpcProtocol) protocolData.getData();
-        Object dtxService = eventHandler.getTransactionHandler();
+        Object service = null;
         try {
-            Method method = dtxService.getClass().getDeclaredMethod(protocol.getMethodName(), protocol.getArgTypes());
-            return method.invoke(dtxService, protocol.getValues());
+            service = handlerMap.get(Class.forName(protocol.getNamespace()));
+            Method method = service.getClass().getDeclaredMethod(protocol.getMethodName(), protocol.getArgTypes());
+            return method.invoke(service, protocol.getValues());
         } catch (NoSuchMethodException e) {
-            return tryInvokeDefaultInterfaceMethod(protocol, dtxService, e);
+            return tryInvokeDefaultInterfaceMethod(protocol, service, e);
         } catch (InvocationTargetException ex) {
             throw convertInvocationTargetException(ex);
         } catch (DtxException e) {
@@ -52,15 +55,15 @@ class RpcRequestHandler implements DataHandler {
     /**
      * 尝试调用default方法
      * @param protocol
-     * @param dtxService
+     * @param service
      * @param e
      * @author xiaoqianbin
      * @date 2019/12/10
      **/
-    private Object tryInvokeDefaultInterfaceMethod(RpcProtocol protocol, Object dtxService, NoSuchMethodException e) {
+    private Object tryInvokeDefaultInterfaceMethod(RpcProtocol protocol, Object service, NoSuchMethodException e) {
         try {
-            Method method = getMethodFromInterface(protocol, dtxService, e);
-            return method.invoke(dtxService, protocol.getValues());
+            Method method = getMethodFromInterface(protocol, service, e);
+            return method.invoke(service, protocol.getValues());
         } catch (InvocationTargetException ex) {
             throw convertInvocationTargetException(ex);
         } catch (Exception ex) {
@@ -84,9 +87,9 @@ class RpcRequestHandler implements DataHandler {
     }
 
     // 从接口中读取该方法
-    private Method getMethodFromInterface(RpcProtocol protocol, Object dtxService, NoSuchMethodException e) {
+    private Method getMethodFromInterface(RpcProtocol protocol, Object service, NoSuchMethodException e) {
         List<Class<?>> allInterfaces = new ArrayList<>();
-        Class<?> clz = dtxService.getClass();
+        Class<?> clz = service.getClass();
         while (!clz.equals(Object.class)) {
             allInterfaces.addAll(Arrays.asList(clz.getInterfaces()));
             clz = clz.getSuperclass();

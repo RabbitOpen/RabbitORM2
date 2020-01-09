@@ -12,7 +12,7 @@ import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
-import rabbit.open.dtx.common.nio.pub.TransactionHandler;
+import rabbit.open.dtx.common.nio.pub.inter.TransactionHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 import rabbit.open.dtx.common.nio.server.DtxServerWrapper;
@@ -58,8 +58,6 @@ public class LogicalTest {
         DtxServerWrapper serverWrapper = new DtxServerWrapper(20118, serverEventHandler);
 
         TestTransactionManager manager = new TestTransactionManager();
-
-//        manager.setListener(new DtxMessageListener(manager));
 
         manager.init();
 

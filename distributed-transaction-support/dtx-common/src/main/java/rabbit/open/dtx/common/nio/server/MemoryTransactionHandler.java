@@ -9,7 +9,7 @@ import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerTransactionHandler;
 import rabbit.open.dtx.common.nio.server.ext.TransactionContext;
-import rabbit.open.dtx.common.nio.server.handler.ApplicationDataHandler;
+import rabbit.open.dtx.common.nio.server.handler.ApplicationProtocolHandler;
 
 import java.util.List;
 import java.util.Map;
@@ -176,7 +176,7 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
     private void doBranchTransaction(Long txGroupId, Map.Entry<Long, String> entry, TxStatus txStatus) {
         Long txBranchId = entry.getKey();
         String app = entry.getValue();
-        List<ChannelAgent> agents = ApplicationDataHandler.getAgents(app);
+        List<ChannelAgent> agents = ApplicationProtocolHandler.getAgents(app);
         for (ChannelAgent agent : agents) {
             if (!agent.isClosed()) {
                 try {

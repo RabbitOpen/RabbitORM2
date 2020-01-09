@@ -2,8 +2,8 @@ package rabbit.open.dtx.common.nio.server.ext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rabbit.open.dtx.common.nio.pub.TransactionHandler;
 import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
+import rabbit.open.dtx.common.nio.pub.inter.TransactionHandler;
 import rabbit.open.dtx.common.nio.server.DtxServer;
 import rabbit.open.dtx.common.nio.server.TxStatus;
 

@@ -85,7 +85,7 @@ public class DtxServer {
                 }
             }
         }, "event-selector-" + SELECTOR_ID.getAndAdd(1L));
-        serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor");
+        serverAgentMonitor = new ServerAgentMonitor("server-agent-monitor-" + SELECTOR_ID.getAndAdd(1L));
         serverAgentMonitor.start();
     }
 
