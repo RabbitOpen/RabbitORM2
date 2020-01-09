@@ -29,7 +29,7 @@ public class ServerAgentMonitor extends AgentMonitor {
         return agents.remove(agent);
     }
 
-    protected LinkedBlockingQueue<ChannelAgent> getAgents() {
+    public LinkedBlockingQueue<ChannelAgent> getAgents() {
         return agents;
     }
 

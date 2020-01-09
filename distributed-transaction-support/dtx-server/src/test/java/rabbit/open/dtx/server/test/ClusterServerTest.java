@@ -1,4 +1,4 @@
-package rabbit.open.dtx.server;
+package rabbit.open.dtx.server.test;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
@@ -10,10 +10,10 @@ import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
-import rabbit.open.dtx.common.nio.server.ClusterDtxServerWrapper;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
-import rabbit.open.dtx.common.nio.server.PooledJedisClient;
-import rabbit.open.dtx.common.nio.server.RedisTransactionHandler;
+import rabbit.open.dtx.server.ClusterDtxServerWrapper;
+import rabbit.open.dtx.server.handler.RedisTransactionHandler;
+import rabbit.open.dtx.server.jedis.PooledJedisClient;
 import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;

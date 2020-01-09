@@ -19,10 +19,9 @@
 
     <task:annotation-driven/>
 
-    <bean id="redisTransactionHandler" class="rabbit.open.dtx.common.nio.server.RedisTransactionHandler" destroy-method="destroy">
+    <bean id="redisTransactionHandler" class="rabbit.open.dtx.server.handler.RedisTransactionHandler" destroy-method="destroy">
 
     </bean>
-
 </beans>	
 
 

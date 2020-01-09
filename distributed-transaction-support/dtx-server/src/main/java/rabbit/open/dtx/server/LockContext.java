@@ -1,7 +1,6 @@
-package rabbit.open.dtx.common.nio.server;
+package rabbit.open.dtx.server;
 
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
-import rabbit.open.dtx.common.nio.server.ext.TransactionContext;
 
 /**
  * 锁等待队列

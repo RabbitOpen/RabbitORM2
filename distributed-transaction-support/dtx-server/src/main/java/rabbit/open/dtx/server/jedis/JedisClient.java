@@ -1,4 +1,6 @@
-package rabbit.open.dtx.common.nio.server;
+package rabbit.open.dtx.server.jedis;
+
+import rabbit.open.dtx.server.PopInfo;
 
 import java.util.Map;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package rabbit.open.dtx.common.test.logical;
+package rabbit.open.dtx.server.test;
 
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -15,9 +15,8 @@ import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.inter.TransactionHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
-import rabbit.open.dtx.common.nio.server.DtxServerWrapper;
-import rabbit.open.dtx.common.nio.server.MemoryTransactionHandler;
-import rabbit.open.dtx.common.test.enhance.HelloService;
+import rabbit.open.dtx.server.DtxServerWrapper;
+import rabbit.open.dtx.server.handler.MemoryTransactionHandler;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -36,7 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author xiaoqianbin
  * @date 2019/12/12
  **/
-@ContextConfiguration(locations = {"classpath:common.xml"})
+@ContextConfiguration(locations = {"classpath:server.xml"})
 public class LogicalTest {
 
     private Logger logger = LoggerFactory.getLogger(getClass());

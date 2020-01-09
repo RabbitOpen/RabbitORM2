@@ -1,6 +1,8 @@
-package rabbit.open.dtx.common.nio.server;
+package rabbit.open.dtx.server;
 
 import rabbit.open.dtx.common.nio.pub.DataHandler;
+import rabbit.open.dtx.common.nio.server.DtxServer;
+import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;

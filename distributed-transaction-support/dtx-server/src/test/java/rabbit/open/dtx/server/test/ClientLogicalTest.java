@@ -1,18 +1,17 @@
-package rabbit.open.dtx.client.test;
+package rabbit.open.dtx.server.test;
 
 import junit.framework.TestCase;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 import rabbit.open.dtx.client.net.DtxMessageListener;
-import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.common.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.pub.inter.TransactionHandler;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
-import rabbit.open.dtx.common.nio.server.DtxServerWrapper;
-import rabbit.open.dtx.common.nio.server.MemoryTransactionHandler;
+import rabbit.open.dtx.server.DtxServerWrapper;
+import rabbit.open.dtx.server.handler.MemoryTransactionHandler;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -26,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @author xiaoqianbin
  * @date 2019/12/12
  **/
-@ContextConfiguration(locations = {"classpath:client.xml"})
+@ContextConfiguration(locations = {"classpath:server.xml"})
 public class ClientLogicalTest {
 
     @Test
@@ -43,7 +42,7 @@ public class ClientLogicalTest {
         TestTransactionManager manager = new TestTransactionManager();
         manager.init();
 
-        Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
+        Method method = HelloService.class.getDeclaredMethod("hello");
         manager.beginTransaction(method);
 
         // 事务处理器

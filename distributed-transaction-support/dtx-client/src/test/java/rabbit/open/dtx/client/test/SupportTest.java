@@ -1,6 +1,7 @@
 package rabbit.open.dtx.client.test;
 
 import junit.framework.TestCase;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ public class SupportTest {
 
     @Test
     public void dbTest() {
+        GenericObjectPoolConfig s;
         Enterprise enterprise = new Enterprise();
         enterprise.setName("jdd");
         es.addEnterprise(enterprise);

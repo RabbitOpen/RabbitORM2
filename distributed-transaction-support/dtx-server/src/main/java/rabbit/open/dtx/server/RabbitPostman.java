@@ -1,4 +1,4 @@
-package rabbit.open.dtx.common.nio.server;
+package rabbit.open.dtx.server;
 
 import rabbit.open.algorithm.elect.data.ProtocolPacket;
 import rabbit.open.algorithm.elect.protocol.Postman;

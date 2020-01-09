@@ -1,5 +1,6 @@
-package rabbit.open.dtx.common.nio.server;
+package rabbit.open.dtx.server.jedis;
 
+import rabbit.open.dtx.server.PopInfo;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 

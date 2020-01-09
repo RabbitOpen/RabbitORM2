@@ -1,4 +1,4 @@
-package rabbit.open.dtx.server;
+package rabbit.open.dtx.server.test;
 
 import junit.framework.TestCase;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.exception.DeadLockException;
 import rabbit.open.dtx.common.exception.DistributedTransactionException;
@@ -17,7 +16,13 @@ import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
 import rabbit.open.dtx.common.nio.pub.inter.TransactionHandler;
-import rabbit.open.dtx.common.nio.server.*;
+import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
+import rabbit.open.dtx.common.nio.server.TxStatus;
+import rabbit.open.dtx.server.DtxServerWrapper;
+import rabbit.open.dtx.server.PopInfo;
+import rabbit.open.dtx.server.RedisKeyNames;
+import rabbit.open.dtx.server.handler.RedisTransactionHandler;
+import rabbit.open.dtx.server.jedis.PooledJedisClient;
 import redis.clients.jedis.JedisPool;
 
 import javax.annotation.Resource;
@@ -113,7 +118,7 @@ public class RedisTransactionHandlerTest {
         }
         manager.init();
         // 事务处理器
-        Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
+        Method method = HelloService.class.getDeclaredMethod("hello");
         manager.beginTransaction(method);
         TransactionHandler handler = manager.getTransactionHandler();
         Long txGroupId = manager.getCurrentTransactionObject().getTxGroupId();
