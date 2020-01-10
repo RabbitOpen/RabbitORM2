@@ -1,22 +1,27 @@
 package rabbit.open.dtx.server.test;
 
+import junit.framework.TestCase;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
 import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
+import rabbit.open.dtx.common.nio.pub.inter.TransactionHandler;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
 import rabbit.open.dtx.server.DtxServerClusterWrapper;
+import rabbit.open.dtx.server.RedisKeyNames;
 import rabbit.open.dtx.server.handler.RedisTransactionHandler;
 import rabbit.open.dtx.server.jedis.PooledJedisClient;
 import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -45,11 +50,12 @@ public class ClusterServerTest {
     }
 
     @Test
-    public void clusterServerTest() throws InterruptedException {
+    public void clusterServerTest() throws InterruptedException, IOException, NoSuchMethodException {
         PooledJedisClient jedisClient = new PooledJedisClient(getPool());
         List<DtxServerClusterWrapper> serverWrappers = new ArrayList<>();
         Semaphore semaphore = new Semaphore(0);
         for (int i = 0; i < count; i++) {
+            holdOn(50);
             ServerThread thread = new ServerThread(16345 + i) {
                 @Override
                 public void run() {
@@ -65,12 +71,12 @@ public class ClusterServerTest {
         }
         semaphore.acquire(count);
         holdOn(1000);
-       /*
-       Long count = jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE);
+
+        Long count = jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE);
         TestTransactionManager manager = new TestTransactionManager();
         manager.init();
         // 事务处理器
-        Method method = ProductService.class.getDeclaredMethod("jdbcAdd");
+        Method method = HelloService.class.getDeclaredMethod("hello1");
         manager.beginTransaction(method);
         TransactionHandler handler = manager.getTransactionHandler();
         Long txGroupId = manager.getCurrentTransactionObject().getTxGroupId();
@@ -78,9 +84,12 @@ public class ClusterServerTest {
         Long branchId = handler.getTransactionBranchId(txGroupId, appName);
         handler.doBranchCommit(txGroupId, branchId, appName);
         handler.doCommit(txGroupId, branchId, appName);
+
+        // 避免干扰其他单元测试
+        DistributedTransactionContext.clear();
         holdOn(1000);
         TestCase.assertEquals(count, jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE));
-        */
+
         for (DtxServerClusterWrapper serverWrapper : serverWrappers) {
             serverWrapper.close();
         }

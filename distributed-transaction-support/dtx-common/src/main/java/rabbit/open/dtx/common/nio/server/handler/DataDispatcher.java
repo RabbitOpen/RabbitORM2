@@ -5,6 +5,7 @@ import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
 import rabbit.open.dtx.common.nio.pub.inter.ProtocolHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.Application;
+import rabbit.open.dtx.common.nio.pub.protocol.ClientInstance;
 import rabbit.open.dtx.common.nio.pub.protocol.RpcProtocol;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
@@ -29,7 +30,10 @@ public class DataDispatcher implements DataHandler {
     public DataDispatcher(AbstractServerEventHandler eventHandler) {
         ApplicationProtocolHandler handler = new ApplicationProtocolHandler(eventHandler);
         handlerMap.put(RpcProtocol.class, requestHandler);
+        // 注册应用信息汇报处理器, 该数据和channel绑定，不能通过api方式发送请求（api是随机选channel）
         handlerMap.put(Application.class, handler);
+        // 注册应用实例id处理器, 该数据和channel绑定，不能通过api方式发送请求（api是随机选channel）
+        handlerMap.put(ClientInstance.class, handler);
         registerInterfaceHandler(ProtocolHandler.class, handler);
     }
 

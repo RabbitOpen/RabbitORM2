@@ -11,13 +11,23 @@ public class Application {
 
     private Long instanceId;
 
+    private String hostName;
+
+    private int port;
+
     public Application() {
 
     }
 
     public Application(String name, Long instanceId) {
+        this(name, instanceId, null, 0);
+    }
+
+    public Application(String name, Long instanceId, String hostName, int port) {
         this.name = name;
         this.instanceId = instanceId;
+        this.hostName = hostName;
+        this.port = port;
     }
 
     public String getName() {
@@ -26,5 +36,13 @@ public class Application {
 
     public Long getInstanceId() {
         return instanceId;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public int getPort() {
+        return port;
     }
 }

@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 import rabbit.open.dtx.client.net.DtxMessageListener;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
@@ -42,7 +43,7 @@ public class ClientLogicalTest {
         TestTransactionManager manager = new TestTransactionManager();
         manager.init();
 
-        Method method = HelloService.class.getDeclaredMethod("hello");
+        Method method = HelloService.class.getDeclaredMethod("hello4");
         manager.beginTransaction(method);
 
         // 事务处理器
@@ -59,6 +60,7 @@ public class ClientLogicalTest {
         }
         TestCase.assertEquals(1, memTxHandler.getOpenedTransactionCount());
         manager.commit(method);
+        DistributedTransactionContext.clear();
         Semaphore semaphore = new Semaphore(0);
         if (semaphore.tryAcquire(100, TimeUnit.MILLISECONDS)) {
             // 等100ms，保证response已经回来了
@@ -78,6 +80,7 @@ public class ClientLogicalTest {
             // 等100ms，保证response已经回来了
             throw new RuntimeException("见鬼了");
         }
+        DistributedTransactionContext.clear();
         // 等待response
         TestCase.assertEquals(0, memTxHandler.getOpenedTransactionCount());
         manager.destroy();

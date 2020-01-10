@@ -9,6 +9,7 @@ import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
 import rabbit.open.dtx.common.nio.pub.inter.ProtocolHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.Application;
 import rabbit.open.dtx.common.nio.pub.protocol.ClientInstance;
+import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class ApplicationProtocolHandler implements ProtocolHandler, DataHandler 
 
     private static Map<String, Map<ChannelAgent, String>> agentCache = new ConcurrentHashMap<>();
 
-    private AbstractServerEventHandler eventHandler = null;
+    private AbstractServerEventHandler eventHandler;
 
     public ApplicationProtocolHandler(AbstractServerEventHandler eventHandler) {
         this.eventHandler = eventHandler;
@@ -46,8 +47,7 @@ public class ApplicationProtocolHandler implements ProtocolHandler, DataHandler 
      * @author  xiaoqianbin
      * @date    2020/1/9
      **/
-    @Override
-    public ClientInstance getClientInstanceInfo() {
+    protected ClientInstance getClientInstanceInfo() {
         Long globalId = 0L;
         if (null != eventHandler.getTransactionHandler()) {
             globalId = eventHandler.getTransactionHandler().getNextGlobalId();
@@ -84,8 +84,11 @@ public class ApplicationProtocolHandler implements ProtocolHandler, DataHandler 
 
     @Override
     public Object process(ProtocolData protocolData) {
-        reportApplication((Application) protocolData.getData());
-        return null;
+        if (protocolData.getData() instanceof  Application) {
+            return reportApplication((Application) protocolData.getData());
+        } else {
+            return getClientInstanceInfo();
+        }
     }
 
     /**
@@ -94,7 +97,7 @@ public class ApplicationProtocolHandler implements ProtocolHandler, DataHandler 
      * @author xiaoqianbin
      * @date 2020/1/9
      **/
-    public void reportApplication(Application application) {
+    protected ClusterMeta reportApplication(Application application) {
         ChannelAgent agent = AbstractNetEventHandler.getCurrentAgent();
         agent.setAppName(application.getName());
         if (StringUtils.isEmpty(application.getName())) {
@@ -102,5 +105,6 @@ public class ApplicationProtocolHandler implements ProtocolHandler, DataHandler 
         }
         agent.setClientInstanceId(application.getInstanceId());
         cacheAgent(application, agent);
+        return null;
     }
 }

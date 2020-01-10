@@ -1,5 +1,7 @@
 package rabbit.open.dtx.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rabbit.open.algorithm.elect.data.NodeRole;
 import rabbit.open.algorithm.elect.protocol.ElectionArbiter;
 import rabbit.open.algorithm.elect.protocol.LeaderElectedListener;
@@ -12,8 +14,11 @@ import rabbit.open.dtx.common.nio.client.ext.DtxChannelAgentPool;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.DataHandler;
 import rabbit.open.dtx.common.nio.pub.ProtocolData;
+import rabbit.open.dtx.common.nio.pub.protocol.Application;
+import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
 import rabbit.open.dtx.common.nio.pub.protocol.Coordination;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
+import rabbit.open.dtx.common.nio.server.handler.ApplicationProtocolHandler;
 import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
 import rabbit.open.dtx.server.handler.RedisTransactionHandler;
 
@@ -32,7 +37,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  **/
 public class DtxServerClusterWrapper extends DtxServerWrapper {
 
-//    private Logger logger = LoggerFactory.getLogger(getClass());
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     private DtxChannelAgentPool channelAgentPool;
 
@@ -43,6 +48,8 @@ public class DtxServerClusterWrapper extends DtxServerWrapper {
     private List<Node> nodes;
 
     private RabbitPostman postman;
+
+    private String hostName;
 
     private ArrayBlockingQueue<Node> nodeList = new ArrayBlockingQueue<>(128);
 
@@ -56,6 +63,7 @@ public class DtxServerClusterWrapper extends DtxServerWrapper {
         super(hostName, port, handler);
         this.nodes = nodes;
         nodeList.addAll(nodes);
+        this.hostName = hostName;
         this.port = port;
         this.postman = new RabbitPostman(this);
         initClientPool();
@@ -82,6 +90,35 @@ public class DtxServerClusterWrapper extends DtxServerWrapper {
         registerServerDataHandler(Coordination.class, data -> {
             postman.onDataReceived(((Coordination)data.getData()).getProtocolPacket());
             return new Coordination(postman.getResponse());
+        });
+
+        registerServerDataHandler(Application.class, new ApplicationProtocolHandler(eventHandler) {
+
+            // 重写app信息处理器
+            @Override
+            public ClusterMeta reportApplication(Application application) {
+                super.reportApplication(application);
+                ClusterMeta meta = new ClusterMeta();
+                meta.setNodes(nodes);
+                if (!CLUSTER_SERVER_APP_NAME.equals(application.getName())) {
+                    return meta;
+                }
+                logger.info("app[{}-{}] is registered!", application.getName(), application.getInstanceId());
+                if (null == channelAgentPool) {
+                    return meta;
+                }
+                // 如果接到服务端的节点连接请求则尝试修复连接信息
+                for (Node node : channelAgentPool.getNodes()) {
+                    if (!node.getHost().equals(application.getHostName()) || node.getPort() != application.getPort()) {
+                        continue;
+                    }
+                    if (node.isIsolated()) {
+                        node.setIsolated(false);
+                        channelAgentPool.wakeUpMonitor();
+                    }
+                }
+                return meta;
+            }
         });
 
     }
@@ -135,7 +172,14 @@ public class DtxServerClusterWrapper extends DtxServerWrapper {
             public String getApplicationName() {
                 return CLUSTER_SERVER_APP_NAME;
             }
-        }, eventHandler, listener);
+        }, eventHandler, listener) {
+
+            // 重写通报的app信息
+            @Override
+            protected Application generateAppInfo() {
+                return new Application(transactionManger.getApplicationName(), instanceId, hostName, port);
+            }
+        };
     }
 
     private class ClusterClientNetEventHandler extends ClientNetEventHandler {

@@ -14,4 +14,24 @@ public class HelloService {
     public void hello() {
 
     }
+
+    @DistributedTransaction
+    public void hello2() {
+
+    }
+
+    @DistributedTransaction
+    public void hello1() {
+
+    }
+
+    @DistributedTransaction
+    public void hello3() {
+
+    }
+
+    @DistributedTransaction
+    public void hello4() {
+
+    }
 }

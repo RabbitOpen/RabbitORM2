@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.FutureResult;
@@ -60,7 +61,7 @@ public class LogicalTest {
 
         manager.init();
 
-        Method method = HelloService.class.getDeclaredMethod("hello");
+        Method method = HelloService.class.getDeclaredMethod("hello2");
         manager.beginTransaction(method);
 
         // 事务处理器
@@ -96,6 +97,7 @@ public class LogicalTest {
             // 等100ms，保证response已经回来了
             throw new RuntimeException("见鬼了");
         }
+        DistributedTransactionContext.clear();
         // 等待response
         TestCase.assertEquals(0, memTxHandler.getOpenedTransactionCount());
 
@@ -103,7 +105,6 @@ public class LogicalTest {
         testCustomDataHandler(serverWrapper, manager);
 
         testSyncClusterMeta(serverWrapper, manager.getPool());
-
         manager.destroy();
         //关闭服务端
         serverWrapper.close();

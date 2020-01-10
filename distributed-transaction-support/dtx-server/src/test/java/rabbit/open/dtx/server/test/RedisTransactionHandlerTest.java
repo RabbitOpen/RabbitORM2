@@ -117,8 +117,11 @@ public class RedisTransactionHandlerTest {
             serverWrappers.add(createServer(12345 + i));
         }
         manager.init();
+
+        DistributedTransactionContext.clear();
+
         // 事务处理器
-        Method method = HelloService.class.getDeclaredMethod("hello");
+        Method method = HelloService.class.getDeclaredMethod("hello3");
         manager.beginTransaction(method);
         TransactionHandler handler = manager.getTransactionHandler();
         Long txGroupId = manager.getCurrentTransactionObject().getTxGroupId();
@@ -141,6 +144,8 @@ public class RedisTransactionHandlerTest {
 
         // 死锁测试
         deadLockTest(manager, method, handler, appName);
+
+        DistributedTransactionContext.clear();
 
         // 销毁资源信息
         manager.destroy();

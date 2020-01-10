@@ -6,7 +6,6 @@ import rabbit.open.dtx.common.nio.client.*;
 import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.NioSelector;
-import rabbit.open.dtx.common.nio.pub.inter.ProtocolHandler;
 import rabbit.open.dtx.common.nio.pub.protocol.*;
 
 import java.io.IOException;
@@ -44,7 +43,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     private ClientNetEventHandler netEventHandler;
 
-    private AbstractTransactionManager transactionManger;
+    protected AbstractTransactionManager transactionManger;
 
     private Map<Class<?>, Object> proxyCache = new ConcurrentHashMap<>();
 
@@ -54,15 +53,13 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     private static final AtomicLong THREAD_ID = new AtomicLong(0);
 
     // 监控线程
-    private AgentMonitor monitor = new AgentMonitor("client-agent-pool-monitor-" + THREAD_ID.getAndAdd(1L), this);
+    protected AgentMonitor monitor = new AgentMonitor("client-agent-pool-monitor-" + THREAD_ID.getAndAdd(1L), this);
 
     // 链接channel注册任务
     private ArrayBlockingQueue<FutureTask<SelectionKey>> channelRegistryTasks = new ArrayBlockingQueue<>(64);
 
     // 客户端实例 id
-    private Long instanceId = null;
-
-    private ProtocolHandler protocolHandler;
+    protected Long instanceId = null;
 
     public DtxChannelAgentPool(AbstractTransactionManager transactionManger) throws IOException {
         this(transactionManger, null, null);
@@ -70,7 +67,6 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
     public DtxChannelAgentPool(AbstractTransactionManager transactionManger, ClientNetEventHandler netEventHandler, Map<Class<?>, MessageListener> listeners) throws IOException {
         this.transactionManger = transactionManger;
-        protocolHandler = proxy(ProtocolHandler.class);
         initNetEventHandler(netEventHandler);
         initListeners(listeners);
         nodes.addAll(transactionManger.getServerNodes());
@@ -117,10 +113,16 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             listenerMap.putAll(listeners);
         }
         // 服务端广播节点
-        listenerMap.put(ClusterMeta.class, msg -> {
-            refreshServerNodes((ClusterMeta) msg);
-            monitor.wakeup();
-        });
+        listenerMap.put(ClusterMeta.class, msg -> refreshServerNodes((ClusterMeta) msg));
+    }
+
+    /**
+     * 唤醒monitor，尝试修复已经隔离的节点
+     * @author  xiaoqianbin
+     * @date    2020/1/10
+     **/
+    public void wakeUpMonitor() {
+        monitor.wakeup();
     }
 
     /**
@@ -129,7 +131,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      * @author  xiaoqianbin
      * @date    2020/1/7
      **/
-    public void refreshServerNodes(ClusterMeta msg) {
+    protected void refreshServerNodes(ClusterMeta msg) {
         logger.info("refreshServerNodes: {}", msg.getNodes());
         ClusterMeta meta = msg;
         // 更新现有节点的隔离状态
@@ -147,6 +149,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                 CallHelper.ignoreExceptionCall(() -> nodes.put(node));
             }
         }
+        wakeUpMonitor();
     }
 
     /**
@@ -186,7 +189,6 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         makeSureNodeAvailable();
         for (int i = 0; i < nodes.size(); i++) {
             tryCreateResource();
-            loadInstanceId();
         }
     }
 
@@ -274,6 +276,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     protected ChannelAgent newResource() {
         ChannelAgent agent = createChannelAgent();
         try {
+            loadInstanceId(agent);
             // 通报应用名
             reportAppInfo(agent);
             return agent;
@@ -310,17 +313,31 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      * @date    2020/1/7
      **/
     protected void reportAppInfo(ChannelAgent agent) throws InterruptedException {
-        agent.send(new Application(transactionManger.getApplicationName(), instanceId)).getData(3L);
+        ClusterMeta meta = (ClusterMeta) agent.send(generateAppInfo()).getData(3L);
+        if (null == meta) {
+            return;
+        }
+        refreshServerNodes(meta);
+    }
+
+    /**
+     * 生成需要汇报的app信息
+     * @author  xiaoqianbin
+     * @date    2020/1/10
+     **/
+    protected Application generateAppInfo() {
+        return new Application(transactionManger.getApplicationName(), instanceId);
     }
 
     /**
      * 加载客户端应用信息
+     * @param	agent
      * @author  xiaoqianbin
      * @date    2020/1/9
      **/
-    private synchronized void loadInstanceId() {
+    private synchronized void loadInstanceId(ChannelAgent agent) throws InterruptedException {
         if (null == instanceId) {
-            ClientInstance instance = protocolHandler.getClientInstanceInfo();
+            ClientInstance instance = (ClientInstance) agent.send(new ClientInstance()).getData(3L);
             instanceId = instance.getId();
             logger.info("load instance id --> {}", instanceId);
         }
