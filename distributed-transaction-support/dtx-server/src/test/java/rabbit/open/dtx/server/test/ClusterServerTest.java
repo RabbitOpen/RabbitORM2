@@ -76,7 +76,6 @@ public class ClusterServerTest {
         TestTransactionManager manager = new TestTransactionManager();
         manager.init();
 
-        holdOn(10000);
         // 避免被其他单元测试干扰
         DistributedTransactionContext.clear();
         Method method = HelloService.class.getDeclaredMethod("hello1");
