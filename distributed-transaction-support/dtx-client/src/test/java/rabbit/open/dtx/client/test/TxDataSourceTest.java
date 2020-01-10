@@ -1,5 +1,15 @@
 package rabbit.open.dtx.client.test;
 
+import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import rabbit.open.dtx.client.datasource.proxy.TxConnection;
+import rabbit.open.dtx.client.datasource.proxy.TxDataSource;
+import rabbit.open.dtx.client.datasource.proxy.TxPreparedStatement;
+import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.datasource.RabbitDataSource;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -7,26 +17,10 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Types;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
-import junit.framework.TestCase;
-import rabbit.open.dtx.client.datasource.proxy.TxConnection;
-import rabbit.open.dtx.client.datasource.proxy.TxDataSource;
-import rabbit.open.dtx.client.datasource.proxy.TxPreparedStatement;
-import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.datasource.RabbitDataSource;
 
 /**
  * 代理数据源、代理连接、代理PreparedStatement 常用方法测试，验证静态代理的正确性
