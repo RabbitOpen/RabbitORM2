@@ -38,7 +38,7 @@ public class RabbitPostman extends Postman {
     @Override
     public void delivery(ProtocolPacket packet) {
         for (Node node : dtxServerWrapper.getChannelAgentPool().getNodes()) {
-            if (isLocalhost(node)) {
+            if (isLocalhost(node) || null == node.getBoundAgent()) {
                 // 不发送给自己
                 continue;
             }
