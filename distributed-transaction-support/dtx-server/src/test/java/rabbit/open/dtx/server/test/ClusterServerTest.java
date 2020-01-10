@@ -75,6 +75,8 @@ public class ClusterServerTest {
         Long count = jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE);
         TestTransactionManager manager = new TestTransactionManager();
         manager.init();
+
+        holdOn(10000);
         // 避免被其他单元测试干扰
         DistributedTransactionContext.clear();
         Method method = HelloService.class.getDeclaredMethod("hello1");
@@ -206,7 +208,7 @@ public class ClusterServerTest {
         @Override
         public List<Node> getServerNodes() {
             List<Node> list = new ArrayList<>();
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < 1; i++) {
                 try {
                     list.add(new Node(InetAddress.getLocalHost().getHostAddress(), 16345 + i));
                 } catch (UnknownHostException e) {

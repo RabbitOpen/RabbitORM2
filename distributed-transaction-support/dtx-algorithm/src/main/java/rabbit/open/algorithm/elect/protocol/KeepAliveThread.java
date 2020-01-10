@@ -46,6 +46,6 @@ public class KeepAliveThread extends Thread {
         logger.info("{} is closing....", getName());
         semaphore.release();
         join();
-        logger.info("{} is closed....", getName());
+        logger.info("{} is closed", getName());
     }
 }

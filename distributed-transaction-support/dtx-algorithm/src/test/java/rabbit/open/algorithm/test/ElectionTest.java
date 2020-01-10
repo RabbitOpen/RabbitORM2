@@ -66,11 +66,11 @@ public class ElectionTest {
 
         // =========模拟leader down了，重新选举
         // 调整leader的角色
+        leaderArbiter.stopKeepAlive();
         leaderArbiter.setNodeRole(NodeRole.FOLLOWER);
         // 调整检测周期
         for (ElectionArbiter arbiter : arbiters) {
-            arbiter.setKeepAliveCheckingInterval(1L);
-            arbiter.interrupt();
+            arbiter.reelectOnLeaderLost(true);
         }
         semaphore.acquire(count + 1);
         for (ElectionArbiter arbiter : arbiters) {

@@ -26,7 +26,8 @@ public class ElectionArbiter extends Thread implements Candidate {
 	
 	// 选举信号
 	private Semaphore electionSemaphore = new Semaphore(0);
-	
+
+	// 运行标记
 	private boolean run = true;
 	
 	// 选举版本号
@@ -41,7 +42,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 	// 同意选举包的候选人个数
 	private int agreedCandidates = 0;
 	
-	// 选举的锁
+	// 收、发数据时使用的互斥锁
 	private ReentrantLock electionLock = new ReentrantLock();
 
 	// 事件监听器
@@ -136,26 +137,16 @@ public class ElectionArbiter extends Thread implements Candidate {
 	 * @author  xiaoqianbin
 	 * @date    2019/12/30
 	 **/
-	public void reelectOnLeaderLost(boolean immediately) {
+	public synchronized void reelectOnLeaderLost(boolean immediately) {
 		if (NodeRole.FOLLOWER != role) {
 			// leader节点不做心跳检测
 			return;
 		}
 		if (immediately || System.currentTimeMillis() - lastActiveTime > keepAliveCheckingInterval * 1000) {
-			logger.warn("[{}] begin to reelect leader, my role is [{}]", myId, role);
+			logger.warn("[{}] begin to reelect leader, my role is [{}], my version is[{}]", myId, role, electionPacketVersion.get());
 			setNodeRole(NodeRole.OBSERVER);
 			startElection();
 		}
-	}
-
-	/**
-	 * keep alive checking interval (second)
-	 * @param	keepAliveCheckingInterval
-	 * @author  xiaoqianbin
-	 * @date    2019/12/30
-	 **/
-	public void setKeepAliveCheckingInterval(long keepAliveCheckingInterval) {
-		this.keepAliveCheckingInterval = keepAliveCheckingInterval;
 	}
 
 	/**
@@ -167,16 +158,21 @@ public class ElectionArbiter extends Thread implements Candidate {
 		electionSemaphore.release();
 		sleepSemaphore.release();
 		try {
-			if (null != keepAliveThread) {
-				keepAliveThread.shutdown();
-			}
+			stopKeepAlive();
 			join();
 			logger.info("election arbiter is closed");
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
 	}
-	
+
+	public void stopKeepAlive() throws InterruptedException {
+		if (null != keepAliveThread) {
+			keepAliveThread.shutdown();
+			keepAliveThread = null;
+		}
+	}
+
 	/**
 	 * <b>@description 选举 </b>
 	 * @throws InterruptedException
@@ -186,20 +182,12 @@ public class ElectionArbiter extends Thread implements Candidate {
 		eventListener.onElectionBegin();
 		while (true) {
 			sendElectionPacket();
-			if (randomHoldOn()) {
+			if (sleepSemaphore.tryAcquire(2000L + new Random().nextInt(2000), TimeUnit.MILLISECONDS)) {
 				break;
 			}
 		}
 		eventListener.onElectionEnd(this);
 		logger.debug("election is over, leader id: {}, elect-version: {}", leaderId, electionPacketVersion.get());
-	}
-
-	/**
-	 * <b>@description 随机等待2-4秒 </b>
-	 * @throws InterruptedException
-	 */
-	private boolean randomHoldOn() throws InterruptedException {
-		return sleepSemaphore.tryAcquire(2000L + new Random().nextInt(2000), TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -209,12 +197,13 @@ public class ElectionArbiter extends Thread implements Candidate {
 	private void sendElectionPacket() {
 		try {
 			electionLock.lock();
-			agreedCandidates = 1;
 			if (NodeRole.OBSERVER != role) {
 				// 有可能在启动前就收到选举结果通知了
 				return;
 			}
+			agreedCandidates = 1;
 			postman.delivery(new ElectionPacket(electionPacketVersion.addAndGet(1L)));
+			agreedVersion = electionPacketVersion.get();
 			logger.debug("send ElectionPacket({})", electionPacketVersion.get());
 		} finally {
 			electionLock.unlock();
@@ -226,27 +215,31 @@ public class ElectionArbiter extends Thread implements Candidate {
 	 */
 	@Override
 	public void onElectionResultReceived(ElectionResult result) {
-		if (result.getVersion() < electionPacketVersion.get()) {
-			return;
-		}
-		electionLock.lock();
-		if (result.getResult() == ElectionResult.AGREE) {
-			agreedCandidates++;
-			if (agreedCandidates == (candidateSize / 2 + 1)) {
-				// 票够了就直接唤醒投票线程, 结束投票
-				this.role = NodeRole.LEADER;
-				this.leaderId = myId;
-				logger.info("I'm elected to be the leader, elect version is: {}", electionPacketVersion.get());
-				postman.delivery(new ElectedLeader(electionPacketVersion.get(), myId));
-				sleepSemaphore.release();
+		try {
+			electionLock.lock();
+			if (result.getVersion() < electionPacketVersion.get()) {
+				return;
 			}
+			if (result.getResult() == ElectionResult.AGREE) {
+				agreedCandidates++;
+				if (agreedCandidates == (candidateSize / 2 + 1)) {
+					// 票够了就直接唤醒投票线程, 结束投票
+					this.role = NodeRole.LEADER;
+					this.leaderId = myId;
+					logger.info("I'm elected to be the leader, elect version is: {}", electionPacketVersion.get());
+					postman.delivery(new ElectedLeader(electionPacketVersion.get(), myId));
+					sleepSemaphore.release();
+				}
+			}
+		} finally {
+			electionLock.unlock();
 		}
-		electionLock.unlock();
 	}
 
 	@Override
 	public void bindPostman(Postman postman) {
 		this.postman = postman;
+
 	}
 
 	/**
@@ -255,20 +248,29 @@ public class ElectionArbiter extends Thread implements Candidate {
 	 */
 	@Override
 	public void onElectionPacketReceived(ElectionPacket electionPacket) {
-		if (NodeRole.LEADER == this.role) {
-			// 告诉他我就是leader
-			postman.ack(new ElectedLeader(electionPacketVersion.get(), myId));
-		} else {
+		try {
 			electionLock.lock();
-			// 同一个版本号的数据只会被同意一次
-			if (electionPacket.getVersion() <= electionPacketVersion.get() || agreedVersion >= electionPacket.getVersion()) {
+			if (!run) {
 				postman.ack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
 				logger.debug("received election packet({}), REJECTED!", electionPacket.getVersion());
-			} else {
-				agreedVersion = electionPacket.getVersion();
-				postman.ack(new ElectionResult(ElectionResult.AGREE, electionPacket.getVersion()));
-				logger.debug("received election packet({}), AGREED!", electionPacket.getVersion());
+				return;
 			}
+			if (NodeRole.LEADER == this.role) {
+				// 告诉他我就是leader
+				logger.debug("Hey！ I'm the king, don't revolt！");
+				postman.ack(new ElectedLeader(electionPacketVersion.get(), myId));
+			} else {
+				// 同一个版本号的数据只会被同意一次
+				if (electionPacket.getVersion() <= electionPacketVersion.get() || agreedVersion >= electionPacket.getVersion()) {
+					postman.ack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
+					logger.debug("received election packet({}), REJECTED!", electionPacket.getVersion());
+				} else {
+					agreedVersion = electionPacket.getVersion();
+					postman.ack(new ElectionResult(ElectionResult.AGREE, electionPacket.getVersion()));
+					logger.debug("received election packet({}), AGREED!", electionPacket.getVersion());
+				}
+			}
+		} finally {
 			electionLock.unlock();
 		}
 	}
@@ -277,16 +279,30 @@ public class ElectionArbiter extends Thread implements Candidate {
 	public void onKittyReceived(HelloKitty kitty) {
 		logger.debug("hello kitty from[{}] is received!", kitty.getNodeId());
 		if (kitty.getNodeId().equals(this.leaderId)) {
-			lastActiveTime = System.currentTimeMillis();
+			updateLeaderLastActiveTime();
 		}
 	}
 
+	// 更新活跃时间
+	private void updateLeaderLastActiveTime() {
+		lastActiveTime = System.currentTimeMillis();
+	}
+
+	/**
+	 * 收到选举结果通知
+	 * @param	electedLeader
+	 * @author  xiaoqianbin
+	 * @date    2020/1/10
+	 **/
 	@Override
 	public void onElectedLeaderReceived(ElectedLeader electedLeader) {
 		electionLock.lock();
+		logger.debug("[{}] is elected to be the leader!, election version is {}", electedLeader.getNodeId(), electedLeader.getVersion());
 		this.role = NodeRole.FOLLOWER;
 		setLeaderId(electedLeader.getNodeId());
-		lastActiveTime = System.currentTimeMillis();
+		// 更新活跃时间
+		updateLeaderLastActiveTime();
+		agreedVersion = electedLeader.getVersion();
 		this.electionPacketVersion.set(electedLeader.getVersion());
 		sleepSemaphore.release();
 		electionLock.unlock();
