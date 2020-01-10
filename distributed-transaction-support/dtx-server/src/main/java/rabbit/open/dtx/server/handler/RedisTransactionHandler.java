@@ -513,6 +513,5 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     public void destroy() {
         sweeper.shutdown();
         jedisClient.close();
-        logger.info("jedis client is closed");
     }
 }

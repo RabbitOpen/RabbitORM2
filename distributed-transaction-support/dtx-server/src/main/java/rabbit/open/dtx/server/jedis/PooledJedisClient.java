@@ -1,5 +1,7 @@
 package rabbit.open.dtx.server.jedis;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.server.PopInfo;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -16,6 +18,8 @@ import java.util.Set;
  **/
 @SuppressWarnings("unchecked")
 public class PooledJedisClient implements JedisClient {
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     // casHset方法脚本
     protected String casHsetScript = "local status = redis.call('hget', ARGV[1], ARGV[2])\n" +
@@ -149,8 +153,12 @@ public class PooledJedisClient implements JedisClient {
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
+        if (pool.isClosed()) {
+            return;
+        }
         pool.close();
+        logger.info("jedis client is closed");
     }
 
     protected Object execute(Callable callable) {

@@ -109,7 +109,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 					}
 				} else {
 					// leader丢失以后就重新选举
-					reelectOnLeaderLost();
+					reelectOnLeaderLost(false);
 				}
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
@@ -132,18 +132,18 @@ public class ElectionArbiter extends Thread implements Candidate {
 
 	/**
 	 * leader丢失以后就重新选举
+	 * @param 	immediately 立刻重选
 	 * @author  xiaoqianbin
 	 * @date    2019/12/30
 	 **/
-	private void reelectOnLeaderLost() {
+	public void reelectOnLeaderLost(boolean immediately) {
 		if (NodeRole.FOLLOWER != role) {
 			// leader节点不做心跳检测
 			return;
 		}
-		if (System.currentTimeMillis() - lastActiveTime > keepAliveCheckingInterval * 1000) {
+		if (immediately || System.currentTimeMillis() - lastActiveTime > keepAliveCheckingInterval * 1000) {
 			logger.warn("[{}] begin to reelect leader, my role is [{}]", myId, role);
 			setNodeRole(NodeRole.OBSERVER);
-			setLeaderId(null);
 			startElection();
 		}
 	}
@@ -165,6 +165,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 		logger.info("election arbiter is closing.....");
 		run = false;
 		electionSemaphore.release();
+		sleepSemaphore.release();
 		try {
 			if (null != keepAliveThread) {
 				keepAliveThread.shutdown();
@@ -274,6 +275,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 
 	@Override
 	public void onKittyReceived(HelloKitty kitty) {
+		logger.debug("hello kitty from[{}] is received!", kitty.getNodeId());
 		if (kitty.getNodeId().equals(this.leaderId)) {
 			lastActiveTime = System.currentTimeMillis();
 		}
@@ -288,6 +290,10 @@ public class ElectionArbiter extends Thread implements Candidate {
 		this.electionPacketVersion.set(electedLeader.getVersion());
 		sleepSemaphore.release();
 		electionLock.unlock();
+	}
+
+	public String getLeaderId() {
+		return leaderId;
 	}
 
 	private void setLeaderId(String leaderId) {

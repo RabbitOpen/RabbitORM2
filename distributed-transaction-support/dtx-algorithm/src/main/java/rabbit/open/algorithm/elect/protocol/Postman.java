@@ -44,7 +44,7 @@ public abstract class Postman {
 	 * @param data
 	 */
 	public void onDataReceived(Object data) {
-		if (null == data) {
+		if (null == data || null == candidate) {
 			return;
 		}
 		if (dispatcher.containsKey(data.getClass())) {

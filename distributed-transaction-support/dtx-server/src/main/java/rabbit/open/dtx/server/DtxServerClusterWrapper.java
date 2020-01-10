@@ -18,8 +18,10 @@ import rabbit.open.dtx.common.nio.pub.protocol.Application;
 import rabbit.open.dtx.common.nio.pub.protocol.ClusterMeta;
 import rabbit.open.dtx.common.nio.pub.protocol.Coordination;
 import rabbit.open.dtx.common.nio.server.DtxServerEventHandler;
+import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
 import rabbit.open.dtx.common.nio.server.handler.ApplicationProtocolHandler;
 import rabbit.open.dtx.common.nio.server.handler.DataDispatcher;
+import rabbit.open.dtx.common.utils.NodeIdHelper;
 import rabbit.open.dtx.server.handler.RedisTransactionHandler;
 
 import javax.annotation.PreDestroy;
@@ -70,9 +72,10 @@ public class DtxServerClusterWrapper extends DtxServerWrapper {
         arbiter = new ElectionArbiter(candidateSize, getServer().getServerId(), new LeaderElectedListener() {
 
             @Override
-            public void onElectionEnd(ElectionArbiter arbiter1) {
-                super.onElectionEnd(arbiter1);
-                if (NodeRole.LEADER == arbiter1.getNodeRole()) {
+            public void onElectionEnd(ElectionArbiter electionArbiter) {
+                super.onElectionEnd(electionArbiter);
+                //  如果被选为leader则开启事务数据清理线程
+                if (NodeRole.LEADER == electionArbiter.getNodeRole()) {
                     RedisTransactionHandler transactionHandler = (RedisTransactionHandler) handler.getTransactionHandler();
                     transactionHandler.startSweeper();
                 }
@@ -103,7 +106,16 @@ public class DtxServerClusterWrapper extends DtxServerWrapper {
                 if (!CLUSTER_SERVER_APP_NAME.equals(application.getName())) {
                     return meta;
                 }
-                logger.info("app[{}-{}] is registered!", application.getName(), application.getInstanceId());
+                // 如果leader节点下线了，触发重新选举
+                AbstractServerEventHandler.getCurrentAgent().addShutdownHook(() -> {
+                    logger.info("app[{}-{}] is off-line!", application.getName(), application.getInstanceId());
+                    String nodeId = NodeIdHelper.calcServerId(application.getHostName(), application.getPort());
+                    if (nodeId.equals(arbiter.getLeaderId()) && NodeRole.LEADER != arbiter.getNodeRole()) {
+                        // 触发重新选举
+                        arbiter.reelectOnLeaderLost(true);
+                    }
+                });
+                logger.info("app[{}-{}] is on-line!", application.getName(), application.getInstanceId());
                 if (null == channelAgentPool) {
                     return meta;
                 }
@@ -112,10 +124,8 @@ public class DtxServerClusterWrapper extends DtxServerWrapper {
                     if (!node.getHost().equals(application.getHostName()) || node.getPort() != application.getPort()) {
                         continue;
                     }
-                    if (node.isIsolated()) {
-                        node.setIsolated(false);
-                        channelAgentPool.wakeUpMonitor();
-                    }
+                    node.setIsolated(false);
+                    channelAgentPool.wakeUpMonitor();
                 }
                 return meta;
             }

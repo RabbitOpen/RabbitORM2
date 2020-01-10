@@ -60,7 +60,7 @@ public class ClusterServerTest {
                 @Override
                 public void run() {
                     try {
-                        serverWrappers.add(createServer(port, jedisClient));
+                        serverWrappers.add(createServer(port, new PooledJedisClient(getPool())));
                     } catch (Exception e) {
                         logger.error(e.getMessage(), e);
                     }
@@ -75,7 +75,8 @@ public class ClusterServerTest {
         Long count = jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE);
         TestTransactionManager manager = new TestTransactionManager();
         manager.init();
-        // 事务处理器
+        // 避免被其他单元测试干扰
+        DistributedTransactionContext.clear();
         Method method = HelloService.class.getDeclaredMethod("hello1");
         manager.beginTransaction(method);
         TransactionHandler handler = manager.getTransactionHandler();
@@ -88,8 +89,23 @@ public class ClusterServerTest {
         // 避免干扰其他单元测试
         DistributedTransactionContext.clear();
         holdOn(1000);
+        DtxServerClusterWrapper closeServer = serverWrappers.remove(0);
+        closeServer.close();
+        holdOn(1000);
+        ServerThread thread = new ServerThread(closeServer.getPort()) {
+            @Override
+            public void run() {
+                try {
+                    serverWrappers.add(createServer(port, new PooledJedisClient(getPool())));
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        };
+        thread.start();
+        holdOn(1000);
         TestCase.assertEquals(count, jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE));
-
+        jedisClient.close();
         for (DtxServerClusterWrapper serverWrapper : serverWrappers) {
             serverWrapper.close();
         }
