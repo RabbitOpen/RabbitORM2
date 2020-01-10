@@ -46,12 +46,12 @@ public abstract class AbstractResourcePool<T extends PooledResource> {
     private T getResource(long timeoutMilliSeconds) {
         T resource;
         if (0 != timeoutMilliSeconds) {
-            resource = roundList.fetch(timeoutMilliSeconds);
+            resource = roundList.browse(timeoutMilliSeconds);
             if (null == resource) {
                 throw new GetConnectionTimeoutException(timeoutMilliSeconds);
             }
         } else {
-            resource = roundList.fetch();
+            resource = roundList.browse();
         }
         if (null != resource) {
             return resource;

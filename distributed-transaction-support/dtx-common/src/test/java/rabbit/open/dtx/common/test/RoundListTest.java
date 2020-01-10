@@ -39,7 +39,7 @@ public class RoundListTest {
         int sum = 0;
         for (int i = 0; i < 10; i++) {
             TestCase.assertEquals(list.peekNext().intValue(), list.peekNext().intValue());
-            Integer fetch = list.fetch();
+            Integer fetch = list.browse();
             if (i == 9) {
                 TestCase.assertEquals(0, list.peekNext().intValue());
             } else {
@@ -54,19 +54,19 @@ public class RoundListTest {
             list.remove(i);
         }
         TestCase.assertTrue(list.isEmpty());
-        TestCase.assertNull(list.fetch());
+        TestCase.assertNull(list.browse());
         TestCase.assertNull(list.peekNext());
-        TestCase.assertNull(list.fetch(10));
-        new Thread(() -> TestCase.assertTrue(10 == list.fetch(200))).start();
+        TestCase.assertNull(list.browse(10));
+        new Thread(() -> TestCase.assertTrue(10 == list.browse(200))).start();
         holdOn(50);
         list.add(10);
         
         // 验证取数的正确性
-        assertFetch();
+        assertBrowse();
     }
 
     // 验证取数的正确性
-	protected void assertFetch() throws InterruptedException {
+	protected void assertBrowse() throws InterruptedException {
 		RoundList<Integer> list = new RoundList<>();
     	int size = 64;
 		for (int i = 0; i < size; i++) {
@@ -79,7 +79,7 @@ public class RoundListTest {
 		for (int i = 0; i < count; i++) {
 			new Thread(() -> {
 				for (long j = 0; j < queueSize; j++) {
-					total.addAndGet(list.fetch());
+					total.addAndGet(list.browse());
 					list.peekNext();
 				}
 				cdl.countDown();
@@ -139,7 +139,7 @@ public class RoundListTest {
 		for (int i = 0; i < count; i++) {
 			new Thread(() -> {
 				for (int j = 0; j < 1000000; j++) {
-					Integer poll = list.fetch(3000);
+					Integer poll = list.browse(3000);
 					if (null == poll) {
 						throw new RuntimeException("");
 					}

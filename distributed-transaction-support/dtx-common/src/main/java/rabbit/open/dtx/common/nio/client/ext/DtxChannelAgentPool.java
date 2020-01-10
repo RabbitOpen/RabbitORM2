@@ -376,7 +376,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
     // 回收所有资源
     private void closeAllResources() {
         while (!roundList.isEmpty()) {
-            ChannelAgent agent = roundList.fetch();
+            ChannelAgent agent = roundList.browse();
             if (null != agent) {
                 agent.destroy();
             }

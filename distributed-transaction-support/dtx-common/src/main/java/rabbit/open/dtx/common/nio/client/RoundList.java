@@ -6,7 +6,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * 循环list
+ * 线程安全的环形list，多个线程可能同时浏览同一个元素
  * @author xiaoqianbin
  * @date 2020/1/9
  **/
@@ -36,11 +36,11 @@ public class RoundList<T> {
     }
 
     /**
-     * 循环取出下一个节点, 没有就返回空
+     * 循环浏览下一个节点, 没有就返回空（多个线程可能同时浏览同一个元素）
      * @author xiaoqianbin
      * @date 2020/1/9
      **/
-    public T fetch(long timeoutMilliSeconds) {
+    public T browse(long timeoutMilliSeconds) {
         try {
             reentrantLock.lock();
             if (isEmpty()) {
@@ -80,16 +80,16 @@ public class RoundList<T> {
 
 
     /**
-     * 循环取出下一个节点, 没有就返回空， cursor会移动
+     * 循环浏览下一个节点, 没有就返回空， cursor会移动
      * @author xiaoqianbin
      * @date 2020/1/9
      **/
-    public T fetch() {
-        return fetch(0L);
+    public T browse() {
+        return browse(0L);
     }
 
     /**
-     * 循环取出下一个节点, 没有就返回空， cursor不会移动
+     * 瞄一眼下一个节点, 没有就返回空， cursor不会移动
      * @author xiaoqianbin
      * @date 2020/1/9
      **/
