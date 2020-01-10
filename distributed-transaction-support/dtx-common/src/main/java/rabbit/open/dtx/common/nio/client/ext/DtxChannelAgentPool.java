@@ -132,7 +132,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      * @date    2020/1/7
      **/
     protected void refreshServerNodes(ClusterMeta msg) {
-        logger.info("refreshServerNodes: {}", msg.getNodes());
+        boolean foundNewNodes = false;
         ClusterMeta meta = msg;
         // 更新现有节点的隔离状态
         for (Node node : nodes) {
@@ -145,12 +145,16 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         // 刷新节点的列表信息
         for (Node node : meta.getNodes()) {
             if (!nodeExist(node, nodes)) {
+            	foundNewNodes = true;
                 node.setIsolated(false);
                 node.setIdle(true);
                 CallHelper.ignoreExceptionCall(() -> nodes.put(node));
             }
         }
-        wakeUpMonitor();
+        if (foundNewNodes) {
+        	logger.info("refreshServerNodes: {}", msg.getNodes());
+        	wakeUpMonitor();
+        }
     }
 
     /**
