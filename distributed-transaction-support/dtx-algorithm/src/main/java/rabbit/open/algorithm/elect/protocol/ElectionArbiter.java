@@ -187,7 +187,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 			}
 		}
 		eventListener.onElectionEnd(this);
-		logger.debug("election is over, leader id: {}, elect-version: {}", leaderId, electionPacketVersion.get());
+		logger.debug("election is over, leader id: {}, elect-version: {}, my role: {}", leaderId, electionPacketVersion.get(), role);
 	}
 
 	/**
@@ -252,22 +252,23 @@ public class ElectionArbiter extends Thread implements Candidate {
 			electionLock.lock();
 			if (!run) {
 				postman.ack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
-				logger.debug("received election packet({}), REJECTED!", electionPacket.getVersion());
+				logger.debug("[{}] received election packet({}), REJECTED!", myId, electionPacket.getVersion());
 				return;
 			}
 			if (NodeRole.LEADER == this.role) {
 				// 告诉他我就是leader
-				logger.debug("Hey！ I'm the king, don't revolt！");
+				logger.debug("Hey! I'm the king, don't revolt!");
+				// 对于正常参与选举的节点可能因此重复收到ElectedLeader结果导致自身的选举信号(sleepSemaphore)多释放
 				postman.ack(new ElectedLeader(electionPacketVersion.get(), myId));
 			} else {
 				// 同一个版本号的数据只会被同意一次
 				if (electionPacket.getVersion() <= electionPacketVersion.get() || agreedVersion >= electionPacket.getVersion()) {
 					postman.ack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
-					logger.debug("received election packet({}), REJECTED!", electionPacket.getVersion());
+					logger.debug("[{}] received election packet({}), REJECTED!", myId, electionPacket.getVersion());
 				} else {
 					agreedVersion = electionPacket.getVersion();
 					postman.ack(new ElectionResult(ElectionResult.AGREE, electionPacket.getVersion()));
-					logger.debug("received election packet({}), AGREED!", electionPacket.getVersion());
+					logger.debug("[{}]received election packet({}), AGREED!", myId, electionPacket.getVersion());
 				}
 			}
 		} finally {
@@ -296,16 +297,23 @@ public class ElectionArbiter extends Thread implements Candidate {
 	 **/
 	@Override
 	public void onElectedLeaderReceived(ElectedLeader electedLeader) {
-		electionLock.lock();
-		logger.debug("[{}] is elected to be the leader!, election version is {}", electedLeader.getNodeId(), electedLeader.getVersion());
-		this.role = NodeRole.FOLLOWER;
-		setLeaderId(electedLeader.getNodeId());
-		// 更新活跃时间
-		updateLeaderLastActiveTime();
-		agreedVersion = electedLeader.getVersion();
-		this.electionPacketVersion.set(electedLeader.getVersion());
-		sleepSemaphore.release();
-		electionLock.unlock();
+		try {
+			electionLock.lock();
+			if (electedLeader.getVersion() == agreedVersion && electedLeader.getNodeId().equals(leaderId)) {
+				// 重复接收的选举通知信号直接过滤掉
+				return;
+			}
+			logger.debug("[{}] is elected to be the leader!, election version is {}", electedLeader.getNodeId(), electedLeader.getVersion());
+			this.role = NodeRole.FOLLOWER;
+			setLeaderId(electedLeader.getNodeId());
+			// 更新活跃时间
+			updateLeaderLastActiveTime();
+			agreedVersion = electedLeader.getVersion();
+			this.electionPacketVersion.set(electedLeader.getVersion());
+			sleepSemaphore.release();
+		} finally {
+			electionLock.unlock();
+		}
 	}
 
 	public String getLeaderId() {

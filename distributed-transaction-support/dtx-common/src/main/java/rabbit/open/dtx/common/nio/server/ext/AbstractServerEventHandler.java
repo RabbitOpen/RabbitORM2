@@ -58,7 +58,12 @@ public abstract class AbstractServerEventHandler extends AbstractNetEventHandler
                 agent.response(result, protocolData.getRequestId());
             }
         } catch (Exception e) {
-            agent.responseError(e, protocolData.getRequestId());
+        	if (agent.isClosed()) {
+        		// 客户端节点已经关闭就不response了
+        		logger.error("client agent is closed, reponse is discarded");
+        	} else {
+        		agent.responseError(e, protocolData.getRequestId());
+        	}
         } finally {
             ackValveContext.remove();
             requestIdContext.remove();

@@ -37,7 +37,10 @@
         </encoder>
     </appender>
 
-    <logger name="rabbit.open.dtx.server" level="debug" additivity="false">
+    <logger name="rabbit.open.dtx" level="debug" additivity="false">
+        <appender-ref ref="dtx"/>
+    </logger>
+    <logger name="rabbit.open.algorithm" level="debug" additivity="false">
         <appender-ref ref="dtx"/>
     </logger>
 

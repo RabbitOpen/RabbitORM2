@@ -227,4 +227,9 @@ public class DtxServerClusterWrapper extends DtxServerWrapper {
     public int getPort() {
         return port;
     }
+
+	public ElectionArbiter getArbiter() {
+		return arbiter;
+	}
+    
 }

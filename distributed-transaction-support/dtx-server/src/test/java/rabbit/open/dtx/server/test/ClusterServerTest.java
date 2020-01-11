@@ -7,6 +7,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import rabbit.open.algorithm.elect.data.NodeRole;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.Node;
@@ -40,7 +42,7 @@ public class ClusterServerTest {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     // 集群节点个数
-    private int count = 5;
+    private int nodeNum = 3;
 
     private JedisPool getPool() {
         GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
@@ -54,7 +56,7 @@ public class ClusterServerTest {
         PooledJedisClient jedisClient = new PooledJedisClient(getPool());
         List<DtxServerClusterWrapper> serverWrappers = new ArrayList<>();
         Semaphore semaphore = new Semaphore(0);
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < nodeNum; i++) {
             holdOn(50);
             ServerThread thread = new ServerThread(16345 + i) {
                 @Override
@@ -69,7 +71,7 @@ public class ClusterServerTest {
             };
             thread.start();
         }
-        semaphore.acquire(count);
+        semaphore.acquire(nodeNum);
         holdOn(1000);
 
         Long count = jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE);
@@ -86,6 +88,7 @@ public class ClusterServerTest {
         Long branchId = handler.getTransactionBranchId(txGroupId, appName);
         handler.doBranchCommit(txGroupId, branchId, appName);
         handler.doCommit(txGroupId, branchId, appName);
+        manager.destroy();
 
         // 避免干扰其他单元测试
         DistributedTransactionContext.clear();
@@ -107,10 +110,23 @@ public class ClusterServerTest {
         holdOn(1000);
         TestCase.assertEquals(count, jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE));
         jedisClient.close();
-        for (DtxServerClusterWrapper serverWrapper : serverWrappers) {
-            serverWrapper.close();
+        holdOn(2000);
+        closeLeader(serverWrappers);
+        holdOn(2000);
+        for (DtxServerClusterWrapper server : serverWrappers) {
+        	server.close();
         }
     }
+
+	protected void closeLeader(List<DtxServerClusterWrapper> serverWrappers) {
+		for (DtxServerClusterWrapper server : serverWrappers) {
+            if (server.getArbiter().getNodeRole() == NodeRole.LEADER) {
+            	server.close();
+            	serverWrappers.remove(server);
+            	break;
+            }
+        }
+	}
 
     private DtxServerClusterWrapper createServer(int port, PooledJedisClient jedisClient) throws IOException {
         RedisTransactionHandler redisTransactionHandler = new RedisTransactionHandler();
@@ -119,10 +135,10 @@ public class ClusterServerTest {
         serverEventHandler.setTransactionHandler(redisTransactionHandler);
         serverEventHandler.init();
         List<Node> nodes = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < nodeNum; i++) {
             nodes.add(new Node(InetAddress.getLocalHost().getHostAddress(), 16345 + i));
         }
-        return new DtxServerClusterWrapper(port, serverEventHandler, count, nodes);
+        return new DtxServerClusterWrapper(port, serverEventHandler, nodeNum, nodes);
     }
 
     private void holdOn(long milliSeconds) throws InterruptedException {
