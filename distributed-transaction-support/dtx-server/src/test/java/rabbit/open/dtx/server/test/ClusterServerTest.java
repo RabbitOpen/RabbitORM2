@@ -42,7 +42,7 @@ public class ClusterServerTest {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     // 集群节点个数
-    private int nodeNum = 3;
+    private int nodeNum = 5;
 
     private JedisPool getPool() {
         GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
@@ -112,7 +112,6 @@ public class ClusterServerTest {
         jedisClient.close();
         holdOn(2000);
         closeLeader(serverWrappers);
-        holdOn(2000);
         for (DtxServerClusterWrapper server : serverWrappers) {
         	server.close();
         }

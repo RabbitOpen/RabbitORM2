@@ -55,7 +55,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 	private static final AtomicInteger ARBITER_ID = new AtomicInteger(0);
 
 	// keepAliveCheckingInterval
-	private long keepAliveCheckingInterval = 10L;
+	private long keepAliveCheckingInterval = 30L;
 
 	// LEADER 上次活跃时间
 	private Long lastActiveTime = 0L;
@@ -235,6 +235,14 @@ public class ElectionArbiter extends Thread implements Candidate {
 			electionLock.unlock();
 		}
 	}
+	
+	/**
+	 * <b>@description 设置keepAlive检测间隔 </b>
+	 * @param keepAliveCheckingInterval
+	 */
+	public void setKeepAliveCheckingInterval(long keepAliveCheckingInterval) {
+		this.keepAliveCheckingInterval = keepAliveCheckingInterval;
+	}
 
 	@Override
 	public void bindPostman(Postman postman) {
@@ -251,6 +259,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 		try {
 			electionLock.lock();
 			if (!run) {
+				// 正在关闭的节点拒绝一切投票
 				postman.ack(new ElectionResult(ElectionResult.REJECT, electionPacket.getVersion()));
 				logger.debug("[{}] received election packet({}), REJECTED!", myId, electionPacket.getVersion());
 				return;

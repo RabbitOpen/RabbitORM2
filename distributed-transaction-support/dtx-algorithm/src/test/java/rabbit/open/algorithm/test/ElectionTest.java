@@ -63,6 +63,30 @@ public class ElectionTest {
         }
         TestCase.assertEquals(1, leader);
         TestCase.assertEquals(arbiters.size() - 1, follower);
+        
+        
+        // =========模拟leader down了，重新选举
+        // 调整leader的角色
+        leaderArbiter.setNodeRole(NodeRole.FOLLOWER);
+        leaderArbiter.stopKeepAlive();
+        // 调整检测周期
+        for (ElectionArbiter arbiter : arbiters) {
+            arbiter.setKeepAliveCheckingInterval(1L);
+            arbiter.interrupt();
+        }
+        semaphore.acquire(count + 1);
+        leader = 0;
+        follower = 0;
+        for (ElectionArbiter arbiter : arbiters) {
+            if (arbiter.getNodeRole() == NodeRole.LEADER) {
+                leader++;
+            }
+            if (arbiter.getNodeRole() == NodeRole.FOLLOWER) {
+                follower++;
+            }
+        }
+        TestCase.assertEquals(1, leader);
+        TestCase.assertEquals(arbiters.size() - 1, follower);
 
         // =========模拟leader down了，重新选举
         // 调整leader的角色
@@ -73,6 +97,16 @@ public class ElectionTest {
             arbiter.reelectOnLeaderLost(true);
         }
         semaphore.acquire(count + 1);
+        leader = 0;
+        follower = 0;
+        for (ElectionArbiter arbiter : arbiters) {
+            if (arbiter.getNodeRole() == NodeRole.LEADER) {
+                leader++;
+            }
+            if (arbiter.getNodeRole() == NodeRole.FOLLOWER) {
+                follower++;
+            }
+        }
         for (ElectionArbiter arbiter : arbiters) {
             arbiter.shutdown();
         }
