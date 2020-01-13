@@ -2,7 +2,6 @@ package rabbit.open.dtx.server.handler;
 
 import rabbit.open.dtx.common.exception.DeadLockException;
 import rabbit.open.dtx.common.exception.DistributedTransactionException;
-import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
@@ -186,7 +185,17 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     // 保存回滚上下文信息
     private void saveRollbackContext(Long txGroupId) {
-        jedisClient.hset(getGroupIdKey(txGroupId), RedisKeyNames.ROLLBACK_CONTEXT.name(), getSuspendContextInfo());
+        jedisClient.hset(getGroupIdKey(txGroupId), RedisKeyNames.ROLLBACK_CONTEXT.name(), getRollbackSuspendContextInfo());
+    }
+
+    /**
+     * 生成rollback唤醒时的现场信息   requestId + "|" + clientInstanceId + "|" + applicationName
+     * @author xiaoqianbin
+     * @date 2020/1/3
+     **/
+    private String getRollbackSuspendContextInfo() {
+        return AbstractServerEventHandler.getCurrentRequestId() + "|" + AbstractServerEventHandler.getCurrentAgent().getClientInstanceId()
+                + "|" + AbstractServerEventHandler.getCurrentAgent().getAppName();
     }
 
     /**
@@ -314,11 +323,17 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
      * @date 2020/1/1
      **/
     private void wakeupClient(Long clientInstanceId, Long requestId, String applicationName) {
+        logger.debug("try 2 wakeup {}-{}-{}", applicationName, clientInstanceId, requestId);
         List<ChannelAgent> agents = ApplicationProtocolHandler.getAgents(applicationName);
         for (ChannelAgent agent : agents) {
             if (agent.getClientInstanceId().equals(clientInstanceId)) {
-                CallHelper.ignoreExceptionCall(() -> agent.ack(requestId));
-                return;
+                try {
+                    agent.ack(requestId);
+                    return;
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                    // to do: ignore exception
+                }
             }
         }
     }
@@ -408,7 +423,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
             String rollbackInfo = context.get(RedisKeyNames.ROLLBACK_CONTEXT.name());
             if (null != rollbackInfo) {
                 String[] rollbackContext = rollbackInfo.split("\\|");
-                wakeupClient(Long.parseLong(rollbackContext[1]), Long.parseLong(rollbackContext[0]), applicationName);
+                wakeupClient(Long.parseLong(rollbackContext[1]), Long.parseLong(rollbackContext[0]), rollbackContext[2]);
             }
             removeTransactionContext(txGroupId);
         }
@@ -448,7 +463,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
                 // 如果添加等待锁成功就直接挂起客户端
                 logger.debug("{} transaction[{}-{}] is waiting lock '{}'", applicationName, txGroupId, txBranchId, lock);
                 AbstractServerEventHandler.suspendRequest();
-                jedisClient.hset(getGroupIdKey(txGroupId), getWaitContextKey(txBranchId), getSuspendContextInfo());
+                jedisClient.hset(getGroupIdKey(txGroupId), getWaitContextKey(txBranchId), getLockSuspendContextInfo());
             } else {
                 logger.debug("{} transaction[{}-{}] hold lock '{}'", applicationName, txGroupId, txBranchId, lock);
             }
@@ -456,11 +471,11 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     }
 
     /**
-     * 生成回滚时的现场信息   requestId + "|" + clientInstanceId
+     * 生成lock唤醒时的现场信息   requestId + "|" + clientInstanceId
      * @author xiaoqianbin
      * @date 2020/1/3
      **/
-    private String getSuspendContextInfo() {
+    private String getLockSuspendContextInfo() {
         return AbstractServerEventHandler.getCurrentRequestId() + "|" + AbstractServerEventHandler.getCurrentAgent().getClientInstanceId();
     }
 

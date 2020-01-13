@@ -9,6 +9,6 @@ package rabbit.open.dtx.common.exception;
 public class NoActiveNodeException extends DtxException {
 
     public NoActiveNodeException() {
-        super("no active node is available");
+        super("no extra active node is available");
     }
 }

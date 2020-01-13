@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import rabbit.open.algorithm.elect.data.NodeRole;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
@@ -87,7 +86,7 @@ public class ClusterServerTest {
         String appName = manager.getApplicationName();
         Long branchId = handler.getTransactionBranchId(txGroupId, appName);
         handler.doBranchCommit(txGroupId, branchId, appName);
-        handler.doCommit(txGroupId, branchId, appName);
+        manager.rollback(method, 3);
         manager.destroy();
 
         // 避免干扰其他单元测试

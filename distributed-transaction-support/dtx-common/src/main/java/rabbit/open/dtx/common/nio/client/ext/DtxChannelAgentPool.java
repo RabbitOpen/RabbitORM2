@@ -183,17 +183,13 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
      * @date 2019/12/16
      **/
     public void initConnections() {
-        try {
-            doInitialize();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    private void doInitialize() {
         makeSureNodeAvailable();
         for (int i = 0; i < nodes.size(); i++) {
-            tryCreateResource();
+            try {
+                tryCreateResource();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
         }
     }
 
@@ -375,6 +371,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             // 先关闭listener 后释放连接，因为有些异步listener会使用连接进行response
             closeAllListeners();
             closeAllResources();
+            nioSelector.wakeup();
             readThread.join();
             nioSelector.close();
             logger.info("{} gracefully shutdown", DtxChannelAgentPool.class.getSimpleName());

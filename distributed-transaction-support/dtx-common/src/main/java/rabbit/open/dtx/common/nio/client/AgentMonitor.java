@@ -52,15 +52,19 @@ public class AgentMonitor extends Thread {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
-            sleep10s();
+            checkConnections();
         }
     }
 
-    // 等待10秒
-    private void sleep10s() {
+    // 每5s检测一次连接状态
+    private void checkConnections() {
         try {
-            if (semaphore.tryAcquire(10, TimeUnit.SECONDS) && run) {
+            if (semaphore.tryAcquire(5, TimeUnit.SECONDS) && run) {
                 agentPool.initConnections();
+            } else {
+                if (agentPool.getNodes().size() > agentPool.roundList.size() && run) {
+                    agentPool.initConnections();
+                }
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
