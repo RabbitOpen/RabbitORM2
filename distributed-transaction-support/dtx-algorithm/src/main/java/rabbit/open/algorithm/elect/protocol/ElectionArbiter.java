@@ -265,7 +265,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 		Thread listener = new Thread(() -> {
 			try {
 				if (preselectSemaphore.tryAcquire(5, TimeUnit.SECONDS) && candidateSize - 1 != preselectionAgreeTickets) {
-					logger.warn("node[{}] has been elected to be the leader already!", leaderId);
+					logger.warn("[{}] has been elected to be the leader already!", leaderId);
 				} else {
 					logger.info("nobody opposes! I'm elected to be the leader now!");
 					postman.delivery(new ElectedLeader(electionPacketVersion.get(), myId));
