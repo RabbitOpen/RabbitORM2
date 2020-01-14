@@ -127,7 +127,7 @@ public class SupportTest {
         TestCase.assertEquals(byID.getName(), product.getName());
         TestCase.assertEquals(byID.getAddr(), product.getAddr());
         handler = new TransactionMessageHandler();
-        handler.commit(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
+        handler.commit();
 
         // 验证提交
         byID = productService.getByID(product.getId());

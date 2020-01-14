@@ -9,7 +9,6 @@ import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
 
 import java.io.Closeable;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -20,13 +19,9 @@ import java.util.concurrent.TimeUnit;
  **/
 public abstract class AbstractMessageListener implements MessageListener<CommitMessage>, Closeable {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    protected Logger logger = LoggerFactory.getLogger(getClass());
 
     private ThreadPoolExecutor tpe;
-
-    private Thread sweeper;
-
-    private Semaphore semaphore = new Semaphore(0);
 
     public AbstractMessageListener() {
         tpe = new ThreadPoolExecutor(getCoreSize(), getMaxThreadSize(), 10,
@@ -34,20 +29,6 @@ public abstract class AbstractMessageListener implements MessageListener<CommitM
             logger.error("too many message is received");
             r.run();
         });
-        sweeper = new Thread(() -> {
-            while (true) {
-                commit();
-                try {
-                    if (semaphore.tryAcquire(30, TimeUnit.SECONDS)) {
-                        break;
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-        });
-        sweeper.setDaemon(true);
-        sweeper.start();
     }
 
     protected abstract int getMaxThreadSize();
@@ -79,12 +60,6 @@ public abstract class AbstractMessageListener implements MessageListener<CommitM
     @Override
     public void close() {
         tpe.shutdown();
-        semaphore.release();
-        try {
-            sweeper.join();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
     }
 
 }

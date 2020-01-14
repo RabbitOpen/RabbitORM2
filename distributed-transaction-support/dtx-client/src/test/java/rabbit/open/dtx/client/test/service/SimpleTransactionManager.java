@@ -38,11 +38,6 @@ public class SimpleTransactionManager extends AbstractTransactionManager {
         }
 
         @Override
-        public void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId) {
-
-        }
-
-        @Override
         public void confirmBranchRollback(String applicationName, Long txGroupId, Long txBranchId) {
 
         }

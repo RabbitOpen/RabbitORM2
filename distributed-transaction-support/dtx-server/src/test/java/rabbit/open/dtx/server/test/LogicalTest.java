@@ -225,7 +225,7 @@ public class LogicalTest {
             }
 
             @Override
-            protected boolean commit(String applicationName, Long txGroupId, Long txBranchId) {
+            protected boolean commit() {
                 logger.info("doCommit");
                 return true;
             }

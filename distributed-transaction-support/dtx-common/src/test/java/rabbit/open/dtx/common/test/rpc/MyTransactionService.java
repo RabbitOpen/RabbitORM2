@@ -69,11 +69,6 @@ public class MyTransactionService extends AbstractServerTransactionHandler {
     }
 
     @Override
-    public void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId) {
-
-    }
-
-    @Override
     public void confirmBranchRollback(String applicationName, Long txGroupId, Long txBranchId) {
 
     }

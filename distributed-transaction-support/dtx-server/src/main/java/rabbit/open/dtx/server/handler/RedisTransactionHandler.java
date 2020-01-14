@@ -3,7 +3,6 @@ package rabbit.open.dtx.server.handler;
 import rabbit.open.dtx.common.exception.DeadLockException;
 import rabbit.open.dtx.common.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
-import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
 import rabbit.open.dtx.common.nio.server.TxStatus;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
@@ -69,7 +68,6 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     @Override
     protected void doCommitByGroupId(Long txGroupId, String applicationName) {
         logger.debug("tx [{}] commit success", txGroupId);
-        Map<String, String> context = jedisClient.hgetAll(getGroupIdKey(txGroupId));
         removeTransactionContext(txGroupId);
     }
 
@@ -136,29 +134,6 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
             }
         }
         return result;
-    }
-
-    /**
-     * 下发分支提交信息
-     * @param txGroupId
-     * @param app
-     * @param txBranchId
-     * @author xiaoqianbin
-     * @date 2020/1/1
-     **/
-    private void dispatchCommitInfo(Long txGroupId, String app, long txBranchId) {
-        List<ChannelAgent> agents = ApplicationProtocolHandler.getAgents(app);
-        for (ChannelAgent agent : agents) {
-            if (!agent.isClosed()) {
-                try {
-                    agent.notify(new CommitMessage(app, txGroupId, txBranchId));
-                    logger.debug("dispatch commit message ({} --> {}) ", txGroupId, txBranchId);
-                    break;
-                } catch (Exception e) {
-                    // TO DO: 忽略节点挂了的异常
-                }
-            }
-        }
     }
 
     @Override
@@ -293,12 +268,6 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
      **/
     private String getBranchInfoKey(Long txBranchId) {
         return RedisKeyNames.BRANCH_INFO.name() + txBranchId.toString();
-    }
-
-    @Override
-    public void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId) {
-        logger.debug("{} confirmBranchCommit [{} --> {}] ", applicationName, txGroupId, txBranchId);
-
     }
 
     /**

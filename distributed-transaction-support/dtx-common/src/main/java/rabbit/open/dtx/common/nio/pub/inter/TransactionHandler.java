@@ -30,16 +30,6 @@ public interface TransactionHandler {
     void doCommit(Long txGroupId, Long txBranchId, String applicationName);
 
     /**
-     * 确认分支的提交
-     * @param	applicationName
-     * @param	txGroupId
-	 * @param	txBranchId
-     * @author  xiaoqianbin
-     * @date    2019/12/10
-     **/
-    void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId);
-
-    /**
      * 确认分支的回滚
      * @param	applicationName
      * @param	txGroupId

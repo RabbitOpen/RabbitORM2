@@ -4,7 +4,6 @@ import rabbit.open.dtx.common.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.nio.pub.CallHelper;
 import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.ext.AbstractNetEventHandler;
-import rabbit.open.dtx.common.nio.pub.protocol.CommitMessage;
 import rabbit.open.dtx.common.nio.pub.protocol.RollBackMessage;
 import rabbit.open.dtx.common.nio.server.TxStatus;
 import rabbit.open.dtx.common.nio.server.ext.AbstractServerEventHandler;
@@ -39,19 +38,15 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
     @Override
     protected void doCommitByGroupId(Long txGroupId, String applicationName) {
         releaseHoldLocks(txGroupId);
-        doTransactionByGroupId(txGroupId, applicationName, TxStatus.COMMITTED);
-    }
-
-    @Override
-    public void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId) {
         TransactionContext context = contextCache.get(txGroupId);
         if (null != context) {
-            removeBranchTransactionData(txBranchId, context);
-            logger.debug("{} confirmBranchCommit [{} --> {}] ", applicationName, txGroupId, txBranchId);
-            if (context.getBranchApp().isEmpty()) {
-                contextCache.remove(txGroupId);
-                logger.debug("tx [{}] commit success", txGroupId);
+            if (!context.getApplicationName().equals(applicationName)) {
+                String errMsg = String.format("txGroupId(%s) is created by '%s', but committed by '%s'", txGroupId,
+                        context.getApplicationName(), applicationName);
+                logger.error(errMsg);
+                throw new DistributedTransactionException(errMsg);
             }
+            contextCache.remove(txGroupId);
         }
     }
 
@@ -84,24 +79,23 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
         }
     }
 
-    private void doTransactionByGroupId(Long txGroupId, String applicationName, TxStatus txStatus) {
+    private void rollbackByGroupId(Long txGroupId, String applicationName) {
         TransactionContext context = contextCache.get(txGroupId);
         if (null != context) {
             if (!context.getApplicationName().equals(applicationName)) {
-                String errMsg = String.format("txGroupId(%s) is created by '%s', but %s by '%s'", txGroupId,
-                        context.getApplicationName(), txStatus, applicationName);
+                String errMsg = String.format("txGroupId(%s) is created by '%s', but rollback by '%s'", txGroupId,
+                        context.getApplicationName(), applicationName);
                 logger.error(errMsg);
                 throw new DistributedTransactionException(errMsg);
             }
-            if (txStatus == TxStatus.ROLL_BACKED && context.getBranchApp().isEmpty()) {
+            if (context.getBranchApp().isEmpty()) {
                 contextCache.remove(txGroupId);
                 boolean result = rollbackCompleted(txGroupId);
                 logger.debug("tx [{}] rollback completed, rollback result: {}", txGroupId, result);
             } else {
-                context.setTxStatus(TxStatus.COMMITTING);
                 for (Map.Entry<Long, String> entry : context.getBranchApp().entrySet()) {
                     if (TxStatus.COMMITTED == context.getBranchStatus().get(entry.getKey())) {
-                        doBranchTransaction(txGroupId, entry, txStatus);
+                        rollbackBranch(txGroupId, entry);
                     }
                 }
             }
@@ -175,17 +169,16 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
         context.addWaitingLock(lock, txBranchId);
     }
 
-    // 回滚或者提交分支事务
-    private void doBranchTransaction(Long txGroupId, Map.Entry<Long, String> entry, TxStatus txStatus) {
+    // 回滚分支事务
+    private void rollbackBranch(Long txGroupId, Map.Entry<Long, String> entry) {
         Long txBranchId = entry.getKey();
         String app = entry.getValue();
         List<ChannelAgent> agents = ApplicationProtocolHandler.getAgents(app);
         for (ChannelAgent agent : agents) {
             if (!agent.isClosed()) {
                 try {
-                    agent.notify(TxStatus.COMMITTED == txStatus ? new CommitMessage(app, txGroupId, txBranchId)
-                            : new RollBackMessage(app, txGroupId, txBranchId));
-                    logger.debug("delivery {} branch ({} --> {}) ", txStatus, txGroupId, txBranchId);
+                    agent.notify(new RollBackMessage(app, txGroupId, txBranchId));
+                    logger.debug("delivery branch rollback info ({} --> {}) ", txGroupId, txBranchId);
                     break;
                 } catch (Exception e) {
                     // TO DO: 忽略节点挂了的异常
@@ -198,7 +191,7 @@ public class MemoryTransactionHandler extends AbstractServerTransactionHandler {
     @Override
     protected void doRollbackByGroupId(Long txGroupId, String applicationName) {
         releaseHoldLocks(txGroupId);
-        doTransactionByGroupId(txGroupId, applicationName, TxStatus.ROLL_BACKED);
+        rollbackByGroupId(txGroupId, applicationName);
     }
 
     @Override

@@ -2,6 +2,10 @@ package rabbit.open.dtx.client.net;
 
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
 import rabbit.open.dtx.common.nio.client.ext.AbstractTransactionManager;
+import rabbit.open.dtx.common.nio.pub.CallHelper;
+
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 异步消息处理器， 同步消息会阻塞其它请求的数据读取
@@ -14,8 +18,26 @@ public class DtxMessageListener extends AbstractMessageListener {
 
     private AbstractTransactionManager transactionManger;
 
+    private Thread sweeper;
+
+    private Semaphore semaphore = new Semaphore(0);
+
     public DtxMessageListener(AbstractTransactionManager transactionManger) {
         this.transactionManger = transactionManger;
+        sweeper = new Thread(() -> {
+            while (true) {
+                commit();
+                try {
+                    if (semaphore.tryAcquire(30, TimeUnit.SECONDS)) {
+                        break;
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        });
+        sweeper.setDaemon(true);
+        sweeper.start();
     }
 
     @Override
@@ -46,5 +68,12 @@ public class DtxMessageListener extends AbstractMessageListener {
     @Override
     protected AbstractTransactionManager getTransactionManger() {
         return transactionManger;
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        semaphore.release();
+        CallHelper.ignoreExceptionCall(() -> sweeper.join());
     }
 }
