@@ -104,6 +104,7 @@ public class MySQLDDLHelper extends DDLHelper {
             }
             stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
             stmt.executeBatch();
+            stmt.clearBatch();
         } catch (SQLException e) {
             throw new RabbitDDLException(e);
         } finally {
@@ -131,6 +132,7 @@ public class MySQLDDLHelper extends DDLHelper {
             }
             stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
             stmt.executeBatch();
+            stmt.clearBatch();
         } catch (Exception e) {
             throw new RabbitDDLException(e);
         } finally {
@@ -161,6 +163,7 @@ public class MySQLDDLHelper extends DDLHelper {
             }
             stmt.addBatch(SET_FOREIGN_KEY_CHECKS_1);
             stmt.executeBatch();
+            stmt.clearBatch();
         } catch (SQLException e) {
             throw new RabbitDDLException(e);
         } finally {

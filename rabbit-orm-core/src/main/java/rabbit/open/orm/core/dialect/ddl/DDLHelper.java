@@ -550,7 +550,6 @@ public abstract class DDLHelper {
 	 * @param columnName	字段名
 	 */
 	protected abstract void generateComment(StringBuilder sql, String comment, String tableName, String columnName);
-		
 
     /**
      * 
@@ -569,6 +568,7 @@ public abstract class DDLHelper {
                 stmt.addBatch(sql.toString());
             }
             stmt.executeBatch();
+            stmt.clearBatch();
         } catch (SQLException e) {
             throw new RabbitDDLException(e);
         } finally {
