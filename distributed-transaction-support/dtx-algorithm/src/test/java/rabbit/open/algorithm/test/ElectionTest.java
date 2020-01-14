@@ -10,9 +10,12 @@ import rabbit.open.algorithm.elect.protocol.ElectionArbiter;
 import rabbit.open.algorithm.elect.protocol.LeaderElectedListener;
 import rabbit.open.algorithm.elect.protocol.Postman;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 单元测试
@@ -24,8 +27,15 @@ public class ElectionTest {
 
     static ElectionArbiter leaderArbiter;
 
+    /**
+     * 普通投票/重投测试
+     * @author  xiaoqianbin
+     * @date    2020/1/14
+     **/
     @Test
     public void voteTest() throws InterruptedException {
+        leaderArbiter = null;
+        MockPostman.postmen.clear();
         int count = 5;
         Semaphore semaphore = new Semaphore(0);
         List<ElectionArbiter> arbiters = new ArrayList<>();
@@ -34,14 +44,15 @@ public class ElectionTest {
             ElectionArbiter arbiter = new ElectionArbiter(count, "node-" + i, new LeaderElectedListener() {
 
                 @Override
-                public void onElectionEnd(ElectionArbiter node) {
-                    super.onElectionEnd(node);
-                    if (node.getNodeRole() == NodeRole.LEADER) {
-                        semaphore.release(2);
-                        leaderArbiter = node;
-                    } else if (node.getNodeRole() == NodeRole.FOLLOWER) {
-                        semaphore.release(1);
+                public void onLeaderElected(ElectionArbiter node) {
+                    super.onLeaderElected(node);
+                    leaderArbiter = node;
+                    try {
+                        holdOn(100);
+                    } catch (Exception e) {
+                        // to do : ignore
                     }
+                    semaphore.release();
                 }
             });
             arbiters.add(arbiter);
@@ -50,7 +61,7 @@ public class ElectionTest {
         for (ElectionArbiter arbiter : arbiters) {
             arbiter.startElection();
         }
-        semaphore.acquire(count + 1);
+        semaphore.acquire();
         int leader = 0;
         int follower = 0;
         for (ElectionArbiter arbiter : arbiters) {
@@ -69,12 +80,12 @@ public class ElectionTest {
         // 调整leader的角色
         leaderArbiter.setNodeRole(NodeRole.FOLLOWER);
         leaderArbiter.stopKeepAlive();
-        // 调整检测周期
+//         调整检测周期
         for (ElectionArbiter arbiter : arbiters) {
             arbiter.setKeepAliveCheckingInterval(1L);
             arbiter.interrupt();
         }
-        semaphore.acquire(count + 1);
+        semaphore.acquire();
         leader = 0;
         follower = 0;
         for (ElectionArbiter arbiter : arbiters) {
@@ -86,8 +97,8 @@ public class ElectionTest {
             }
         }
 
-//        TestCase.assertEquals(1, leader);
-//        TestCase.assertEquals(arbiters.size() - 1, follower);
+        TestCase.assertEquals(1, leader);
+        TestCase.assertEquals(arbiters.size() - 1, follower);
 
         // =========模拟leader down了，重新选举
         // 调整leader的角色
@@ -97,7 +108,7 @@ public class ElectionTest {
         for (ElectionArbiter arbiter : arbiters) {
             arbiter.reelectOnLeaderLost(true);
         }
-        semaphore.acquire(count + 1);
+        semaphore.acquire();
         leader = 0;
         follower = 0;
         for (ElectionArbiter arbiter : arbiters) {
@@ -111,8 +122,100 @@ public class ElectionTest {
         for (ElectionArbiter arbiter : arbiters) {
             arbiter.shutdown();
         }
-//        TestCase.assertEquals(1, leader);
-//        TestCase.assertEquals(arbiters.size() - 1, follower);
+        TestCase.assertEquals(1, leader);
+        TestCase.assertEquals(arbiters.size() - 1, follower);
+    }
+
+    private void holdOn(long milliSeconds) throws InterruptedException {
+        Semaphore semaphore = new Semaphore(0);
+        if (semaphore.tryAcquire(milliSeconds, TimeUnit.MILLISECONDS)) {
+            // 等100ms，保证response已经回来了
+            throw new RuntimeException("见鬼了");
+        }
+    }
+
+    /**
+     * 干扰测试
+     * @author  xiaoqianbin
+     * @date    2020/1/14
+     **/
+    @Test
+    public void disturbTest() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
+        leaderArbiter = null;
+        MockPostman.postmen.clear();
+        int count = 5;
+        Semaphore semaphore = new Semaphore(0);
+        Semaphore preselectionSemaphore = new Semaphore(0);
+        List<ElectionArbiter> arbiters = new ArrayList<>();
+        for (int i = 0; i < count - 1; i++) {
+            MockPostman postman = new MockPostman();
+            ElectionArbiter arbiter = new ElectionArbiter(count, "node-" + i, new LeaderElectedListener() {
+
+                @Override
+                public void onLeaderElected(ElectionArbiter node) {
+                    super.onLeaderElected(node);
+                    leaderArbiter = node;
+                    try {
+                        holdOn(100);
+                    } catch (Exception e) {
+                        // to do : ignore
+                    }
+                    semaphore.release();
+                }
+            }) {
+                @Override
+                protected void startPreselectListener() {
+                    super.startPreselectListener();
+                    preselectionSemaphore.release();
+                }
+            };
+            arbiters.add(arbiter);
+            postman.register(arbiter);
+        }
+        for (int i = 0; i < count - 1; i++) {
+            arbiters.get(i).startElection();
+        }
+        preselectionSemaphore.acquire();
+        MockPostman postman = new MockPostman();
+        ElectionArbiter arbiter = new ElectionArbiter(count, "node-" + 4, new LeaderElectedListener() {
+
+            @Override
+            public void onLeaderElected(ElectionArbiter node) {
+                super.onLeaderElected(node);
+                leaderArbiter = node;
+                try {
+                    holdOn(100);
+                } catch (Exception e) {
+                    // to do : ignore
+                }
+                semaphore.release();
+            }
+        });
+        arbiters.add(arbiter);
+        postman.register(arbiter);
+        Field field = ElectionArbiter.class.getDeclaredField("electionPacketVersion");
+        field.setAccessible(true);
+        AtomicLong electionPacketVersion = (AtomicLong) field.get(arbiter);
+        electionPacketVersion.set(100);
+        arbiter.startElection();
+
+        semaphore.acquire();
+
+        int leader = 0;
+        int follower = 0;
+        for (ElectionArbiter electionArbiter : arbiters) {
+            if (electionArbiter.getNodeRole() == NodeRole.LEADER) {
+                leader++;
+            }
+            if (electionArbiter.getNodeRole() == NodeRole.FOLLOWER) {
+                follower++;
+            }
+        }
+        for (ElectionArbiter electionArbiter : arbiters) {
+            electionArbiter.shutdown();
+        }
+        TestCase.assertEquals(1, leader);
+        TestCase.assertEquals(arbiters.size() - 1, follower);
     }
 
     /**

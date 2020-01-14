@@ -3,6 +3,7 @@ package rabbit.open.dtx.server;
 import rabbit.open.algorithm.elect.data.ProtocolPacket;
 import rabbit.open.algorithm.elect.protocol.Postman;
 import rabbit.open.dtx.common.nio.client.Node;
+import rabbit.open.dtx.common.nio.pub.ChannelAgent;
 import rabbit.open.dtx.common.nio.pub.protocol.Coordination;
 
 import java.net.InetAddress;
@@ -38,14 +39,15 @@ public class RabbitPostman extends Postman {
     @Override
     public void delivery(ProtocolPacket packet) {
         for (Node node : dtxServerWrapper.getChannelAgentPool().getNodes()) {
-            if (isLocalhost(node) || null == node.getBoundAgent()) {
+            ChannelAgent boundAgent = node.getBoundAgent();
+            if (isLocalhost(node) || null == boundAgent) {
                 // 不发送给自己
                 continue;
             }
             try {
-                node.getBoundAgent().send(new Coordination(packet));
+                boundAgent.send(new Coordination(packet));
             } catch (Exception e) {
-                node.getBoundAgent().destroy();
+                boundAgent.destroy();
             }
         }
     }

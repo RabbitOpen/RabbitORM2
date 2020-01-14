@@ -72,13 +72,11 @@ public class DtxServerClusterWrapper extends DtxServerWrapper {
         arbiter = new ElectionArbiter(candidateSize, getServer().getServerId(), new LeaderElectedListener() {
 
             @Override
-            public void onElectionEnd(ElectionArbiter electionArbiter) {
-                super.onElectionEnd(electionArbiter);
+            public void onLeaderElected(ElectionArbiter electionArbiter) {
+                super.onLeaderElected(electionArbiter);
                 //  如果被选为leader则开启事务数据清理线程
-                if (NodeRole.LEADER == electionArbiter.getNodeRole()) {
-                    RedisTransactionHandler transactionHandler = (RedisTransactionHandler) handler.getTransactionHandler();
-                    transactionHandler.startSweeper();
-                }
+                RedisTransactionHandler transactionHandler = (RedisTransactionHandler) handler.getTransactionHandler();
+                transactionHandler.startSweeper();
             }
 
         });

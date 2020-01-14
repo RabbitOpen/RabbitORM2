@@ -10,7 +10,7 @@ import rabbit.open.algorithm.elect.event.ElectionEventListener;
 public class LeaderElectedListener implements ElectionEventListener {
 
     @Override
-    public void onElectionEnd(ElectionArbiter arbiter) {
+    public void onLeaderElected(ElectionArbiter arbiter) {
         arbiter.startKeepAliveThread();
     }
 

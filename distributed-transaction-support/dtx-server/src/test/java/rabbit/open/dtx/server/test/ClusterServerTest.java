@@ -71,7 +71,7 @@ public class ClusterServerTest {
             thread.start();
         }
         semaphore.acquire(nodeNum);
-        holdOn(1000);
+        holdOn(5000);
 
         Long count = jedisClient.zcount(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, Long.MAX_VALUE);
         TestTransactionManager manager = new TestTransactionManager();
@@ -92,8 +92,14 @@ public class ClusterServerTest {
         // 避免干扰其他单元测试
         DistributedTransactionContext.clear();
         holdOn(1000);
-        DtxServerClusterWrapper closeServer = serverWrappers.remove(0);
-        closeServer.close();
+        DtxServerClusterWrapper closeServer = null;
+        for (int i = 0; i < nodeNum; i++) {
+            if (serverWrappers.get(i).getArbiter().getNodeRole() != NodeRole.LEADER) {
+                closeServer = serverWrappers.remove(i);
+                closeServer.close();
+                break;
+            }
+        }
         holdOn(1000);
         ServerThread thread = new ServerThread(closeServer.getPort()) {
             @Override

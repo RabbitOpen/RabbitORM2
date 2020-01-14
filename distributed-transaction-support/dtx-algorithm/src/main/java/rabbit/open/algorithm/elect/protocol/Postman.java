@@ -21,6 +21,8 @@ public abstract class Postman {
 		dispatcher.put(ElectedLeader.class, data -> candidate.onElectedLeaderReceived((ElectedLeader) data));
 		dispatcher.put(ElectionPacket.class, data -> candidate.onElectionPacketReceived((ElectionPacket) data));
 		dispatcher.put(HelloKitty.class, data -> candidate.onKittyReceived((HelloKitty) data));
+		dispatcher.put(Preselection.class, data -> candidate.onPreselectionReceived((Preselection) data));
+		dispatcher.put(PreselectionAck.class, data -> candidate.onPreselectionAckReceived((PreselectionAck) data));
 	}
 			
 	private Candidate candidate;

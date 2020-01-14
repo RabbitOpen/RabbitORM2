@@ -1,9 +1,6 @@
 package rabbit.open.algorithm.elect.protocol;
 
-import rabbit.open.algorithm.elect.data.ElectedLeader;
-import rabbit.open.algorithm.elect.data.ElectionPacket;
-import rabbit.open.algorithm.elect.data.ElectionResult;
-import rabbit.open.algorithm.elect.data.HelloKitty;
+import rabbit.open.algorithm.elect.data.*;
 
 /**
  * <b>@description 候选者  </b>
@@ -27,6 +24,18 @@ interface Candidate {
 	 * @param electedLeader
 	 */
 	void onElectedLeaderReceived(ElectedLeader electedLeader);
+
+	/**
+	 * <b>@description 收到Leader预选结果</b>
+	 * @param preselection
+	 */
+	void onPreselectionReceived(Preselection preselection);
+
+	/**
+	 * <b>@description 预选结果确认信息</b>
+	 * @param ack
+	 */
+	void onPreselectionAckReceived(PreselectionAck ack);
 
 	/**
 	 * 接收到心跳包
