@@ -19,11 +19,8 @@ public interface MessageHandler {
 
     /**
      * 提交事务分支
-     * @param applicationName
-     * @param txGroupId
-     * @param txBranchId
      * @author xiaoqianbin
      * @date 2019/12/5
      **/
-    boolean commit(String applicationName, Long txGroupId, Long txBranchId);
+    boolean commit();
 }

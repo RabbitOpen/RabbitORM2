@@ -23,6 +23,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -440,6 +441,7 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
 
         private long rpcTimeoutSeconds;
 
+        private ThreadLocal<AtomicInteger> retryContext = new ThreadLocal<>();
 
         public JdkProxy(DtxChannelAgentPool pool, long rpcTimeoutSeconds, Class<?> clz) {
             this.rpcTimeoutSeconds = rpcTimeoutSeconds;
@@ -458,7 +460,12 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
             if ("toString".equals(method.getName())) {
                 return namespace;
             }
-            return doInvoke(method, args);
+            try {
+                retryContext.set(new AtomicInteger(0));
+                return doInvoke(method, args);
+            } finally {
+                retryContext.remove();
+            }
         }
 
         private Object doInvoke(Method method, Object[] args) {
@@ -471,22 +478,33 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                 agent.release();
                 Long timeout = DistributedTransactionContext.getRollbackTimeout();
                 data = result.getData(null == timeout ? rpcTimeoutSeconds : timeout);
-            } catch (TimeoutException | GetConnectionTimeoutException e) {
+            } catch (GetConnectionTimeoutException e) {
                 throw e;
+            } catch (TimeoutException e) {
+                if (retryContext.get().addAndGet(1) >= pool.getNodes().size()) {
+                    logger.error("invoke failed！retried {}", retryContext.get().get());
+                    throw e;
+                } else {
+                    return retry(method, args, agent);
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new DtxException(e);
             } catch (NetworkException e) {
-                if (null != agent) {
-                    agent.destroy();
-                }
-                // 网络IO异常就直接重试
-                return doInvoke(method, args);
+                return retry(method, args, agent);
             }
             if (data instanceof DtxException) {
                 throw (DtxException) data;
             }
             return data;
+        }
+
+        private Object retry(Method method, Object[] args, ChannelAgent agent) {
+            if (null != agent) {
+                agent.destroy();
+            }
+            // 网络IO异常就直接重试
+            return doInvoke(method, args);
         }
     }
 

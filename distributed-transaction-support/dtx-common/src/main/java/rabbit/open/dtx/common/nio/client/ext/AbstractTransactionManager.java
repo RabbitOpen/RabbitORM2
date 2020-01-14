@@ -42,14 +42,14 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
 
     @Override
     public final void rollback(Method method, long timeoutSeconds) {
-        if (isTransactionPromoter(method)) {
-            // 只有最外层的发起者才能回滚事务
-            try {
+        try {
+            if (isTransactionPromoter(method)) {
+                // 只有最外层的发起者才能回滚事务
                 DistributedTransactionContext.setRollbackTimeout(timeoutSeconds);
                 doRollback();
-            } finally {
-                DistributedTransactionContext.clear();
             }
+        } finally {
+            DistributedTransactionContext.clear();
         }
     }
 
@@ -75,12 +75,12 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
 
     @Override
     public final void commit(Method method) {
-        if (isBranchPromoter(method)) {
-            try {
+        try {
+            if (isBranchPromoter(method)) {
                 doCommit(method);
-            } finally {
-                DistributedTransactionContext.clear();
             }
+        } finally {
+            DistributedTransactionContext.clear();
         }
     }
 

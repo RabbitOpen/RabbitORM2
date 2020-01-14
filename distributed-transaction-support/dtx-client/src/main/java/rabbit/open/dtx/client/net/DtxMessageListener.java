@@ -39,8 +39,8 @@ public class DtxMessageListener extends AbstractMessageListener {
     }
 
     @Override
-    protected boolean commit(String applicationName, Long txGroupId, Long txBranchId) {
-        return tmh.commit(applicationName, txGroupId, txBranchId);
+    protected boolean commit() {
+        return tmh.commit();
     }
 
     @Override

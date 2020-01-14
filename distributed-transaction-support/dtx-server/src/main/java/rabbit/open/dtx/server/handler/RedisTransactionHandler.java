@@ -24,8 +24,8 @@ import java.util.Set;
  * <b> 基于redis的事务接口实现， 事务context 采用redis map结构存储, 结构详细信息如下
  *          groupInfo:  app|status|groupId
  *          branchInfo-branchId:    branchApp|status|branchId
- *          rollbackContext:    requestId|clientInstanceId          (用以回滚时记录请求id和客户端信息)
- *          waitLockContext@branchId:   requestId|clientInstanceId  (用以等锁时记录请求id和客户端信息)
+ *          rollbackContext:    requestId|clientInstanceId|applicationName  (用以回滚时记录请求id和客户端信息)
+ *          waitLockContext@branchId:   requestId|clientInstanceId          (用以等锁时记录请求id和客户端信息)
  *          全局锁等待列表：key是lock id，value: txGroupId + "@" + txBranchId + "@" + applicationName
  *          事务锁持有map: map和key ---> RedisKeyNames.DTX_CONTEXT_LOCK.name() + "_" + txGroupId
  *              txBranchId + "@" + lockId: HOLD
@@ -68,17 +68,9 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
      **/
     @Override
     protected void doCommitByGroupId(Long txGroupId, String applicationName) {
+        logger.debug("tx [{}] commit success", txGroupId);
         Map<String, String> context = jedisClient.hgetAll(getGroupIdKey(txGroupId));
-        if (!existUnConfirmedBranch(context)) {
-            removeTransactionContext(txGroupId);
-            return;
-        }
-        for (Map.Entry<String, String> entry : context.entrySet()) {
-            if (entry.getKey().startsWith(RedisKeyNames.BRANCH_INFO.name())) {
-                String[] info = entry.getValue().split("\\|");
-                dispatchCommitInfo(txGroupId, info[0], Long.parseLong(info[2]));
-            }
-        }
+        removeTransactionContext(txGroupId);
     }
 
     /**
@@ -305,13 +297,8 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     @Override
     public void confirmBranchCommit(String applicationName, Long txGroupId, Long txBranchId) {
-        jedisClient.hdel(getGroupIdKey(txGroupId), getBranchInfoKey(txBranchId));
         logger.debug("{} confirmBranchCommit [{} --> {}] ", applicationName, txGroupId, txBranchId);
-        Map<String, String> context = jedisClient.hgetAll(getGroupIdKey(txGroupId));
-        if (!existUnConfirmedBranch(context)) {
-            logger.debug("tx [{}] commit success", txGroupId);
-            removeTransactionContext(txGroupId);
-        }
+
     }
 
     /**
@@ -406,7 +393,8 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
      **/
     private boolean existUnConfirmedBranch(Map<String, String> context) {
         for (Map.Entry<String, String> entry : context.entrySet()) {
-            if (entry.getKey().startsWith(RedisKeyNames.BRANCH_INFO.name())) {
+            if (entry.getKey().startsWith(RedisKeyNames.BRANCH_INFO.name())
+                    && TxStatus.COMMITTED.name().equals(entry.getValue().split("\\|")[1])) {
                 return true;
             }
         }

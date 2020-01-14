@@ -56,9 +56,15 @@ public class RollBackRecord {
             .append(APPLICATION_NAME + AND)
             .append(DATASOURCE_NAME + " = ? order by " + ROLLBACK_ORDER + " desc ")
             .toString();
+
     // 删除sql
     public static final String DELETE_SQL = new StringBuilder("delete from roll_back_info where ")
             .append(PRIMARY_KEY + " = ?")
+            .toString();
+
+    // 范围清除sql
+    public static final String REMOVE_SQL = new StringBuilder("delete from roll_back_info where ")
+            .append(MODIFIED_DATE + " <= ?")
             .toString();
 
     // 回滚失败接口

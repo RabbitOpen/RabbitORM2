@@ -9,10 +9,7 @@ import rabbit.open.dtx.client.datasource.proxy.TxDataSource;
 import rabbit.open.dtx.common.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -130,29 +127,29 @@ public class TransactionMessageHandler implements MessageHandler {
     }
 
     /**
-     * 提交事务，直接删除回滚信息
-     * @param applicationName
-     * @param txGroupId
-     * @param txBranchId
+     * 提交事务，直接删除回滚信息, 删除3分钟之前的
      * @author xiaoqianbin
      * @date 2019/12/6
      **/
     @Override
-    public boolean commit(String applicationName, Long txGroupId, Long txBranchId) {
-        return doTransaction(applicationName, txGroupId, txBranchId, (records, conn) -> {
+    public boolean commit() {
+        for (TxDataSource dataSource : TxDataSource.getDataSources()) {
+            Connection conn = null;
             PreparedStatement stmt = null;
             try {
-                for (RollBackRecord record : records) {
-                    stmt = conn.prepareStatement(RollBackRecord.DELETE_SQL);
-                    stmt.setLong(1, record.getId());
-                    stmt.executeUpdate();
-                    stmt.close();
-                }
+                conn = dataSource.getRealDataSource().getConnection();
+                stmt = conn.prepareStatement(RollBackRecord.REMOVE_SQL);
+                stmt.setTimestamp(1, new Timestamp(System.currentTimeMillis() - 3 * 60_000));
+                stmt.executeUpdate();
+                stmt.close();
+            } catch (Exception e) {
+                throw new DistributedTransactionException(e);
             } finally {
                 safeClose(stmt);
+                safeClose(conn);
             }
-            return true;
-        });
+        }
+        return true;
     }
 
     // 回调接口
