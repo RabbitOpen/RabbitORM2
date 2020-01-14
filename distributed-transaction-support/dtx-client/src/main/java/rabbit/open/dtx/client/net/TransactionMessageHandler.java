@@ -138,6 +138,9 @@ public class TransactionMessageHandler implements MessageHandler {
             PreparedStatement stmt = null;
             try {
                 conn = dataSource.getRealDataSource().getConnection();
+                if (!conn.getAutoCommit()) {
+                    conn.setAutoCommit(true);
+                }
                 stmt = conn.prepareStatement(RollBackRecord.REMOVE_SQL);
                 stmt.setTimestamp(1, new Timestamp(System.currentTimeMillis() - 3 * 60_000));
                 stmt.executeUpdate();

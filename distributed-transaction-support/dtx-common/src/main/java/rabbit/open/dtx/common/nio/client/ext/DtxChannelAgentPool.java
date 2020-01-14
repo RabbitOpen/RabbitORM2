@@ -480,18 +480,17 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
                 data = result.getData(null == timeout ? rpcTimeoutSeconds : timeout);
             } catch (GetConnectionTimeoutException e) {
                 throw e;
-            } catch (TimeoutException e) {
+            } catch (NetworkException | TimeoutException e) {
                 if (retryContext.get().addAndGet(1) >= pool.getNodes().size()) {
                     logger.error("invoke failed！retried {}", retryContext.get().get());
                     throw e;
                 } else {
+                    logger.warn("retry for timeout error");
                     return retry(method, args, agent);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new DtxException(e);
-            } catch (NetworkException e) {
-                return retry(method, args, agent);
             }
             if (data instanceof DtxException) {
                 throw (DtxException) data;
