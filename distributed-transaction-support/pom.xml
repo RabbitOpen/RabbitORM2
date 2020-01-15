@@ -16,7 +16,8 @@
 		<module>dtx-server</module>
 		<module>dtx-algorithm</module>
 		<module>dtx-common</module>
-	</modules>
+        <module>dtx-rpc-support</module>
+    </modules>
 
 	<profiles>
 		<profile>

@@ -1,6 +1,5 @@
 package rabbit.open.dtx.client.test.netty;
 
-import com.alibaba.dubbo.rpc.RpcException;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import io.netty.buffer.ByteBuf;
@@ -44,7 +43,7 @@ public class MyByteToMessageDecoder extends ByteToMessageDecoder {
 			input = new Input(bais);
 			return new Kryo().readObject(input, Car.class);
 		} catch (Exception e) {
-			throw new RpcException();
+			throw new RuntimeException(e);
 		} finally {
 			closeQuietly(input);
 			closeQuietly(bais);

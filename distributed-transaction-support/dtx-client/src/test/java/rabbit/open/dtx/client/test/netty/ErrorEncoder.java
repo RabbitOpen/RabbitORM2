@@ -1,6 +1,5 @@
 package rabbit.open.dtx.client.test.netty;
 
-import com.alibaba.dubbo.rpc.RpcException;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Output;
@@ -33,7 +32,7 @@ public class ErrorEncoder extends MessageToByteEncoder<Car> {
 
 			return bos.toByteArray();
 		} catch (KryoException e) {
-			throw new RpcException();
+			throw new RuntimeException(e);
 		} finally {
 			closeQuietly(output);
 			closeQuietly(bos);
