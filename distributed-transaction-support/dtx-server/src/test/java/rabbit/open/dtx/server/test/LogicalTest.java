@@ -2,8 +2,6 @@ package rabbit.open.dtx.server.test;
 
 import junit.framework.TestCase;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.exception.DistributedTransactionException;
@@ -39,8 +37,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @ContextConfiguration(locations = {"classpath:server.xml"})
 public class LogicalTest {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
-
     private Semaphore notifySemaphore = new Semaphore(0);
     private Semaphore initSemaphore = new Semaphore(0);
 
@@ -50,7 +46,8 @@ public class LogicalTest {
      * @author  xiaoqianbin
      * @date    2019/12/31
      **/
-    @Test
+    @SuppressWarnings("serial")
+	@Test
     public void logicTest() throws IOException, NoSuchMethodException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         DtxServerEventHandler serverEventHandler = new DtxServerEventHandler();
         serverEventHandler.setBossCoreSize(1);
