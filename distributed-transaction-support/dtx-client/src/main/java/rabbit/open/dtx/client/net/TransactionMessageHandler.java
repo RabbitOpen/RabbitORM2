@@ -127,7 +127,7 @@ public class TransactionMessageHandler implements MessageHandler {
     }
 
     /**
-     * 提交事务，直接删除回滚信息, 删除3分钟之前的
+     * 提交事务，直接删除回滚信息, 删除10分钟之前的
      * @author xiaoqianbin
      * @date 2019/12/6
      **/
@@ -142,7 +142,7 @@ public class TransactionMessageHandler implements MessageHandler {
                     conn.setAutoCommit(true);
                 }
                 stmt = conn.prepareStatement(RollBackRecord.REMOVE_SQL);
-                stmt.setTimestamp(1, new Timestamp(System.currentTimeMillis() - 3 * 60_000));
+                stmt.setTimestamp(1, new Timestamp(System.currentTimeMillis() - 10 * 60_000));
                 stmt.executeUpdate();
                 stmt.close();
             } catch (Exception e) {
