@@ -24,6 +24,7 @@ public class SimpleTransactionManager extends AbstractTransactionManager {
 
     private long lastBranchId;
 
+
     // 事务消息处理器
     private TransactionHandler transactionHandler = new TransactionHandler() {
 
@@ -103,5 +104,13 @@ public class SimpleTransactionManager extends AbstractTransactionManager {
     @Override
     public void init() throws IOException {
 
+    }
+
+    public void setTransactionHandler(TransactionHandler transactionHandler) {
+        this.transactionHandler = transactionHandler;
+    }
+
+    public AtomicLong getIdGenerator() {
+        return idGenerator;
     }
 }

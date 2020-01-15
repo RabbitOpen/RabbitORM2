@@ -206,10 +206,9 @@ public class SupportTest {
     }
 
     /**
-     *
      * 由于productService.isolationErrorTest没有加事务注解，又使用了读提交隔离级别，所以会抛异常
-     * @author  xiaoqianbin
-     * @date    2019/12/23
+     * @author xiaoqianbin
+     * @date 2019/12/23
      **/
     @Test
     public void isolationErrorTest() {
@@ -225,4 +224,6 @@ public class SupportTest {
             TestCase.assertEquals(IsolationException.class, e.getClass());
         }
     }
+
+
 }

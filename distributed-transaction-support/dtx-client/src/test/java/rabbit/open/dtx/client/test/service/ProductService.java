@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import rabbit.open.dtx.client.test.entity.Product;
 import rabbit.open.dtx.common.annotation.DistributedTransaction;
 import rabbit.open.dtx.common.annotation.Isolation;
+import rabbit.open.dtx.common.annotation.Propagation;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
 import java.io.Serializable;
@@ -101,4 +102,43 @@ public class ProductService extends GenericService<Product> {
     public void isolationErrorTest(Product product) {
         updateByID(product);
     }
+
+    @DistributedTransaction(propagation = Propagation.NESTED)
+    @Transactional
+    public void nestedException() {
+        Product prd = new Product();
+        prd.setName("xxxxxxzxs-");
+        prd.setAddr("dddddfCD-");
+        add(prd);
+        throw new RuntimeException("nested exec");
+    }
+
+    @DistributedTransaction(propagation = Propagation.NESTED)
+    @Transactional
+    public void nested() {
+        Product prd = new Product();
+        prd.setName("xxxxxxzxs-");
+        prd.setAddr("dddddfCD-");
+        add(prd);
+    }
+
+    @DistributedTransaction(transactionTimeoutSeconds = 1L)
+    @Transactional
+    public void asyncException() {
+        Product prd = new Product();
+        prd.setName("xxxxxxzxs-");
+        prd.setAddr("dddddfCD-");
+        add(prd);
+        throw new RuntimeException("nested exec");
+    }
+
+    @DistributedTransaction(transactionTimeoutSeconds = 1L)
+    @Transactional
+    public void async() {
+        Product prd = new Product();
+        prd.setName("xxxxxxzxs-");
+        prd.setAddr("dddddfCD-");
+        add(prd);
+    }
+
 }

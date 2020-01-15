@@ -42,7 +42,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     @Override
     protected PointCutHandler<DistributedTransaction> getHandler() {
         return (invocation, annotation) -> {
-            if (Propagation.NESTED == annotation.propagation() && !transactionManger.isTransactionOpen(invocation.getMethod())) {
+            if (isNestedOnly(invocation, annotation)) {
                 log.debug("execute {} without transaction", invocation.getMethod().getName());
                 try {
                     return invocation.proceed();
@@ -56,6 +56,17 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
                 return asyncProcess(invocation, annotation);
             }
         };
+    }
+
+    /**
+     * 判断事务是否只支持内嵌
+     * @param	invocation
+	 * @param	annotation
+     * @author  xiaoqianbin
+     * @date    2020/1/15
+     **/
+    protected boolean isNestedOnly(MethodInvocation invocation, DistributedTransaction annotation) {
+        return Propagation.NESTED == annotation.propagation() && !transactionManger.isTransactionOpen(invocation.getMethod());
     }
 
     /***
