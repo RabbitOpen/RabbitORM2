@@ -34,8 +34,10 @@ public abstract class AbstractTransactionManager implements DistributedTransacti
         if (null == getCurrentTransactionObject()) {
             DistributedTransactionObject tranObj = newTransactionObject();
             tranObj.setPromoter(true);
-            tranObj.setIsolation(method.getAnnotation(DistributedTransaction.class).isolation());
+            DistributedTransaction transaction = method.getAnnotation(DistributedTransaction.class);
+            tranObj.setIsolation(transaction.isolation());
             tranObj.setTransactionOwner(method);
+            tranObj.setRollbackPolicy(transaction.rollback());
             DistributedTransactionContext.setDistributedTransactionObject(tranObj);
         }
     }

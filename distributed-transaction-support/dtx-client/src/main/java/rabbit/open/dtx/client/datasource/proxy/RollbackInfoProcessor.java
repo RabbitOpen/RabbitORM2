@@ -7,6 +7,8 @@ import rabbit.open.dtx.client.datasource.parser.SQLType;
 import rabbit.open.dtx.client.datasource.proxy.ext.DeleteRollbackInfoProcessor;
 import rabbit.open.dtx.client.datasource.proxy.ext.InsertRollbackInfoProcessor;
 import rabbit.open.dtx.client.datasource.proxy.ext.UpdateRollbackInfoProcessor;
+import rabbit.open.dtx.common.annotation.RollbackPolicy;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -66,6 +68,7 @@ public abstract class RollbackInfoProcessor {
         RollbackInfo rollbackInfo = new RollbackInfo();
         rollbackInfo.setMeta(sqlMeta);
         rollbackInfo.setPreparedValues(preparedStatementValues);
+        rollbackInfo.setRollbackPolicy(DistributedTransactionContext.getDistributedTransactionObject().getRollbackPolicy());
         return rollbackInfo;
     }
 
@@ -91,6 +94,10 @@ public abstract class RollbackInfoProcessor {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+    }
+
+    protected boolean isStrictRollback(RollbackInfo info) {
+        return RollbackPolicy.STRICT == info.getRollbackPolicy();
     }
 
     /**

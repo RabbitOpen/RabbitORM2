@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import rabbit.open.dtx.client.net.DtxMessageListener;
+import rabbit.open.dtx.common.annotation.DistributedTransaction;
 import rabbit.open.dtx.common.annotation.Isolation;
 import rabbit.open.dtx.common.context.DistributedTransactionContext;
 import rabbit.open.dtx.common.nio.client.AbstractMessageListener;
@@ -60,6 +61,7 @@ public class DubboTransactionManager extends AbstractTransactionManager {
         tranObj.setPromoter(false);
         tranObj.setTransactionOwner(method);
         tranObj.setIsolation(Isolation.valueOf(RpcContext.getContext().getAttachment(TRANSACTION_ISOLATION)));
+        tranObj.setRollbackPolicy(method.getAnnotation(DistributedTransaction.class).rollback());
         DistributedTransactionContext.setDistributedTransactionObject(tranObj);
         return true;
     }

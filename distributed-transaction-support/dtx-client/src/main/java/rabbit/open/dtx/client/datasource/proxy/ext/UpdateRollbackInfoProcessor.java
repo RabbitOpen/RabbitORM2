@@ -152,7 +152,9 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
                 preparedValues.addAll(getValueFields(data));
                 preparedValues.addAll(getConditionPlaceHolderValues(info));
                 // 获取原始sql更新字段转换成过滤条件后的值
-                preparedValues.addAll(getOriginalFieldValues(info));
+                if (isStrictRollback(info)) {
+                    preparedValues.addAll(getOriginalFieldValues(info));
+                }
                 for (int i = 0; i < preparedValues.size(); i++) {
                     setPreparedStatementValue(stmt, i + 1, preparedValues.get(i));
                 }
@@ -230,8 +232,10 @@ public class UpdateRollbackInfoProcessor extends RollbackInfoProcessor {
             } else {
                 sql.append(meta.getCondition());
             }
-            for (ColumnMeta column : meta.getColumns()) {
-                sql.append(" and " + column.getColumnName() + " = " + column.getValue());
+            if (isStrictRollback(info)) {
+                for (ColumnMeta column : meta.getColumns()) {
+                    sql.append(" and " + column.getColumnName() + " = " + column.getValue());
+                }
             }
         }
         return sql.toString();

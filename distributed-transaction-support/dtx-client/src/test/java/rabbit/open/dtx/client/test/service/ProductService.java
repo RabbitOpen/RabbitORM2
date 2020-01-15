@@ -6,6 +6,7 @@ import rabbit.open.dtx.client.test.entity.Product;
 import rabbit.open.dtx.common.annotation.DistributedTransaction;
 import rabbit.open.dtx.common.annotation.Isolation;
 import rabbit.open.dtx.common.annotation.Propagation;
+import rabbit.open.dtx.common.annotation.RollbackPolicy;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
 import java.io.Serializable;
@@ -22,7 +23,7 @@ import java.sql.SQLException;
 @Service
 public class ProductService extends GenericService<Product> {
 
-    @DistributedTransaction
+    @DistributedTransaction(rollback = RollbackPolicy.LOOSE)
     @Transactional
     public void addProduct(Product product) {
         add(product);
@@ -75,9 +76,15 @@ public class ProductService extends GenericService<Product> {
         }
     }
 
-    @DistributedTransaction(isolation = Isolation.LOCK)
+    @DistributedTransaction(isolation = Isolation.LOCK, rollback = RollbackPolicy.LOOSE)
     @Transactional
     public void updateProduct(Product product) {
+        updateByID(product);
+    }
+
+    @DistributedTransaction()
+    @Transactional
+    public void strictUpdateProduct(Product product) {
         updateByID(product);
     }
 

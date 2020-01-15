@@ -1,6 +1,7 @@
 package rabbit.open.dtx.common.nio.client;
 
 import rabbit.open.dtx.common.annotation.Isolation;
+import rabbit.open.dtx.common.annotation.RollbackPolicy;
 
 import java.lang.reflect.Method;
 
@@ -28,6 +29,8 @@ public class DistributedTransactionObject {
 
     // 是任务的发起人
     private boolean promoter = false;
+
+    private RollbackPolicy rollbackPolicy = RollbackPolicy.STRICT;
 
     public DistributedTransactionObject(Long txGroupId) {
         setTxGroupId(txGroupId);
@@ -77,4 +80,11 @@ public class DistributedTransactionObject {
 		this.isolation = isolation;
 	}
 
+    public RollbackPolicy getRollbackPolicy() {
+        return rollbackPolicy;
+    }
+
+    public void setRollbackPolicy(RollbackPolicy rollbackPolicy) {
+        this.rollbackPolicy = rollbackPolicy;
+    }
 }

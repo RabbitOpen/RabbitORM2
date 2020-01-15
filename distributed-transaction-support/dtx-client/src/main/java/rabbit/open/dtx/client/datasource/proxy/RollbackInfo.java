@@ -2,6 +2,7 @@ package rabbit.open.dtx.client.datasource.proxy;
 
 import rabbit.open.dtx.client.datasource.parser.ColumnMeta;
 import rabbit.open.dtx.client.datasource.parser.SQLMeta;
+import rabbit.open.dtx.common.annotation.RollbackPolicy;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,8 @@ public class RollbackInfo {
 
     // 自增列meta
     private ColumnMeta autoIncrementColumnMeta;
+
+    private RollbackPolicy rollbackPolicy;
 
     public RollbackInfo() {
     }
@@ -66,5 +69,13 @@ public class RollbackInfo {
 
     public void setAutoIncrementColumnMeta(ColumnMeta autoIncrementColumnMeta) {
         this.autoIncrementColumnMeta = autoIncrementColumnMeta;
+    }
+
+    public RollbackPolicy getRollbackPolicy() {
+        return rollbackPolicy;
+    }
+
+    public void setRollbackPolicy(RollbackPolicy rollbackPolicy) {
+        this.rollbackPolicy = rollbackPolicy;
     }
 }

@@ -6,6 +6,7 @@ import rabbit.open.dtx.client.datasource.proxy.RollBackRecord;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfoProcessor;
 import rabbit.open.dtx.client.datasource.proxy.TxConnection;
+import rabbit.open.dtx.common.context.DistributedTransactionContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,7 +21,9 @@ public class InsertRollbackInfoProcessor extends RollbackInfoProcessor {
 
     @Override
     public RollbackInfo generateRollbackInfo(SQLMeta sqlMeta, List<Object> preparedStatementValues, TxConnection txConn) {
-        return new RollbackInfo(sqlMeta, preparedStatementValues);
+        RollbackInfo rollbackInfo = new RollbackInfo(sqlMeta, preparedStatementValues);
+        rollbackInfo.setRollbackPolicy(DistributedTransactionContext.getDistributedTransactionObject().getRollbackPolicy());
+        return rollbackInfo;
     }
 
     /**
@@ -38,15 +41,19 @@ public class InsertRollbackInfoProcessor extends RollbackInfoProcessor {
         if (null != autoIncrementColumnMeta) {
             sql.append(" and " + autoIncrementColumnMeta.getColumnName() + " = " + autoIncrementColumnMeta.getValue());
         }
-        for (ColumnMeta column : info.getMeta().getColumns()) {
-            sql.append(" and " + column.getColumnName() + " = " + column.getValue());
+        if (isStrictRollback(info)) {
+            for (ColumnMeta column : info.getMeta().getColumns()) {
+                sql.append(" and " + column.getColumnName() + " = " + column.getValue());
+            }
         }
         PreparedStatement stmt = null;
         int effectDataSize = 0;
         try {
             stmt = conn.prepareStatement(sql.toString());
-            for (int i = 0; i < info.getPreparedValues().size(); i++) {
-                setPreparedStatementValue(stmt, i + 1, info.getPreparedValues().get(i));
+            if (isStrictRollback(info)) {
+                for (int i = 0; i < info.getPreparedValues().size(); i++) {
+                    setPreparedStatementValue(stmt, i + 1, info.getPreparedValues().get(i));
+                }
             }
             effectDataSize = stmt.executeUpdate();
             printRollbackLog(record, sql.toString(), info.getPreparedValues(), effectDataSize);

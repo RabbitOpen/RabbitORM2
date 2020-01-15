@@ -25,4 +25,7 @@ public @interface DistributedTransaction {
 
     // 默认不加锁
     Isolation isolation() default Isolation.UNLOCK;
+
+    // 回滚策略
+    RollbackPolicy rollback() default RollbackPolicy.STRICT;
 }

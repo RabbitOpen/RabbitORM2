@@ -135,6 +135,55 @@ public class SupportTest {
         TestCase.assertEquals(byID.getAddr(), product.getAddr());
     }
 
+    @Test
+    public void strictUpdateEnhancerTest() {
+        // 创建原始信息
+        Product product = new Product();
+        product.setName("ZD-0024");
+        product.setAddr("CD");
+        productService.add(product);
+
+        //更新对象
+        product.setName("ZD-0025");
+        product.setAddr("CD1");
+        productService.strictUpdateProduct(product);
+
+        Product byID = productService.getByID(product.getId());
+        TestCase.assertEquals(byID.getName(), product.getName());
+        TestCase.assertEquals(byID.getAddr(), product.getAddr());
+
+        //！！！！ 因为单元测试是串行运行，transactionManger.getLastBranchId()不存在并发问题，所以可以这样用
+        RollbackEntity rollbackEntity = rbs.createQuery().addFilter("txBranchId", transactionManger.getLastBranchId()).unique();
+        KryoObjectSerializer serializer = new KryoObjectSerializer();
+        RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
+        // 回滚信息中包含2个字段
+        TestCase.assertEquals(rollbackInfo.getMeta().getColumns().size(), 2);
+
+        // 开始回滚
+        TransactionMessageHandler handler = new TransactionMessageHandler();
+        handler.rollback(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
+        // 验证回滚
+        byID = productService.getByID(product.getId());
+        TestCase.assertEquals(byID.getName(), "ZD-0024");
+        TestCase.assertEquals(byID.getAddr(), "CD");
+
+        //更新对象
+        product.setName("ZD-0016");
+        product.setAddr("CD16");
+        productService.updateProduct(product);
+
+        byID = productService.getByID(product.getId());
+        TestCase.assertEquals(byID.getName(), product.getName());
+        TestCase.assertEquals(byID.getAddr(), product.getAddr());
+        handler = new TransactionMessageHandler();
+        handler.commit();
+
+        // 验证提交
+        byID = productService.getByID(product.getId());
+        TestCase.assertEquals(byID.getName(), product.getName());
+        TestCase.assertEquals(byID.getAddr(), product.getAddr());
+    }
+
     /**
      * 删除增强测试
      * @author xiaoqianbin
@@ -163,7 +212,6 @@ public class SupportTest {
         // 开始回滚
         TransactionMessageHandler handler = new TransactionMessageHandler();
         handler.rollback(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
-
 
         // 验证空回滚
         productService.deleteProduct(product.getId() + 1010000);
