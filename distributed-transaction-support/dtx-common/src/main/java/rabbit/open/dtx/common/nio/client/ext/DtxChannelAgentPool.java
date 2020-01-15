@@ -188,6 +188,8 @@ public class DtxChannelAgentPool extends AbstractResourcePool<ChannelAgent> {
         for (int i = 0; i < nodes.size(); i++) {
             try {
                 tryCreateResource();
+            } catch (NoActiveNodeException e) {
+                logger.error(e.getMessage());
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }

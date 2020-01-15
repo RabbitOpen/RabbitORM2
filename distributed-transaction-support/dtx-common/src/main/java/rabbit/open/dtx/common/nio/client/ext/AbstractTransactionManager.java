@@ -22,7 +22,7 @@ import java.util.List;
 @SuppressWarnings("serial")
 public abstract class AbstractTransactionManager implements DistributedTransactionManager {
 
-    private transient TransactionHandler defaultHandler;
+    protected transient TransactionHandler defaultHandler;
 
     protected transient DtxChannelAgentPool pool;
 

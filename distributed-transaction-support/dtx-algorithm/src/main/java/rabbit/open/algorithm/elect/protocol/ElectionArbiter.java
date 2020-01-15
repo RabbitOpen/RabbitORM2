@@ -264,7 +264,7 @@ public class ElectionArbiter extends Thread implements Candidate {
 	protected void startPreselectListener() {
 		Thread listener = new Thread(() -> {
 			try {
-				if (preselectSemaphore.tryAcquire(5, TimeUnit.SECONDS) && candidateSize - 1 != preselectionAgreeTickets) {
+				if (preselectSemaphore.tryAcquire(5, TimeUnit.SECONDS) && !noBodyOppose()) {
 					logger.warn("[{}] has been elected to be the leader already!", leaderId);
 				} else {
 					logger.info("nobody opposes! I'm elected to be the leader now!");
@@ -277,6 +277,10 @@ public class ElectionArbiter extends Thread implements Candidate {
 		});
 		listener.setDaemon(true);
 		listener.start();
+	}
+
+	private boolean noBodyOppose() {
+		return candidateSize - 1 == preselectionAgreeTickets;
 	}
 
 	/**
@@ -419,7 +423,8 @@ public class ElectionArbiter extends Thread implements Candidate {
 				preselectSemaphore.release();
 			} else {
 				preselectionAgreeTickets++;
-				if (candidateSize - 1 == preselectionAgreeTickets) {
+				if (noBodyOppose()) {
+					// 所有人都同意就直接唤醒等待器
 					preselectSemaphore.release();
 				}
 			}

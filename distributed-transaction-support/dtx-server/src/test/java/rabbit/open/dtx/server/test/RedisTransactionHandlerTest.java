@@ -69,15 +69,19 @@ public class RedisTransactionHandlerTest {
         jedisClient.del("list");
         jedisClient.rpush("list", "hello", "kitty", "world", "apple");
 
-        PopInfo info = jedisClient.casLpop("list");
+        PopInfo info = jedisClient.casLpopByPrefix("list", "hello");
         TestCase.assertEquals("hello", info.getResult());
         TestCase.assertEquals("kitty", info.getNext());
-        info = jedisClient.casLpop("list");
+        info = jedisClient.casLpopByPrefix("list", "ki");
         TestCase.assertEquals("kitty", info.getResult());
         TestCase.assertEquals("world", info.getNext());
 
-        info = jedisClient.casLpop("list");
-        info = jedisClient.casLpop("list");
+        info = jedisClient.casLpopByPrefix("list", "xd");
+        TestCase.assertNull(info.getResult());
+        TestCase.assertNull(info.getNext());
+
+        info = jedisClient.casLpopByPrefix("list", "world");
+        info = jedisClient.casLpopByPrefix("list", "app");
         TestCase.assertEquals("apple", info.getResult());
         TestCase.assertNull(info.getNext());
 

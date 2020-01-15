@@ -3,7 +3,6 @@ package rabbit.open.algorithm.elect.protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.algorithm.elect.data.HelloKitty;
-import rabbit.open.algorithm.elect.data.NodeRole;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -29,10 +28,8 @@ public class KeepAliveThread extends Thread {
     @Override
     public void run() {
         while (true) {
-            if (NodeRole.LEADER == arbiter.getNodeRole()) {
-                arbiter.postman.delivery(new HelloKitty(arbiter.getNodeId()));
-            }
             try {
+                arbiter.postman.delivery(new HelloKitty(arbiter.getNodeId()));
                 if (semaphore.tryAcquire(2, TimeUnit.SECONDS)) {
                     return;
                 }

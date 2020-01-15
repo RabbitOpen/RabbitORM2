@@ -72,12 +72,13 @@ public interface JedisClient {
     Long rpush(String key, String... strings);
 
     /**
-     * 取出并移除头部、获取但不移除key的头部信息
+     * 如果当前头部是以指定的prefix开头的话，就取出并移除头部、获取但不移除key的头部信息
      * @param	key
+     * @param	prefix
      * @author  xiaoqianbin
      * @date    2020/1/3
      **/
-    PopInfo casLpop(String key);
+    PopInfo casLpopByPrefix(String key, String prefix);
 
     void close();
 }

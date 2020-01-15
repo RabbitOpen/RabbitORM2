@@ -41,6 +41,10 @@ public class LogicalTest {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
+    private Semaphore notifySemaphore = new Semaphore(0);
+    private Semaphore initSemaphore = new Semaphore(0);
+
+
     /**
      * 业务逻辑测试
      * @author  xiaoqianbin
@@ -57,7 +61,27 @@ public class LogicalTest {
         serverEventHandler.init();
         DtxServerWrapper serverWrapper = new DtxServerWrapper(20118, serverEventHandler);
 
-        TestTransactionManager manager = new TestTransactionManager();
+        TestTransactionManager manager = new TestTransactionManager() {
+
+            @Override
+            public void init() throws IOException {
+                pool = new DtxChannelAgentPool(this) {
+                    @Override
+                    protected void refreshServerNodes(ClusterMeta msg) {
+                        super.refreshServerNodes(msg);
+                        initSemaphore.drainPermits();
+                        notifySemaphore.release();
+                    }
+
+                    @Override
+                    public void initConnections() {
+                        super.initConnections();
+                        initSemaphore.release();
+                    }
+                };
+                defaultHandler = pool.proxy(TransactionHandler.class, getRpcTimeoutSeconds());
+            }
+        };
 
         manager.init();
 
@@ -120,11 +144,12 @@ public class LogicalTest {
             clusterMeta.setNodes(nodes);
             agent.notify(clusterMeta);
         }
-        holdOn(3000);
+        notifySemaphore.acquire();
         Field nodeField = DtxChannelAgentPool.class.getDeclaredField("nodes");
         nodeField.setAccessible(true);
         ArrayBlockingQueue<Node> list = (ArrayBlockingQueue<Node>) nodeField.get(pool);
         TestCase.assertEquals(2, list.size());
+        initSemaphore.acquire();
         for (Node node : list) {
             if (node.getPort() == 20118) {
                 TestCase.assertEquals(node.isIsolated(), false);
@@ -133,7 +158,6 @@ public class LogicalTest {
                 TestCase.assertEquals(node.isIsolated(), true);
             }
         }
-
         for (ChannelAgent agent : serverWrapper.getServer().getAgents()) {
             ClusterMeta clusterMeta = new ClusterMeta();
             List<Node> nodes = new ArrayList<>();
@@ -141,9 +165,10 @@ public class LogicalTest {
             clusterMeta.setNodes(nodes);
             agent.notify(clusterMeta);
         }
-        holdOn(3000);
+        notifySemaphore.acquire();
         list = (ArrayBlockingQueue<Node>) nodeField.get(pool);
         TestCase.assertEquals(2, list.size());
+        initSemaphore.acquire();
         for (Node node : list) {
             if (node.getPort() == 20118) {
                 TestCase.assertEquals(node.isIsolated(), false);

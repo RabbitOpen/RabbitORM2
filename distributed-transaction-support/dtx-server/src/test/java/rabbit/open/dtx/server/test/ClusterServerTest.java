@@ -135,6 +135,7 @@ public class ClusterServerTest {
     private DtxServerClusterWrapper createServer(int port, PooledJedisClient jedisClient) throws IOException {
         RedisTransactionHandler redisTransactionHandler = new RedisTransactionHandler();
         redisTransactionHandler.setJedisClient(jedisClient);
+        redisTransactionHandler.setDeadContextThreadSeconds(30L);
         DtxServerEventHandler serverEventHandler = new DtxServerEventHandler();
         serverEventHandler.setTransactionHandler(redisTransactionHandler);
         serverEventHandler.init();

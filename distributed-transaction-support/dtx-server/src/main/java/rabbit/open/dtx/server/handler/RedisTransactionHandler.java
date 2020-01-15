@@ -41,6 +41,9 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
 
     private Sweeper sweeper;
 
+    // 过期事务判定阈值(超过该值则判定为过期事务)
+    private long deadContextThreadSeconds = 30L;
+
     public RedisTransactionHandler() {
         sweeper = new Sweeper(this);
     }
@@ -80,8 +83,8 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
         if (null == jedisClient) {
             return;
         }
-        Set<String> list = jedisClient.zrangeByScore(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0,
-                System.currentTimeMillis() - 30d * 1000);
+        double max = System.currentTimeMillis() - 1000d * deadContextThreadSeconds;
+        Set<String> list = jedisClient.zrangeByScore(RedisKeyNames.DTX_CONTEXT_LIST.name(), 0, max);
         // 快速清除所有废弃事务占有的锁资源
         fastReleaseLocks(list);
         // 回滚过期的事务
@@ -314,7 +317,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
         for (Map.Entry<String, String> entry : lockMap.entrySet()) {
             String key = entry.getKey();
             String lock = key.substring(key.indexOf('@') + 1);
-            PopInfo popInfo = jedisClient.casLpop(lock);
+            PopInfo popInfo = jedisClient.casLpopByPrefix(lock, txGroupId + "@");
             if (null != popInfo.getNext()) {
                 // 尝试唤醒等待队列中的元素
                 tryWakeupClient(lock, popInfo);
@@ -485,5 +488,9 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     public void destroy() {
         sweeper.shutdown();
         jedisClient.close();
+    }
+
+    public void setDeadContextThreadSeconds(long deadContextThreadSeconds) {
+        this.deadContextThreadSeconds = deadContextThreadSeconds;
     }
 }

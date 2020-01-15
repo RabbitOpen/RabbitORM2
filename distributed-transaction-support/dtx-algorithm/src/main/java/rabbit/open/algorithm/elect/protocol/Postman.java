@@ -51,8 +51,6 @@ public abstract class Postman {
 		}
 		if (dispatcher.containsKey(data.getClass())) {
 			dispatcher.get(data.getClass()).onDataReceived(data);
-		} else {
-			logger.warn("unknown packet type[{}] is received", data.getClass());
 		}
 	}
 	

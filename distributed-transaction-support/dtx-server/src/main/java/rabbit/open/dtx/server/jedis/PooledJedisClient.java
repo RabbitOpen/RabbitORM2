@@ -29,9 +29,12 @@ public class PooledJedisClient implements JedisClient {
     // casHsetScript对应的sha
     protected String casHsetScriptSha;
 
-    protected String casLpopScript = "return {redis.call('lpop', ARGV[1]), redis.call('lindex', ARGV[1], 0)};";
+    protected String casLpopByPrefixScript = "local head = redis.call('lindex', ARGV[1], 0)\n" +
+                                            "if string.sub(head,1,string.len(ARGV[2]))== ARGV[2] then \n" +
+                                            "return {redis.call('lpop', ARGV[1]), redis.call('lindex', ARGV[1], 0)};" +
+                                            "else return {} end;";
 
-    protected String casLpopScriptSha;
+    protected String casLpopByPrefixScriptSha;
 
     protected String hsetGetAllScript = "redis.call('hset', ARGV[1], ARGV[2], ARGV[3])\n return redis.call('hgetall', ARGV[1])";
 
@@ -47,7 +50,7 @@ public class PooledJedisClient implements JedisClient {
     public PooledJedisClient(JedisPool pool) {
         this.pool = pool;
         casHsetScriptSha = (String) execute(jedis -> jedis.scriptLoad(casHsetScript));
-        casLpopScriptSha = (String) execute(jedis -> jedis.scriptLoad(casLpopScript));
+        casLpopByPrefixScriptSha = (String) execute(jedis -> jedis.scriptLoad(casLpopByPrefixScript));
         hsetGetAllScriptSha = (String) execute(jedis -> jedis.scriptLoad(hsetGetAllScript));
         hgetAllAndDelScriptSha = (String) execute(jedis -> jedis.scriptLoad(hgetAllAndDelScript));
     }
@@ -141,14 +144,18 @@ public class PooledJedisClient implements JedisClient {
     }
 
     /**
-     * 取出头部和key的长度信息(不包含当前头部的长度)
+     * 如果当前头部是以指定的prefix开头的话，就取出并移除头部、获取但不移除key的头部信息
      * @param	key
+     * @param	prefix
      * @author  xiaoqianbin
      * @date    2020/1/3
      **/
     @Override
-    public PopInfo casLpop(String key) {
-        List<Object> result = (List<Object>) execute(jedis -> jedis.evalsha(casLpopScriptSha, 0, key));
+    public PopInfo casLpopByPrefix(String key, String prefix) {
+        List<Object> result = (List<Object>) execute(jedis -> jedis.evalsha(casLpopByPrefixScriptSha, 0, key, prefix));
+        if (result.isEmpty()) {
+            return new PopInfo(null, null);
+        }
         return new PopInfo((String) result.get(0), (String) result.get(1));
     }
 
