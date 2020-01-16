@@ -13,6 +13,7 @@ import rabbit.open.dtx.common.nio.client.DistributedTransactionObject;
 import rabbit.open.dtx.common.spring.enhance.AbstractAnnotationEnhancer;
 import rabbit.open.dtx.common.spring.enhance.PointCutHandler;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -43,7 +44,7 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     protected PointCutHandler<DistributedTransaction> getHandler() {
         return (invocation, annotation) -> {
             if (isNestedOnly(invocation, annotation)) {
-                log.debug("execute {} without transaction", invocation.getMethod().getName());
+                log.debug("execute {} without transaction", getRealMethod(invocation).getName());
                 try {
                     return invocation.proceed();
                 } catch (Throwable e) {
@@ -66,7 +67,21 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
      * @date    2020/1/15
      **/
     protected boolean isNestedOnly(MethodInvocation invocation, DistributedTransaction annotation) {
-        return Propagation.NESTED == annotation.propagation() && !transactionManger.isTransactionOpen(invocation.getMethod());
+        return Propagation.NESTED == annotation.propagation() && !transactionManger.isTransactionOpen(getRealMethod(invocation));
+    }
+
+    private Method getRealMethod(MethodInvocation invocation) {
+        Method method = invocation.getMethod();
+        if (method.getDeclaringClass().isInterface()) {
+            try {
+                return invocation.getThis().getClass().getDeclaredMethod(method.getName(), method.getParameterTypes());
+            } catch (NoSuchMethodException e) {
+                logger.error(e.getMessage(), e);
+                throw new DistributedTransactionException(e);
+            }
+        } else {
+            return method;
+        }
     }
 
     /***
@@ -77,9 +92,9 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
      * @date 2019/12/4
      **/
     private Object asyncProcess(MethodInvocation invocation, DistributedTransaction annotation) {
-        log.debug("{} beginTransaction", invocation.getMethod().getName());
-        transactionManger.beginTransaction(invocation.getMethod());
-        log.debug("{} begin to execute business", invocation.getMethod().getName());
+        log.debug("{} beginTransaction", getRealMethod(invocation).getName());
+        transactionManger.beginTransaction(getRealMethod(invocation));
+        log.debug("{} begin to execute business", getRealMethod(invocation).getName());
         DistributedTransactionObject currentTransactionObject = transactionManger.getCurrentTransactionObject();
         Future<Object> future = getExecutor().submit(() -> {
             try {
@@ -108,9 +123,9 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     }
 
     private void doCommit(MethodInvocation invocation) {
-        log.debug("{} begin to commit ", invocation.getMethod().getName());
-        transactionManger.commit(invocation.getMethod());
-        log.debug("{} commit success ", invocation.getMethod().getName());
+        log.debug("{} begin to commit ", getRealMethod(invocation).getName());
+        transactionManger.commit(getRealMethod(invocation));
+        log.debug("{} commit success ", getRealMethod(invocation).getName());
     }
 
     /**
@@ -122,9 +137,9 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
      **/
     private Object syncProcess(MethodInvocation invocation, DistributedTransaction annotation) {
         try {
-            log.debug("{} beginTransaction", invocation.getMethod().getName());
-            transactionManger.beginTransaction(invocation.getMethod());
-            log.debug("{} begin to execute business", invocation.getMethod().getName());
+            log.debug("{} beginTransaction", getRealMethod(invocation).getName());
+            transactionManger.beginTransaction(getRealMethod(invocation));
+            log.debug("{} begin to execute business", getRealMethod(invocation).getName());
             Object result = invocation.proceed();
             doCommit(invocation);
             return result;
@@ -149,9 +164,9 @@ public class DistributedTransactionEnhancer extends AbstractAnnotationEnhancer<D
     }
 
     private void doRollback(MethodInvocation invocation, DistributedTransaction annotation) {
-        log.debug("{} begin to rollback ", invocation.getMethod().getName());
-        transactionManger.rollback(invocation.getMethod(), annotation.rollbackTimeoutSeconds());
-        log.debug("{} rollback end ", invocation.getMethod().getName());
+        log.debug("{} begin to rollback ", getRealMethod(invocation).getName());
+        transactionManger.rollback(getRealMethod(invocation), annotation.rollbackTimeoutSeconds());
+        log.debug("{} rollback end ", getRealMethod(invocation).getName());
     }
 
     private ThreadPoolExecutor getExecutor() {
