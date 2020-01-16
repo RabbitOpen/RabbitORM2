@@ -26,7 +26,13 @@ public class DistributedTransactionPointCut<T extends Annotation> implements Met
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        T annotation = invocation.getMethod().getAnnotation(targetAnnotation);
+        T annotation;
+        if (invocation.getMethod().getDeclaringClass().isInterface()) {
+            annotation = invocation.getThis().getClass().getDeclaredMethod(invocation.getMethod().getName(),
+                    invocation.getMethod().getParameterTypes()).getAnnotation(targetAnnotation);
+        } else {
+            annotation = invocation.getMethod().getAnnotation(targetAnnotation);
+        }
         if (null != annotation && null != pointCutHandler) {
             return pointCutHandler.process(invocation, annotation);
         } else {
