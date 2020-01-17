@@ -31,8 +31,6 @@ public class DubboTxTest {
     private NestedZookeeperServer zookeeperServer;
     private ClassPathXmlApplicationContext consumerContext;
     private ClassPathXmlApplicationContext providerContext;
-    private Semaphore providerContextStartSemaphore = new Semaphore(0);
-
     private Semaphore consumed = new Semaphore(0);
     private Semaphore over = new Semaphore(0);
 
@@ -82,9 +80,7 @@ public class DubboTxTest {
                 zookeeperServer = new NestedZookeeperServer();
                 zookeeperServer.start();
 
-                startProviderSpringContext();
-                providerContextStartSemaphore.acquire();
-
+                providerContext = new ClassPathXmlApplicationContext("classpath*:provider.xml");
                 // 等待消费
                 consumed.acquire();
                 // 释放资源
@@ -99,15 +95,6 @@ public class DubboTxTest {
             }
         });
         providerThread.start();
-    }
-
-    private void startProviderSpringContext() {
-        Thread thread = new Thread(() -> {
-            providerContext = new ClassPathXmlApplicationContext("classpath*:provider.xml");
-            providerContextStartSemaphore.release();
-        });
-        thread.setDaemon(true);
-        thread.start();
     }
 
     private JedisPool getPool() {
