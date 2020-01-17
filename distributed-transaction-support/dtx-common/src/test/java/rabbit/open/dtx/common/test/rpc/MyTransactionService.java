@@ -83,4 +83,8 @@ public class MyTransactionService extends AbstractServerTransactionHandler {
             logger.error(e.getMessage(), e);
         }
     }
+
+    public long getCount() {
+        return atomicLong.get();
+    }
 }

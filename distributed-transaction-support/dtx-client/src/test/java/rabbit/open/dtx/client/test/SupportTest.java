@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import rabbit.open.dtx.client.datasource.proxy.RollBackRecord;
 import rabbit.open.dtx.client.datasource.proxy.RollbackInfo;
 import rabbit.open.dtx.client.net.TransactionMessageHandler;
 import rabbit.open.dtx.client.test.entity.Enterprise;
@@ -15,12 +16,16 @@ import rabbit.open.dtx.client.test.service.EnterpriseService;
 import rabbit.open.dtx.client.test.service.ProductService;
 import rabbit.open.dtx.client.test.service.RollbackInfoService;
 import rabbit.open.dtx.client.test.service.SimpleTransactionManager;
+import rabbit.open.dtx.common.exception.DistributedTransactionException;
 import rabbit.open.dtx.common.exception.IsolationException;
 import rabbit.open.dtx.common.utils.ext.KryoObjectSerializer;
 import rabbit.open.orm.core.dml.meta.MetaData;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -72,6 +77,22 @@ public class SupportTest {
         RollbackInfo rollbackInfo = serializer.deserialize(rollbackEntity.getRollbackInfo(), RollbackInfo.class);
         // 回滚信息中包含3个字段
         TestCase.assertEquals(rollbackInfo.getMeta().getColumns().size(), 7);
+
+        // 验证回滚失败
+        TransactionMessageHandler rollbackFailedHandler = new TransactionMessageHandler() {
+            @Override
+            protected boolean doRollback(List<RollBackRecord> records, Connection conn) throws SQLException {
+                throw new RuntimeException("mock a roll back exception");
+            }
+        };
+        try {
+            rollbackFailedHandler.rollback(transactionManger.getApplicationName(), transactionManger.getLastBranchId() - 1, transactionManger.getLastBranchId());
+            throw new RuntimeException("impossible");
+        } catch (DistributedTransactionException e) {
+            // 验证抛出异常
+            // 验证回滚失败
+            TestCase.assertNotNull(productService.getByID(product.getId()));
+        }
 
         // 开始回滚
         TransactionMessageHandler handler = new TransactionMessageHandler();

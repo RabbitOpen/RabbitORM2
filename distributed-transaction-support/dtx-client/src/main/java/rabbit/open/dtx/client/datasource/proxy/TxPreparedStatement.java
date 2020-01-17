@@ -308,13 +308,13 @@ public class TxPreparedStatement implements PreparedStatement {
 
     @Override
     public void setTime(int parameterIndex, Time x, Calendar cal) throws SQLException {
-        realStmt.setTime(parameterIndex, x);
+        realStmt.setTime(parameterIndex, x, cal);
         values.add(x);
     }
 
     @Override
     public void setTimestamp(int parameterIndex, Timestamp x, Calendar cal) throws SQLException {
-        realStmt.setTimestamp(parameterIndex, x);
+        realStmt.setTimestamp(parameterIndex, x, cal);
         values.add(x);
     }
 

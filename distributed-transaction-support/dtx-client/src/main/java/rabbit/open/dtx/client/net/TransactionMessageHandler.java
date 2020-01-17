@@ -103,7 +103,7 @@ public class TransactionMessageHandler implements MessageHandler {
      * @author xiaoqianbin
      * @date 2019/12/5
      **/
-    private boolean doRollback(List<RollBackRecord> records, Connection conn) throws SQLException {
+    protected boolean doRollback(List<RollBackRecord> records, Connection conn) throws SQLException {
         KryoObjectSerializer serializer = new KryoObjectSerializer();
         PreparedStatement stmt = null;
         try {

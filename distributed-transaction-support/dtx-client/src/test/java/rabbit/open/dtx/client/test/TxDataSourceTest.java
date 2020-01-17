@@ -11,6 +11,7 @@ import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.datasource.RabbitDataSource;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
@@ -55,10 +56,14 @@ public class TxDataSourceTest {
     }
 
     @SuppressWarnings("deprecation")
-	private void txPreparedStatementTest(TxDataSource txDataSource) throws SQLException {
+	private void txPreparedStatementTest(TxDataSource txDataSource) throws SQLException, FileNotFoundException {
         TxConnection txConn = (TxConnection) txDataSource.getConnection();
         TxPreparedStatement txStmt = (TxPreparedStatement) txConn.prepareStatement("select * from t_user where id = ?");
         txStmt.setInt(1, 1);
+        txStmt.setBlob(1, new FileInputStream(new File(getClass().getClassLoader().getResource("test.properties").getFile())), 1);
+        txStmt.setURL(1, getClass().getClassLoader().getResource("test.properties"));
+        txStmt.setNString(1, "xx");
+        txStmt.setObject(1, 1, Types.BIGINT);
         txStmt.setLong(1, 1L);
         txStmt.setByte(1, (byte)1);
         txStmt.setBytes(1, "hello".getBytes());
@@ -102,8 +107,8 @@ public class TxDataSourceTest {
 
         txConn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         TestCase.assertEquals(txConn.getTransactionIsolation(), Connection.TRANSACTION_SERIALIZABLE);
-
         txConn.clearWarnings();
+        TestCase.assertNull(txConn.getWarnings());
         txConn.unwrap(Connection.class);
         TestCase.assertEquals(txConn.isWrapperFor(Connection.class), conn.isWrapperFor(Connection.class));
         txConn.setSchema("t_user");
@@ -140,7 +145,6 @@ public class TxDataSourceTest {
         txDataSource.setLoginTimeout(100);
         TestCase.assertEquals(txDataSource.getLoginTimeout(), rds.getLoginTimeout());
         URL resource = getClass().getClassLoader().getResource("test.properties");
-        new File(resource.toURI()).getAbsolutePath();
         PrintWriter out = new PrintWriter(new File(resource.toURI()).getAbsolutePath());
         txDataSource.setLogWriter(out);
         TestCase.assertEquals(txDataSource.getLogWriter(), rds.getLogWriter());

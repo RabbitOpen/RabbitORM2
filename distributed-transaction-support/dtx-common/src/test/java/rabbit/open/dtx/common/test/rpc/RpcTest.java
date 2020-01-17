@@ -24,6 +24,7 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author xiaoqianbin
@@ -47,13 +48,12 @@ public class RpcTest {
     @Resource
     private HerService herService;
 
-    static long groupId;
-
     @Test
     public void rpcTest() throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         DtxServerEventHandler handler = new DtxServerEventHandler();
         handler.init();
-        handler.setTransactionHandler(new MyTransactionService());
+        MyTransactionService transactionHandler = new MyTransactionService();
+        handler.setTransactionHandler(transactionHandler);
         serverWrapper.start(10086, handler);
         holdOn(50);
         rtm.manualInit();
@@ -82,14 +82,14 @@ public class RpcTest {
         for (int index = 0; index < count; index++) {
             new Thread(() -> {
                 for (int i = 0; i < loop; i++) {
-                    groupId = rtm.getTransactionHandler().getTransactionGroupId(rtm.getApplicationName());
+                    rtm.getTransactionHandler().getTransactionGroupId(rtm.getApplicationName());
                 }
                 cdl.countDown();
             }).start();
         }
         cdl.await();
         logger.info("cost {}", System.currentTimeMillis() - start);
-        TestCase.assertEquals(groupId, count * loop - 1);
+        TestCase.assertEquals(count * loop, transactionHandler.getCount());
 
         thread.join();
         rtm.getTransactionHandler().getTransactionGroupId(rtm.getApplicationName());
