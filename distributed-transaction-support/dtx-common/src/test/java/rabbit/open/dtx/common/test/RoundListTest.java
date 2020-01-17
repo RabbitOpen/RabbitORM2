@@ -60,10 +60,17 @@ public class RoundListTest {
         new Thread(() -> TestCase.assertTrue(10 == list.browse(200))).start();
         holdOn(50);
         list.add(10);
-        
         // 验证取数的正确性
         assertBrowse();
-    }
+
+		RoundList<Integer> emptyList = new RoundList<>();
+		Integer ret;
+		Thread thread = new Thread(() -> {
+			TestCase.assertNull(emptyList.browse(5000));
+		});
+		thread.start();
+		thread.interrupt();
+	}
 
     // 验证取数的正确性
 	protected void assertBrowse() throws InterruptedException {
