@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress SpringFacetInspection -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+           http://www.springframework.org/schema/context
+      	   http://www.springframework.org/schema/context/spring-context-4.0.xsd
+      	   http://www.springframework.org/schema/aop
+      	   http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+      	   http://www.springframework.org/schema/task
+      	   http://www.springframework.org/schema/task/spring-task-4.0.xsd
+           http://code.alibabatech.com/schema/dubbo
+           http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <context:component-scan base-package="rabbit.open.dtx.rpc.test.client"/>
+
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+
+    <task:annotation-driven/>
+
+    <!-- 提供方应用信息 -->
+    <dubbo:application name="consumer"/>
+    <!-- 注册中心服务地址 -->
+    <dubbo:registry protocol="zookeeper" address="localhost:2181" check="false"/>
+
+    <!-- 声明需要暴露的服务接口 -->
+    <dubbo:reference interface="rabbit.open.dtx.rpc.test.server.UserService" id="userService" timeout="10000"/>
+
+    <!--针对dubbo的分布式事务管理器-->
+    <bean id="dubboTransactionManager" class="rabbit.open.dtx.client.rpc.support.DubboTransactionManager">
+        <constructor-arg name="applicationName" value="client-app"/>
+        <constructor-arg name="hosts" value="localhost:10010"/>
+        <property name="rpcTimeoutSeconds" value="3"/>
+    </bean>
+
+    <!-- dtx 注解增强器 -->
+    <bean id="transactionEnhancer1" class="rabbit.open.dtx.client.enhance.DistributedTransactionEnhancer">
+        <property name="transactionManger" ref="dubboTransactionManager"/>
+    </bean>
+
+</beans>
+
+
