@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.dtx.server.PopInfo;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.JedisPool;
 
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import java.util.Set;
 @SuppressWarnings("unchecked")
 public class PooledJedisClient implements JedisClient {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    protected Logger logger = LoggerFactory.getLogger(getClass());
 
     // casHset方法脚本
     protected String casHsetScript = "local status = redis.call('hget', ARGV[1], ARGV[2])\n" +
@@ -47,12 +48,14 @@ public class PooledJedisClient implements JedisClient {
 
     private JedisPool pool;
 
+    protected PooledJedisClient() {}
+
     public PooledJedisClient(JedisPool pool) {
         this.pool = pool;
-        casHsetScriptSha = (String) execute(jedis -> jedis.scriptLoad(casHsetScript));
-        casLpopByPrefixScriptSha = (String) execute(jedis -> jedis.scriptLoad(casLpopByPrefixScript));
-        hsetGetAllScriptSha = (String) execute(jedis -> jedis.scriptLoad(hsetGetAllScript));
-        hgetAllAndDelScriptSha = (String) execute(jedis -> jedis.scriptLoad(hgetAllAndDelScript));
+        casHsetScriptSha = (String) execute(jedis -> ((Jedis)jedis).scriptLoad(casHsetScript));
+        casLpopByPrefixScriptSha = (String) execute(jedis -> ((Jedis)jedis).scriptLoad(casLpopByPrefixScript));
+        hsetGetAllScriptSha = (String) execute(jedis -> ((Jedis)jedis).scriptLoad(hsetGetAllScript));
+        hgetAllAndDelScriptSha = (String) execute(jedis -> ((Jedis)jedis).scriptLoad(hgetAllAndDelScript));
     }
 
 	@Override
@@ -75,12 +78,12 @@ public class PooledJedisClient implements JedisClient {
      **/
     @Override
     public Map<String, String> hsetGetAll(String key, String field, String value) {
-        return list2map((List<String>) execute(jedis -> jedis.evalsha(hsetGetAllScriptSha, 0, key, field, value)));
+        return list2map((List<String>) execute(jedis -> ((Jedis)jedis).evalsha(hsetGetAllScriptSha, 0, key, field, value)));
     }
 
     @Override
     public Map<String, String> hgetAllAndDel(String key) {
-        return list2map((List<String>) execute(jedis -> jedis.evalsha(hgetAllAndDelScriptSha, 0, key)));
+        return list2map((List<String>) execute(jedis -> ((Jedis)jedis).evalsha(hgetAllAndDelScriptSha, 0, key)));
     }
 
     @Override
@@ -100,7 +103,7 @@ public class PooledJedisClient implements JedisClient {
      **/
     @Override
     public Long casHset(String key, String field, String expected, String exclude) {
-        return (Long) execute(jedis -> jedis.evalsha(casHsetScriptSha, 0, key, field, expected, exclude));
+        return (Long) execute(jedis -> ((Jedis)jedis).evalsha(casHsetScriptSha, 0, key, field, expected, exclude));
     }
 
     @Override
@@ -152,7 +155,7 @@ public class PooledJedisClient implements JedisClient {
      **/
     @Override
     public PopInfo casLpopByPrefix(String key, String prefix) {
-        List<Object> result = (List<Object>) execute(jedis -> jedis.evalsha(casLpopByPrefixScriptSha, 0, key, prefix));
+        List<Object> result = (List<Object>) execute(jedis -> ((Jedis)jedis).evalsha(casLpopByPrefixScriptSha, 0, key, prefix));
         if (result.isEmpty()) {
             return new PopInfo(null, null);
         }
@@ -192,6 +195,6 @@ public class PooledJedisClient implements JedisClient {
 
     @FunctionalInterface
     public interface Callable {
-        Object invoke(Jedis jedis);
+        Object invoke(JedisCommands jedis);
     }
 }

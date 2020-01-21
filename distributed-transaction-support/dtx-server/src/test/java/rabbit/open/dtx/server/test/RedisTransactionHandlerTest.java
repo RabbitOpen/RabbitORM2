@@ -22,7 +22,11 @@ import rabbit.open.dtx.server.DtxServerWrapper;
 import rabbit.open.dtx.server.PopInfo;
 import rabbit.open.dtx.server.RedisKeyNames;
 import rabbit.open.dtx.server.handler.RedisTransactionHandler;
+import rabbit.open.dtx.server.jedis.ClusteredJedisClient;
+import rabbit.open.dtx.server.jedis.JedisClient;
 import rabbit.open.dtx.server.jedis.PooledJedisClient;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
 
 import javax.annotation.Resource;
@@ -55,7 +59,12 @@ public class RedisTransactionHandlerTest {
 
     @Test
     public void luaTest() throws InterruptedException {
-        PooledJedisClient jedisClient = new PooledJedisClient(getPool());
+        JedisClient jedisClient = new PooledJedisClient(getPool());
+        testByJedisClient(jedisClient);
+        jedisClient.close();
+    }
+
+    private void testByJedisClient(JedisClient jedisClient) throws InterruptedException {
         jedisClient.del("map");
         TestCase.assertTrue(1L == jedisClient.casHset("map", "k1", "v1", "v2"));
         TestCase.assertTrue(1L == jedisClient.casHset("map", "k1", "v1", "v2"));
@@ -102,9 +111,6 @@ public class RedisTransactionHandlerTest {
         TestCase.assertTrue(set.isEmpty());
         holdOn(100);
         TestCase.assertTrue(!jedisClient.zrangeByScore("zset", 0, System.currentTimeMillis() - 100).isEmpty());
-
-
-        jedisClient.close();
     }
 
     @Test
@@ -387,7 +393,24 @@ public class RedisTransactionHandlerTest {
         return RedisKeyNames.BRANCH_INFO.name() + txBranchId.toString();
     }
 
-
-
+    /**
+     * redis 集群测试
+     * @author  xiaoqianbin
+     * @date    2020/1/21
+     **/
+    @Test
+    public void redisClusterClientTest() throws InterruptedException {
+        Set<HostAndPort> nodes = new HashSet<>();
+        nodes.add(new HostAndPort("10.9.49.38", 7001));
+        nodes.add(new HostAndPort("10.9.49.38", 7002));
+        nodes.add(new HostAndPort("10.9.49.38", 7003));
+        nodes.add(new HostAndPort("10.9.49.38", 7004));
+        nodes.add(new HostAndPort("10.9.49.38", 7005));
+        nodes.add(new HostAndPort("10.9.49.38", 7006));
+        JedisCluster cluster = new JedisCluster(nodes);
+        ClusteredJedisClient jedisClient = new ClusteredJedisClient(cluster);
+        testByJedisClient(jedisClient);
+        jedisClient.close();
+    }
 
 }
