@@ -64,7 +64,6 @@ public class RoundListTest {
         assertBrowse();
 
 		RoundList<Integer> emptyList = new RoundList<>();
-		Integer ret;
 		Thread thread = new Thread(() -> {
 			TestCase.assertNull(emptyList.browse(5000));
 		});
