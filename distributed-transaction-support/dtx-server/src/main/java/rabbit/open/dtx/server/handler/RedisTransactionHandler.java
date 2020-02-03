@@ -177,10 +177,7 @@ public class RedisTransactionHandler extends AbstractServerTransactionHandler {
     private boolean shouldRollback(Map<String, String> context) {
         for (Map.Entry<String, String> entry : context.entrySet()) {
             if (entry.getKey().startsWith(RedisKeyNames.BRANCH_INFO.name())) {
-                String[] info = entry.getValue().split("\\|");
-                if (TxStatus.COMMITTED.name().equals(info[1])) {
-                    return true;
-                }
+                return true;
             }
         }
         return false;
