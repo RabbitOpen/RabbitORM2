@@ -12,6 +12,7 @@ import java.util.Map;
  * @author xiaoqianbin
  * @date 2020/1/21
  **/
+@SuppressWarnings("unchecked")
 public class ClusteredJedisClient extends PooledJedisClient {
 
     protected JedisCluster cluster;
