@@ -10,6 +10,8 @@ import rabbit.open.orm.codegen.filter.GeneratorFilter;
 import rabbit.open.orm.codegen.filter.NameType;
 import rabbit.open.orm.codegen.generator.CodeGenerator;
 
+import java.sql.Blob;
+
 @RunWith(JUnit4.class)
 public class CodeGeneratorTest {
 
@@ -18,9 +20,16 @@ public class CodeGeneratorTest {
         CodeGenerator cg = new CodeGenerator(
                 "jdbc:mysql://localhost:3306/cas?useUnicode=true&characterEncoding=UTF-8&useServerPrepStmts=true",
                 "com.mysql.jdbc.Driver", "root", "123",
-                "C:/Users/admin/Desktop/java", "test.mapper");
+                "C:/Users/xiaoqianbin/Desktop/java", "test.mapper");
+
+//        CodeGenerator cg = new CodeGenerator(
+//                "jdbc:sqlserver://192.168.1.2:1433;DatabaseName=cas",
+//                "com.microsoft.sqlserver.jdbc.SQLServerDriver", "sa", "123",
+//                "C:/Users/xiaoqianbin/Desktop/java", "test.mapper");
 
         MappingRegistry.regist("VARCHAR", new DBFieldDescriptor(String.class, true));
+        MappingRegistry.regist("IMAGE", new DBFieldDescriptor(Blob.class, true));
+        MappingRegistry.regist("LONGBLOB", new DBFieldDescriptor(Blob.class, true));
 
         cg.setFilter(new GeneratorFilter() {
 

@@ -216,11 +216,11 @@ public class CodeGenerator {
 		String size = rows.getString("COLUMN_SIZE");
 		boolean isAutoIncrement = false;
 		try {
-			isAutoIncrement = "YES".equalsIgnoreCase(rows.getString("IS_AUTOINCREMENT"));
+			isAutoIncrement = -1 != type.toLowerCase().indexOf("identity")
+					|| "YES".equalsIgnoreCase(rows.getString("IS_AUTOINCREMENT"));
 		} catch (Exception e) {
 			// TO DO: oracle数据库没有这个字段
 		}
-		
 		String remark = rows.getString("REMARKS");
 		String name = convertDbName2Java(columnName, NameType.COLUMN);
 		
