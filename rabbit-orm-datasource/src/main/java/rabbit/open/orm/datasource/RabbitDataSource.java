@@ -178,6 +178,7 @@ public class RabbitDataSource extends AbstractDataSource {
 	public void init() {
 		loadDriverClass();
 		initSessions();
+		logger.info("established connections to db {}", url);
 		monitor = new DataSourceMonitor(this);
 		monitor.start();
 	}
