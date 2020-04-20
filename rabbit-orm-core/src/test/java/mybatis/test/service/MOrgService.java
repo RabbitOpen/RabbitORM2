@@ -1,7 +1,6 @@
 package mybatis.test.service;
 
 import mybatis.test.entity.MOrg;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;

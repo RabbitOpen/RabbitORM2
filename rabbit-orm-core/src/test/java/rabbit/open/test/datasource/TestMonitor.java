@@ -1,14 +1,13 @@
 package rabbit.open.test.datasource;
 
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import rabbit.open.test.entity.User;
+import rabbit.open.test.service.UserService;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import rabbit.open.test.entity.User;
-import rabbit.open.test.service.UserService;
 
 /**
  * <b>Description: 测试monitor</b>. <b>@author</b> 肖乾斌

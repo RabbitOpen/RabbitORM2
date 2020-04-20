@@ -1,41 +1,20 @@
 package rabbit.open.test;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
-import rabbit.open.orm.common.exception.EmptyAliasException;
-import rabbit.open.orm.common.exception.NamedSQLNotExistedException;
-import rabbit.open.orm.common.exception.NoNamedSQLDefinedException;
-import rabbit.open.orm.common.exception.RepeatedAliasException;
-import rabbit.open.orm.common.exception.UnKnownFieldException;
+import rabbit.open.orm.common.exception.*;
 import rabbit.open.orm.core.dml.NamedQuery;
-import rabbit.open.test.entity.Car;
-import rabbit.open.test.entity.Department;
-import rabbit.open.test.entity.Organization;
-import rabbit.open.test.entity.Property;
-import rabbit.open.test.entity.Resources;
-import rabbit.open.test.entity.Role;
-import rabbit.open.test.entity.Team;
-import rabbit.open.test.entity.User;
-import rabbit.open.test.entity.Zone;
-import rabbit.open.test.service.CarService;
-import rabbit.open.test.service.DepartmentService;
-import rabbit.open.test.service.OrganizationService;
-import rabbit.open.test.service.PropertyService;
-import rabbit.open.test.service.ResourcesService;
-import rabbit.open.test.service.RoleService;
-import rabbit.open.test.service.TeamService;
-import rabbit.open.test.service.UserService;
-import rabbit.open.test.service.ZoneService;
+import rabbit.open.test.entity.*;
+import rabbit.open.test.service.*;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * <b>Description: NamedQuery测试</b><br>

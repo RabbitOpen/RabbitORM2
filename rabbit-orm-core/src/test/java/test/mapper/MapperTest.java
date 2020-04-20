@@ -1,19 +1,18 @@
 package test.mapper;
 
-import java.util.List;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
 import rabbit.open.orm.core.dialect.page.PageHelper;
 import rabbit.open.orm.core.dml.SQLQuery;
 import test.mapper.entity.MapperRole;
 import test.mapper.entity.MappingUser;
 import test.mapper.entity.MappingUserBean;
+
+import java.util.List;
 
 /**
  * <b>@description mapper测试 </b>

@@ -1,13 +1,11 @@
 package transaction.rabbit;
 
 import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import transaction.rabbit.service.SimpleService;
 import transaction.rabbit.service.TOrgService;
 import transaction.rabbit.service.TService;

@@ -1,13 +1,12 @@
 package rabbit.open.test.datasource;
 
-import java.util.concurrent.Semaphore;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.UserService;
+
+import java.util.concurrent.Semaphore;
 
 /**
  * <b>Description: 测试rabbit orm在不同数据源下的速度性能</b>. hikari dbcp c3p0 rabbit内置数据源

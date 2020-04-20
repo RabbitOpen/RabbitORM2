@@ -1,15 +1,14 @@
 package rabbit.open.test;
 
-import java.sql.Connection;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import junit.framework.TestCase;
 import rabbit.open.orm.datasource.RabbitDataSource;
+
+import java.sql.Connection;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RunWith(JUnit4.class)
 public class RabbitDataSourceTest {

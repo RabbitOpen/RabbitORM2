@@ -1,14 +1,6 @@
 package sharding.test.shardquery;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -16,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.meta.MetaData;
@@ -31,11 +21,12 @@ import rabbit.open.orm.core.dml.shard.impl.UpdateCursor;
 import sharding.test.shardquery.entity.Ball;
 import sharding.test.shardquery.entity.Order;
 import sharding.test.shardquery.entity.Player;
-import sharding.test.shardquery.service.BallService;
-import sharding.test.shardquery.service.OrderService;
-import sharding.test.shardquery.service.PlanService;
-import sharding.test.shardquery.service.PlanXService;
-import sharding.test.shardquery.service.PlayerService;
+import sharding.test.shardquery.service.*;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
 
 /**
  * <b>Description: 分片表测试</b><br>

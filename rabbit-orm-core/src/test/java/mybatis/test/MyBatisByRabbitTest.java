@@ -7,7 +7,6 @@ import mybatis.test.mybatis.service.MyBatisService;
 import mybatis.test.mybatis.service.MyBatisTranService;
 import mybatis.test.service.MOrgService;
 import mybatis.test.service.MUserService;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

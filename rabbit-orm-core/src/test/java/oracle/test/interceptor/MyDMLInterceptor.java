@@ -1,14 +1,13 @@
 package oracle.test.interceptor;
 
-import java.lang.reflect.Field;
-
+import oracle.test.entity.UUIDPolicyEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import oracle.test.entity.UUIDPolicyEntity;
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.core.dml.interceptor.DMLInterceptor;
+
+import java.lang.reflect.Field;
 
 @Component
 public class MyDMLInterceptor implements DMLInterceptor {

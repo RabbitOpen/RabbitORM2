@@ -1,11 +1,11 @@
 package reg.db2.entity;
 
-import java.util.Date;
-
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.PrimaryKey;
+
+import java.util.Date;
 
 @Entity("REG_ROOM_DB2")
 public class RegRoom {

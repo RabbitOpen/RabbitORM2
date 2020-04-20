@@ -1,10 +1,10 @@
 package rabbit.open.test.interceptor;
 
-import java.lang.reflect.Field;
-
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.core.dml.interceptor.DMLInterceptor;
 import rabbit.open.test.entity.User;
+
+import java.lang.reflect.Field;
 
 public class SuffixDMLInterceptor implements DMLInterceptor {
 

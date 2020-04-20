@@ -1,13 +1,12 @@
 package test.mapper;
 
+import rabbit.open.orm.core.annotation.NameSpace;
+import rabbit.open.orm.core.annotation.Param;
+import rabbit.open.orm.core.annotation.SQLName;
 import test.mapper.entity.MappingUser;
 import test.mapper.entity.MappingUserBean;
 
 import java.util.List;
-
-import rabbit.open.orm.core.annotation.NameSpace;
-import rabbit.open.orm.core.annotation.Param;
-import rabbit.open.orm.core.annotation.SQLName;
 
 @NameSpace(MappingUser.class)
 public interface UserMapper {

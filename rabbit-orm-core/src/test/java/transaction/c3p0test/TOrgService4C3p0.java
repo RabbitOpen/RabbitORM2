@@ -2,7 +2,6 @@ package transaction.c3p0test;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import transaction.rabbit.entity.XOrg;
 
 @Service

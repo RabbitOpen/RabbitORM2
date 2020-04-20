@@ -1,14 +1,13 @@
 package sharding.test.shardquery.service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import javax.sql.DataSource;
-
 import org.springframework.stereotype.Service;
-
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.spring.SpringDaoAdapter;
 import sharding.test.shardquery.entity.Ball;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.sql.DataSource;
 
 @Service
 public class BallService extends SpringDaoAdapter<Ball> {

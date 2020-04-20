@@ -1,12 +1,12 @@
 package oracle.test.entity;
 
-import java.util.List;
-
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.OneToMany;
 import rabbit.open.orm.core.annotation.PrimaryKey;
+
+import java.util.List;
 
 @Entity("TO_ZONE")
 public class OZone {

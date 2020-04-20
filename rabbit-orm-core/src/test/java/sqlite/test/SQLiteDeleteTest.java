@@ -1,19 +1,17 @@
 package sqlite.test;
 
-import java.util.Date;
-
 import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import sqlite.test.entity.SQLiteOrganization;
 import sqlite.test.entity.SQLiteUser;
 import sqlite.test.service.SQLiteOrganizationService;
 import sqlite.test.service.SQLiteUserService;
+
+import java.util.Date;
 
 /**
  * <b>Description: delete测试</b><br>

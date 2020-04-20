@@ -1,12 +1,11 @@
 package sharding.test.shardquery;
 
-import java.util.List;
-
-import javax.sql.DataSource;
-
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.core.dml.CombinedDataSource;
 import rabbit.open.orm.core.dml.meta.TableMeta;
+
+import javax.sql.DataSource;
+import java.util.List;
 
 public class MultiDataSource implements CombinedDataSource {
 

@@ -1,13 +1,12 @@
 package sharding.test.db.service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-
 import org.springframework.stereotype.Service;
-
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.spring.SpringDaoAdapter;
 import sharding.test.db.entity.RWUser;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 /**
  * <b>Description 只操作写的数据源的服务</b>

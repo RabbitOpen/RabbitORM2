@@ -1,15 +1,14 @@
 package sharding.test.db.service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.spring.SpringDaoAdapter;
 import sharding.test.db.entity.RWUser;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 /**
  * <b>Description 读写分离的服务</b>

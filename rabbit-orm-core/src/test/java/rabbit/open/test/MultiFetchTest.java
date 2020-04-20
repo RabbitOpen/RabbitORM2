@@ -1,33 +1,19 @@
 package rabbit.open.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import rabbit.open.orm.common.exception.AmbiguousDependencyException;
 import rabbit.open.orm.common.exception.CycleFetchException;
 import rabbit.open.orm.common.exception.RepeatedFetchOperationException;
-import rabbit.open.test.entity.Car;
-import rabbit.open.test.entity.Department;
-import rabbit.open.test.entity.Organization;
-import rabbit.open.test.entity.Role;
-import rabbit.open.test.entity.Team;
-import rabbit.open.test.entity.User;
-import rabbit.open.test.entity.Zone;
-import rabbit.open.test.service.CarService;
-import rabbit.open.test.service.DepartmentService;
-import rabbit.open.test.service.OrganizationService;
-import rabbit.open.test.service.RoleService;
-import rabbit.open.test.service.TeamService;
-import rabbit.open.test.service.UserService;
-import rabbit.open.test.service.ZoneService;
+import rabbit.open.test.entity.*;
+import rabbit.open.test.service.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <b>Description 多属性外键fetch</b>

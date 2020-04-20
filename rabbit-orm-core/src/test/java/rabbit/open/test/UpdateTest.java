@@ -1,17 +1,11 @@
 package rabbit.open.test;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
 import rabbit.open.orm.core.dml.Update;
@@ -20,6 +14,10 @@ import rabbit.open.test.entity.User;
 import rabbit.open.test.entity.Zone;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.UserService;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * <b>Description: update测试</b><br>

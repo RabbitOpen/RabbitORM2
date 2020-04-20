@@ -17,8 +17,8 @@ import rabbit.open.orm.common.dml.Policy;
 @Target(value = ElementType.FIELD)
 public @interface PrimaryKey {
 
-	public Policy policy() default Policy.NONE;
+	Policy policy() default Policy.NONE;
 
 	// 策略为sequence时的sequence的名字
-	public String sequence() default "";
+	String sequence() default "";
 }

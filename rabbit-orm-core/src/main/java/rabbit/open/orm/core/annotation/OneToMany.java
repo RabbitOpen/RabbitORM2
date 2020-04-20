@@ -16,8 +16,8 @@ import java.lang.annotation.Target;
 public @interface OneToMany {
 
 	// 多端对象和当前主表关联的字段
-	public String joinColumn();
+	String joinColumn();
 	
 	// 一端对象和多端对象关联的字段(默认是主键)
-	public String masterFieldName() default "";
+	String masterFieldName() default "";
 }

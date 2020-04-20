@@ -1,10 +1,10 @@
 package sqlite.test.service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.spring.SpringDaoAdapter;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 public class BaseService<T> extends SpringDaoAdapter<T> {
 

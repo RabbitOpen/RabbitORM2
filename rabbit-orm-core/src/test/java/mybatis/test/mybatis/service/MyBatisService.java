@@ -2,7 +2,6 @@ package mybatis.test.mybatis.service;
 
 import mybatis.test.mybatis.dao.OrgDao;
 import mybatis.test.mybatis.dao.UserDao;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

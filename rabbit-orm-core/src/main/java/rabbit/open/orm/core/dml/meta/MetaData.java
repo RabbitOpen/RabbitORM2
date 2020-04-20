@@ -1,29 +1,22 @@
 package rabbit.open.orm.core.dml.meta;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.common.exception.RepeatedEntityMapping;
 import rabbit.open.orm.common.exception.UnKnownFieldException;
-import rabbit.open.orm.core.annotation.Column;
-import rabbit.open.orm.core.annotation.Entity;
-import rabbit.open.orm.core.annotation.ManyToMany;
-import rabbit.open.orm.core.annotation.OneToMany;
-import rabbit.open.orm.core.annotation.PrimaryKey;
+import rabbit.open.orm.core.annotation.*;
 import rabbit.open.orm.core.dml.DMLObject;
+import rabbit.open.orm.core.dml.meta.proxy.DefaultColumnAnnotationGenerator;
 import rabbit.open.orm.core.dml.meta.proxy.GenericAnnotationProxy;
 import rabbit.open.orm.core.dml.policy.PagePolicy;
 import rabbit.open.orm.core.dml.shard.DefaultShardingPolicy;
 import rabbit.open.orm.core.dml.shard.ShardingPolicy;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -223,17 +216,21 @@ public class MetaData<T> {
         Class<?> clz = clzz;
         Map<String, FieldMetaData> fields = new ConcurrentHashMap<>();
         Map<Class<?>, Integer> counter = new HashMap<>();
+        boolean autoSpeculate = clzz.getAnnotation(Entity.class).autoSpeculate();
         while (!clz.equals(Object.class)) {
-            lookupMappingFieldMetasByClass(clz, fields, counter);
+            lookupMappingFieldMetasByClass(clz, fields, counter, autoSpeculate);
             clz = clz.getSuperclass();
         }
         return fields;
     }
 
-    private static void lookupMappingFieldMetasByClass(Class<?> clz,
-    		Map<String, FieldMetaData> fields, Map<Class<?>, Integer> counter) {
+    private static void lookupMappingFieldMetasByClass(Class<?> clz, Map<String, FieldMetaData> fields,
+													   Map<Class<?>, Integer> counter, boolean autoSpeculate) {
         for (Field f : clz.getDeclaredFields()) {
             Column col = f.getAnnotation(Column.class);
+            if (null == col && autoSpeculate) {
+                col = createDefaultColumnInfo(f);
+            }
             if (null == col) {
                 continue;
             }
@@ -252,7 +249,39 @@ public class MetaData<T> {
         }
     }
 
-	//标识type对应的字段为mutiFetchField
+    /**
+     * 生成默认注解
+     * @param	f
+     * @author  xiaoqianbin
+     * @date    2020/4/20
+     **/
+    private static Column createDefaultColumnInfo(Field f) {
+        if (isPrimaryType(f.getType())) {
+            Column col  = DefaultColumnAnnotationGenerator.proxy(f.getName());
+            return col;
+        }
+        return null;
+    }
+
+    /**
+     * 判断type是否是基础数据类型
+     * @param	type
+     * @author  xiaoqianbin
+     * @date    2020/4/20
+     **/
+    private static boolean isPrimaryType(Class<?> type) {
+        Class<?>[] classes = new Class<?>[]{
+                String.class, Date.class, Integer.class, Short.class,
+                Long.class, Short.class, Double.class, Float.class, Boolean.class};
+        for (Class<?> clz : classes) {
+            if (type.equals(clz)) {
+                return true;
+            }
+        }
+        return type.isEnum();
+    }
+
+    //标识type对应的字段为mutiFetchField
     private static void flagMultiFetchFieldByType(Map<String, FieldMetaData> fields,
 												  Class<?> type) {
         for (FieldMetaData fmd : fields.values()) {

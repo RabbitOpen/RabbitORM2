@@ -4,7 +4,6 @@ import junit.framework.TestCase;
 import mybatis.test.mybatis.dao.UserDao;
 import mybatis.test.service.MUserService;
 import mybatis.test.service.NestedService;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

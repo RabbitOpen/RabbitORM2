@@ -18,28 +18,28 @@ import rabbit.open.orm.common.dml.Policy;
 public @interface ManyToMany {
 
 	//一端对象在中间表中的外键名
-	public String joinColumn();
+	String joinColumn();
 	
 	//一端对象和中间表关联的字段(默认是主键)
-	public String masterFieldName() default "";
+	String masterFieldName() default "";
 	
 	//中间表的名字
-	public String joinTable();
+	String joinTable();
 	
 	//多端对象在中间表中的外键名
-	public String reverseJoinColumn();
+	String reverseJoinColumn();
 	
 	//多端对象和中间表关联的字段(默认是主键)
-	public String slaveFieldName() default "";
+	String slaveFieldName() default "";
 	
-	public Policy policy() default Policy.NONE;
+	Policy policy() default Policy.NONE;
 	
 	//策略为sequence时的sequence的名字
-	public String sequence() default "";
+	String sequence() default "";
 	
 	//中间表的主键字段名
-	public String id() default "";
+	String id() default "";
 
 	//中间表中用于过滤映射关系的字段名
-	public String filterColumn() default "";
+	String filterColumn() default "";
 }

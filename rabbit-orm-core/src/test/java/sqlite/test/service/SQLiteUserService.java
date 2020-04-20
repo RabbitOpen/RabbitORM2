@@ -1,12 +1,11 @@
 package sqlite.test.service;
 
-import java.util.Date;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import sqlite.test.entity.SQLiteUser;
+
+import java.util.Date;
 
 @Service
 public class SQLiteUserService extends BaseService<SQLiteUser> {

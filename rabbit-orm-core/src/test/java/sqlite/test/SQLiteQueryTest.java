@@ -1,48 +1,23 @@
 package sqlite.test;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
 import rabbit.open.orm.common.dml.FilterType;
-import rabbit.open.orm.common.exception.CycleDependencyException;
-import rabbit.open.orm.common.exception.InvalidFetchOperationException;
-import rabbit.open.orm.common.exception.InvalidJoinFetchOperationException;
-import rabbit.open.orm.common.exception.InvalidJoinFilterException;
-import rabbit.open.orm.common.exception.InvalidQueryPathException;
-import rabbit.open.orm.common.exception.OrderAssociationException;
-import rabbit.open.orm.common.exception.RepeatedFetchOperationException;
+import rabbit.open.orm.common.exception.*;
 import rabbit.open.orm.core.dml.Query;
 import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
 import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
-import sqlite.test.entity.SQLiteCar;
-import sqlite.test.entity.SQLiteLeader;
-import sqlite.test.entity.SQLiteOrganization;
-import sqlite.test.entity.SQLiteProperty;
-import sqlite.test.entity.SQLiteResources;
-import sqlite.test.entity.SQLiteRole;
-import sqlite.test.entity.SQLiteTeam;
-import sqlite.test.entity.SQLiteUUIDPolicyEntity;
-import sqlite.test.entity.SQLiteUser;
-import sqlite.test.entity.SQLiteZProperty;
-import sqlite.test.entity.SQLiteZone;
-import sqlite.test.service.SQLiteCarService;
-import sqlite.test.service.SQLiteLeaderService;
-import sqlite.test.service.SQLiteOrganizationService;
-import sqlite.test.service.SQLitePropertyService;
-import sqlite.test.service.SQLiteResourcesService;
-import sqlite.test.service.SQLiteRoleService;
-import sqlite.test.service.SQLiteUserService;
-import sqlite.test.service.SQLiteZPropertyService;
-import sqlite.test.service.SQLiteZoneService;
+import sqlite.test.entity.*;
+import sqlite.test.service.*;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * <b>Description: 查询测试</b><br>

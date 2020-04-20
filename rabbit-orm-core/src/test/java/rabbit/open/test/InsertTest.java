@@ -1,15 +1,11 @@
 package rabbit.open.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
 import rabbit.open.orm.common.exception.NoField2InsertException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.AbstractQuery;
@@ -18,16 +14,12 @@ import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.UUIDPolicyEntity;
 import rabbit.open.test.entity.User;
-import rabbit.open.test.entity.custom.CustomCar;
-import rabbit.open.test.entity.custom.CustomCarService;
-import rabbit.open.test.entity.custom.CustomOrg;
-import rabbit.open.test.entity.custom.CustomOrgService;
-import rabbit.open.test.entity.custom.CustomRole;
-import rabbit.open.test.entity.custom.CustomRoleService;
-import rabbit.open.test.entity.custom.CustomUser;
-import rabbit.open.test.entity.custom.CustomUserService;
+import rabbit.open.test.entity.custom.*;
 import rabbit.open.test.service.UUIDEntityService;
 import rabbit.open.test.service.UserService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <b>Description: 新增测试</b><br>

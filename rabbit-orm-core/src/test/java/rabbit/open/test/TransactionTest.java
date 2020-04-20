@@ -1,8 +1,6 @@
 package rabbit.open.test;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -13,9 +11,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.transaction.annotation.Transactional;
-
-import junit.framework.TestCase;
 import rabbit.open.test.service.UserService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <b>Description: 事务方法测试</b>

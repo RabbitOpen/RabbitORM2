@@ -8,10 +8,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.*;
+import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dml.Query;
 import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
 import rabbit.open.orm.core.dml.filter.ext.ManyToOneFilter;
 import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
+import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.test.entity.*;
 import rabbit.open.test.entity.EnumComponent.ComponentCodeEnum;
@@ -22,10 +24,7 @@ import rabbit.open.test.service.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * <b>Description: 查询测试</b><br>
@@ -80,6 +79,9 @@ public class QueryTest {
     
     @Autowired
 	DMLURIService dmlUris;
+
+    @Autowired
+    AutoSpeculateService ass;
     
     @Test
     public void multiExtend() {
@@ -113,6 +115,42 @@ public class QueryTest {
         us.add(user);
         User usByID = us.getByID(user.getId());
         TestCase.assertEquals(new String(usByID.getBytes()), "hello");
+    }
+
+    /**
+     * 自动推测测试
+     * @param
+     * @author  xiaoqianbin
+     * @date    2020/4/20
+     **/
+    @Test
+    public void autoSpeculateTest() throws ParseException {
+        MetaData meta = MetaData.getMetaByClass(AutoSpeculateEntity.class);
+        Collection<FieldMetaData> fieldMetas = meta.getFieldMetas();
+        Column userName = null;
+        for (FieldMetaData fieldMeta : fieldMetas) {
+            if (fieldMeta.getField().getName().equals("userName")) {
+                userName = fieldMeta.getColumn();
+                break;
+            }
+        }
+        TestCase.assertEquals(userName.value(), "USER_NAME");
+
+        AutoSpeculateEntity ase = new AutoSpeculateEntity();
+        ase.setAge(10L);
+        ase.setGender(AutoSpeculateEntity.Gender.MALE);
+        ase.setOrgName("my-org");
+        ase.setUserName("lll");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        ase.setCreatedTime(formatter.parse("2020-08-08"));
+
+        ass.add(ase);
+        AutoSpeculateEntity result = ass.getByID(ase.getId());
+        TestCase.assertEquals(result.getGender(), ase.getGender());
+        TestCase.assertEquals(result.getAge(), ase.getAge());
+        TestCase.assertEquals(result.getOrgName(), ase.getOrgName());
+        TestCase.assertEquals(result.getUserName(), ase.getUserName());
+        TestCase.assertEquals(formatter.format(result.getCreatedTime()), formatter.format(ase.getCreatedTime()));
     }
 
     @Test

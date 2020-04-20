@@ -1,8 +1,10 @@
 package oracle.test;
 
-import java.sql.Connection;
-import java.sql.Statement;
-
+import junit.framework.TestCase;
+import oracle.test.entity.ORegion;
+import oracle.test.entity.OShardingUser;
+import oracle.test.service.OracleRegionService;
+import oracle.test.service.OracleShardingUserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -10,14 +12,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
-import oracle.test.entity.ORegion;
-import oracle.test.entity.OShardingUser;
-import oracle.test.service.OracleRegionService;
-import oracle.test.service.OracleShardingUserService;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.DMLObject;
+
+import java.sql.Connection;
+import java.sql.Statement;
 
 /**
  * <b>Description: 分片表测试</b><br>

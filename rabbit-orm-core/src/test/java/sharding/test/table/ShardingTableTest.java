@@ -1,10 +1,6 @@
 package sharding.test.table;
 
-import java.sql.Connection;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -12,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
 import rabbit.open.orm.common.exception.FetchShardEntityException;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.DMLObject;
@@ -21,16 +15,13 @@ import rabbit.open.orm.core.dml.filter.ext.ManyToManyFilter;
 import rabbit.open.orm.core.dml.filter.ext.ManyToOneFilter;
 import rabbit.open.orm.core.dml.filter.ext.OneToManyFilter;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
-import sharding.test.table.entity.Region;
-import sharding.test.table.entity.ShardCar;
-import sharding.test.table.entity.ShardDept;
-import sharding.test.table.entity.ShardRoom;
-import sharding.test.table.entity.ShardingUser;
-import sharding.test.table.service.RegionService;
-import sharding.test.table.service.ShardCarService;
-import sharding.test.table.service.ShardDeptService;
-import sharding.test.table.service.ShardRoomService;
-import sharding.test.table.service.ShardingUserService;
+import sharding.test.table.entity.*;
+import sharding.test.table.service.*;
+
+import java.sql.Connection;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <b>Description: 分片表测试</b><br>

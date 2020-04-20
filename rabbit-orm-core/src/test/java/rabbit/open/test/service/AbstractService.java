@@ -1,7 +1,6 @@
 package rabbit.open.test.service;
 
 import org.springframework.transaction.annotation.Transactional;
-
 import rabbit.open.test.entity.User;
 
 public abstract class AbstractService extends BaseService<User> {

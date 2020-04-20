@@ -1,14 +1,14 @@
 package sharding.test.table.policy;
 
-import java.util.Arrays;
-import java.util.List;
-
 import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.DefaultShardingPolicy;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
 import rabbit.open.orm.core.dml.shard.ShardingPolicy;
 import rabbit.open.orm.core.dml.shard.execption.UnKnownShardException;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * <b>Description 自定义分表策略</b>

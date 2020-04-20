@@ -16,5 +16,5 @@ public @interface Param {
 	 * <b>@description 对应的参数名字</b>
 	 * @return
 	 */
-	public String value();
+	String value();
 }

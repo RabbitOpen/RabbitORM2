@@ -2,7 +2,6 @@ package transaction.rabbit.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import rabbit.open.test.service.BaseService;
 import transaction.rabbit.entity.TUser;
 

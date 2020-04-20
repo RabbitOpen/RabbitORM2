@@ -12,9 +12,9 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.TYPE)
 public @interface NameSpace {
 
-	/**
-	 * <b>@description 该mapper对应的实体class </b>
-	 * @return
-	 */
-	public Class<?> value();
+    /**
+     * <b>@description 该mapper对应的实体class </b>
+     * @return
+     */
+    Class<?> value();
 }

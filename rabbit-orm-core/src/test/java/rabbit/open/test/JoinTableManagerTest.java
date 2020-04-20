@@ -1,31 +1,25 @@
 package rabbit.open.test;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
 import rabbit.open.orm.common.exception.EmptyPrimaryKeyValueException;
 import rabbit.open.orm.common.exception.InvalidJoinMergeException;
 import rabbit.open.test.entity.Car;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.Role;
 import rabbit.open.test.entity.User;
-import rabbit.open.test.entity.jointable.JCar;
-import rabbit.open.test.entity.jointable.JCarService;
-import rabbit.open.test.entity.jointable.JRole;
-import rabbit.open.test.entity.jointable.JRoleService;
-import rabbit.open.test.entity.jointable.JUser;
-import rabbit.open.test.entity.jointable.JUserService;
+import rabbit.open.test.entity.jointable.*;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.RoleService;
 import rabbit.open.test.service.UserService;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * <b>Description: 关联表测试</b><br>

@@ -1,12 +1,12 @@
 package rabbit.open.test.entity.jointable;
 
-import java.util.List;
-
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.ManyToMany;
 import rabbit.open.orm.core.annotation.PrimaryKey;
+
+import java.util.List;
 
 @Entity("Jt_USER")
 public class JUser {

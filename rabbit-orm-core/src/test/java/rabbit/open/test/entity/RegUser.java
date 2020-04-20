@@ -1,13 +1,13 @@
 package rabbit.open.test.entity;
 
-import java.util.Date;
-import java.util.List;
-
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.OneToMany;
 import rabbit.open.orm.core.annotation.PrimaryKey;
+
+import java.util.Date;
+import java.util.List;
 
 @Entity("REG_USER")
 public class RegUser {

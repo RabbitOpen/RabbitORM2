@@ -16,5 +16,5 @@ public @interface SQLName {
 	 * <b>@description 对应的sql名字</b>
 	 * @return
 	 */
-	public String value();
+	String value();
 }

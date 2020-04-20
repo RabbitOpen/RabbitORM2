@@ -1,20 +1,18 @@
 package rabbit.open.test;
 
-import java.util.Date;
-
 import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import rabbit.open.orm.core.dml.Delete;
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.User;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.UserService;
+
+import java.util.Date;
 
 /**
  * <b>Description: delete测试</b><br>

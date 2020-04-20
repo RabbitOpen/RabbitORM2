@@ -1,13 +1,9 @@
 package rabbit.open.test.entity.custom;
 
-import java.util.List;
-
 import rabbit.open.orm.common.dml.Policy;
-import rabbit.open.orm.core.annotation.Column;
-import rabbit.open.orm.core.annotation.Entity;
-import rabbit.open.orm.core.annotation.ManyToMany;
-import rabbit.open.orm.core.annotation.OneToMany;
-import rabbit.open.orm.core.annotation.PrimaryKey;
+import rabbit.open.orm.core.annotation.*;
+
+import java.util.List;
 
 @Entity("CUSTOMER_USER")
 public class CustomUser {

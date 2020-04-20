@@ -1,29 +1,22 @@
 package oracle.test;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import junit.framework.TestCase;
+import oracle.test.entity.*;
+import oracle.test.service.OracleOrganizationService;
+import oracle.test.service.OracleRoleService;
+import oracle.test.service.OracleUserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import junit.framework.TestCase;
-import oracle.test.entity.CustomOrg;
-import oracle.test.entity.CustomOrgService;
-import oracle.test.entity.CustomUser;
-import oracle.test.entity.CustomUserService;
-import oracle.test.entity.OracleOrganization;
-import oracle.test.entity.ORole;
-import oracle.test.entity.OUser;
-import oracle.test.service.OracleOrganizationService;
-import oracle.test.service.OracleRoleService;
-import oracle.test.service.OracleUserService;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dml.meta.MultiDropFilter;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 
 /**

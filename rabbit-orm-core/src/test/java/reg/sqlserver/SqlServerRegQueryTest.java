@@ -1,23 +1,21 @@
 package reg.sqlserver;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
 import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.InvalidGroupByFieldException;
 import reg.sqlserver.entity.RegRoom;
 import reg.sqlserver.entity.RegUser;
 import reg.sqlserver.service.SqlServerRegRoomService;
 import reg.sqlserver.service.SqlServerRegUserService;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 /**
  * <b>Description: 关于正则表达式参数的查询测试</b><br>

@@ -1,21 +1,19 @@
 package rabbit.open.test;
 
-import java.util.List;
-
 import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import rabbit.open.test.entity.Organization;
 import rabbit.open.test.entity.UUIDPolicyEntity;
 import rabbit.open.test.entity.Zone;
 import rabbit.open.test.service.OrganizationService;
 import rabbit.open.test.service.UUIDEntityService;
 import rabbit.open.test.service.ZoneService;
+
+import java.util.List;
 
 /**
  * <b>Description: 公共方法测试</b> 
