@@ -19,6 +19,7 @@ import rabbit.open.test.service.UUIDEntityService;
 import rabbit.open.test.service.UserService;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,6 +36,15 @@ public class InsertTest {
 
     @Autowired
     UUIDEntityService uus;
+
+    @Test
+    public void addBatch() {
+    	List<User> users = new ArrayList<>();
+		for (int i = 0; i < 20000; i++) {
+			users.add(new User("lisi", 10, new Date()));
+		}
+    	us.addBatch(users);
+	}
 
     /**
      * 

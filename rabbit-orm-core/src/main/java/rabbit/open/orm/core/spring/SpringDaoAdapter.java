@@ -1,31 +1,19 @@
 package rabbit.open.orm.core.spring;
 
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.core.dml.DMLObject;
-import rabbit.open.orm.core.dml.Delete;
-import rabbit.open.orm.core.dml.DynamicQuery;
-import rabbit.open.orm.core.dml.Insert;
-import rabbit.open.orm.core.dml.JoinTableManager;
-import rabbit.open.orm.core.dml.NamedDelete;
-import rabbit.open.orm.core.dml.NamedQuery;
-import rabbit.open.orm.core.dml.NamedUpdate;
-import rabbit.open.orm.core.dml.Query;
-import rabbit.open.orm.core.dml.SQLQuery;
-import rabbit.open.orm.core.dml.SessionFactory;
-import rabbit.open.orm.core.dml.Update;
+import rabbit.open.orm.core.dml.*;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.shard.impl.ShardedDelete;
 import rabbit.open.orm.core.dml.shard.impl.ShardedQuery;
 import rabbit.open.orm.core.dml.shard.impl.ShardedSQLQuery;
 import rabbit.open.orm.core.dml.shard.impl.ShardedUpdate;
+
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.util.List;
 
 /**
  * <b>Description: 	database access object</b><br>
@@ -109,6 +97,16 @@ public abstract class SpringDaoAdapter<T> {
 	 */
 	public long add(T data) {
 		return new Insert<>(sessionFactory, clz, data).execute();
+	}
+
+	/**
+	 * 批量添加数据
+	 * @param	list
+	 * @author  xiaoqianbin
+	 * @date    2020/6/1
+	 **/
+	public long addBatch(List<T> list) {
+		return new Insert<>(sessionFactory, clz, list).execute();
 	}
 
 	/**

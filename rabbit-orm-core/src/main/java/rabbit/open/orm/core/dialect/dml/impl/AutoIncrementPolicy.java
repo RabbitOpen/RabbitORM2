@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import com.mysql.jdbc.Statement;
 
@@ -22,7 +23,7 @@ import rabbit.open.orm.core.dml.meta.MetaData;
 public class AutoIncrementPolicy extends PolicyInsert {
 
     @Override
-    public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) throws SQLException {
+    public <T> void insert(Connection conn, NonQueryAdapter<T> adapter, List<T> list) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
@@ -31,11 +32,12 @@ public class AutoIncrementPolicy extends PolicyInsert {
             setPreparedStatementValue(adapter, stmt);
             stmt.executeUpdate();
             rs = stmt.getGeneratedKeys();
-            if (rs.next()) {
-                pk.setAccessible(true);
-                setValue2Field(data, pk, RabbitValueConverter.cast(rs.getBigDecimal(1), pk.getType()), adapter);
+            for (T data : list) {
+                if (rs.next()) {
+                    pk.setAccessible(true);
+                    setValue2Field(data, pk, RabbitValueConverter.cast(rs.getBigDecimal(1), pk.getType()), adapter);
+                }
             }
-            return data;
         } finally {
             closeResultSet(rs);
             DMLObject.closeStmt(stmt);

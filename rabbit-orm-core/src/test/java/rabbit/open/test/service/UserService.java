@@ -23,4 +23,5 @@ public class UserService extends BaseService<User> {
 		add(new User("lisi", 10, new Date()));
 		add(new User("lisi", 10, new Date()));
 	}
+
 }

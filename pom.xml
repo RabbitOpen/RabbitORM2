@@ -6,7 +6,7 @@
 
 	<groupId>rabbit.open</groupId>
 	<artifactId>orm</artifactId>
-	<version>3.3.1</version>
+	<version>${rabbit.open.version}</version>
 	<packaging>pom</packaging>
 
 	<name>rabbit.open</name>
@@ -15,6 +15,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>4.3.18.RELEASE</spring.version>
+		<rabbit.open.version>3.3.2</rabbit.open.version>
 	</properties>
 
 	<modules>

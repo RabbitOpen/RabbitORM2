@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,17 +36,16 @@ public class PolicyInsert {
      * <b>Description:    插入数据</b><br>.
      * @param conn
      * @param adapter
-     * @param data
+     * @param list
      * @return	
      * 
      */
-    public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) throws SQLException {
+    public <T> void insert(Connection conn, NonQueryAdapter<T> adapter, List<T> list) throws SQLException {
         PreparedStatement stmt = null;
         try {
             stmt = conn.prepareStatement(adapter.sql.toString());
             adapter.setPreparedStatementValue(stmt, DMLType.INSERT);
             stmt.executeUpdate();
-            return data;
         } finally {
             DMLObject.closeStmt(stmt);
         }

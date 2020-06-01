@@ -1,13 +1,5 @@
 package rabbit.open.orm.core.dialect.dml.impl;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.NonQueryAdapter;
@@ -15,6 +7,11 @@ import rabbit.open.orm.core.dml.PolicyInsert;
 import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.*;
+import java.util.List;
 
 /**
  * <b>Description:   序列插入策略实现</b>.
@@ -24,7 +21,7 @@ import rabbit.open.orm.core.dml.meta.MetaData;
 public class SequencePolicy extends PolicyInsert {
 
     @Override
-    public <T> T insert(Connection conn, NonQueryAdapter<T> adapter, T data) throws SQLException {
+    public <T> void insert(Connection conn, NonQueryAdapter<T> adapter, List<T> list) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
@@ -46,11 +43,12 @@ public class SequencePolicy extends PolicyInsert {
             stmt.executeUpdate();
             method = getMethod(stmt, "getReturnResultSet", null);
             rs = (ResultSet) method.invoke(stmt);
-            if (rs.next()) {
-                pk.setAccessible(true);
-                pk.set(data, RabbitValueConverter.cast(rs.getBigDecimal(1), pk.getType()));
+            for (T data : list) {
+                if (rs.next()) {
+                    pk.setAccessible(true);
+                    pk.set(data, RabbitValueConverter.cast(rs.getBigDecimal(1), pk.getType()));
+                }
             }
-            return data;
         } catch (IllegalArgumentException | ReflectiveOperationException e) {
             throw new RabbitDMLException(e);
         } finally {
