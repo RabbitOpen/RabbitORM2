@@ -43,7 +43,7 @@ public class InsertTest {
 		List<User> users = new ArrayList<>();
 		int size = 1000;
 		for (int i = 0; i < size; i++) {
-			users.add(new User("lisi", 10, new Date()));
+			users.add(new User("lisi", i, new Date()));
 		}
     	us.addBatch(users);
 		TestCase.assertEquals(us.createQuery().count(), size + count);

@@ -36,6 +36,20 @@ public class OracleTest {
 
     @Autowired
     OracleRoleService rs;
+    
+    @Test
+    public void addBatch() {
+		long count = us.createQuery().count();
+		List<OUser> users = new ArrayList<>();
+		TestCase.assertEquals(0, us.addBatch(users));
+		int size = 1000;
+		for (int i = 0; i < size; i++) {
+			users.add(new OUser("lisi", i, new Date()));
+		}
+    	us.addBatch(users);
+		TestCase.assertEquals(us.createQuery().count(), size + count);
+	}
+
 
     /**
      * 

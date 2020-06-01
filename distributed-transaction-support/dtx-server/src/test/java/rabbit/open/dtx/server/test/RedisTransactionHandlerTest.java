@@ -398,7 +398,7 @@ public class RedisTransactionHandlerTest {
      * @author  xiaoqianbin
      * @date    2020/1/21
      **/
-    @Test
+//    @Test
     public void redisClusterClientTest() throws InterruptedException {
         Set<HostAndPort> nodes = new HashSet<>();
         nodes.add(new HostAndPort("10.9.49.38", 7001));

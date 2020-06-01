@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rabbit.open.orm.common.dml.FilterType;
+import rabbit.open.orm.common.exception.UnSupportedOperationException;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.TableMeta;
@@ -55,6 +56,23 @@ public class PrimaryKeyModShardingPolicyTest {
 	BallService bs;
 	
 	int scanCount = 0;
+	
+	@Test
+	public void addBatchTest() {
+		List<Order> list = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			Order o = new Order();
+			o.setId(i);
+			o.setUsername("order-" + i);
+			list.add(o);
+		}
+		try {
+			os.addBatch(list);
+			throw new RuntimeException("");
+		} catch (Exception e) {
+			TestCase.assertEquals(UnSupportedOperationException.class, e.getClass());
+		}
+	}
 	
 	/**
 	 * <b>@description 简单dml操作测试  </b>

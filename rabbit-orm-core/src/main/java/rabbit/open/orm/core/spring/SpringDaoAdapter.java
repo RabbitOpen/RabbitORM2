@@ -2,6 +2,8 @@ package rabbit.open.orm.core.spring;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.*;
 import rabbit.open.orm.core.dml.meta.MetaData;
@@ -106,7 +108,17 @@ public abstract class SpringDaoAdapter<T> {
 	 * @date    2020/6/1
 	 **/
 	public long addBatch(List<T> list) {
-		return new Insert<>(sessionFactory, clz, list).execute();
+		if (sessionFactory.getDialectType().isMysql()) {
+			return new Insert<>(sessionFactory, clz, list).execute();
+		} else {
+			if (CollectionUtils.isEmpty(list)) {
+				return 0L;
+			}
+			for (T data : list) {
+				add(data);
+			}
+			return list.size();
+		}
 	}
 
 	/**

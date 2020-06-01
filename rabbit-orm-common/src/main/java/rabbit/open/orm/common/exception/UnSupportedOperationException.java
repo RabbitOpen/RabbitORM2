@@ -5,6 +5,7 @@ package rabbit.open.orm.common.exception;
  * @author xiaoqianbin
  * @date 2020/6/1
  **/
+@SuppressWarnings("serial")
 public class UnSupportedOperationException extends RabbitDMLException {
 
     public UnSupportedOperationException(String message) {

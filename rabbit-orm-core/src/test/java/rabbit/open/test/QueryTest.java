@@ -118,14 +118,15 @@ public class QueryTest {
     }
 
     /**
-     * 自动推测测试
+     *	自动推测测试
      * @param
      * @author  xiaoqianbin
      * @date    2020/4/20
      **/
     @Test
     public void autoSpeculateTest() throws ParseException {
-        MetaData meta = MetaData.getMetaByClass(AutoSpeculateEntity.class);
+        @SuppressWarnings("unchecked")
+		MetaData<AutoSpeculateEntity> meta = MetaData.getMetaByClass(AutoSpeculateEntity.class);
         Collection<FieldMetaData> fieldMetas = meta.getFieldMetas();
         Column userName = null;
         for (FieldMetaData fieldMeta : fieldMetas) {

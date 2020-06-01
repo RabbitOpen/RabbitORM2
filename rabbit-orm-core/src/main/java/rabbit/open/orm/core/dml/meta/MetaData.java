@@ -257,8 +257,7 @@ public class MetaData<T> {
      **/
     private static Column createDefaultColumnInfo(Field f) {
         if (isPrimaryType(f.getType())) {
-            Column col  = DefaultColumnAnnotationGenerator.proxy(f.getName());
-            return col;
+            return DefaultColumnAnnotationGenerator.proxy(f.getName());
         }
         return null;
     }

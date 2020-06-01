@@ -2,7 +2,6 @@ package rabbit.open.orm.core.dml.meta.proxy;
 
 import rabbit.open.orm.core.annotation.Column;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -14,11 +13,13 @@ import java.util.Map;
  * @author xiaoqianbin
  * @date 2020/4/20
  **/
-public class DefaultColumnAnnotationGenerator implements InvocationHandler, Column {
+public class DefaultColumnAnnotationGenerator implements InvocationHandler {
 
     // 字段名
-    private String columnName;
+    @Column("")
+	private String columnName;
 
+    
     private Map<String, Object> map = new HashMap<>();
 
     /**
@@ -30,15 +31,16 @@ public class DefaultColumnAnnotationGenerator implements InvocationHandler, Colu
     public static Column proxy(String fieldName) {
         DefaultColumnAnnotationGenerator generator = new DefaultColumnAnnotationGenerator();
         generator.setColumnName(fieldName);
-        for (Method m : Column.class.getDeclaredMethods()) {
-            try {
-                Method method = DefaultColumnAnnotationGenerator.class.getDeclaredMethod(m.getName());
-                generator.map.put(m.getName(), method.invoke(generator));
-            } catch (Exception e) {
-                // TO DO
-                // ignore all exception
-            }
-        }
+        try {
+			Column column = DefaultColumnAnnotationGenerator.class.getDeclaredField("columnName").getAnnotation(Column.class);
+			for (Method m : Column.class.getDeclaredMethods()) {
+				generator.map.put(m.getName(), m.invoke(column));
+	        }
+			generator.map.put("value", generator.columnName);
+		} catch (Exception e) {
+			// TO DO
+            // ignore all exception
+		}
         return (Column) Proxy.newProxyInstance(DefaultColumnAnnotationGenerator.class.getClassLoader(), new Class<?>[]{Column.class}, generator);
     }
 
@@ -79,43 +81,4 @@ public class DefaultColumnAnnotationGenerator implements InvocationHandler, Colu
         return sb.toString();
     }
 
-    @Override
-    public String value() {
-        return columnName;
-    }
-
-    @Override
-    public String pattern() {
-        return "yyyy-MM-dd HH:mm:ss";
-    }
-
-    @Override
-    public int length() {
-        return 50;
-    }
-
-    @Override
-    public boolean keyWord() {
-        return false;
-    }
-
-    @Override
-    public boolean dynamic() {
-        return false;
-    }
-
-    @Override
-    public String comment() {
-        return "";
-    }
-
-    @Override
-    public String joinFieldName() {
-        return "";
-    }
-
-    @Override
-    public Class<? extends Annotation> annotationType() {
-        return null;
-    }
 }

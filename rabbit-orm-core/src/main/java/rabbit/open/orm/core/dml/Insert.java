@@ -86,8 +86,8 @@ public class Insert<T> extends NonQueryAdapter<T> {
         sql.append("INSERT INTO " + getMetaData().getTableName() + "");
         sql.append(fields);
         sql.append(" VALUES ");
-        for (T data : list) {
-            sql.append(createRealValueSql(data) + ", ");
+        for (T obj : list) {
+            sql.append(createRealValueSql(obj) + ", ");
         }
         sql.deleteCharAt(sql.lastIndexOf(","));
     }
@@ -105,7 +105,7 @@ public class Insert<T> extends NonQueryAdapter<T> {
     private String getValueString(T data, FieldMetaData fmd) {
         Object value = getValue(fmd.getField(), data);
         if (null == value) {
-            return "null, ";
+        	return "null, ";
         }
         if (fmd.isForeignKey()) {
             if ("".equals(fmd.getColumn().joinFieldName().trim())) {
