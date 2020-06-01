@@ -39,11 +39,14 @@ public class InsertTest {
 
     @Test
     public void addBatch() {
-    	List<User> users = new ArrayList<>();
-		for (int i = 0; i < 20000; i++) {
+		long count = us.createQuery().count();
+		List<User> users = new ArrayList<>();
+		int size = 1000;
+		for (int i = 0; i < size; i++) {
 			users.add(new User("lisi", 10, new Date()));
 		}
     	us.addBatch(users);
+		TestCase.assertEquals(us.createQuery().count(), size + count);
 	}
 
     /**
