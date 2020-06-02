@@ -28,12 +28,10 @@
 		<dependency>
 			<groupId>rabbit.open</groupId>
 			<artifactId>rabbit-orm-common</artifactId>
-			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>rabbit.open</groupId>
 			<artifactId>rabbit-orm-core</artifactId>
-			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

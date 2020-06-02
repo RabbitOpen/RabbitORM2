@@ -29,7 +29,6 @@
 		<dependency>
 			<groupId>rabbit.open</groupId>
 			<artifactId>rabbit-orm-common</artifactId>
-			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>jdbc</groupId>

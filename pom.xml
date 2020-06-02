@@ -42,6 +42,26 @@
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
+				<groupId>rabbit.open</groupId>
+				<artifactId>rabbit-orm-common</artifactId>
+				<version>${rabbit.open.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>rabbit.open</groupId>
+				<artifactId>rabbit-orm-core</artifactId>
+				<version>${rabbit.open.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>rabbit.open</groupId>
+				<artifactId>rabbit-orm-datasource</artifactId>
+				<version>${rabbit.open.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>rabbit.open</groupId>
+				<artifactId>rabbit-orm-code-helper</artifactId>
+				<version>${rabbit.open.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-all</artifactId>
 				<version>1.9.5</version>
