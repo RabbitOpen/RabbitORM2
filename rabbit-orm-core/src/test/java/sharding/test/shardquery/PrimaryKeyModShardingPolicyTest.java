@@ -136,7 +136,8 @@ public class PrimaryKeyModShardingPolicyTest {
 	public void sqlQueryTest() {
 		initTables();
 		// add测试
-		for (int i = 0; i < 30; i++) {
+		int total = 30;
+		for (int i = 0; i < total; i++) {
 			Order o = new Order();
 			o.setId(i);
 			o.setUsername("order-" + i);
@@ -177,8 +178,30 @@ public class PrimaryKeyModShardingPolicyTest {
 		});
 		TestCase.assertEquals(20, scanCount);
 		TestCase.assertEquals(20, count);
+
+		sum = 0;
+		os.createShardedSQLQuery("simpleCount").cursor().next(
+				(list, tabMeta) -> {
+			TestCase.assertEquals(1, list.size());
+			sum += list.get(0).getCount();
+			logger.info("{} - {}", tabMeta.getTableName(), tabMeta.getDataSource());
+		});
+
+		TestCase.assertEquals(sum, total);
+
+		sum = 0;
+		os.createShardedSQLQuery("groupCount").cursor().next(
+				(list, tabMeta) -> {
+					sum += list.get(0).getCount();
+					logger.info("{} - {}", tabMeta.getTableName(), tabMeta.getDataSource());
+				});
+
+		// 一共10张表
+		TestCase.assertEquals(sum, 10);
 	}
-	
+
+	int sum = 0;
+
 	@Test
 	public void queryTest() {
 		initTables();

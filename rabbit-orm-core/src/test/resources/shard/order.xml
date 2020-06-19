@@ -15,6 +15,26 @@
 		]]>
 	</jdbc>
 
+	<jdbc name="groupCount" alias ="a">
+		<![CDATA[
+			SELECT
+				count(1) as count
+			FROM
+				@{T_PRODUCT_ORDER} a
+			group by
+				username
+		]]>
+	</jdbc>
+
+	<jdbc name="simpleCount" alias ="a">
+		<![CDATA[
+			SELECT
+				count(1) as count
+			FROM
+				@{T_PRODUCT_ORDER} a
+		]]>
+	</jdbc>
+
 	<jdbc name="readFromOrder2" alias ="b">
 		<![CDATA[
 			SELECT 

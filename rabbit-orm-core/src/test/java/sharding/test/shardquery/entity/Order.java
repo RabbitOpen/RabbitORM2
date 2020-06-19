@@ -15,6 +15,8 @@ public class Order {
 	@Column("username")
 	private String username;
 
+	private Integer count;
+
 	public Integer getId() {
 		return id;
 	}
@@ -30,6 +32,12 @@ public class Order {
 	public void setUsername(String username) {
 		this.username = username;
 	}
-	
-	
+
+	public Integer getCount() {
+		return count;
+	}
+
+	public void setCount(Integer count) {
+		this.count = count;
+	}
 }

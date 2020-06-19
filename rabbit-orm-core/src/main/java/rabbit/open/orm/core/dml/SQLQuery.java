@@ -172,10 +172,10 @@ public class SQLQuery<T> {
 	 * <b>@description 准备预编译sql的值 </b>
 	 */
 	protected void setPreparedValues() {
+		query.preparedValues.clear();
 		if (getFieldsValues().isEmpty()) {
             return;
         }
-		query.preparedValues.clear();
         Collection<PreparedValue> values = getFieldsValues().values();
         for (PreparedValue v : values) {
             query.preparedValues.add(v);
