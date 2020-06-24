@@ -38,7 +38,7 @@ public class MapperRegistryFactory implements BeanDefinitionRegistryPostProcesso
 		if (null == rootPath || "".equals(rootPath.trim())) {
 			return;
 		}
-		Set<String> mappers = PackageScanner.filterByAnnotation(rootPath.split(","), NameSpace.class, true);
+		Set<String> mappers = PackageScanner.filterByAnnotation(rootPath.split(","), NameSpace.class);
 		for (String mapper : mappers) {
 			Class<?> clz = null;
 			try {

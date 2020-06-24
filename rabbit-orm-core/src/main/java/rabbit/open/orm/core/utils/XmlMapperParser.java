@@ -1,30 +1,27 @@
 package rabbit.open.orm.core.utils;
 
-import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
-
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import rabbit.open.orm.common.exception.MappingFileParsingException;
 import rabbit.open.orm.common.exception.NamedSQLNotExistedException;
 import rabbit.open.orm.common.exception.NoNamedSQLDefinedException;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.name.NamedSQL;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <b>@description xml文件解析器 </b>
@@ -51,11 +48,14 @@ public class XmlMapperParser {
 	public XmlMapperParser(String path) {
 		super();
 		this.sqlPath = path;
-		if (sqlPath.startsWith("/")) {
-		    sqlPath = sqlPath.substring(1);
+		if (!sqlPath.startsWith("/")) {
+		    sqlPath = "/" + sqlPath;
+		}
+		if (!sqlPath.endsWith(".xml")) {
+			sqlPath = sqlPath + "/*.xml";
 		}
 	}
-	
+
 	/**
 	 * 
 	 * <b>Description:	根据查询的名字和类信息获取命名查询对象</b><br>
@@ -82,26 +82,29 @@ public class XmlMapperParser {
 	 * 
 	 */
 	public void doXmlParsing() {
-		List<String> xmls = readFiles();
-		if (xmls.isEmpty()) {
+		List<Resource> resources = readFiles();
+		if (resources.isEmpty()) {
 			return;
 		}
-		readXmls(xmls);
+		parseXmls(resources);
 	}
 
-	private void readXmls(List<String> xmls) {
-		for (String xml : xmls) {
-			logger.info("parsing {}", xml);
-			parseOneByOne(xml);
+	private void parseXmls(List<Resource> resources) {
+		for (Resource resource : resources) {
+			parseOneByOne(resource);
 		}
 	}
 
-	private void parseOneByOne(String xml) {
-		InputStream inputSteam = getClass().getResourceAsStream(xml);
-		SAXReader reader = new SAXReader();   
+	private void parseOneByOne(Resource resource) {
+		InputStream inputSteam = null;
+		SAXReader reader = new SAXReader();
+		String file = null;
 		try {
+			file = resource.getURI().toString();
+			logger.info("parsing {}", file);
+			inputSteam = resource.getInputStream();
             reader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        } catch (SAXException e) {
+        } catch (Exception e) {
         	// TO DO: ignore
         }
 		Document doc;
@@ -109,7 +112,7 @@ public class XmlMapperParser {
 			doc = reader.read(inputSteam);
 			Element root = doc.getRootElement(); 
 			String clzName = root.attributeValue("entity");
-			Class<?> clz = checkClassName(xml, clzName);
+			Class<?> clz = checkClassName(file, clzName);
 			scan(root, clz, SELECT);
 			scan(root, clz, UPDATE);
 			scan(root, clz, DELETE);
@@ -166,10 +169,8 @@ public class XmlMapperParser {
 		} catch (ClassNotFoundException e) {
 			throw new MappingFileParsingException("invalid class name[" + className + "] for " + xml);
 		}
-        if (nameQueries.containsKey(clz)) {
-			throw new MappingFileParsingException("repeated class name[" + className + "] is found!");
-        } else {
-			nameQueries.put(clz, new ConcurrentHashMap<String, NamedSQL>());
+        if (!nameQueries.containsKey(clz)) {
+			nameQueries.put(clz, new ConcurrentHashMap<>());
 		}
 		return clz;
 	}
@@ -180,95 +181,18 @@ public class XmlMapperParser {
 	 * @return	
 	 * 
 	 */
-	private List<String> readFiles() {
-		List<String> classPathJars = PackageScanner.getClassPathJars();
-		List<String> xmls = new ArrayList<>();
-		for (String jar : classPathJars) {
-			if (!jar.endsWith("jar") && new File(jar).isDirectory()) {
-				URL url = null;
-				try {
-					url = new URL(new File(jar).toURI().toString() + sqlPath);
-				} catch (Exception e) {
-					logger.error(e.getMessage(), e);
-					continue;
-				}
-				xmls.addAll(scanMappingPath(url.getPath()));
+	private List<Resource> readFiles() {
+		ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+		List<Resource> streamList = new ArrayList<>();
+		try {
+			Resource[] resources = resolver.getResources("classpath*:" + sqlPath);
+			for (Resource resource : resources) {
+				streamList.add(resource);
 			}
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
 		}
-		return xmls;
+		return streamList;
 	}
 
-	private List<String> scanMappingPath(String url) {
-	    List<String> xmls = new ArrayList<>();
-		File path = new File(url);
-		if (!path.exists()) {
-			return xmls;
-		}
-        if (!path.isDirectory()) {
-			logger.warn("mapping file path[{}] is not a directory!", sqlPath);
-			if (url.contains(".war!") || url.contains(".jar!")) {
-                String jar = getJarFileName(url);
-                xmls.addAll(findXmls(jar));
-			}
-			return xmls; 
-		}
-        String seperator = "/";
-        for (String f : path.list()) {
-			String fileName = url + seperator + f;
-            if (!isXmlFile(fileName)) {
-                continue;
-            }
-            xmls.add(fileName.substring(fileName.indexOf(seperator + sqlPath + seperator)));
-        }
-		return xmls;
-	}
-
-    private List<String> findXmls(String jar) {
-        List<String> xmls = new ArrayList<>();
-        JarFile jf = null;
-        try {
-            jf = new JarFile(jar);
-            Enumeration<JarEntry> entries = jf.entries();
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-				if (entry.getName().endsWith("xml") && entry.getName().contains("classes/" + sqlPath)) {
-                    xmls.add(entry.getName().substring(entry.getName().indexOf("/" + sqlPath)));
-                }
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        } finally {
-            PackageScanner.closeJarFile(jf);
-        }
-        return xmls;
-    }
-	
-    private String getJarFileName(String url) {
-        String feature = ".war";
-        if (url.contains(".jar!")) {
-            feature = ".jar";
-        }
-        String fileName = url.substring(0, url.indexOf(feature)) + feature;
-        if (fileName.startsWith("file:")) {
-            if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
-                fileName = fileName.substring(6, fileName.length());
-            } else {
-                fileName = fileName.substring(5, fileName.length());
-            }
-        }
-        return fileName;
-    }
-
-	/**
-	 * 
-	 * <b>Description:	检查是否是xml文件</b><br>
-	 * @param fileName
-	 * @return	
-	 * 
-	 */
-	private boolean isXmlFile(String fileName) {
-		File file = new File(fileName);
-		return file.exists() && file.isFile() && fileName.endsWith(".xml");
-	}
-	
 }

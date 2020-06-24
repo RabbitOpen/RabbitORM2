@@ -57,9 +57,6 @@ public class SessionFactory {
 	// 是否显示真实的预编译sql
 	protected boolean maskPreparedSql = false;
 
-	// 是否扫描classpath 中的jar包
-	private boolean scanJar = false;
-
 	// ddl类型
 	protected String ddl = DDLType.NONE.name();
 
@@ -614,14 +611,6 @@ public class SessionFactory {
 		return DDLHelper.getCurrentDDLHelper(this).getColumnName(col);
 	}
 
-	public boolean isScanJar() {
-		return scanJar;
-	}
-
-	public void setScanJar(boolean scanJar) {
-		this.scanJar = scanJar;
-	}
-
 	public Map<DataSource, Integer> getDefaultIsolationLevelHolder() {
 		return defaultIsolationLevelHolder;
 	}
@@ -633,7 +622,7 @@ public class SessionFactory {
 	public Set<String> getEntities() {
 		if (null == entities) {
 			entities = PackageScanner.filterByAnnotation(getPackages2Scan().split(","),
-					Entity.class, isScanJar());
+					Entity.class);
 		}
 		return entities;
 	}

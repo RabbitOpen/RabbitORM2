@@ -93,9 +93,7 @@
 		<property name="packages2Scan">
 			<value>mybatis.test.entity</value>
 		</property>
-		<property name="scanJar">
-			<value>${jdbc.scanJar}</value>
-		</property>
+
 		<property name="dataSource" ref="rabbit4Mybatis" />
 	</bean>
 
