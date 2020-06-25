@@ -58,7 +58,7 @@ public class PackageScanner implements Serializable {
                 }
             }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.getMessage(), e);
         }
         return files;
     }
@@ -128,8 +128,8 @@ public class PackageScanner implements Serializable {
         String bootClassPath = "";
         Manifest manifest = jf.getManifest();
         String springBootClassPath = "Spring-Boot-Classes";
-        if (null != manifest && null != manifest.getMainAttributes().get(springBootClassPath)) {
-            bootClassPath = (String) manifest.getMainAttributes().get(springBootClassPath);
+        if (null != manifest && null != manifest.getMainAttributes().getValue(springBootClassPath)) {
+            bootClassPath = manifest.getMainAttributes().getValue(springBootClassPath);
         }
         while (true) {
             JarEntry entry = jf.getNextJarEntry();
@@ -137,14 +137,13 @@ public class PackageScanner implements Serializable {
                 break;
             }
             for (String root : roots) {
-                String rootPath = root.replaceAll("\\.", "/");
+                String rootPath = root.trim().replaceAll("\\.", "/");
                 rootPath = bootClassPath + rootPath;
                 String entryName = entry.getName();
-                if (entryName.startsWith(rootPath) && entryName.endsWith(".class")
-                        && -1 == entryName.indexOf("$")) {
+                if (entryName.startsWith(rootPath) && entryName.endsWith(".class") && -1 == entryName.indexOf("$")) {
                     entryName = entryName.replaceAll("/", ".");
                     if (!"".equals(bootClassPath)) {
-                        entryName = entryName.substring(bootClassPath.length() + 1);
+                        entryName = entryName.substring(bootClassPath.length());
                     }
                     entryName = entryName.substring(0, entryName.length() - 6);
                     if (hasAnnotation(anno, entryName)) {
