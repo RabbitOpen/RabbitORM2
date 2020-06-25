@@ -181,6 +181,9 @@ public class XmlMapperParser {
 		try {
 			Resource[] resources = resolver.getResources(xmlPath);
 			for (Resource resource : resources) {
+				if (!resource.getFile().isFile()) {
+					continue;
+				}
 				streamList.add(resource);
 			}
 		} catch (IOException e) {
