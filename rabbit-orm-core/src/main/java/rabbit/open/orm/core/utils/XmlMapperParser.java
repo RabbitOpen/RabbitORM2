@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.xml.sax.SAXException;
+
 import rabbit.open.orm.common.exception.MappingFileParsingException;
 import rabbit.open.orm.common.exception.NamedSQLNotExistedException;
 import rabbit.open.orm.common.exception.NoNamedSQLDefinedException;
@@ -90,20 +92,16 @@ public class XmlMapperParser {
 	}
 
 	private void parseOneByOne(Resource resource) {
-		InputStream inputSteam = null;
+		InputStream inputStream = null;
 		SAXReader reader = new SAXReader();
 		String file = null;
+		Document doc;
 		try {
 			file = resource.getURI().toString();
 			logger.info("parsing {}", file);
-			inputSteam = resource.getInputStream();
+			inputStream = resource.getInputStream();
             reader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        } catch (Exception e) {
-        	// TO DO: ignore
-        }
-		Document doc;
-		try {
-			doc = reader.read(inputSteam);
+			doc = reader.read(inputStream);
 			Element root = doc.getRootElement(); 
 			String clzName = root.attributeValue("entity");
 			Class<?> clz = checkClassName(file, clzName);
@@ -112,14 +110,20 @@ public class XmlMapperParser {
 			scan(root, clz, DELETE);
 			scan(root, clz, INSERT);
 			scan(root, clz, JDBC);
-		} catch (DocumentException e) {
+		} catch (DocumentException | SAXException | IOException e) {
 			throw new MappingFileParsingException(e.getMessage());
 		} finally {
-		    try {
-                inputSteam.close();
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
+		    closeStream(inputStream);
+		}
+	}
+
+	protected void closeStream(InputStream inputStream) {
+		try {
+		    if (null != inputStream) {
+		    	inputStream.close();
+		    }
+		} catch (Exception e) {
+		    logger.error(e.getMessage(), e);
 		}
 	}
 

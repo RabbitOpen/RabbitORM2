@@ -100,9 +100,6 @@
 		<property name="packages2Scan">
 			<value>test.mapper</value>
 		</property>
-		<property name="scanJar">
-			<value>${jdbc.scanJar}</value>
-		</property>
 		<property name="mappingFiles">
 			<value>${jdbc.mappingFiles}</value>
 		</property>
