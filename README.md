@@ -8,7 +8,9 @@
     
     2、强化XmlMapperParser，允许多个xml映射同一个实体对象
     
-    3、强化扫描组件，支持包内扫描
+    3、强化扫描组件，支持包内扫描、SessionFactory废弃是否扫描jar配置，默认扫描
+    
+    4、SessionFactory mappingFiles改为文件路径如（classpath*:/rabbit/*.xml）
 
 ================================== V 3.3.1 ========================================
 

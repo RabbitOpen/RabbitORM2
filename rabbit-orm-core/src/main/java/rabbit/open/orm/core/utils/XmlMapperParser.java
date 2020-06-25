@@ -40,20 +40,14 @@ public class XmlMapperParser {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
-	private String sqlPath;
+	private String xmlPath;
 	
 	//缓存的命名查询对象
 	private Map<Class<?>, Map<String, NamedSQL>> nameQueries = new ConcurrentHashMap<>();
 
 	public XmlMapperParser(String path) {
 		super();
-		this.sqlPath = path;
-		if (!sqlPath.startsWith("/")) {
-		    sqlPath = "/" + sqlPath;
-		}
-		if (!sqlPath.endsWith(".xml")) {
-			sqlPath = sqlPath + "/*.xml";
-		}
+		this.xmlPath = path;
 	}
 
 	/**
@@ -185,7 +179,7 @@ public class XmlMapperParser {
 		ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 		List<Resource> streamList = new ArrayList<>();
 		try {
-			Resource[] resources = resolver.getResources("classpath*:" + sqlPath);
+			Resource[] resources = resolver.getResources(xmlPath);
 			for (Resource resource : resources) {
 				streamList.add(resource);
 			}
