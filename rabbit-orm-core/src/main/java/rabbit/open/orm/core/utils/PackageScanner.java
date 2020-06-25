@@ -26,7 +26,7 @@ import java.util.jar.Manifest;
 @SuppressWarnings("serial")
 public class PackageScanner implements Serializable {
 
-    private static Logger logger = LoggerFactory.getLogger(PackageScannerV2.class);
+    private static Logger logger = LoggerFactory.getLogger(PackageScanner.class);
 
     /**
      * 扫描含注解｛anno｝的类
@@ -88,7 +88,6 @@ public class PackageScanner implements Serializable {
             URL url = new URL(base, rootPath.replaceAll("\\.", "/"));
             File root = new File(url.toURI());
             if (root.exists() && root.isDirectory()) {
-                String output = root.getPath().replaceAll("\\\\", "/");
                 for (File f : root.listFiles()) {
                     files.addAll(scanFile(rootPath + "." + f.getName(), f));
                 }
@@ -101,7 +100,7 @@ public class PackageScanner implements Serializable {
 
     private static List<String> scanFile(String parent, File file) {
         while (parent.startsWith(".")) {
-            parent = parent.substring(1, parent.length());
+            parent = parent.substring(1);
         }
         List<String> files = new ArrayList<>();
         if (file.isFile()) {
