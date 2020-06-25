@@ -37,7 +37,7 @@ public class DubboTxTest {
     @Test
     public void invokeTest() throws InterruptedException {
         startProvider();
-        new Semaphore(0).tryAcquire(1, TimeUnit.SECONDS);
+        new Semaphore(0).tryAcquire(2, TimeUnit.SECONDS);
         startConsumer();
         over.acquire();
 //        zookeeperServer.shutdown();

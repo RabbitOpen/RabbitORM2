@@ -63,9 +63,12 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	private static final String INNER_JOIN = " INNER JOIN ";
 
 	private static final String LEFT_JOIN = " LEFT JOIN ";
+	
+	// 标识强制innerFetch的对象
+	private Set<Class<?>> innerFetchClzes = new HashSet<>();
 
 	// 希望查询出来的实体
-	protected HashSet<Class<?>> entity2Fetch = new HashSet<>();
+	protected Set<Class<?>> entity2Fetch = new HashSet<>();
 
 	// manyToOne的过滤条件
 	protected List<FilterDescriptor> many2oneFilterDescriptors = new ArrayList<>();
@@ -860,19 +863,40 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 					break;
 				}
 			}
-			List<Class<?>> list = new ArrayList<>();
-			this.dmlFilters.values().forEach(f -> list.addAll(f.getAssociatedClass()));
-			if (list.contains(fd.getField().getType())) {
-				innered = true;
-			}
-			if (!innered) {
-				sql.append(LEFT_JOIN + fd.getFilterTable() + " "
+			if (innerFetchClzes.contains(fd.getField().getType())) {
+				sql.append(INNER_JOIN + fd.getFilterTable() + " "
 						+ getTableAlias(fd));
 				sql.append(" ON " + fd.getKey() + fd.getFilter()
 						+ fd.getValue());
+			} else {
+				List<Class<?>> list = new ArrayList<>();
+				this.dmlFilters.values().forEach(f -> list.addAll(f.getAssociatedClass()));
+				if (list.contains(fd.getField().getType())) {
+					innered = true;
+				}
+				if (!innered) {
+					sql.append(LEFT_JOIN + fd.getFilterTable() + " "
+							+ getTableAlias(fd));
+					sql.append(" ON " + fd.getKey() + fd.getFilter()
+							+ fd.getValue());
+				}
 			}
+			
 		}
 	}
+	
+	/**
+	 * 强制内连接
+	 * <b>@description  </b>
+	 * @param clz
+	 * @param dependency
+	 * @return
+	 */
+	public AbstractQuery<T> innerFetch(Class<?> clz, Class<?>... dependency) {
+		innerFetchClzes.add(clz);
+		return fetch(clz, dependency);
+	}
+	
 
 	private String getTableAlias(FilterDescriptor fd) {
 		String alias = getAliasByTableName(fd.getFilterTable());

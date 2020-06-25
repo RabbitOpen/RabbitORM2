@@ -107,6 +107,14 @@ public class QueryTest {
         MetaData.getMetaByClass(User.class);
         TestCase.assertEquals(user.getFloatField(), list.get(0).getFloatField());
     }
+    
+    @Test
+    public void innerFetchTest() {
+        User user = addInitData(1232);
+        List<User> list = us.createQuery().addFilter("id", user.getId()).innerFetch(Organization.class).list();
+        TestCase.assertTrue(list.size() > 0);
+        
+    }
 
     @Test
     public void bytesTest() {

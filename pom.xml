@@ -6,7 +6,7 @@
 
 	<groupId>rabbit.open</groupId>
 	<artifactId>orm</artifactId>
-	<version>${rabbit.open.version}</version>
+	<version>3.3.2</version>
 	<packaging>pom</packaging>
 
 	<name>rabbit.open</name>
@@ -299,12 +299,12 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
 			</plugin>
-
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

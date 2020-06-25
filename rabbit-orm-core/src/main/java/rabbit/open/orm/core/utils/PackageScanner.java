@@ -140,7 +140,7 @@ public class PackageScanner implements Serializable {
                 String rootPath = root.trim().replaceAll("\\.", "/");
                 rootPath = bootClassPath + rootPath;
                 String entryName = entry.getName();
-                if (entryName.startsWith(rootPath) && entryName.endsWith(".class") && -1 == entryName.indexOf("$")) {
+                if (entryName.startsWith(rootPath) && entryName.endsWith(".class") && -1 == entryName.indexOf('$')) {
                     entryName = entryName.replaceAll("/", ".");
                     if (!"".equals(bootClassPath)) {
                         entryName = entryName.substring(bootClassPath.length());
