@@ -1,21 +1,25 @@
 package rabbit.open.test;
 
-import junit.framework.TestCase;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.sun.tools.internal.xjc.reader.xmlschema.bindinfo.BIConversion.User;
+
+import junit.framework.TestCase;
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.InvalidGroupByFieldException;
+import rabbit.open.orm.common.exception.UnSupportedOperationException;
 import rabbit.open.test.entity.RegRoom;
 import rabbit.open.test.entity.RegUser;
 import rabbit.open.test.service.RegRoomService;
 import rabbit.open.test.service.RegUserService;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 
 /**
  * <b>Description: 关于正则表达式参数的查询测试</b><br>
@@ -140,7 +144,42 @@ public class MysqlRegQueryTest {
 			rus.createDynamicQuery(user).querySpecifiedFields("name", "countOfName").groupBy("countOfName").list();
 			throw new RuntimeException();
 		} catch (InvalidGroupByFieldException e) {
-			return;
+		}
+		
+		try {
+			rus.createDynamicQuery().fetch(User.class);
+			throw new RuntimeException();
+		} catch (UnSupportedOperationException e) {
+		}
+		
+		try {
+			rus.createDynamicQuery().innerFetch(User.class);
+			throw new RuntimeException();
+		} catch (UnSupportedOperationException e) {
+		}
+		
+		try {
+			rus.createDynamicQuery().joinFetch(User.class, null);
+			throw new RuntimeException();
+		} catch (UnSupportedOperationException e) {
+		}
+		
+		try {
+			rus.createDynamicQuery().joinFetchByFilter(1, User.class, null);
+			throw new RuntimeException();
+		} catch (UnSupportedOperationException e) {
+		}
+		
+		try {
+			rus.createDynamicQuery().innerJoinFetch(User.class);
+			throw new RuntimeException();
+		} catch (UnSupportedOperationException e) {
+		}
+		
+		try {
+			rus.createDynamicQuery().innerJoinFetchByFilter(1, User.class);
+			throw new RuntimeException();
+		} catch (UnSupportedOperationException e) {
 		}
 	}
 }

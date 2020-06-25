@@ -3,8 +3,10 @@ package rabbit.open.orm.core.dml;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import rabbit.open.orm.common.exception.InvalidGroupByFieldException;
+import rabbit.open.orm.common.exception.UnSupportedOperationException;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
@@ -16,7 +18,7 @@ import rabbit.open.orm.core.dml.meta.MetaData;
  */
 public class DynamicQuery<T> extends Query<T> {
 
-	private HashSet<String> groupBy = new HashSet<>();
+	private Set<String> groupBy = new HashSet<>();
 	
 	public DynamicQuery(SessionFactory factory, Class<T> clz) {
 		this(factory, null, clz);
@@ -64,4 +66,31 @@ public class DynamicQuery<T> extends Query<T> {
 		}
 		return this;
 	}
+	
+	@Override
+	public AbstractQuery<T> fetch(Class<?> clz, Class<?>... dependency) {
+		throw new UnSupportedOperationException("method [fetch] is not supported!");
+	}
+	
+	@Override
+	public <E> AbstractQuery<T> joinFetch(Class<E> entityClz, E filter) {
+		throw new UnSupportedOperationException("method [joinFetch] is not supported!");
+	}
+	
+	@Override
+	public <E> AbstractQuery<T> innerJoinFetch(Class<E> entityClz, E filter) {
+		throw new UnSupportedOperationException("method [innerJoinFetch] is not supported!");
+	}
+	
+	@Override
+	public <E> AbstractQuery<T> joinFetchByFilter(Object filterValue, Class<E> entityClz, E filter) {
+		throw new UnSupportedOperationException("method [joinFetchByFilter] is not supported!");
+	}
+	
+	@Override
+	public <E> AbstractQuery<T> innerJoinFetchByFilter(Object filterValue, Class<E> entityClz, E filter) {
+		throw new UnSupportedOperationException("method [innerJoinFetchByFilter] is not supported!");
+	}
+	
+	
 }

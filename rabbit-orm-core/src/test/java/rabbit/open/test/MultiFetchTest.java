@@ -261,7 +261,7 @@ public class MultiFetchTest {
         Department d = new Department("成都研发中心", t);
         ds.add(d);
         Department dept = ds.createQuery().addFilter("id", d.getId())
-                .fetch(User.class, Team.class, Department.class).execute()
+                .innerFetch(User.class, Team.class, Department.class).execute()
                 .unique();
         TestCase.assertNotNull(dept.getTeam().getLeader());
         TestCase.assertNotNull(dept.getTeam().getFollower());
@@ -274,7 +274,7 @@ public class MultiFetchTest {
 
         try {
             ds.createQuery().addFilter("id", d.getId())
-                    .fetch(User.class, Team.class)
+                    .innerFetch(User.class, Team.class)
                     // 因为涉及循环引用，所以上面的fetch不一定一直正确
                     // .fetch(User.class, Team.class, Department.class)
                     .execute().unique();

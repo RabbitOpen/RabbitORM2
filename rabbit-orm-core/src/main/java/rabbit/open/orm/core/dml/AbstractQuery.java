@@ -66,6 +66,9 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	
 	// 标识强制innerFetch的对象
 	private Set<Class<?>> innerFetchClzes = new HashSet<>();
+	
+	// 标识强制innerJoinFetch的对象
+	private Set<Class<?>> innerJoinFetchClzes = new HashSet<>();
 
 	// 希望查询出来的实体
 	protected Set<Class<?>> entity2Fetch = new HashSet<>();
@@ -795,11 +798,11 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 		//创建过滤条件内连接的sql
 		createInnerJoinsql();
 
-		//创建addInnerJoinFilter添加的内连接sql部分
+		//创建动态添加的内连接sql部分
 		createDynamicInnerJoinSql();
 
-		//创建many2one的sql，  fetch部分
-		createLeftJoinSql();
+		//创建many2one的sql,  fetch部分
+		createMany2OneSql();
 
 		//创建一对多或者多对多部分的sql, joinFetch部分
 		createJoinFetchSql();
@@ -840,7 +843,7 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 *
 	 */
 	private StringBuilder createOTMJoinSql(JoinFieldMetaData<?> jfm) {
-		return createOTMJoinSql(jfm, true);
+		return createOTMJoinSql(jfm, !innerJoinFetchClzes.contains(jfm.getJoinClass()));
 	}
 
 	/**
@@ -851,10 +854,14 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 *
 	 */
 	private StringBuilder createMTMJoinSql(JoinFieldMetaData<?> jfm) {
-		return createMTMJoinSql(jfm, true);
+		return createMTMJoinSql(jfm, !innerJoinFetchClzes.contains(jfm.getJoinClass()));
 	}
 
-	private void createLeftJoinSql() {
+	/**
+	 * 创建1对多的sql片段
+	 * <b>@description </b>
+	 */
+	private void createMany2OneSql() {
 		for (FilterDescriptor fd : many2oneFilterDescriptors) {
 			boolean innered = false;
 			for (FilterDescriptor fdi : filterDescriptors) {
@@ -864,10 +871,8 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 				}
 			}
 			if (innerFetchClzes.contains(fd.getField().getType())) {
-				sql.append(INNER_JOIN + fd.getFilterTable() + " "
-						+ getTableAlias(fd));
-				sql.append(" ON " + fd.getKey() + fd.getFilter()
-						+ fd.getValue());
+				sql.append(INNER_JOIN + fd.getFilterTable() + " " + getTableAlias(fd));
+				sql.append(" ON " + fd.getKey() + fd.getFilter() + fd.getValue());
 			} else {
 				List<Class<?>> list = new ArrayList<>();
 				this.dmlFilters.values().forEach(f -> list.addAll(f.getAssociatedClass()));
@@ -875,13 +880,11 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 					innered = true;
 				}
 				if (!innered) {
-					sql.append(LEFT_JOIN + fd.getFilterTable() + " "
-							+ getTableAlias(fd));
-					sql.append(" ON " + fd.getKey() + fd.getFilter()
-							+ fd.getValue());
+					sql.append(LEFT_JOIN + fd.getFilterTable() + " " + getTableAlias(fd));
+					sql.append(" ON " + fd.getKey() + fd.getFilter() + fd.getValue());
 				}
 			}
-			
+
 		}
 	}
 	
@@ -894,10 +897,12 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	 */
 	public AbstractQuery<T> innerFetch(Class<?> clz, Class<?>... dependency) {
 		innerFetchClzes.add(clz);
+		for (Class<?> c : dependency) {
+			innerFetchClzes.add(c);
+		}
 		return fetch(clz, dependency);
 	}
 	
-
 	private String getTableAlias(FilterDescriptor fd) {
 		String alias = getAliasByTableName(fd.getFilterTable());
 		if (fd.isMultiFetchField()) {
@@ -1736,6 +1741,29 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 
 	/**
 	 *
+	 * 查询出一对多或者多对多的数据。(inner join方式)
+	 * @param entityClz
+	 * @return
+	 *
+	 */
+	public <E> AbstractQuery<T> innerJoinFetch(Class<E> entityClz) {
+		return innerJoinFetch(entityClz, null);
+	}
+	
+	/**
+	 *
+	 * 查询出一对多或者多对多的数据。(inner join方式)
+	 * @param entityClz
+	 * @return
+	 *
+	 */
+	public <E> AbstractQuery<T> innerJoinFetch(Class<E> entityClz, E filter) {
+		innerJoinFetchClzes.add(entityClz);
+		return joinFetch(entityClz, filter);
+	}
+
+	/**
+	 *
 	 * <b>Description:	联合查询多端数据</b><br>
 	 * @param entityClz
 	 * @param filter	多端过滤条件
@@ -1767,7 +1795,31 @@ public abstract class AbstractQuery<T> extends DMLObject<T> {
 	public <E> AbstractQuery<T> joinFetchByFilter(Object filterValue, Class<E> entityClz) {
 		return joinFetchByFilter(filterValue, entityClz, null);
 	}
+	
+	/**
+	 * 多端查询时指定中间表的过滤字段值
+	 * @param filterValue	中间表的filterColumn的值
+	 * @param entityClz
+	 * @param <E>
+	 * @return
+	 */
+	public <E> AbstractQuery<T> innerJoinFetchByFilter(Object filterValue, Class<E> entityClz) {
+		return innerJoinFetchByFilter(filterValue, entityClz, null);
+	}
 
+	/**
+	 * 多端查询时指定中间表的过滤字段值
+	 * @param filterValue	中间表的filterColumn的值
+	 * @param entityClz
+	 * @param filter
+	 * @param <E>
+	 * @return
+	 */
+	public <E> AbstractQuery<T> innerJoinFetchByFilter(Object filterValue, Class<E> entityClz, E filter) {
+		innerJoinFetchClzes.add(entityClz);
+		return joinFetchByFilter(filterValue, entityClz, filter);
+	}
+	
 	/**
 	 * 多端查询时指定中间表的过滤字段值
 	 * @param filterValue	中间表的filterColumn的值

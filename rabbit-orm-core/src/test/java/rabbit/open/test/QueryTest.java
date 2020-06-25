@@ -91,7 +91,6 @@ public class QueryTest {
     /**
      * 
      * <b>Description: 关联(多对一、多对多)查询 + distinct </b><br>
-     * .
      * 
      */
     @Test
@@ -107,6 +106,37 @@ public class QueryTest {
         MetaData.getMetaByClass(User.class);
         TestCase.assertEquals(user.getFloatField(), list.get(0).getFloatField());
     }
+    
+    /**
+     * 
+     * <b>Description: 关联(多对一、多对多)查询 + distinct </b><br>
+     * 
+     */
+    @Test
+    public void innerJoinFetchTest() {
+        User user = addInitData(1207);
+        List<User> list = us.createQuery()
+        		.addFilter("id", user.getId())
+        		.innerJoinFetch(Role.class)
+                .execute().list();
+        TestCase.assertEquals(1, list.size());
+        TestCase.assertEquals(list.get(0).getRoles().size(), 2);
+        
+        User result = us.createQuery()
+				.addFilter("id", user.getId())
+				.innerJoinFetch(Role.class, user.getRoles().get(0)).unique();
+        TestCase.assertEquals(result.getRoles().size(), 1);
+        
+        // 验证innerJoinFetch后导致整个数据都查不到
+        Role r = new Role();
+        r.setId(user.getRoles().get(0).getId() + 10);
+        result = us.createQuery()
+				.addFilter("id", user.getId())
+				.innerJoinFetch(Role.class, r).unique();
+        TestCase.assertNull(result);
+        
+    }
+    
     
     @Test
     public void innerFetchTest() {
@@ -881,7 +911,17 @@ public class QueryTest {
 
         TestCase.assertEquals(slaves.size(), queriedMaster.getSlaves().size());
 
+        // inner join 验证
+        queriedMaster = masterService.createQuery().addFilter("id", m.getId())
+                .innerJoinFetchByFilter("1", Slave.class)
+                .unique();
+        TestCase.assertEquals(slaves.size(), queriedMaster.getSlaves().size());
 
+        queriedMaster = masterService.createQuery().addFilter("id", m.getId())
+                .innerJoinFetchByFilter("12", Slave.class)
+                .unique();
+        TestCase.assertNull(queriedMaster);
+        
         queriedMaster = masterService.createQuery().addFilter("id", m.getId())
                 .joinFetchByFilter("2", Slave.class)
                 .unique();
