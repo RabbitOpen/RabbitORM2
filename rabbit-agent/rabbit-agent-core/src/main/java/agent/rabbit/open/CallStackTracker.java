@@ -1,7 +1,5 @@
 package agent.rabbit.open;
 
-import agent.rabbit.open.DelegationHandler;
-
 import java.lang.reflect.Method;
 
 /**

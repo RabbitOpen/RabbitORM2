@@ -1,14 +1,14 @@
 package agent.rabbit.open;
 
-import agent.net.bytebuddy.agent.builder.AgentBuilder;
-import agent.net.bytebuddy.description.NamedElement;
-import agent.net.bytebuddy.description.method.MethodDescription;
-import agent.net.bytebuddy.description.type.TypeDescription;
-import agent.net.bytebuddy.dynamic.DynamicType;
-import agent.net.bytebuddy.implementation.MethodDelegation;
-import agent.net.bytebuddy.matcher.ElementMatcher;
-import agent.net.bytebuddy.matcher.ElementMatchers;
-import agent.net.bytebuddy.utility.JavaModule;
+import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.description.NamedElement;
+import net.bytebuddy.description.method.MethodDescription;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.matcher.ElementMatchers;
+import net.bytebuddy.utility.JavaModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +25,7 @@ public class RabbitAgentEntry {
 	
 	public static void premain(String agentArgs, Instrumentation inst) {
 		AgentBuilder.Transformer transformer = (builder, typeDescription, classLoader, javaModule) -> builder
-				.method(ElementMatchers.<MethodDescription>any()) // 拦截任意方法
+				.method(ElementMatchers.any()) // 拦截任意方法
 				.intercept(MethodDelegation.to(AgentDelegator.class)); // 委托
 		String[] packages = null;
 		if (null == agentArgs) {

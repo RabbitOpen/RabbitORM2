@@ -1,6 +1,6 @@
 package agent.rabbit.open;
 
-import agent.net.bytebuddy.implementation.bind.annotation.*;
+import net.bytebuddy.implementation.bind.annotation.*;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;

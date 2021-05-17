@@ -11,7 +11,6 @@
     <artifactId>rabbit-agent</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>rabbit-agent-shade</module>
         <module>rabbit-agent-core</module>
         <module>rabbit-agent-test</module>
     </modules>
