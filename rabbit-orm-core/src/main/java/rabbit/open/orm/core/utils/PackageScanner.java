@@ -173,11 +173,16 @@ public class PackageScanner implements Serializable {
      */
     public static List<String> getClassPathFiles() {
         String jars = System.getProperty("java.class.path");
+        String classesPath = PackageScanner.class.getClassLoader().getResource("").getPath();
         ArrayList<String> list = new ArrayList<>();
+        list.add(classesPath);
         if (null == jars || "".equals(jars.trim())) {
             return list;
         }
         for (String f : jars.split(";")) {
+            if (f.equals(classesPath)) {
+                continue;
+            }
             list.add(f);
         }
         return list;
