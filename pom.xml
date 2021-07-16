@@ -14,7 +14,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>4.3.18.RELEASE</spring.version>
+		<spring.version>4.3.21.RELEASE</spring.version>
 		<rabbit.open.version>3.3.2</rabbit.open.version>
 	</properties>
 
