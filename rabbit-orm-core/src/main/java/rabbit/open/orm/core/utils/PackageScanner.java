@@ -3,6 +3,7 @@ package rabbit.open.orm.core.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
@@ -11,6 +12,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -171,11 +174,27 @@ public class PackageScanner implements Serializable {
      * 扫描项目的依赖包 即java.class.path的值
      * @return
      */
-    public static List<String> getClassPathFiles() {
-        String jars = System.getProperty("java.class.path");
-        String classesPath = PackageScanner.class.getClassLoader().getResource("").getPath();
+    public static List<String> getClassPathFiles() throws IOException, URISyntaxException {
         ArrayList<String> list = new ArrayList<>();
+        String classesPath = new File(PackageScanner.class.getClassLoader().getResource("").toURI()).getPath();
         list.add(classesPath);
+        Set<String> set = new HashSet<>();
+        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        Resource[] classResources = resolver.getResources("classpath*:/**/*.class");
+        for (Resource resource : classResources) {
+            if (resource instanceof UrlResource) {
+                String path = resource.getURL().getPath();
+                try {
+                    if (path.contains("!")) {
+                        set.add(new File(new URI(path.substring(0, path.indexOf("!")))).getPath());
+                    }
+                } catch (Exception e) {
+                    // TO DO : IGNORE
+                }
+            }
+        }
+        list.addAll(set);
+        String jars = System.getProperty("java.class.path");
         if (null == jars || "".equals(jars.trim())) {
             return list;
         }
