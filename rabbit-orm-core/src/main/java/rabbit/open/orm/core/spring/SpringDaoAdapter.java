@@ -3,7 +3,6 @@ package rabbit.open.orm.core.spring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
-
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.dml.*;
 import rabbit.open.orm.core.dml.meta.MetaData;

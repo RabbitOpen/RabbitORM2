@@ -1,25 +1,8 @@
 package rabbit.open.orm.core.dialect.ddl;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
-
 import rabbit.open.orm.common.ddl.DDLType;
 import rabbit.open.orm.common.ddl.JoinTableDescriptor;
 import rabbit.open.orm.common.dialect.DialectType;
@@ -28,16 +11,22 @@ import rabbit.open.orm.common.exception.RabbitDDLException;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.Entity;
 import rabbit.open.orm.core.annotation.ManyToMany;
-import rabbit.open.orm.core.dialect.ddl.impl.DB2DDLHelper;
-import rabbit.open.orm.core.dialect.ddl.impl.MySQLDDLHelper;
-import rabbit.open.orm.core.dialect.ddl.impl.OracleDDLHelper;
-import rabbit.open.orm.core.dialect.ddl.impl.SQLServerDDLHelper;
-import rabbit.open.orm.core.dialect.ddl.impl.SQLiteDDLHelper;
+import rabbit.open.orm.core.dialect.ddl.impl.*;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.utils.SQLFormater;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <b>Description: ddl助手</b><br>

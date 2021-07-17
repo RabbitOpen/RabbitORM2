@@ -1,10 +1,5 @@
 package rabbit.open.orm.core.dml.filter.ext;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.InvalidJoinFilterException;
 import rabbit.open.orm.core.dml.DMLObject;
@@ -13,6 +8,11 @@ import rabbit.open.orm.core.dml.filter.DMLFilter;
 import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <b>@description 多对多过滤器 </b>

@@ -1,20 +1,16 @@
 package rabbit.open.orm.core.dml;
 
-import java.sql.PreparedStatement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.common.exception.InvalidJoinMergeException;
 import rabbit.open.orm.core.annotation.ManyToMany;
 import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
-import rabbit.open.orm.core.dml.meta.FieldMetaData;
-import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
-import rabbit.open.orm.core.dml.meta.MetaData;
-import rabbit.open.orm.core.dml.meta.PreparedSqlDescriptor;
-import rabbit.open.orm.core.dml.meta.TableMeta;
+import rabbit.open.orm.core.dml.meta.*;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
+
+import java.sql.PreparedStatement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * <b>Description: 中间表管理器</b><br>

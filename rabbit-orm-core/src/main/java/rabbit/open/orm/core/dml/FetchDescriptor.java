@@ -1,10 +1,5 @@
 package rabbit.open.orm.core.dml;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.common.exception.InvalidJoinFetchOperationException;
 import rabbit.open.orm.common.exception.RepeatedJoinFetchOperationException;
@@ -12,6 +7,11 @@ import rabbit.open.orm.core.dml.meta.DynamicFilterDescriptor;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.JoinFieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * <b>Description  关联查询描述符</b>. 

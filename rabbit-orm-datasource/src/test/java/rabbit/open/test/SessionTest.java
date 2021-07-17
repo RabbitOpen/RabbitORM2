@@ -1,15 +1,14 @@
 package rabbit.open.test;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import junit.framework.TestCase;
 import rabbit.open.orm.datasource.RabbitDataSource;
 import rabbit.open.orm.datasource.Session;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * <b>Description: Session测试</b><br>

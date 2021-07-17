@@ -1,10 +1,10 @@
 package rabbit.open.orm.datasource;
 
-import java.sql.Connection;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rabbit.open.orm.common.exception.RabbitDMLException;
+
+import java.sql.Connection;
 
 
 public class SessionKeeper {

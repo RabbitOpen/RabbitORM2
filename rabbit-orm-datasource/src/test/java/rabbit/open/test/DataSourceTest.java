@@ -1,21 +1,19 @@
 package rabbit.open.test;
 
+import com.mysql.jdbc.Statement;
+import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import rabbit.open.orm.datasource.RabbitDataSource;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
-import com.mysql.jdbc.Statement;
-
-import junit.framework.TestCase;
-import rabbit.open.orm.datasource.RabbitDataSource;
 
 /**
  * <b>Description: 数据源测试</b><br>

@@ -1,13 +1,13 @@
 package rabbit.open.orm.core.utils;
 
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.dml.meta.SQLQueryFieldMeta;
+
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-import rabbit.open.orm.core.annotation.Column;
-import rabbit.open.orm.core.dml.meta.SQLQueryFieldMeta;
 
 public abstract class ClassHelper {
 

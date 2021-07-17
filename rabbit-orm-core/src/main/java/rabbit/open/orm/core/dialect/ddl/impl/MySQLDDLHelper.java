@@ -1,21 +1,16 @@
 package rabbit.open.orm.core.dialect.ddl.impl;
 
-import java.math.BigDecimal;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import rabbit.open.orm.common.ddl.JoinTableDescriptor;
 import rabbit.open.orm.common.exception.RabbitDDLException;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dialect.ddl.DDLHelper;
 import rabbit.open.orm.core.utils.SQLFormater;
+
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * <b>Description: mysql ddl助手</b><br>

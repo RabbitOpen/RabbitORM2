@@ -10,7 +10,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.xml.sax.SAXException;
-
 import rabbit.open.orm.common.exception.MappingFileParsingException;
 import rabbit.open.orm.common.exception.NamedSQLNotExistedException;
 import rabbit.open.orm.common.exception.NoNamedSQLDefinedException;

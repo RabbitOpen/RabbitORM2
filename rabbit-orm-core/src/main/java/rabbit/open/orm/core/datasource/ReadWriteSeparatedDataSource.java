@@ -1,14 +1,13 @@
 package rabbit.open.orm.core.datasource;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.sql.DataSource;
-
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.core.dml.CombinedDataSource;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.TableMeta;
+
+import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <b>Description 读写分离数据源 </b>

@@ -3,7 +3,6 @@ package rabbit.open.test;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
 import rabbit.open.orm.codegen.DBFieldDescriptor;
 import rabbit.open.orm.codegen.MappingRegistry;
 import rabbit.open.orm.codegen.filter.GeneratorFilter;

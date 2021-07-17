@@ -1,18 +1,13 @@
 package rabbit.open.orm.core.dialect.ddl.impl;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import rabbit.open.orm.common.ddl.JoinTableDescriptor;
 import rabbit.open.orm.common.dml.Policy;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
 import rabbit.open.orm.core.dml.meta.MetaData;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * <b>Description sqlite ddl助手</b>

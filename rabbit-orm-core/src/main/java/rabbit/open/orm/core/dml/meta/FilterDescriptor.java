@@ -1,8 +1,8 @@
 package rabbit.open.orm.core.dml.meta;
 
-import java.lang.reflect.Field;
-
 import rabbit.open.orm.common.dml.FilterType;
+
+import java.lang.reflect.Field;
 
 /**
  * 过滤条件描述符

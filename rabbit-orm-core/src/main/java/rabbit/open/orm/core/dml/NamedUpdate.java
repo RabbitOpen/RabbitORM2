@@ -1,10 +1,10 @@
 package rabbit.open.orm.core.dml;
 
-import java.sql.PreparedStatement;
-import java.util.TreeMap;
-
 import rabbit.open.orm.common.dml.DMLType;
 import rabbit.open.orm.core.dml.meta.TableMeta;
+
+import java.sql.PreparedStatement;
+import java.util.TreeMap;
 
 /**
  * <b>@description 命名更新对象 </b>

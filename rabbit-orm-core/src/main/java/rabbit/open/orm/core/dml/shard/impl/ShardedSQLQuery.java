@@ -1,7 +1,5 @@
 package rabbit.open.orm.core.dml.shard.impl;
 
-import java.util.List;
-
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SQLQuery;
@@ -9,6 +7,8 @@ import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
 import rabbit.open.orm.core.dml.shard.ShardedDMLObject;
+
+import java.util.List;
 
 /**
  * <b>@description 分片命名查询 </b>

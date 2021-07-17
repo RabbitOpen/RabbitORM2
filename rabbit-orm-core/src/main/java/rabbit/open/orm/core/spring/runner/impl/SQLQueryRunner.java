@@ -1,9 +1,5 @@
 package rabbit.open.orm.core.spring.runner.impl;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Collection;
-
 import rabbit.open.orm.common.exception.InvalidReturnTypeException;
 import rabbit.open.orm.core.dialect.page.PageHelper;
 import rabbit.open.orm.core.dialect.page.PageInfo;
@@ -11,6 +7,10 @@ import rabbit.open.orm.core.dml.SQLQuery;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.spring.runner.MethodMapping;
 import rabbit.open.orm.core.spring.runner.SQLRunner;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
 
 /**
  * <b>@description NamedJdbcRunner </b>

@@ -1,9 +1,9 @@
 package rabbit.open.orm.codegen.elements;
 
+import rabbit.open.orm.codegen.JavaElement;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import rabbit.open.orm.codegen.JavaElement;
 
 /**
  * <b>@description 字段元素  </b>

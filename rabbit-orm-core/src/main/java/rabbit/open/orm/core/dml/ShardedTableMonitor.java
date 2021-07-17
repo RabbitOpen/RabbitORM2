@@ -1,20 +1,18 @@
 package rabbit.open.orm.core.dml;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rabbit.open.orm.core.dialect.ddl.DDLHelper;
+import rabbit.open.orm.core.dml.meta.MetaData;
+import rabbit.open.orm.core.dml.meta.TableMeta;
+
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
-import javax.sql.DataSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import rabbit.open.orm.core.dialect.ddl.DDLHelper;
-import rabbit.open.orm.core.dml.meta.MetaData;
-import rabbit.open.orm.core.dml.meta.TableMeta;
 
 /**
  * 

@@ -1,11 +1,11 @@
 package rabbit.open.orm.core.annotation;
 
+import rabbit.open.orm.common.dml.Policy;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import rabbit.open.orm.common.dml.Policy;
 
 /**
  * 

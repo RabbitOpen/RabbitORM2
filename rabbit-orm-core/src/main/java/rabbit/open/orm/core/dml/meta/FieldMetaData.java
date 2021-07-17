@@ -1,12 +1,12 @@
 package rabbit.open.orm.core.dml.meta;
 
-import java.lang.reflect.Field;
-import java.util.Date;
-
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.core.annotation.Column;
 import rabbit.open.orm.core.annotation.PrimaryKey;
 import rabbit.open.orm.core.dml.meta.proxy.GenericAnnotationProxy;
+
+import java.lang.reflect.Field;
+import java.util.Date;
 
 /**
  * <b>Description: 	字段元信息对象</b><br>

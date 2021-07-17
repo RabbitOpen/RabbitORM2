@@ -1,13 +1,13 @@
 package rabbit.open.orm.core.dialect.ddl.impl;
 
+import rabbit.open.orm.common.ddl.JoinTableDescriptor;
+import rabbit.open.orm.common.exception.RabbitDDLException;
+
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
-import rabbit.open.orm.common.ddl.JoinTableDescriptor;
-import rabbit.open.orm.common.exception.RabbitDDLException;
 
 /**
  * <b>Description: sqlserver ddl助手</b><br>

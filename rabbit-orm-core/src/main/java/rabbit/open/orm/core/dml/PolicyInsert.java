@@ -1,5 +1,11 @@
 package rabbit.open.orm.core.dml;
 
+import rabbit.open.orm.common.dml.DMLType;
+import rabbit.open.orm.common.dml.Policy;
+import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.core.dialect.dml.impl.AutoIncrementPolicy;
+import rabbit.open.orm.core.dialect.dml.impl.SequencePolicy;
+
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,12 +14,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import rabbit.open.orm.common.dml.DMLType;
-import rabbit.open.orm.common.dml.Policy;
-import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.core.dialect.dml.impl.AutoIncrementPolicy;
-import rabbit.open.orm.core.dialect.dml.impl.SequencePolicy;
 
 /**
  * <b>Description:   insert策略</b>.

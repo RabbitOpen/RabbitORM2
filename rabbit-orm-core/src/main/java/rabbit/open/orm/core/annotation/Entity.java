@@ -1,13 +1,13 @@
 package rabbit.open.orm.core.annotation;
 
+import rabbit.open.orm.core.dml.policy.PagePolicy;
+import rabbit.open.orm.core.dml.shard.DefaultShardingPolicy;
+import rabbit.open.orm.core.dml.shard.ShardingPolicy;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import rabbit.open.orm.core.dml.policy.PagePolicy;
-import rabbit.open.orm.core.dml.shard.DefaultShardingPolicy;
-import rabbit.open.orm.core.dml.shard.ShardingPolicy;
 
 /**
  * 标记表实体

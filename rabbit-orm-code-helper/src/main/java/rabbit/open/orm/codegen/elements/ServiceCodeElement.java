@@ -1,7 +1,6 @@
 package rabbit.open.orm.codegen.elements;
 
 import org.springframework.stereotype.Service;
-
 import rabbit.open.orm.codegen.generator.CodeGenerator;
 
 /**

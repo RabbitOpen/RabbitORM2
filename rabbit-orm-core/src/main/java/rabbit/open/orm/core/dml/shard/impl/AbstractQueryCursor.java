@@ -1,10 +1,10 @@
 package rabbit.open.orm.core.dml.shard.impl;
 
-import java.util.List;
-
 import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.Cursor;
 import rabbit.open.orm.core.dml.shard.ShardedResultSetProcessor;
+
+import java.util.List;
 
 /**
  * 查询结果

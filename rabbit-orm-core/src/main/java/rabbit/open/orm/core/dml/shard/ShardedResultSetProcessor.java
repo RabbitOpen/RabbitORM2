@@ -1,8 +1,8 @@
 package rabbit.open.orm.core.dml.shard;
 
-import java.util.List;
-
 import rabbit.open.orm.core.dml.meta.TableMeta;
+
+import java.util.List;
 
 /**
  * <b>@description 分片表数据处理器 </b>

@@ -1,9 +1,9 @@
 package rabbit.open.orm.core.dml.convert.ext;
 
-import java.math.BigDecimal;
-
 import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
 import rabbit.open.orm.core.dml.meta.FieldMetaData;
+
+import java.math.BigDecimal;
 
 public class BigDecimalConverter extends RabbitValueConverter<BigDecimal> {
 

@@ -1,11 +1,11 @@
 package rabbit.open.orm.codegen.elements;
 
+import rabbit.open.orm.codegen.JavaElement;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import rabbit.open.orm.codegen.JavaElement;
 
 /**
  * <b>@description 实体class 元素 </b>

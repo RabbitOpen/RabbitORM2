@@ -1,11 +1,10 @@
 package rabbit.open.test;
 
+import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import junit.framework.TestCase;
 import rabbit.open.orm.datasource.DataSourceMonitor;
 import rabbit.open.orm.datasource.RabbitDataSource;
 

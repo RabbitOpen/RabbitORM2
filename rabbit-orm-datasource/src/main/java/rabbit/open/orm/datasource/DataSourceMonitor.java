@@ -1,5 +1,9 @@
 package rabbit.open.orm.datasource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import rabbit.open.orm.common.exception.SessionHoldOverTimeException;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,11 +13,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import rabbit.open.orm.common.exception.SessionHoldOverTimeException;
 
 /**
  * <b>Description: 数据源监控线程</b><br>

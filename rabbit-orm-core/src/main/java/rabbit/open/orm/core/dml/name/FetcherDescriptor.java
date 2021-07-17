@@ -1,9 +1,9 @@
 package rabbit.open.orm.core.dml.name;
 
+import rabbit.open.orm.common.exception.RabbitDMLException;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import rabbit.open.orm.common.exception.RabbitDMLException;
 
 /**
  * <b>Description  命名查询的fetch行为描述对象</b>

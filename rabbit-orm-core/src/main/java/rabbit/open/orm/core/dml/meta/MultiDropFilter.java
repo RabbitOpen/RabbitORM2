@@ -1,12 +1,12 @@
 package rabbit.open.orm.core.dml.meta;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dml.CallBackTask;
 import rabbit.open.orm.core.dml.DMLObject;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <b>Description 多分支的过滤条件，即多个OR条件</b>

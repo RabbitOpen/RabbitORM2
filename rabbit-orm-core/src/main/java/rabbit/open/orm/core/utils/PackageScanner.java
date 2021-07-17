@@ -176,8 +176,7 @@ public class PackageScanner implements Serializable {
      */
     public static List<String> getClassPathFiles() throws IOException, URISyntaxException {
         ArrayList<String> list = new ArrayList<>();
-        String classesPath = new File(PackageScanner.class.getClassLoader().getResource("").toURI()).getPath();
-        list.add(classesPath);
+        String classesPath = addClassPathDir(list);
         Set<String> set = new HashSet<>();
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Resource[] classResources = resolver.getResources("classpath*:/**/*.class");
@@ -205,6 +204,22 @@ public class PackageScanner implements Serializable {
             list.add(f);
         }
         return list;
+    }
+
+    /**
+     * 添加class path 文件目录
+     * @param list
+     * @return
+     */
+    private static String addClassPathDir(ArrayList<String> list) {
+        String classesPath = "";
+        try {
+            classesPath = new File(PackageScanner.class.getClassLoader().getResource("").toURI()).getPath();
+            list.add(classesPath);
+        } catch (Exception e) {
+            // TO DO : IGNORE
+        }
+        return classesPath;
     }
 }
  

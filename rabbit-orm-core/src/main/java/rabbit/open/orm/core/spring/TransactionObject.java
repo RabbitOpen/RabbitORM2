@@ -1,10 +1,10 @@
 package rabbit.open.orm.core.spring;
 
-import java.sql.Connection;
-import java.sql.Savepoint;
-
 import org.springframework.transaction.SavepointManager;
 import org.springframework.transaction.TransactionDefinition;
+
+import java.sql.Connection;
+import java.sql.Savepoint;
 
 public class TransactionObject implements SavepointManager {
 	

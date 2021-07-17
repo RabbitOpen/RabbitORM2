@@ -1,17 +1,17 @@
 package rabbit.open.orm.core.dml.shard.impl;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import rabbit.open.orm.common.dml.FilterType;
 import rabbit.open.orm.core.dml.meta.MetaData;
 import rabbit.open.orm.core.dml.meta.TableMeta;
 import rabbit.open.orm.core.dml.shard.ShardFactor;
 import rabbit.open.orm.core.dml.shard.ShardingPolicy;
 import rabbit.open.orm.core.dml.shard.execption.NoShardTableException;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * <b>@description 主键的值hash code取模分片策略,，不支持动态扩容 </b>

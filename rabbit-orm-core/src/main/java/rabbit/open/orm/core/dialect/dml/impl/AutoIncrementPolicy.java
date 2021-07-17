@@ -1,19 +1,18 @@
 package rabbit.open.orm.core.dialect.dml.impl;
 
+import com.mysql.jdbc.Statement;
+import rabbit.open.orm.core.dml.DMLObject;
+import rabbit.open.orm.core.dml.NonQueryAdapter;
+import rabbit.open.orm.core.dml.PolicyInsert;
+import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
+import rabbit.open.orm.core.dml.meta.MetaData;
+
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-
-import com.mysql.jdbc.Statement;
-
-import rabbit.open.orm.core.dml.DMLObject;
-import rabbit.open.orm.core.dml.NonQueryAdapter;
-import rabbit.open.orm.core.dml.PolicyInsert;
-import rabbit.open.orm.core.dml.convert.RabbitValueConverter;
-import rabbit.open.orm.core.dml.meta.MetaData;
 
 /**
  * <b>Description:   自增长插入策略实现</b>.

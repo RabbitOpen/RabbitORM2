@@ -1,5 +1,17 @@
 package rabbit.open.orm.codegen.generator;
 
+import rabbit.open.orm.codegen.DBFieldDescriptor;
+import rabbit.open.orm.codegen.JavaElement;
+import rabbit.open.orm.codegen.MappingRegistry;
+import rabbit.open.orm.codegen.elements.*;
+import rabbit.open.orm.codegen.filter.GeneratorFilter;
+import rabbit.open.orm.codegen.filter.NameType;
+import rabbit.open.orm.common.dml.Policy;
+import rabbit.open.orm.common.exception.RabbitDMLException;
+import rabbit.open.orm.core.annotation.Column;
+import rabbit.open.orm.core.annotation.Entity;
+import rabbit.open.orm.core.annotation.PrimaryKey;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,25 +21,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Properties;
-
-import rabbit.open.orm.codegen.DBFieldDescriptor;
-import rabbit.open.orm.codegen.JavaElement;
-import rabbit.open.orm.codegen.MappingRegistry;
-import rabbit.open.orm.codegen.elements.AbstractDaoCodeElement;
-import rabbit.open.orm.codegen.elements.AnnotationElement;
-import rabbit.open.orm.codegen.elements.CommonDaoCodeElement;
-import rabbit.open.orm.codegen.elements.ConstantFieldElement;
-import rabbit.open.orm.codegen.elements.DocElement;
-import rabbit.open.orm.codegen.elements.DomainClassElement;
-import rabbit.open.orm.codegen.elements.FieldElement;
-import rabbit.open.orm.codegen.elements.ServiceCodeElement;
-import rabbit.open.orm.codegen.filter.GeneratorFilter;
-import rabbit.open.orm.codegen.filter.NameType;
-import rabbit.open.orm.common.dml.Policy;
-import rabbit.open.orm.common.exception.RabbitDMLException;
-import rabbit.open.orm.core.annotation.Column;
-import rabbit.open.orm.core.annotation.Entity;
-import rabbit.open.orm.core.annotation.PrimaryKey;
 
 public class CodeGenerator {
 

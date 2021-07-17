@@ -1,10 +1,10 @@
 package rabbit.open.orm.core.dml.shard.impl;
 
-import java.util.List;
-
 import rabbit.open.orm.core.dml.DMLObject;
 import rabbit.open.orm.core.dml.SQLQuery;
 import rabbit.open.orm.core.dml.meta.TableMeta;
+
+import java.util.List;
 
 /**
  * <b>@description 分片命名查询游标 </b>

@@ -1,14 +1,13 @@
 package rabbit.open.orm.datasource;
 
+import rabbit.open.orm.common.exception.RabbitDMLException;
+
+import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.logging.Logger;
-
-import javax.sql.DataSource;
-
-import rabbit.open.orm.common.exception.RabbitDMLException;
 
 public abstract class AbstractDataSource implements DataSource {
 

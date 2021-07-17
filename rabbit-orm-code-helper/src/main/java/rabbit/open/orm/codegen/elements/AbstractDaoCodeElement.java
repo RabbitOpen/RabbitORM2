@@ -1,11 +1,11 @@
 package rabbit.open.orm.codegen.elements;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-
 import rabbit.open.orm.codegen.generator.CodeGenerator;
 import rabbit.open.orm.core.dml.SessionFactory;
 import rabbit.open.orm.core.spring.SpringDaoAdapter;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 /**
  * <b>@description 抽象dao代码 </b>

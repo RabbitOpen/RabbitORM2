@@ -1,16 +1,15 @@
 package rabbit.open.orm.datasource;
 
-import java.lang.reflect.Method;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
-
 import rabbit.open.orm.common.exception.RabbitDMLException;
+
+import java.lang.reflect.Method;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class PreparedStatementProxy implements MethodInterceptor {
 

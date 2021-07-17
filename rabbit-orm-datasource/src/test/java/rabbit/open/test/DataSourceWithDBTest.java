@@ -1,10 +1,9 @@
 package rabbit.open.test;
 
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import junit.framework.TestCase;
 import rabbit.open.orm.common.exception.DataSourceClosedException;
 import rabbit.open.orm.common.exception.RabbitDMLException;
 import rabbit.open.orm.datasource.RabbitDataSource;
